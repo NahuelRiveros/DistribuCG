@@ -1,0 +1,35 @@
+import { Router } from "express";
+import multer from "multer";
+import {
+  listarAreasController,
+  obtenerContenidoPublicoController,
+  listarContenidoAdminController,
+  crearContenidoController,
+  actualizarContenidoController,
+  cambiarEstadoContenidoController,
+  eliminarContenidoController,
+} from "../controllers/home_controller.js";
+import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
+  fileFilter: (_req, file, cb) => {
+    const ok = file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/");
+    cb(ok ? null : new Error("Solo se permiten imágenes o videos"), ok);
+  },
+});
+
+export const homeRouter = Router();
+
+// Público — lo consume la landing page, sin login
+homeRouter.get("/contenido", obtenerContenidoPublicoController);
+
+// Gestión — solo admin
+homeRouter.use(requireAuth, requireRole("admin"));
+homeRouter.get("/areas", listarAreasController);
+homeRouter.get("/contenido/admin", listarContenidoAdminController);
+homeRouter.post("/contenido", upload.single("archivo"), crearContenidoController);
+homeRouter.put("/contenido/:id", actualizarContenidoController);
+homeRouter.patch("/contenido/:id/estado", cambiarEstadoContenidoController);
+homeRouter.delete("/contenido/:id", eliminarContenidoController);
