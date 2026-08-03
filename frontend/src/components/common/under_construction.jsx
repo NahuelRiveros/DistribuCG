@@ -22,7 +22,7 @@ export default function UnderConstruction({
 
         <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400">
           <Wrench className="h-4 w-4" />
-          <span>Dynamic Gym · En desarrollo</span>
+          <span>Kinetica · En desarrollo</span>
         </div>
       </div>
     </div>

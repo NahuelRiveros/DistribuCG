@@ -1,14 +1,12 @@
-import { images } from "../../assets/index.js";
-
 export const navbar_config = {
   brand: {
-    titulo: "Dynamic",
-    subtitulo: "Dynamic Gym",
-    logoUrl: images.dynamicLogo,
+    titulo: "Kinetica",
+    subtitulo: "Entrenamiento · Kinesiología",
+    logoUrl: null,
     mostrarTitulo: true,
-    mostrarSubtitulo: false,
+    mostrarSubtitulo: true,
     linkTo: "/",
-    fallbackLetter: "D",
+    fallbackLetter: "K",
   },
 
   labels: {

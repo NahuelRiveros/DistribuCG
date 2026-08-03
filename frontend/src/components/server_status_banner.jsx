@@ -52,7 +52,7 @@ export default function ServerStatusBanner() {
           </div>
 
           <p>
-            Abrí el archivo <b>(Dynamic)</b> desde el escritorio.
+            Abrí el acceso directo del sistema desde el escritorio.
           </p>
 
           <p className="mt-2">

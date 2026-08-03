@@ -110,6 +110,11 @@ async function seed_ejercicios() {
     { nombre: "Propiocepción de tobillo",       tipo: "Kinesiología", grupo: "Piernas" },
     { nombre: "Fortalecimiento de core lumbar", tipo: "Kinesiología", grupo: "Core" },
     { nombre: "Movilidad cervical",             tipo: "Kinesiología", grupo: null },
+    // Kinesiología — evaluación inicial (test funcional y test de fuerza)
+    { nombre: "Sentadilla con barra por encima de la cabeza", tipo: "Kinesiología", grupo: "Piernas" },
+    { nombre: "Estocadas",                                    tipo: "Kinesiología", grupo: "Piernas" },
+    { nombre: "Sentadilla a una pierna",                      tipo: "Kinesiología", grupo: "Piernas" },
+    { nombre: "Hip thrust",                                   tipo: "Kinesiología", grupo: "Piernas" },
   ];
 
   for (const ej of ejercicios) {

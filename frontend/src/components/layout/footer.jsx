@@ -8,7 +8,7 @@ import {
   LogIn,
   Dumbbell,
   Activity,
-  Zap,
+  HeartPulse,
   Trophy,
   ArrowRight,
   ShieldCheck,
@@ -26,8 +26,8 @@ const ANIMATIONS = `
     50%       { opacity: 0.15; }
   }
   @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 0px rgba(59,130,246,0); }
-    50%       { box-shadow: 0 0 22px rgba(59,130,246,0.18); }
+    0%, 100% { box-shadow: 0 0 0px rgba(24,199,216,0); }
+    50%       { box-shadow: 0 0 22px rgba(24,199,216,0.18); }
   }
 `;
 
@@ -73,13 +73,13 @@ export default function Footer() {
       <footer className="relative overflow-hidden bg-[#0B0F1A] text-white">
 
         {/* ── Capas de fondo ── */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_0%_100%,rgba(59,130,246,0.10),transparent),radial-gradient(ellipse_40%_40%_at_100%_0%,rgba(59,130,246,0.07),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_0%_100%,rgba(24,199,216,0.10),transparent),radial-gradient(ellipse_40%_40%_at_100%_0%,rgba(24,199,216,0.07),transparent)]" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.016)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.016)_1px,transparent_1px)] bg-[size:40px_40px]" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:200px_200px]" />
 
         {/* ── Línea superior animada ── */}
         <div className="relative z-10 h-[2px] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 opacity-80" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0B7D8F] via-[#18C7D8] to-[#0B7D8F] opacity-80" />
           <div
             className="absolute inset-y-0 w-32 rounded-full bg-white/70 blur-md"
             style={{ animation: "scanLine 5s ease-in-out infinite" }}
@@ -95,33 +95,31 @@ export default function Footer() {
               <div className="flex items-center gap-2.5">
                 <span className="relative flex h-2 w-2">
                   <span
-                    className="absolute inline-flex h-full w-full rounded-full bg-blue-400"
+                    className="absolute inline-flex h-full w-full rounded-full bg-[#18C7D8]"
                     style={{ animation: "statusBlink 2.4s ease-in-out infinite" }}
                   />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-400 opacity-80" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#18C7D8] opacity-80" />
                 </span>
-                <span className="font-mono text-[9px] tracking-[0.35em] text-blue-400/50 uppercase">
+                <span className="font-mono text-[9px] tracking-[0.35em] text-[#18C7D8]/50 uppercase">
                   Sistema activo
                 </span>
               </div>
 
               <div className="flex items-baseline gap-3">
-                <h3 className="font-mono text-5xl font-black tracking-tighter text-white">
-                  Dynamic
+                <h3 className="kt-display text-5xl font-bold tracking-tighter text-white">
+                  Kinetica
                 </h3>
-                <span className="font-mono text-[10px] font-semibold tracking-widest text-blue-400/70 uppercase">
-                  Gym
-                </span>
               </div>
 
               <p className="max-w-[280px] text-sm leading-7 text-slate-400">
-                Plataforma de gestión integral para gimnasios. Control de
-                ingresos, alumnos, planes y estadísticas en un solo lugar.
+                Centro de entrenamiento y kinesiología. Seguimiento
+                personalizado de cada ejercicio, alumnos, planes y
+                estadísticas en un solo lugar.
               </p>
 
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/8 px-3.5 py-1.5">
-                <ShieldCheck size={10} className="text-blue-400/70" />
-                <span className="font-mono text-[9px] tracking-widest text-blue-400/60 uppercase">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#18C7D8]/20 bg-[#18C7D8]/8 px-3.5 py-1.5">
+                <ShieldCheck size={10} className="text-[#18C7D8]/70" />
+                <span className="font-mono text-[9px] tracking-widest text-[#18C7D8]/60 uppercase">
                   Gestión · Rendimiento · Control
                 </span>
               </div>
@@ -145,15 +143,15 @@ export default function Footer() {
                   <li key={item.to}>
                     <Link
                       to={item.to}
-                      className="group flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-slate-400 transition-all duration-150 hover:bg-white/[0.04] hover:text-blue-300"
+                      className="group flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-slate-400 transition-all duration-150 hover:bg-white/[0.04] hover:text-[#18C7D8]"
                     >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-white/8 bg-white/[0.04] text-slate-500 transition-all group-hover:border-blue-400/25 group-hover:text-blue-400">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-white/8 bg-white/[0.04] text-slate-500 transition-all group-hover:border-[#18C7D8]/25 group-hover:text-[#18C7D8]">
                         {item.icon}
                       </span>
                       <span className="flex-1">{item.label}</span>
                       <ArrowRight
                         size={10}
-                        className="text-blue-400 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                        className="text-[#18C7D8] opacity-0 transition-opacity duration-150 group-hover:opacity-100"
                       />
                     </Link>
                   </li>
@@ -163,17 +161,17 @@ export default function Footer() {
 
             {/* ── Motivación ── */}
             <div>
-              <SectionHeader label="¿Por qué entrenar?" code="GYM-MTV" />
+              <SectionHeader label="¿Por qué elegirnos?" code="KT-PLR" />
 
               <ul className="space-y-3">
                 {[
-                  { icon: <Zap     size={13} />, title: "Explosividad", text: "Potenciá velocidad y reacción" },
-                  { icon: <Dumbbell size={13}/>, title: "Fuerza",        text: "Base sólida para cualquier disciplina" },
-                  { icon: <Activity size={13}/>, title: "Pliometría",    text: "Energía, coordinación y potencia" },
-                  { icon: <Trophy  size={13} />, title: "Rendimiento",   text: "Entrená como un atleta" },
+                  { icon: <Dumbbell  size={13}/>, title: "Personalizado", text: "Plan de entrenamiento a tu medida" },
+                  { icon: <Activity  size={13}/>, title: "Seguimiento",   text: "Registro de cada ejercicio y avance" },
+                  { icon: <HeartPulse size={13}/>, title: "Kinesiología",  text: "Recuperación y rehabilitación guiada" },
+                  { icon: <Trophy    size={13} />, title: "Resultados",   text: "Progreso medible, sesión a sesión" },
                 ].map((item) => (
                   <li key={item.title} className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-blue-400/15 bg-blue-400/[0.08] text-blue-300">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.08] text-[#18C7D8]">
                       {item.icon}
                     </span>
                     <div>
@@ -185,10 +183,10 @@ export default function Footer() {
               </ul>
 
               <div
-                className="mt-6 rounded-2xl border border-blue-400/15 bg-blue-400/[0.06] p-4"
+                className="mt-6 rounded-2xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.06] p-4"
                 style={{ animation: "glowPulse 4s ease-in-out infinite" }}
               >
-                <p className="font-mono text-[11px] font-semibold tracking-wider text-blue-300 uppercase">
+                <p className="font-mono text-[11px] font-semibold tracking-wider text-[#18C7D8] uppercase">
                   Constancia &gt; Motivación
                 </p>
                 <p className="mt-1.5 text-sm leading-6 text-slate-300">
@@ -205,7 +203,7 @@ export default function Footer() {
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-6 py-5 sm:flex-row sm:justify-between">
             <p className="font-mono text-[11px] tracking-wide text-slate-500">
               © {new Date().getFullYear()} ·{" "}
-              <span className="text-slate-400">Dynamic Gym</span> · Todos los derechos reservados.
+              <span className="text-slate-400">Kinetica</span> · Todos los derechos reservados.
             </p>
             <p className="font-mono text-[10px] tracking-widest text-slate-600 uppercase">
               Sistema de gestión · Riveros Edgardo Nahuel
@@ -232,7 +230,7 @@ function SectionHeader({ label, code }) {
 function ModuleItem({ icon, code, title, text }) {
   return (
     <li className="group flex items-start gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-blue-400/15 bg-blue-400/[0.08] text-blue-300 transition-all duration-200 group-hover:border-blue-400/35 group-hover:bg-blue-400/[0.14]">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.08] text-[#18C7D8] transition-all duration-200 group-hover:border-[#18C7D8]/35 group-hover:bg-[#18C7D8]/[0.14]">
         {icon}
       </div>
       <div className="min-w-0 flex-1">

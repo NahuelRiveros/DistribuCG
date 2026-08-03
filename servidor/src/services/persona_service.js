@@ -3,7 +3,7 @@ import { Persona, Alumno } from "../models/index.js";
 
 const ESTADO_PENDIENTE = 3;
 
-const normalizarDocumento = (doc) => String(doc).replace(/[.\s]/g, "").trim();
+export const normalizarDocumento = (doc) => String(doc).replace(/[.\s]/g, "").trim();
 
 export async function registrarPersonaConAlumno(data) {
   const documento = normalizarDocumento(data.documento);
@@ -42,17 +42,23 @@ export async function registrarPersonaConAlumno(data) {
       actualizado_en:    hoy,
     }, { transaction: t });
 
-    const alumno = await Alumno.create({
-      persona_id:            persona.id,
-      estado_id:             ESTADO_PENDIENTE,
-      fecha_registro:        hoy,
-      certificado_apt_fisica: false,
-      actualizado_en:        hoy,
-    }, { transaction: t });
+    // crear_alumno=false: la persona queda registrada sin membresía de gym
+    // (ej. paciente que viene solo por kinesiología). Default true para no
+    // cambiar el comportamiento actual del alta.
+    const crearAlumno = data.crear_alumno !== false;
+    const alumno = crearAlumno
+      ? await Alumno.create({
+          persona_id:            persona.id,
+          estado_id:             ESTADO_PENDIENTE,
+          fecha_registro:        hoy,
+          certificado_apt_fisica: false,
+          actualizado_en:        hoy,
+        }, { transaction: t })
+      : null;
 
     return {
       ok: true,
-      mensaje: "Persona y alumno creados correctamente",
+      mensaje: alumno ? "Persona y alumno creados correctamente" : "Persona creada correctamente",
       persona: {
         persona_id:        persona.id,
         nombre:            persona.nombre,
@@ -62,7 +68,7 @@ export async function registrarPersonaConAlumno(data) {
         sexo_id:           persona.sexo_id,
         tipo_persona_id:   persona.tipo_persona_id,
       },
-      alumno: {
+      alumno: alumno && {
         alumno_id: alumno.id,
         estado_id: alumno.estado_id,
       },

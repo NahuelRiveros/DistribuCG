@@ -134,7 +134,7 @@ export default function GestionSuscripcionPage() {
               </span>
               <h1 className="mt-2 text-2xl font-extrabold text-slate-900">Suscripción del sistema</h1>
               <p className="mt-0.5 text-sm text-slate-500">
-                Gestioná la vigencia del plan de Dynamic Gym como software.
+                Gestioná la vigencia del plan de Kinetica como software.
               </p>
             </div>
             <button

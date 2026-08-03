@@ -6,6 +6,7 @@ import {
   RolPermiso, Alumno, Usuario, PacienteKinesiologia,
   UsuarioRol, Membresia, MovimientoStock, AsignacionProfesional,
   RegistroEjercicio, PacientePatologia, AlumnoEstadoLog,
+  FichaKinesiologica, TestFuncional, TestFuerza, RegistroSesionKinesiologia,
   Ingreso,
 } from "../models/index.js";
 
@@ -55,8 +56,14 @@ async function sincronizar_modelos() {
     PacientePatologia,      // paciente_patologia → paciente_kinesiologia, patologia
     AlumnoEstadoLog,        // alumno_estado_log → alumno, alumno_estado, usuario
 
-    // ── Nivel 4 — depende de membresía ───────────────────────────────────────
-    Ingreso,   // ingreso → membresia
+    // ── Nivel 4 — depende de membresía / paciente_patologia ──────────────────
+    Ingreso,             // ingreso → membresia
+    FichaKinesiologica,  // ficha_kinesiologica → paciente_patologia, usuario
+
+    // ── Nivel 5 — depende de ficha_kinesiologica ─────────────────────────────
+    TestFuncional,              // test_funcional → ficha_kinesiologica, ejercicio, usuario
+    TestFuerza,                 // test_fuerza → ficha_kinesiologica, ejercicio, usuario
+    RegistroSesionKinesiologia, // registro_sesion_kinesiologia → ficha_kinesiologica, ejercicio, usuario
   ];
 
   for (const modelo of modelos_en_orden) {

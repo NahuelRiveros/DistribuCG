@@ -34,6 +34,10 @@ import { PlanTipo }        from "./alumnos/plan_tipo.js";
 import { PacienteKinesiologia } from "./kinesiologia/paciente_kinesiologia.js";
 import { Patologia }        from "./kinesiologia/patologia.js";
 import { PacientePatologia } from "./kinesiologia/paciente_patologia.js";
+import { FichaKinesiologica } from "./kinesiologia/ficha_kinesiologica.js";
+import { TestFuncional }     from "./kinesiologia/test_funcional.js";
+import { TestFuerza }        from "./kinesiologia/test_fuerza.js";
+import { RegistroSesionKinesiologia } from "./kinesiologia/registro_sesion_kinesiologia.js";
 
 // ── seguimiento/ — asignación profesional y avances de ejercicio ────────────
 import { AsignacionProfesional } from "./seguimiento/asignacion_profesional.js";
@@ -179,6 +183,27 @@ Patologia.belongsToMany(PacienteKinesiologia, {
 HomeArea.hasMany(HomeContenido,   { foreignKey: "area_id", as: "contenidos" });
 HomeContenido.belongsTo(HomeArea, { foreignKey: "area_id", as: "area" });
 
+// ─── PacientePatologia ↔ FichaKinesiologica (1:1) ────────────────────────────
+PacientePatologia.hasOne(FichaKinesiologica,   { foreignKey: "paciente_patologia_id", as: "ficha" });
+FichaKinesiologica.belongsTo(PacientePatologia, { foreignKey: "paciente_patologia_id", as: "paciente_patologia" });
+FichaKinesiologica.belongsTo(Usuario,           { foreignKey: "creado_por_id", as: "creado_por" });
+
+// ─── FichaKinesiologica ↔ TestFuncional / TestFuerza / RegistroSesionKinesiologia (1:N) ──
+FichaKinesiologica.hasMany(TestFuncional,   { foreignKey: "ficha_id", as: "tests_funcionales" });
+TestFuncional.belongsTo(FichaKinesiologica, { foreignKey: "ficha_id", as: "ficha" });
+TestFuncional.belongsTo(Ejercicio,          { foreignKey: "ejercicio_id", as: "ejercicio" });
+TestFuncional.belongsTo(Usuario,            { foreignKey: "registrado_por_id", as: "registrado_por" });
+
+FichaKinesiologica.hasMany(TestFuerza,   { foreignKey: "ficha_id", as: "tests_fuerza" });
+TestFuerza.belongsTo(FichaKinesiologica, { foreignKey: "ficha_id", as: "ficha" });
+TestFuerza.belongsTo(Ejercicio,          { foreignKey: "ejercicio_id", as: "ejercicio" });
+TestFuerza.belongsTo(Usuario,            { foreignKey: "registrado_por_id", as: "registrado_por" });
+
+FichaKinesiologica.hasMany(RegistroSesionKinesiologia,   { foreignKey: "ficha_id", as: "sesiones" });
+RegistroSesionKinesiologia.belongsTo(FichaKinesiologica, { foreignKey: "ficha_id", as: "ficha" });
+RegistroSesionKinesiologia.belongsTo(Ejercicio,          { foreignKey: "ejercicio_id", as: "ejercicio" });
+RegistroSesionKinesiologia.belongsTo(Usuario,            { foreignKey: "registrado_por_id", as: "registrado_por" });
+
 export {
   Sexo, TipoDocumento, TipoPersona, AlumnoEstado,
   Rol, Modulo, Permiso, RolPermiso,
@@ -188,5 +213,6 @@ export {
   PacienteKinesiologia, AsignacionProfesional,
   TipoEjercicio, GrupoMuscular, Ejercicio, RegistroEjercicio,
   Patologia, PacientePatologia,
+  FichaKinesiologica, TestFuncional, TestFuerza, RegistroSesionKinesiologia,
   HomeArea, HomeContenido,
 };
