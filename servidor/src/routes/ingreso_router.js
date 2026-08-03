@@ -6,7 +6,7 @@ import { estadoCola } from "../services/offline_queue_service.js";
 
 export const ingresoRouter = Router();
 
-ingresoRouter.use(requireAuth, requireModuloHabilitado("gym"), requireRole("staff", "admin"));
+ingresoRouter.use(requireAuth, requireModuloHabilitado("gym"), requireRole("staff", "admin", "kinesiologo"));
 
 // Registrar ingreso por DNI (soporta modo offline automáticamente)
 ingresoRouter.post("/registrar", registrarIngreso);

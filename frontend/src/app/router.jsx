@@ -55,7 +55,7 @@ export const router = createBrowserRouter([
     path: "/kiosk",
     element: (
       <AppLayout>
-        <ProtectedRoute roles={["admin", "staff"]}>
+        <ProtectedRoute roles={["admin", "staff", "kinesiologo"]}>
           <KioskPage />
         </ProtectedRoute>
       </AppLayout>
@@ -73,7 +73,7 @@ export const router = createBrowserRouter([
     path: "/register",
     element: (
       <AppLayout>
-        <ProtectedRoute roles={["admin", "staff"]}>
+        <ProtectedRoute roles={["admin", "staff", "kinesiologo"]}>
           <RegisterAlumnoPage />
         </ProtectedRoute>
       </AppLayout>
@@ -135,7 +135,7 @@ export const router = createBrowserRouter([
   path: "/admin/estadisticas/alumnos",
   element: (
     <AppLayout>
-      <ProtectedRoute roles={["admin", "staff"]}>
+      <ProtectedRoute roles={["admin", "staff", "kinesiologo"]}>
         <ListaAlumnosPage />
       </ProtectedRoute>
     </AppLayout>
@@ -145,7 +145,7 @@ export const router = createBrowserRouter([
     path: "/admin/estadisticas/alumnos/:id",
     element: (
       <AppLayout>
-        <ProtectedRoute roles={["admin", "staff"]}>
+        <ProtectedRoute roles={["admin", "staff", "kinesiologo"]}>
           <DetalleAlumnoPage />
         </ProtectedRoute>
       </AppLayout>
@@ -155,7 +155,7 @@ export const router = createBrowserRouter([
   path: "/admin/pagos/registrar",
   element: (
     <AppLayout>
-      <ProtectedRoute roles={["admin", "staff"]}>
+      <ProtectedRoute roles={["admin", "staff", "kinesiologo"]}>
         <RegistrarPagoPage />
       </ProtectedRoute>
     </AppLayout>
@@ -233,7 +233,7 @@ export const router = createBrowserRouter([
   path: "/admin/config-audio",
   element: (
     <AppLayout>
-      <ProtectedRoute roles={["admin", "staff"]}>
+      <ProtectedRoute roles={["admin", "staff", "kinesiologo"]}>
         <AudioConfigPage />
       </ProtectedRoute>
     </AppLayout>
@@ -243,7 +243,7 @@ export const router = createBrowserRouter([
   path: "/admin/ventas",
   element: (
     <AppLayout>
-      <ProtectedRoute roles={["admin", "staff"]}>
+      <ProtectedRoute roles={["admin", "staff", "kinesiologo"]}>
         <VentasPage />
       </ProtectedRoute>
     </AppLayout>
