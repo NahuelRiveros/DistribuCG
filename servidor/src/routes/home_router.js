@@ -8,6 +8,20 @@ import {
   actualizarContenidoController,
   cambiarEstadoContenidoController,
   eliminarContenidoController,
+  obtenerConfigPublicaController,
+  listarTextosAdminController,
+  actualizarTextosController,
+  listarPilaresAdminController,
+  crearPilarController,
+  actualizarPilarController,
+  cambiarEstadoPilarController,
+  eliminarPilarController,
+  listarContactosAdminController,
+  crearContactoController,
+  actualizarContactoController,
+  cambiarEstadoContactoController,
+  eliminarContactoController,
+  actualizarLayoutAreaController,
 } from "../controllers/home_controller.js";
 import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
 
@@ -24,6 +38,7 @@ export const homeRouter = Router();
 
 // Público — lo consume la landing page, sin login
 homeRouter.get("/contenido", obtenerContenidoPublicoController);
+homeRouter.get("/config", obtenerConfigPublicaController);
 
 // Gestión — solo admin
 homeRouter.use(requireAuth, requireRole("admin"));
@@ -33,3 +48,19 @@ homeRouter.post("/contenido", upload.single("archivo"), crearContenidoController
 homeRouter.put("/contenido/:id", actualizarContenidoController);
 homeRouter.patch("/contenido/:id/estado", cambiarEstadoContenidoController);
 homeRouter.delete("/contenido/:id", eliminarContenidoController);
+homeRouter.patch("/areas/:id/layout", actualizarLayoutAreaController);
+
+homeRouter.get("/textos", listarTextosAdminController);
+homeRouter.put("/textos", actualizarTextosController);
+
+homeRouter.get("/pilares", listarPilaresAdminController);
+homeRouter.post("/pilares", crearPilarController);
+homeRouter.put("/pilares/:id", actualizarPilarController);
+homeRouter.patch("/pilares/:id/estado", cambiarEstadoPilarController);
+homeRouter.delete("/pilares/:id", eliminarPilarController);
+
+homeRouter.get("/contactos", listarContactosAdminController);
+homeRouter.post("/contactos", crearContactoController);
+homeRouter.put("/contactos/:id", actualizarContactoController);
+homeRouter.patch("/contactos/:id/estado", cambiarEstadoContactoController);
+homeRouter.delete("/contactos/:id", eliminarContactoController);

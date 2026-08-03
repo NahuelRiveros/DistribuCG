@@ -54,6 +54,12 @@ import { MovimientoStock }  from "./kiosco/movimiento_stock.js";
 // ── home/ — contenido configurable del home (imágenes/videos en Cloudinary) ──
 import { HomeArea }         from "./home/home_area.js";
 import { HomeContenido }    from "./home/home_contenido.js";
+import { HomeTexto }        from "./home/home_texto.js";
+import { HomePilar }        from "./home/home_pilar.js";
+import { HomeContacto }     from "./home/home_contacto.js";
+
+// ── sistema/ — licenciamiento por módulo de negocio (gym / kinesiología) ────
+import { ModuloNegocio }    from "./sistema/modulo_negocio.js";
 
 // ─── Persona ↔ Catálogos ────────────────────────────────────────────────────
 Persona.belongsTo(TipoDocumento, { foreignKey: "tipo_documento_id", as: "tipo_documento" });
@@ -85,6 +91,10 @@ Rol.belongsToMany(Usuario, {
   otherKey:    "usuario_id",
   as:          "usuarios",
 });
+
+// ─── UsuarioRol → Usuario / Rol (acceso directo al puente, ej. listarStaff) ──
+UsuarioRol.belongsTo(Usuario, { foreignKey: "usuario_id", as: "usuario" });
+UsuarioRol.belongsTo(Rol,     { foreignKey: "rol_id",     as: "rol" });
 
 // ─── Módulo ↔ Permiso (1:N) ───────────────────────────────────────────────────
 Modulo.hasMany(Permiso,    { foreignKey: "modulo_id", as: "permisos" });
@@ -218,5 +228,6 @@ export {
   TipoEjercicio, GrupoMuscular, Ejercicio, RegistroEjercicio,
   Patologia, PacientePatologia,
   FichaKinesiologica, TestFuncional, TestFuerza, RegistroSesionKinesiologia,
-  HomeArea, HomeContenido,
+  HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto,
+  ModuloNegocio,
 };

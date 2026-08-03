@@ -25,12 +25,14 @@ import PagoExitosoPage from "../pages/pago_exitoso_page.jsx";
 import PagoFallidoPage from "../pages/pago_fallido_page.jsx";
 import PromocionesPage from "../pages/admin/promociones_page.jsx";
 import GestionSuscripcionPage from "../pages/super_admin/gestion_suscripcion_page.jsx";
+import GestionModulosPage from "../pages/super_admin/gestion_modulos_page.jsx";
 import AudioConfigPage from "../pages/admin/audio_config_page.jsx";
 import VentasPage from "../pages/ventas/ventas_page.jsx";
 import HomeConfigPage from "../pages/admin/home_config_page.jsx";
 import ListaPacientesKinesiologiaPage from "../pages/admin/kinesiologia/lista_pacientes_page.jsx";
 import FichaPacientePage from "../pages/admin/kinesiologia/ficha_paciente_page.jsx";
 import RegistrarSesionKinesiologiaPage from "../pages/admin/kinesiologia/registrar_sesion_page.jsx";
+import PatologiasPage from "../pages/admin/kinesiologia/patologias_page.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -258,6 +260,16 @@ export const router = createBrowserRouter([
   ),
 },
 {
+  path: "/super-admin/modulos",
+  element: (
+    <AppLayout>
+      <ProtectedRoute roles={["super_admin"]}>
+        <GestionModulosPage />
+      </ProtectedRoute>
+    </AppLayout>
+  ),
+},
+{
   path: "/admin/home-config",
   element: (
     <AppLayout>
@@ -271,8 +283,18 @@ export const router = createBrowserRouter([
   path: "/admin/kinesiologia",
   element: (
     <AppLayout>
-      <ProtectedRoute roles={["admin", "staff"]}>
+      <ProtectedRoute roles={["admin", "kinesiologo"]}>
         <ListaPacientesKinesiologiaPage />
+      </ProtectedRoute>
+    </AppLayout>
+  ),
+},
+{
+  path: "/admin/kinesiologia/patologias",
+  element: (
+    <AppLayout>
+      <ProtectedRoute roles={["admin", "kinesiologo"]}>
+        <PatologiasPage />
       </ProtectedRoute>
     </AppLayout>
   ),
@@ -281,7 +303,7 @@ export const router = createBrowserRouter([
   path: "/admin/kinesiologia/:id",
   element: (
     <AppLayout>
-      <ProtectedRoute roles={["admin", "staff"]}>
+      <ProtectedRoute roles={["admin", "kinesiologo"]}>
         <FichaPacientePage />
       </ProtectedRoute>
     </AppLayout>
@@ -291,7 +313,7 @@ export const router = createBrowserRouter([
   path: "/admin/kinesiologia/:id/sesion",
   element: (
     <AppLayout>
-      <ProtectedRoute roles={["admin", "staff"]}>
+      <ProtectedRoute roles={["admin", "kinesiologo"]}>
         <RegistrarSesionKinesiologiaPage />
       </ProtectedRoute>
     </AppLayout>

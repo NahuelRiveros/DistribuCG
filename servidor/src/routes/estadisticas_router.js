@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
 
 import {
   AlumnosNuevos,
@@ -10,6 +12,9 @@ import {
 } from "../controllers/estadisticas_controller.js";
 
 export const estadisticasRouter = Router();
+// Nota: este router no tenía ningún guard de auth — se agrega acá junto con
+// el gate de módulo, consistente con cómo el frontend ya protege estas rutas.
+estadisticasRouter.use(requireAuth, requireModuloHabilitado("gym"), requireRole("admin"));
 
 /**
  * =========================

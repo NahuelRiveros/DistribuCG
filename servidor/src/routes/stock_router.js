@@ -14,10 +14,11 @@ import {
   mermasDeStockController,
 } from "../controllers/stock_controller.js";
 import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
 
 export const stockRouter = Router();
 
-stockRouter.use(requireAuth);
+stockRouter.use(requireAuth, requireModuloHabilitado("gym"));
 
 // Estadísticas: solo admin (igual que /recaudacion)
 stockRouter.get("/estadisticas/mensual",                requireRole("admin"), recaudacionMensualStockController);

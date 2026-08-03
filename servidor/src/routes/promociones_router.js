@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
 import { enviarEmailsMasivos } from "../services/email_service.js";
 import { sequelize } from "../database/sequelize.js";
 import { QueryTypes } from "sequelize";
 
 export const promocionesRouter = Router();
 
-promocionesRouter.use(requireAuth, requireRole("admin"));
+promocionesRouter.use(requireAuth, requireModuloHabilitado("gym"), requireRole("admin"));
 
 const FILTROS = {
   todos:    "",

@@ -39,6 +39,72 @@ export async function buscarPersonaParaKinesiologia({ dni }) {
 }
 
 /**
+ * Listado paginado de TODAS las personas registradas (sean alumnos o no),
+ * con flags de si ya es alumno y/o ya es paciente de kinesiología — para
+ * elegir a quién agregar al grupo de kinesiología sin necesitar su DNI de
+ * memoria. Mismo patrón que listarAlumnos/listarPacientesKinesiologia.
+ */
+export async function listarPersonasRegistradas({ q, dni, page = 1, limit = 20, sort = "apellido", order = "asc" }) {
+  const p = Math.max(1, Number(page) || 1);
+  const l = Math.min(100, Math.max(1, Number(limit) || 20));
+  const offset = (p - 1) * l;
+
+  const where = [`p.eliminado_en IS NULL`];
+  const repl = { limit: l, offset };
+
+  if (dni) {
+    where.push(`p.documento::text ILIKE :dni`);
+    repl.dni = `%${dni}%`;
+  }
+  if (q) {
+    where.push(`
+      (
+        p.documento::text ILIKE :q OR
+        COALESCE(p.nombre,'') ILIKE :q OR
+        COALESCE(p.apellido,'') ILIKE :q
+      )
+    `);
+    repl.q = `%${q}%`;
+  }
+
+  const whereSQL = `WHERE ${where.join(" AND ")}`;
+
+  const sortMap = { apellido: `p.apellido`, nombre: `p.nombre`, dni: `p.documento` };
+  const sortSQL  = sortMap[sort] ?? sortMap.apellido;
+  const orderSQL = String(order).toLowerCase() === "asc" ? "ASC" : "DESC";
+
+  const sqlItems = `
+    SELECT
+      p.id AS persona_id,
+      p.nombre, p.apellido, p.documento, p.celular,
+      (a.id IS NOT NULL)  AS es_alumno,
+      (pk.id IS NOT NULL) AS ya_es_paciente_kinesiologia,
+      pk.id AS paciente_kinesiologia_id,
+      pk.activo AS paciente_activo
+    FROM persona p
+    LEFT JOIN alumno a               ON a.persona_id  = p.id
+    LEFT JOIN paciente_kinesiologia pk ON pk.persona_id = p.id
+    ${whereSQL}
+    ORDER BY ${sortSQL} ${orderSQL}
+    LIMIT :limit OFFSET :offset
+  `;
+
+  const sqlCount = `
+    SELECT COUNT(*)::int AS total
+    FROM persona p
+    ${whereSQL}
+  `;
+
+  const items      = await sequelize.query(sqlItems, { replacements: repl, type: QueryTypes.SELECT });
+  const [countRow] = await sequelize.query(sqlCount, { replacements: repl, type: QueryTypes.SELECT });
+
+  const total      = countRow?.total ?? 0;
+  const totalPages = Math.ceil(total / l);
+
+  return { ok: true, items, pagination: { page: p, limit: l, total, totalPages } };
+}
+
+/**
  * Agrega una persona ya registrada al grupo de kinesiología: crea (si hace
  * falta) paciente_kinesiologia, crea la patología del episodio y su ficha
  * con objetivo. Todo en una transacción, igual que registrarPersonaConAlumno.
@@ -229,4 +295,13 @@ export async function registrarTestFuerza({ ficha_id, ejercicio_id, repeticiones
 export async function registrarSesionKinesiologia(data) {
   const registro = await RegistroSesionKinesiologia.create(data);
   return { ok: true, sesion: registro };
+}
+
+/** Edita una sesión ya guardada — sin restricción de ventana de tiempo. */
+export async function actualizarSesionKinesiologia(id, data) {
+  const sesion = await RegistroSesionKinesiologia.findByPk(id);
+  if (!sesion) return { ok: false, codigo: "NO_EXISTE", mensaje: "La sesión no existe" };
+
+  await sesion.update({ ...data, actualizado_en: new Date() });
+  return { ok: true, mensaje: "Sesión actualizada correctamente", sesion };
 }

@@ -1,18 +1,8 @@
 import { Link } from "react-router-dom";
-import {
-  ScanLine,
-  Users,
-  CreditCard,
-  BarChart2,
-  Home,
-  LogIn,
-  Dumbbell,
-  Activity,
-  HeartPulse,
-  Trophy,
-  ArrowRight,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+import { footer_config } from "./footer_config.jsx";
+import { moduloHabilitado } from "../../config/modulos_config.js";
+import { useAuth } from "../../auth/auth_context.jsx";
 
 const ANIMATIONS = `
   @keyframes scanLine {
@@ -31,41 +21,16 @@ const ANIMATIONS = `
   }
 `;
 
-const MODULOS = [
-  {
-    icon: <ScanLine size={13} />,
-    code: "MOD-01",
-    title: "Control de ingreso",
-    text:  "Registro de asistencia por DNI en tiempo real",
-  },
-  {
-    icon: <Users size={13} />,
-    code: "MOD-02",
-    title: "Gestión de alumnos",
-    text:  "Alta, seguimiento y estado de cada alumno",
-  },
-  {
-    icon: <CreditCard size={13} />,
-    code: "MOD-03",
-    title: "Planes y pagos",
-    text:  "Administración de planes vigentes y cobros",
-  },
-  {
-    icon: <BarChart2 size={13} />,
-    code: "MOD-04",
-    title: "Estadísticas",
-    text:  "Asistencia, recaudación y análisis del gimnasio",
-  },
-];
-
-const LINKS_ACCESO = [
-  { icon: <Home     size={11} />, label: "Inicio",          to: "/"                     },
-  { icon: <ScanLine size={11} />, label: "Ingreso / Kiosk", to: "/kiosk"                },
-  { icon: <LogIn    size={11} />, label: "Iniciar sesión",  to: "/login"                },
-  { icon: <Users    size={11} />, label: "Lista de alumnos",to: "/admin/estadisticas/alumnos" },
-];
-
 export default function Footer() {
+  const { marca, modulos, accesos, diferenciales, callout, legal } = footer_config;
+  const { modulosHabilitados } = useAuth();
+
+  const activo = (item) => item.habilitado && moduloHabilitado(item.modulo, modulosHabilitados);
+
+  const modulosActivos       = modulos.filter(activo);
+  const accesosActivos       = accesos.filter(activo);
+  const diferencialesActivos = diferenciales.filter(activo);
+
   return (
     <>
       <style>{ANIMATIONS}</style>
@@ -101,99 +66,100 @@ export default function Footer() {
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[#18C7D8] opacity-80" />
                 </span>
                 <span className="font-mono text-[9px] tracking-[0.35em] text-[#18C7D8]/50 uppercase">
-                  Sistema activo
+                  {marca.estadoLabel}
                 </span>
               </div>
 
               <div className="flex items-baseline gap-3">
                 <h3 className="kt-display text-5xl font-bold tracking-tighter text-white">
-                  Kinetica
+                  {marca.nombre}
                 </h3>
               </div>
 
               <p className="max-w-[280px] text-sm leading-7 text-slate-400">
-                Centro de entrenamiento y kinesiología. Seguimiento
-                personalizado de cada ejercicio, alumnos, planes y
-                estadísticas en un solo lugar.
+                {marca.tagline}
               </p>
 
               <div className="inline-flex items-center gap-2 rounded-full border border-[#18C7D8]/20 bg-[#18C7D8]/8 px-3.5 py-1.5">
                 <ShieldCheck size={10} className="text-[#18C7D8]/70" />
                 <span className="font-mono text-[9px] tracking-widest text-[#18C7D8]/60 uppercase">
-                  Gestión · Rendimiento · Control
+                  {marca.selloLabel}
                 </span>
               </div>
             </div>
 
             {/* ── Módulos ── */}
-            <div>
-              <SectionHeader label="Módulos del sistema" code="SYS-MOD" />
-              <ul className="space-y-3.5">
-                {MODULOS.map((m) => (
-                  <ModuleItem key={m.code} {...m} />
-                ))}
-              </ul>
-            </div>
+            {modulosActivos.length > 0 && (
+              <div>
+                <SectionHeader label="Módulos del sistema" code="SYS-MOD" />
+                <ul className="space-y-3.5">
+                  {modulosActivos.map((m) => (
+                    <ModuleItem key={m.codigo} {...m} />
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* ── Acceso rápido ── */}
-            <div>
-              <SectionHeader label="Acceso rápido" code="NAV-LNK" />
-              <ul className="space-y-1">
-                {LINKS_ACCESO.map((item) => (
-                  <li key={item.to}>
-                    <Link
-                      to={item.to}
-                      className="group flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-slate-400 transition-all duration-150 hover:bg-white/[0.04] hover:text-[#18C7D8]"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-white/8 bg-white/[0.04] text-slate-500 transition-all group-hover:border-[#18C7D8]/25 group-hover:text-[#18C7D8]">
-                        {item.icon}
-                      </span>
-                      <span className="flex-1">{item.label}</span>
-                      <ArrowRight
-                        size={10}
-                        className="text-[#18C7D8] opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-                      />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {accesosActivos.length > 0 && (
+              <div>
+                <SectionHeader label="Acceso rápido" code="NAV-LNK" />
+                <ul className="space-y-1">
+                  {accesosActivos.map((item) => (
+                    <li key={item.codigo}>
+                      <Link
+                        to={item.to}
+                        className="group flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-slate-400 transition-all duration-150 hover:bg-white/[0.04] hover:text-[#18C7D8]"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-white/8 bg-white/[0.04] text-slate-500 transition-all group-hover:border-[#18C7D8]/25 group-hover:text-[#18C7D8]">
+                          <item.icon size={11} />
+                        </span>
+                        <span className="flex-1">{item.label}</span>
+                        <ArrowRight
+                          size={10}
+                          className="text-[#18C7D8] opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                        />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* ── Motivación ── */}
-            <div>
-              <SectionHeader label="¿Por qué elegirnos?" code="KT-PLR" />
+            {diferencialesActivos.length > 0 && (
+              <div>
+                <SectionHeader label="¿Por qué elegirnos?" code="KT-PLR" />
 
-              <ul className="space-y-3">
-                {[
-                  { icon: <Dumbbell  size={13}/>, title: "Personalizado", text: "Plan de entrenamiento a tu medida" },
-                  { icon: <Activity  size={13}/>, title: "Seguimiento",   text: "Registro de cada ejercicio y avance" },
-                  { icon: <HeartPulse size={13}/>, title: "Kinesiología",  text: "Recuperación y rehabilitación guiada" },
-                  { icon: <Trophy    size={13} />, title: "Resultados",   text: "Progreso medible, sesión a sesión" },
-                ].map((item) => (
-                  <li key={item.title} className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.08] text-[#18C7D8]">
-                      {item.icon}
-                    </span>
-                    <div>
-                      <div className="text-sm font-semibold text-white/90">{item.title}</div>
-                      <div className="text-xs text-slate-500">{item.text}</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                <ul className="space-y-3">
+                  {diferencialesActivos.map((item) => (
+                    <li key={item.titulo} className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.08] text-[#18C7D8]">
+                        <item.icon size={13} />
+                      </span>
+                      <div>
+                        <div className="text-sm font-semibold text-white/90">{item.titulo}</div>
+                        <div className="text-xs text-slate-500">{item.texto}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
 
-              <div
-                className="mt-6 rounded-2xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.06] p-4"
-                style={{ animation: "glowPulse 4s ease-in-out infinite" }}
-              >
-                <p className="font-mono text-[11px] font-semibold tracking-wider text-[#18C7D8] uppercase">
-                  Constancia &gt; Motivación
-                </p>
-                <p className="mt-1.5 text-sm leading-6 text-slate-300">
-                  El progreso se construye día a día.
-                </p>
+                {callout && (
+                  <div
+                    className="mt-6 rounded-2xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.06] p-4"
+                    style={{ animation: "glowPulse 4s ease-in-out infinite" }}
+                  >
+                    <p className="font-mono text-[11px] font-semibold tracking-wider text-[#18C7D8] uppercase">
+                      {callout.titulo}
+                    </p>
+                    <p className="mt-1.5 text-sm leading-6 text-slate-300">
+                      {callout.texto}
+                    </p>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
           </div>
         </div>
@@ -203,11 +169,13 @@ export default function Footer() {
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-6 py-5 sm:flex-row sm:justify-between">
             <p className="font-mono text-[11px] tracking-wide text-slate-500">
               © {new Date().getFullYear()} ·{" "}
-              <span className="text-slate-400">Kinetica</span> · Todos los derechos reservados.
+              <span className="text-slate-400">{legal.nombreDerechos}</span> · Todos los derechos reservados.
             </p>
-            <p className="font-mono text-[10px] tracking-widest text-slate-600 uppercase">
-              Sistema de gestión · Riveros Edgardo Nahuel
-            </p>
+            {legal.mostrarDesarrolladoPor && (
+              <p className="font-mono text-[10px] tracking-widest text-slate-600 uppercase">
+                Sistema de gestión · {legal.desarrolladoPor}
+              </p>
+            )}
           </div>
         </div>
 
@@ -227,19 +195,20 @@ function SectionHeader({ label, code }) {
   );
 }
 
-function ModuleItem({ icon, code, title, text }) {
+function ModuleItem({ icon, code, titulo, texto }) {
+  const Icon = icon;
   return (
     <li className="group flex items-start gap-3">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.08] text-[#18C7D8] transition-all duration-200 group-hover:border-[#18C7D8]/35 group-hover:bg-[#18C7D8]/[0.14]">
-        {icon}
+        <Icon size={13} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="font-mono text-[9px] text-slate-600">{code}</span>
           <div className="h-px flex-1 bg-white/[0.04]" />
         </div>
-        <div className="mt-0.5 text-sm font-semibold text-white/90">{title}</div>
-        <div className="mt-0.5 text-xs leading-5 text-slate-500">{text}</div>
+        <div className="mt-0.5 text-sm font-semibold text-white/90">{titulo}</div>
+        <div className="mt-0.5 text-xs leading-5 text-slate-500">{texto}</div>
       </div>
     </li>
   );

@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { http } from "../api/http.js";
 import { authConfig } from "../config/auth_config.js";
+import { getEstadoModulos } from "../api/modulos_api.js";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [modulosHabilitados, setModulosHabilitados] = useState(null);
 
   const token = localStorage.getItem(authConfig.storageKey);
 
@@ -21,10 +23,23 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function cargarModulos() {
+    try {
+      const r = await getEstadoModulos();
+      setModulosHabilitados(r?.modulos ?? null);
+    } catch {
+      setModulosHabilitados(null);
+    }
+  }
+
   useEffect(() => {
-    // si hay token, intentamos /me al iniciar
-    if (token) cargarMe();
-    else setCargando(false);
+    // si hay token, intentamos /me y el estado de módulos al iniciar
+    if (token) {
+      cargarMe();
+      cargarModulos();
+    } else {
+      setCargando(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -35,6 +50,7 @@ export function AuthProvider({ children }) {
     if (nuevoToken) localStorage.setItem(authConfig.storageKey, nuevoToken);
     // luego traemos el usuario real desde /me para no depender del response del login
     await cargarMe();
+    await cargarModulos();
 
     return r.data;
   }
@@ -55,11 +71,12 @@ export function AuthProvider({ children }) {
       usuario,
       cargando,
       isAuth: !!usuario,
+      modulosHabilitados,
       login,
       logout,
       recargarUsuario: cargarMe,
     }),
-    [usuario, cargando]
+    [usuario, cargando, modulosHabilitados]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

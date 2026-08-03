@@ -123,6 +123,15 @@ export default function StaffPage() {
       ),
     },
     {
+      key: "rol_descripcion",
+      label: "Rol",
+      render: (row) => (
+        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${row.rol_codigo === "kinesiologo" ? "bg-(--kt-teal-700)/10 text-(--kt-teal-700) border-(--kt-teal-700)/25" : "bg-slate-50 text-slate-600 border-slate-200"}`}>
+          {row.rol_descripcion || "—"}
+        </span>
+      ),
+    },
+    {
       key: "gym_persona_email",
       label: "Email",
       searchable: true,
@@ -202,9 +211,9 @@ export default function StaffPage() {
                 <Users size={11} />
                 Admin
               </span>
-              <h1 className="mt-2 text-2xl font-extrabold text-slate-900">Staff</h1>
+              <h1 className="mt-2 text-2xl font-extrabold text-slate-900">Personal</h1>
               <p className="mt-0.5 text-sm text-slate-500">
-                Administrá usuarios con rol staff, sus datos, contraseña y estado.
+                Administrá al personal (staff y kinesiólogos), sus datos, contraseña y estado.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -218,7 +227,7 @@ export default function StaffPage() {
                 type="button" onClick={abrirNuevo}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-sm shadow-blue-500/20 hover:bg-blue-500 transition"
               >
-                <UserPlus size={14} /> Nuevo staff
+                <UserPlus size={14} /> Nuevo integrante
               </button>
             </div>
           </div>
@@ -226,7 +235,7 @@ export default function StaffPage() {
 
         {/* ── STATS ── */}
         <div className="grid grid-cols-3 gap-3">
-          <StatCard label="Total staff"  value={String(staff.length)} highlight />
+          <StatCard label="Total personal" value={String(staff.length)} highlight />
           <StatCard label="Activos"      value={String(activos)}      green />
           <StatCard label="Inactivos"    value={String(inactivos)} />
         </div>

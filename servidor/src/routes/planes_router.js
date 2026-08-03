@@ -7,8 +7,10 @@ import {
   cambiarEstadoPlanController,
 } from "../controllers/planes_controllers.js";
 import { requireAuth , requireRole } from "../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
 
 export const planesRouter = Router();
+planesRouter.use(requireModuloHabilitado("gym"));
 
 // Lectura: admin y staff
 planesRouter.get("/",    requireAuth, requireRole("admin", "staff"), listarPlanesController);

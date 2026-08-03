@@ -1,3 +1,5 @@
+import { moduloHabilitado } from "../../config/modulos_config.js";
+
 function normalizarRol(valor) {
   return String(valor || "").trim().toLowerCase();
 }
@@ -12,17 +14,31 @@ function getRolesUsuario(usuario) {
   return rol ? [rol] : [];
 }
 
-function puedeVerItem(item, usuario) {
+function puedeVerItem(item, usuario, modulosHabilitados) {
   const estaAutenticado = Boolean(usuario);
   if (item.ocultarSiAuth && estaAutenticado) return false;
   if (item.requiereAuth && !estaAutenticado) return false;
+  if (!moduloHabilitado(item.modulo, modulosHabilitados)) return false;
   if (!item.roles || item.roles.length === 0) return true;
   const rolesUsuario = getRolesUsuario(usuario);
   return item.roles.some((r) => rolesUsuario.includes(normalizarRol(r)));
 }
 
-export function filtrarNavbarPorRol(config, usuario) {
-  const links = (config.links ?? []).filter((link) => puedeVerItem(link, usuario));
+// Filtra un item y, si tiene `children` (grupo dentro de un dropdown), filtra
+// también cada hijo por su propio rol/módulo — un grupo visible no debe dejar
+// pasar hijos que el usuario no debería ver. Grupos que quedan sin hijos se descartan.
+function filtrarItemConHijos(item, usuario, modulosHabilitados) {
+  if (!puedeVerItem(item, usuario, modulosHabilitados)) return null;
+  if (!item.children?.length) return item;
+
+  const children = item.children.filter((child) => puedeVerItem(child, usuario, modulosHabilitados));
+  if (children.length === 0) return null;
+
+  return { ...item, children };
+}
+
+export function filtrarNavbarPorRol(config, usuario, modulosHabilitados) {
+  const links = (config.links ?? []).filter((link) => puedeVerItem(link, usuario, modulosHabilitados));
 
   const dropdowns = (config.dropdowns ?? [])
     .map((dropdown) => {
@@ -32,7 +48,9 @@ export function filtrarNavbarPorRol(config, usuario) {
       return {
         ...dropdown,
         label,
-        items: (dropdown.items ?? []).filter((item) => puedeVerItem(item, usuario)),
+        items: (dropdown.items ?? [])
+          .map((item) => filtrarItemConHijos(item, usuario, modulosHabilitados))
+          .filter(Boolean),
       };
     })
     .filter((dropdown) => dropdown.items.length > 0);

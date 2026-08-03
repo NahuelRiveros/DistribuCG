@@ -7,7 +7,7 @@ import {
   UsuarioRol, Membresia, MovimientoStock, AsignacionProfesional,
   RegistroEjercicio, PacientePatologia, AlumnoEstadoLog,
   FichaKinesiologica, TestFuncional, TestFuerza, RegistroSesionKinesiologia,
-  Ingreso,
+  Ingreso, ModuloNegocio, HomeTexto, HomePilar, HomeContacto,
 } from "../models/index.js";
 
 /**
@@ -33,6 +33,7 @@ async function sincronizar_modelos() {
     // ── Catálogos — sin dependencias externas ────────────────────────────────
     Sexo, TipoDocumento, TipoPersona, AlumnoEstado, PlanTipo, Rol, Modulo,
     TipoEjercicio, GrupoMuscular, CategoriaProducto, Patologia, HomeArea,
+    ModuloNegocio, HomeTexto, HomePilar, HomeContacto,
 
     // ── Nivel 1 — depende de catálogos ───────────────────────────────────────
     Permiso,        // permiso → modulo

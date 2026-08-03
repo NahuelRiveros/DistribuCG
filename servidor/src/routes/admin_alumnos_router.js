@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
 import {
   ActualizarEstadosAutomatico,
   buscarPlanVigenteAlumno,
@@ -9,7 +10,7 @@ import {
 
 export const adminAlumnosRouter = Router();
 
-adminAlumnosRouter.use(requireAuth, requireRole("admin"));
+adminAlumnosRouter.use(requireAuth, requireModuloHabilitado("gym"), requireRole("admin"));
 
 adminAlumnosRouter.post("/actualizar-estados", ActualizarEstadosAutomatico);
 

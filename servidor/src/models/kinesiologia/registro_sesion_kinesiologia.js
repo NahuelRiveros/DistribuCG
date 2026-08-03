@@ -55,7 +55,9 @@ export const RegistroSesionKinesiologia = sequelize.define("RegistroSesionKinesi
 
   observaciones: { type: DataTypes.TEXT, allowNull: true },
 
-  creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+  creado_en:      { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+  // Se actualiza al editar una sesión ya guardada (dolor, escalas, criterios, etc.).
+  actualizado_en: { type: DataTypes.DATE, allowNull: true },
 }, {
   tableName:  "registro_sesion_kinesiologia",
   schema:     DB_SCHEMA,

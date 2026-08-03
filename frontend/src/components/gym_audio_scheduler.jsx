@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Bell } from "lucide-react";
 import {
   AVISO_CONFIG_EVENT,
   AVISO_CONFIG_STORAGE_KEY,
@@ -9,6 +10,8 @@ import {
 const HORA_APERTURA = 9;
 const HORA_CIERRE = 22;
 const CHECK_MS = 10000;
+const BOTON_VISIBLE_MS = 60000;
+const BOTON_FADE_MS = 400;
 
 function pad(n) {
   return String(n).padStart(2, "0");
@@ -35,6 +38,23 @@ export default function GymAudioScheduler() {
 
   const [audioHabilitado, setAudioHabilitado] = useState(false);
   const [config, setConfig] = useState(getAvisoConfig());
+  const [botonMontado, setBotonMontado] = useState(true);
+  const [botonSaliendo, setBotonSaliendo] = useState(false);
+
+  const mostrarBoton = !audioHabilitado && config.habilitado;
+  const [mostrarBotonPrev, setMostrarBotonPrev] = useState(mostrarBoton);
+
+  // Reaparecer y reiniciar el temporizador cuando el botón vuelve a ser
+  // relevante (se desactivó el audio o se reactivaron los avisos). Ajuste de
+  // estado durante el render en vez de en un efecto, para no disparar un
+  // setState síncrono dentro de useEffect.
+  if (mostrarBotonPrev !== mostrarBoton) {
+    setMostrarBotonPrev(mostrarBoton);
+    if (mostrarBoton) {
+      setBotonMontado(true);
+      setBotonSaliendo(false);
+    }
+  }
 
   const ultimaMarcaOrdenRef = useRef(null);
 
@@ -133,6 +153,19 @@ export default function GymAudioScheduler() {
     };
   }, []);
 
+  // El botón de activar avisos se muestra un tiempo y después se desvanece solo.
+  useEffect(() => {
+    if (!mostrarBoton) return;
+
+    const tFade = setTimeout(() => setBotonSaliendo(true), BOTON_VISIBLE_MS);
+    const tUnmount = setTimeout(() => setBotonMontado(false), BOTON_VISIBLE_MS + BOTON_FADE_MS);
+
+    return () => {
+      clearTimeout(tFade);
+      clearTimeout(tUnmount);
+    };
+  }, [mostrarBoton]);
+
   useEffect(() => {
     function checkAudios() {
       if (!audioHabilitado || !config.habilitado) return;
@@ -184,12 +217,16 @@ export default function GymAudioScheduler() {
     <>
       <audio ref={ordenAudioRef} src={sonidoSrc} preload="auto" />
 
-      {!audioHabilitado && config.habilitado && (
+      {botonMontado && mostrarBoton && (
         <button
           onClick={desbloquearAudio}
-          className="fixed bottom-6 right-6 z-9998 flex items-center gap-2 rounded-2xl bg-orange-500 px-6 py-4 text-base font-bold text-white shadow-2xl ring-4 ring-orange-300 animate-pulse hover:bg-orange-600 hover:animate-none transition-colors"
+          className={`fixed bottom-6 right-6 z-9998 flex items-center gap-2 rounded-2xl bg-(--kt-teal-700) px-6 py-4 text-base font-bold text-white shadow-2xl shadow-[#18C7D8]/30 ring-4 ring-[#18C7D8]/40 transition-all duration-400 ease-out hover:bg-[#0B7D8F] focus-visible:outline-none focus-visible:ring-[#18C7D8]/70 ${
+            botonSaliendo
+              ? "translate-y-2 opacity-0"
+              : "translate-y-0 opacity-100 animate-pulse hover:animate-none"
+          }`}
         >
-          <span className="text-xl">🔔</span>
+          <Bell size={20} />
           Activar avisos de audio
         </button>
       )}

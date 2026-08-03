@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Check } from "lucide-react";
-import { registrarSesionKinesiologia } from "../../../api/kinesiologia_api.js";
+import { registrarSesionKinesiologia, actualizarSesionKinesiologia } from "../../../api/kinesiologia_api.js";
 import { useCatalogos } from "../../../hooks/use_catalogos.js";
 
 const ESCALAS = [
@@ -70,20 +70,33 @@ export default function RegistrarSesionKinesiologiaPage() {
   const [searchParams] = useSearchParams();
   const fichaId = searchParams.get("ficha");
   const nav = useNavigate();
+  const location = useLocation();
+
+  const sesionEditar = location.state?.sesionEditar ?? null;
+  const esEdicion = Boolean(sesionEditar);
 
   const { data: catalogos } = useCatalogos();
 
-  const [ejercicioId, setEjercicioId] = useState("");
-  const [peso, setPeso] = useState("");
-  const [series, setSeries] = useState("");
-  const [repeticiones, setRepeticiones] = useState("");
-  const [rir, setRir] = useState(null);
-  const [dolorDurante, setDolorDurante] = useState(null);
-  const [dolor24h, setDolor24h] = useState(null);
-  const [escalas, setEscalas] = useState({ calidad_movimiento: null, tolerancia_carga: null, confianza_paciente: null, cumplimiento_programa: null });
-  const [criterios, setCriterios] = useState({ tecnica_correcta: false, sin_compensaciones: false, buena_recuperacion: false });
-  const [aptoManual, setAptoManual] = useState(null);
-  const [observaciones, setObservaciones] = useState("");
+  const [ejercicioId, setEjercicioId] = useState(sesionEditar?.ejercicio_id ?? "");
+  const [peso, setPeso] = useState(sesionEditar?.peso ?? "");
+  const [series, setSeries] = useState(sesionEditar?.series ?? "");
+  const [repeticiones, setRepeticiones] = useState(sesionEditar?.repeticiones ?? "");
+  const [rir, setRir] = useState(sesionEditar?.rir ?? null);
+  const [dolorDurante, setDolorDurante] = useState(sesionEditar?.dolor_durante ?? null);
+  const [dolor24h, setDolor24h] = useState(sesionEditar?.dolor_24h ?? null);
+  const [escalas, setEscalas] = useState({
+    calidad_movimiento: sesionEditar?.calidad_movimiento ?? null,
+    tolerancia_carga: sesionEditar?.tolerancia_carga ?? null,
+    confianza_paciente: sesionEditar?.confianza_paciente ?? null,
+    cumplimiento_programa: sesionEditar?.cumplimiento_programa ?? null,
+  });
+  const [criterios, setCriterios] = useState({
+    tecnica_correcta: sesionEditar?.tecnica_correcta ?? false,
+    sin_compensaciones: sesionEditar?.sin_compensaciones ?? false,
+    buena_recuperacion: sesionEditar?.buena_recuperacion ?? false,
+  });
+  const [aptoManual, setAptoManual] = useState(sesionEditar ? sesionEditar.apto_para_subir_carga : null);
+  const [observaciones, setObservaciones] = useState(sesionEditar?.observaciones ?? "");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState(null);
 
@@ -102,7 +115,7 @@ export default function RegistrarSesionKinesiologiaPage() {
     setGuardando(true);
     setError(null);
     try {
-      const r = await registrarSesionKinesiologia(fichaId, {
+      const payload = {
         ejercicio_id: ejercicioId || null,
         peso: peso || null,
         series: series || null,
@@ -114,11 +127,14 @@ export default function RegistrarSesionKinesiologiaPage() {
         ...criterios,
         apto_para_subir_carga: aptoFinal,
         observaciones: observaciones || null,
-      });
-      if (!r.ok) { setError(r.mensaje || "No se pudo registrar la sesión"); return; }
+      };
+      const r = esEdicion
+        ? await actualizarSesionKinesiologia(sesionEditar.id, payload)
+        : await registrarSesionKinesiologia(fichaId, payload);
+      if (!r.ok) { setError(r.mensaje || "No se pudo guardar la sesión"); return; }
       nav(`/admin/kinesiologia/${id}`);
     } catch (e) {
-      setError(e?.response?.data?.mensaje || "No se pudo registrar la sesión");
+      setError(e?.response?.data?.mensaje || "No se pudo guardar la sesión");
     } finally {
       setGuardando(false);
     }
@@ -133,7 +149,7 @@ export default function RegistrarSesionKinesiologiaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-28">
+    <div className="min-h-screen bg-slate-50">
       <div className="mx-auto w-full max-w-lg space-y-5 p-4 sm:p-6">
 
         <button
@@ -145,8 +161,10 @@ export default function RegistrarSesionKinesiologiaPage() {
         </button>
 
         <div>
-          <h1 className="text-xl font-extrabold text-slate-900">Registrar sesión</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Cargá los indicadores de progresión de hoy.</p>
+          <h1 className="text-xl font-extrabold text-slate-900">{esEdicion ? "Editar sesión" : "Registrar sesión"}</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
+            {esEdicion ? "Corregí los datos de esta sesión ya guardada." : "Cargá los indicadores de progresión de hoy."}
+          </p>
         </div>
 
         {/* Ejercicio + carga */}
@@ -239,20 +257,15 @@ export default function RegistrarSesionKinesiologiaPage() {
         />
 
         {error && <div className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{error}</div>}
-      </div>
 
-      {/* Barra de guardado fija — pensada para uso con una mano en tablet/celu */}
-      <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white p-3">
-        <div className="mx-auto max-w-lg">
-          <button
-            type="button"
-            onClick={guardar}
-            disabled={guardando}
-            className="w-full rounded-xl bg-(--kt-teal-700) py-3.5 text-sm font-bold text-white shadow-md transition hover:opacity-90 disabled:opacity-50"
-          >
-            {guardando ? "Guardando…" : "Guardar sesión"}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={guardar}
+          disabled={guardando}
+          className="w-full rounded-xl bg-(--kt-teal-700) py-3.5 text-sm font-bold text-white shadow-md transition hover:opacity-90 disabled:opacity-50"
+        >
+          {guardando ? "Guardando…" : esEdicion ? "Guardar cambios" : "Guardar sesión"}
+        </button>
       </div>
     </div>
   );

@@ -35,6 +35,7 @@ export async function obtenerCatalogos() {
     }),
     Patologia.findAll({
       attributes: ["id", "descripcion"],
+      where: { activo: true },
       order: [["descripcion", "ASC"]],
     }),
     Ejercicio.findAll({

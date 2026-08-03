@@ -24,7 +24,7 @@ export async function listarStaffController(_req, res) {
 // ➕ crear
 export async function crearStaffController(req, res) {
   try {
-    const { email, password, nombre, apellido, documento } = req.body ?? {};
+    const { email, password, nombre, apellido, documento, rol_codigo } = req.body ?? {};
 
     const result = await crearStaff({
       email,
@@ -32,6 +32,7 @@ export async function crearStaffController(req, res) {
       nombre,
       apellido,
       documento,
+      rol_codigo,
     });
 
     if (!result.ok) return res.status(400).json(result);

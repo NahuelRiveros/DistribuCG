@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { HeartPulse, ArrowLeft, Plus, ClipboardList, Dumbbell, Activity } from "lucide-react";
+import { HeartPulse, ArrowLeft, Plus, ClipboardList, Dumbbell, Activity, Edit2 } from "lucide-react";
 import { getDetallePacienteKinesiologia } from "../../../api/kinesiologia_api.js";
 import { formatearFechaAR } from "../../../components/form/formatear_fecha";
 
@@ -13,16 +13,26 @@ function EscalaBadge({ label, valor }) {
   );
 }
 
-function SesionRow({ sesion }) {
+function SesionRow({ sesion, onEditar }) {
   const dolorOk = sesion.dolor_durante <= 3;
   const rirOk = sesion.rir == null || sesion.rir >= 2;
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3.5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-bold text-slate-800">{formatearFechaAR(sesion.fecha)}</span>
-        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${sesion.apto_para_subir_carga ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-50 text-slate-500"}`}>
-          {sesion.apto_para_subir_carga ? "Apto para subir carga" : "Mantener carga"}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${sesion.apto_para_subir_carga ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-50 text-slate-500"}`}>
+            {sesion.apto_para_subir_carga ? "Apto para subir carga" : "Mantener carga"}
+          </span>
+          <button
+            type="button"
+            onClick={() => onEditar(sesion)}
+            title="Editar sesión"
+            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-(--kt-teal-700)"
+          >
+            <Edit2 size={13} />
+          </button>
+        </div>
       </div>
       {sesion.ejercicio?.nombre && <p className="mt-1 text-xs text-slate-500">{sesion.ejercicio.nombre}</p>}
       <div className="mt-2.5 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
@@ -50,7 +60,15 @@ function SesionRow({ sesion }) {
 }
 
 function FichaCard({ patologia, pacienteKinesiologiaId }) {
+  const nav = useNavigate();
   const ficha = patologia.ficha;
+
+  function editarSesion(sesion) {
+    nav(`/admin/kinesiologia/${pacienteKinesiologiaId}/sesion?ficha=${ficha.id}`, {
+      state: { sesionEditar: sesion },
+    });
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -126,7 +144,7 @@ function FichaCard({ patologia, pacienteKinesiologiaId }) {
               <p className="text-sm text-slate-400">Todavía no hay sesiones registradas.</p>
             ) : (
               <div className="space-y-2">
-                {ficha.sesiones.map((s) => <SesionRow key={s.id} sesion={s} />)}
+                {ficha.sesiones.map((s) => <SesionRow key={s.id} sesion={s} onEditar={editarSesion} />)}
               </div>
             )}
           </div>

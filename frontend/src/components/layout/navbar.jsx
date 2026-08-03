@@ -12,9 +12,9 @@ import { UI_NAVBAR as S } from "../styles_components/ui_navbar_style.jsx";
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { usuario } = useAuth();
+  const { usuario, modulosHabilitados } = useAuth();
 
-  const navbarFiltrado = filtrarNavbarPorRol(navbar_config, usuario);
+  const navbarFiltrado = filtrarNavbarPorRol(navbar_config, usuario, modulosHabilitados);
 
   function cerrarMobile() {
     setMobileOpen(false);

@@ -1,20 +1,23 @@
 ﻿import bcrypt from "bcrypt";
 import { Op } from "sequelize";
 import { sequelize } from "../database/sequelize.js";
-import { Persona, Usuario, UsuarioRol, Rol } from "../models/index.js";
+import { Persona, Usuario, UsuarioRol, Rol, TipoDocumento } from "../models/index.js";
 
 const normalizarEmail = (v) => String(v ?? "").trim().toLowerCase();
 const normalizarDocumento = (v) => String(v ?? "").replace(/[.\s]/g, "").trim();
+
+// Roles que se pueden asignar desde "Personal" — nunca admin/super_admin desde acá.
+const ROLES_PERSONAL = ["staff", "kinesiologo"];
 
 const ahoraArgentina = () =>
   sequelize.literal(`TIMEZONE('America/Argentina/Cordoba', CURRENT_TIMESTAMP)`);
 
 export async function listarStaff() {
-  const rolStaff = await Rol.findOne({ where: { codigo: "staff" } });
-  if (!rolStaff) return [];
+  const rolesPersonal = await Rol.findAll({ where: { codigo: { [Op.in]: ROLES_PERSONAL } } });
+  if (!rolesPersonal.length) return [];
 
   const relaciones = await UsuarioRol.findAll({
-    where: { rol_id: rolStaff.id },
+    where: { rol_id: { [Op.in]: rolesPersonal.map((r) => r.id) } },
     include: [
       {
         model: Usuario,
@@ -57,12 +60,13 @@ export async function listarStaff() {
   }));
 }
 
-export async function crearStaff({ email, password, nombre, apellido, documento }) {
+export async function crearStaff({ email, password, nombre, apellido, documento, rol_codigo }) {
   const emailN    = normalizarEmail(email);
   const pass      = String(password ?? "").trim();
   const doc       = normalizarDocumento(documento);
   const nombreN   = String(nombre ?? "").trim();
   const apellidoN = String(apellido ?? "").trim();
+  const rolCodigo = ROLES_PERSONAL.includes(rol_codigo) ? rol_codigo : "staff";
 
   if (!emailN || !pass || !nombreN || !apellidoN || !doc)
     return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: email, password, nombre, apellido y documento" };
@@ -72,9 +76,9 @@ export async function crearStaff({ email, password, nombre, apellido, documento 
     return { ok: false, codigo: "DOCUMENTO_INVALIDO", mensaje: "El documento debe contener solo números" };
 
   return await sequelize.transaction(async (t) => {
-    const rolStaff = await Rol.findOne({ where: { codigo: "staff" }, transaction: t });
+    const rolStaff = await Rol.findOne({ where: { codigo: rolCodigo }, transaction: t });
     if (!rolStaff)
-      return { ok: false, codigo: "SIN_ROL_STAFF", mensaje: "No existe el rol 'staff' en la tabla rol" };
+      return { ok: false, codigo: "SIN_ROL", mensaje: `No existe el rol '${rolCodigo}' en la tabla rol` };
 
     let persona = await Persona.findOne({
       where: { [Op.or]: [{ email: emailN }, { documento: doc }] },
@@ -94,7 +98,7 @@ export async function crearStaff({ email, password, nombre, apellido, documento 
         });
 
         if (yaTieneRol)
-          return { ok: false, codigo: "STAFF_YA_EXISTE", mensaje: "La persona ya tiene un usuario con rol staff" };
+          return { ok: false, codigo: "ROL_YA_ASIGNADO", mensaje: `La persona ya tiene un usuario con rol ${rolCodigo}` };
 
         await UsuarioRol.create(
           { usuario_id: usuarioExistente.id, rol_id: rolStaff.id, actualizado_en: ahoraArgentina() },
@@ -102,10 +106,10 @@ export async function crearStaff({ email, password, nombre, apellido, documento 
         );
 
         return {
-          ok: true, codigo: "ROL_STAFF_ASIGNADO",
-          mensaje: "Se asignó el rol staff a un usuario existente",
+          ok: true, codigo: "ROL_ASIGNADO",
+          mensaje: `Se asignó el rol ${rolCodigo} a un usuario existente`,
           usuario_id: usuarioExistente.id, persona_id: persona.id,
-          email: persona.email, rol: "staff",
+          email: persona.email, rol: rolCodigo,
         };
       }
 
@@ -121,13 +125,18 @@ export async function crearStaff({ email, password, nombre, apellido, documento 
       );
 
       return {
-        ok: true, codigo: "USUARIO_STAFF_CREADO", mensaje: "Staff creado correctamente",
-        usuario_id: nuevoUsuario.id, persona_id: persona.id, email: persona.email, rol: "staff",
+        ok: true, codigo: "USUARIO_CREADO", mensaje: "Usuario creado correctamente",
+        usuario_id: nuevoUsuario.id, persona_id: persona.id, email: persona.email, rol: rolCodigo,
       };
     }
 
+    const tipoDocumentoDni = await TipoDocumento.findOne({ where: { descripcion: "DNI" }, transaction: t });
     persona = await Persona.create(
-      { nombre: nombreN, apellido: apellidoN, email: emailN, documento: doc, actualizado_en: ahoraArgentina() },
+      {
+        nombre: nombreN, apellido: apellidoN, email: emailN, documento: doc,
+        tipo_documento_id: tipoDocumentoDni?.id ?? null,
+        actualizado_en: ahoraArgentina(),
+      },
       { transaction: t }
     );
 
@@ -143,8 +152,8 @@ export async function crearStaff({ email, password, nombre, apellido, documento 
     );
 
     return {
-      ok: true, codigo: "USUARIO_STAFF_CREADO", mensaje: "Staff creado correctamente",
-      usuario_id: usuario.id, persona_id: persona.id, email: persona.email, rol: "staff",
+      ok: true, codigo: "USUARIO_CREADO", mensaje: "Usuario creado correctamente",
+      usuario_id: usuario.id, persona_id: persona.id, email: persona.email, rol: rolCodigo,
     };
   });
 }

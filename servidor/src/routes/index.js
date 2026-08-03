@@ -19,6 +19,7 @@ import { promocionesRouter } from "./promociones_router.js";
 import { stockRouter } from "./stock_router.js";
 import { homeRouter } from "./home_router.js";
 import { kinesiologiaRouter } from "./kinesiologia_router.js";
+import { modulosRouter } from "./modulos_router.js";
 import { verificarSuscripcion } from "../middleware/suscripcion_middleware.js";
 
 const router = Router();
@@ -67,5 +68,6 @@ router.use("/promociones", promocionesRouter);       // ← envío masivo de ema
 router.use("/stock", stockRouter);                   // ← productos y movimientos de stock
 router.use("/home",  homeRouter);                     // ← contenido configurable del home (GET público)
 router.use("/kinesiologia", kinesiologiaRouter);      // ← pacientes de kinesiología
+router.use("/modulos", modulosRouter);                // ← gestión de módulos de negocio habilitados
 
 export default router;

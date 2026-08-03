@@ -1,6 +1,12 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import InputField from "../form/input_field.jsx";
+import SelectField from "../form/select_field.jsx";
+
+const ROLES_PERSONAL = [
+  { value: "staff",       label: "Staff" },
+  { value: "kinesiologo", label: "Kinesiólogo" },
+];
 
 const valoresIniciales = {
   nombre: "",
@@ -8,6 +14,7 @@ const valoresIniciales = {
   email: "",
   documento: "",
   password: "",
+  rol_codigo: "staff",
 };
 
 export default function StaffFormModal({
@@ -39,6 +46,7 @@ export default function StaffFormModal({
         email: staffEditar.gym_persona_email || "",
         documento: staffEditar.gym_persona_documento || "",
         password: "",
+        rol_codigo: staffEditar.rol_codigo || "staff",
       });
     } else {
       reset(valoresIniciales);
@@ -105,6 +113,7 @@ export default function StaffFormModal({
 
     if (!esEdicion) {
       payload.password = String(data.password).trim();
+      payload.rol_codigo = data.rol_codigo || "staff";
     }
 
     await onGuardar(payload);
@@ -117,12 +126,12 @@ export default function StaffFormModal({
       <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl">
         <div className="border-b border-blue-100 px-6 py-4">
           <h2 className="text-xl font-bold text-gray-900">
-            {esEdicion ? "Editar staff" : "Nuevo staff"}
+            {esEdicion ? "Editar integrante" : "Nuevo integrante"}
           </h2>
           <p className="mt-1 text-sm text-gray-600">
             {esEdicion
               ? "Modificá los datos generales del usuario."
-              : "Creá un nuevo usuario con rol staff."}
+              : "Creá un nuevo usuario de staff o kinesiólogo."}
           </p>
         </div>
 
@@ -176,6 +185,15 @@ export default function StaffFormModal({
                 placeholder="Mínimo 4 caracteres"
                 type="password"
                 autoComplete="new-password"
+              />
+
+              <SelectField
+                label="Rol"
+                name="rol_codigo"
+                register={register}
+                options={ROLES_PERSONAL}
+                fijoValue="staff"
+                showPlaceholderOption={false}
               />
             </div>
           )}

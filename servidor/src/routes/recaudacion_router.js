@@ -6,11 +6,12 @@ import {
 } from "../controllers/recaudacion_controller.js";
 
 import { requireAuth , requireRole } from "../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
 
 
 export const recaudacionRouter = Router();
 
-recaudacionRouter.use(requireAuth,requireRole("admin"));
+recaudacionRouter.use(requireAuth, requireModuloHabilitado("gym"), requireRole("admin"));
 recaudacionRouter.get("/mensual", RecaudacionMesesPorAnio);
 recaudacionRouter.get("/dias", RecaudacionDiasDeMes);
 recaudacionRouter.get("/detalle-dia", RecaudacionDetalleDia);
