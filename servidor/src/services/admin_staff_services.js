@@ -6,8 +6,9 @@ import { Persona, Usuario, UsuarioRol, Rol, TipoDocumento } from "../models/inde
 const normalizarEmail = (v) => String(v ?? "").trim().toLowerCase();
 const normalizarDocumento = (v) => String(v ?? "").replace(/[.\s]/g, "").trim();
 
-// Roles que se pueden asignar desde "Personal" — nunca admin/super_admin desde acá.
-const ROLES_PERSONAL = ["staff", "kinesiologo"];
+// Roles que se pueden asignar desde "Personal". "admin" solo lo puede asignar
+// un super_admin (se valida en crearStaff) — super_admin nunca se asigna acá.
+const ROLES_PERSONAL = ["staff", "kinesiologo", "admin"];
 
 const ahoraArgentina = () =>
   sequelize.literal(`TIMEZONE('America/Argentina/Cordoba', CURRENT_TIMESTAMP)`);
@@ -60,13 +61,16 @@ export async function listarStaff() {
   }));
 }
 
-export async function crearStaff({ email, password, nombre, apellido, documento, rol_codigo }) {
+export async function crearStaff({ email, password, nombre, apellido, documento, rol_codigo, solicitanteEsSuperAdmin }) {
   const emailN    = normalizarEmail(email);
   const pass      = String(password ?? "").trim();
   const doc       = normalizarDocumento(documento);
   const nombreN   = String(nombre ?? "").trim();
   const apellidoN = String(apellido ?? "").trim();
   const rolCodigo = ROLES_PERSONAL.includes(rol_codigo) ? rol_codigo : "staff";
+
+  if (rolCodigo === "admin" && !solicitanteEsSuperAdmin)
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede crear otro admin" };
 
   if (!emailN || !pass || !nombreN || !apellidoN || !doc)
     return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: email, password, nombre, apellido y documento" };

@@ -2,11 +2,14 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import InputField from "../form/input_field.jsx";
 import SelectField from "../form/select_field.jsx";
+import { useAuth } from "../../auth/auth_context.jsx";
 
 const ROLES_PERSONAL = [
   { value: "staff",       label: "Staff" },
   { value: "kinesiologo", label: "Kinesiólogo" },
 ];
+
+const ROL_ADMIN = { value: "admin", label: "Admin" };
 
 const valoresIniciales = {
   nombre: "",
@@ -26,15 +29,22 @@ export default function StaffFormModal({
 }) {
   const esEdicion = Boolean(staffEditar);
 
+  const { usuario } = useAuth();
+  const esSuperAdmin = Boolean(usuario?.roles?.includes("super_admin"));
+  const opcionesRol = esSuperAdmin ? [...ROLES_PERSONAL, ROL_ADMIN] : ROLES_PERSONAL;
+
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     setError,
     formState: { errors },
   } = useForm({
     defaultValues: valoresIniciales,
   });
+
+  const rolSeleccionado = watch("rol_codigo");
 
   useEffect(() => {
     if (!abierto) return;
@@ -191,11 +201,17 @@ export default function StaffFormModal({
                 label="Rol"
                 name="rol_codigo"
                 register={register}
-                options={ROLES_PERSONAL}
+                options={opcionesRol}
                 fijoValue="staff"
                 showPlaceholderOption={false}
               />
             </div>
+          )}
+
+          {!esEdicion && rolSeleccionado === "admin" && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+              Este usuario tendrá acceso administrativo completo al sistema.
+            </p>
           )}
 
           <div className="flex justify-end gap-3 pt-2">

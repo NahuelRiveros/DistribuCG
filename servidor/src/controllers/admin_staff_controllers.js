@@ -25,6 +25,7 @@ export async function listarStaffController(_req, res) {
 export async function crearStaffController(req, res) {
   try {
     const { email, password, nombre, apellido, documento, rol_codigo } = req.body ?? {};
+    const solicitanteEsSuperAdmin = (req.user?.roles ?? []).includes("super_admin");
 
     const result = await crearStaff({
       email,
@@ -33,9 +34,12 @@ export async function crearStaffController(req, res) {
       apellido,
       documento,
       rol_codigo,
+      solicitanteEsSuperAdmin,
     });
 
-    if (!result.ok) return res.status(400).json(result);
+    if (!result.ok) {
+      return res.status(result.codigo === "SIN_PERMISO" ? 403 : 400).json(result);
+    }
 
     return res.status(201).json(result);
   } catch (e) {

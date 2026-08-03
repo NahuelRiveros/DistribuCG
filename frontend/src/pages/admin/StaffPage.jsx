@@ -126,7 +126,11 @@ export default function StaffPage() {
       key: "rol_descripcion",
       label: "Rol",
       render: (row) => (
-        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${row.rol_codigo === "kinesiologo" ? "bg-(--kt-teal-700)/10 text-(--kt-teal-700) border-(--kt-teal-700)/25" : "bg-slate-50 text-slate-600 border-slate-200"}`}>
+        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+          row.rol_codigo === "kinesiologo" ? "bg-(--kt-teal-700)/10 text-(--kt-teal-700) border-(--kt-teal-700)/25"
+          : row.rol_codigo === "admin" ? "bg-amber-50 text-amber-700 border-amber-200"
+          : "bg-slate-50 text-slate-600 border-slate-200"
+        }`}>
           {row.rol_descripcion || "—"}
         </span>
       ),
@@ -213,7 +217,7 @@ export default function StaffPage() {
               </span>
               <h1 className="mt-2 text-2xl font-extrabold text-slate-900">Personal</h1>
               <p className="mt-0.5 text-sm text-slate-500">
-                Administrá al personal (staff y kinesiólogos), sus datos, contraseña y estado.
+                Administrá al personal (staff, kinesiólogos y admins), sus datos, contraseña y estado.
               </p>
             </div>
             <div className="flex items-center gap-2">
