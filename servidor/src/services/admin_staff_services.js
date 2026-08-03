@@ -24,8 +24,19 @@ export async function listarStaff() {
   const rolesPersonal = await Rol.findAll({ where: { codigo: { [Op.in]: ROLES_PERSONAL } } });
   if (!rolesPersonal.length) return [];
 
+  // Ocultar de "Personal" a cualquier usuario que además tenga super_admin
+  // (ej. la cuenta seed, que también carga el rol admin para acceder a esta sección).
+  const rolSuperAdmin = await Rol.findOne({ where: { codigo: "super_admin" } });
+  const superAdminUsuarioIds = rolSuperAdmin
+    ? (await UsuarioRol.findAll({ where: { rol_id: rolSuperAdmin.id }, attributes: ["usuario_id"] }))
+        .map((r) => r.usuario_id)
+    : [];
+
   const relaciones = await UsuarioRol.findAll({
-    where: { rol_id: { [Op.in]: rolesPersonal.map((r) => r.id) } },
+    where: {
+      rol_id: { [Op.in]: rolesPersonal.map((r) => r.id) },
+      ...(superAdminUsuarioIds.length ? { usuario_id: { [Op.notIn]: superAdminUsuarioIds } } : {}),
+    },
     include: [
       {
         model: Usuario,
