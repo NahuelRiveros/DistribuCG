@@ -94,16 +94,16 @@ export default function SuscripcionPage() {
       <div className="mx-auto max-w-xl space-y-4">
 
         {/* ── ENCABEZADO ── */}
-        <div className="overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm shadow-blue-500/10">
-          <div className="h-1 w-full bg-linear-to-r from-blue-600 via-blue-500 to-cyan-400" />
+        <div className="overflow-hidden rounded-2xl border border-[#B8EEF3] bg-white shadow-sm shadow-[#18C7D8]/10">
+          <div className="h-1 w-full bg-linear-to-r from-(--kt-teal-700) via-[#0B7D8F] to-[#18C7D8]" />
           <div className="flex items-center justify-between px-5 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 shadow-sm shadow-blue-500/25">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--kt-teal-700) shadow-sm shadow-[#18C7D8]/25">
                 <CreditCard size={20} className="text-white" />
               </div>
               <div>
                 <h1 className="text-lg font-extrabold text-slate-900">Suscripción al Software</h1>
-                <p className="text-xs text-slate-400">Dynamic Gym — Plan mensual</p>
+                <p className="text-xs text-(--kt-ink-mute)">Kinetica — Plan mensual</p>
               </div>
             </div>
             <button
@@ -119,7 +119,7 @@ export default function SuscripcionPage() {
 
         {/* ── ESTADO DEL PLAN ── */}
         {isLoading ? (
-          <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-slate-400 text-sm">
+          <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-(--kt-ink-mute) text-sm">
             Cargando…
           </div>
         ) : (
@@ -143,7 +143,7 @@ export default function SuscripcionPage() {
             {/* Datos del plan */}
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 flex items-center gap-1 mb-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-(--kt-ink-mute) flex items-center gap-1 mb-0.5">
                   <CalendarDays size={9} /> Vencimiento
                 </p>
                 <p className="text-sm font-extrabold text-slate-800">
@@ -151,21 +151,21 @@ export default function SuscripcionPage() {
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 flex items-center gap-1 mb-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-(--kt-ink-mute) flex items-center gap-1 mb-0.5">
                   <Zap size={9} /> Precio mensual
                 </p>
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-extrabold text-slate-800">{money(estado?.precio)}</p>
                   {estado?.precio > 0 && (
                     <button onClick={copiarMonto} title="Copiar monto"
-                      className="text-slate-400 hover:text-blue-500 transition">
+                      className="text-slate-500 hover:text-(--kt-teal-700) transition">
                       {copiado ? <Check size={12} className="text-emerald-500" /> : <Copy size={11} />}
                     </button>
                   )}
                 </div>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 flex items-center gap-1 mb-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-(--kt-ink-mute) flex items-center gap-1 mb-0.5">
                   <BadgeCheck size={9} /> Cliente
                 </p>
                 <p className="text-sm font-bold text-slate-800 truncate">
@@ -184,11 +184,11 @@ export default function SuscripcionPage() {
             <div className="space-y-3">
               {/* Paso 1 */}
               <div className="flex gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] font-extrabold text-white">1</span>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--kt-teal-700) text-[11px] font-extrabold text-white">1</span>
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Realizá la transferencia</p>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Transferí <span className="font-bold text-blue-700">{money(estado?.precio)}</span> al alias{" "}
+                    Transferí <span className="font-bold text-(--kt-teal-700)">{money(estado?.precio)}</span> al alias{" "}
                     <span className="font-bold text-slate-700 tracking-wide">Maloki03</span>.
                   </p>
                 </div>
@@ -196,7 +196,7 @@ export default function SuscripcionPage() {
 
               {/* Paso 2 */}
               <div className="flex gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] font-extrabold text-white">2</span>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--kt-teal-700) text-[11px] font-extrabold text-white">2</span>
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Enviá el comprobante por WhatsApp</p>
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -207,7 +207,7 @@ export default function SuscripcionPage() {
 
               {/* Paso 3 */}
               <div className="flex gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] font-extrabold text-white">3</span>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--kt-teal-700) text-[11px] font-extrabold text-white">3</span>
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Nahuel extiende el plan manualmente</p>
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -229,7 +229,7 @@ export default function SuscripcionPage() {
             </a>
 
             {necesita && (
-              <p className="text-center text-[11px] text-slate-400">
+              <p className="text-center text-[11px] text-(--kt-ink-mute)">
                 ⏳ El sistema se activa dentro de las 24 hs hábiles de confirmado el pago
               </p>
             )}
@@ -238,7 +238,7 @@ export default function SuscripcionPage() {
 
         {/* ── CICLO DE FACTURACIÓN ── */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">
+          <h3 className="text-xs font-bold uppercase tracking-wide text-(--kt-ink-mute) mb-3">
             Ciclo de facturación
           </h3>
           <div className="space-y-2">

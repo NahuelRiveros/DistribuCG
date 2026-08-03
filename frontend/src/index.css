@@ -1,75 +1,89 @@
 @import "tailwindcss";
 
-/* ── Dynamic Gym: fuentes (definidas en index.html via <link>, aquí solo asignamos) ── */
-.dg-display    { font-family: 'Barlow Condensed', sans-serif; }
-.dg-body-font  { font-family: 'DM Sans', sans-serif; }
+/* ── Kinetica: paleta de marca ────────────────────────────────────────────── */
+:root {
+  --kt-turquoise:      #18C7D8; /* decorativo / fondos oscuros — no usar como texto ni como fondo de botón con texto encima (2.1:1) */
+  --kt-turquoise-soft: #E3FAFC;
+  --kt-petrol:         #0B7D8F; /* accesible con texto blanco (4.83:1) */
+  --kt-bg:             #FFFFFF;
+  --kt-bg-soft:        #F5F7F9;
+  --kt-ink:            #222222;
+  --kt-ink-soft:       #666666;
+  --kt-border:         #D9E1E6;
+
+  /* ── Paleta accesible (auditoría WCAG, ver kinetica-audit) ──────────────── */
+  --kt-teal-900: #063A42; /* fondos oscuros de marca / titulares — 12.4:1 vs blanco */
+  --kt-teal-700: #0B6E7D; /* acción: botones sólidos, link activo, foco — 5.93:1 con blanco */
+  --kt-teal-500: #0F94A6; /* solo texto/ícono grande (≥24px) o UI no textual — 3.6:1 */
+  --kt-ink-mute: #475569; /* reemplaza slate-400 como texto real — 7.58:1 vs blanco */
+
+  --kt-success:    #047857; --kt-success-bg: #ECFDF5;
+  --kt-warning:    #B45309; --kt-warning-bg: #FFFBEB;
+  --kt-danger:     #B91C1C; --kt-danger-bg: #FEF2F2;
+}
+
+/* ── Kinetica: fuentes (definidas en index.html via <link>, aquí solo asignamos) ── */
+.kt-display { font-family: 'Bricolage Grotesque', sans-serif; }
+.kt-body    { font-family: 'Plus Jakarta Sans', sans-serif; }
 
 /* ── Animaciones home ─────────────────────────────────────────────────────── */
-@keyframes dg-fade-up {
-  from { opacity: 0; transform: translateY(32px); }
+@keyframes kt-fade-up {
+  from { opacity: 0; transform: translateY(28px); }
   to   { opacity: 1; transform: translateY(0);    }
 }
-@keyframes dg-blink {
-  0%, 100% { opacity: 1;   }
-  50%       { opacity: 0.2; }
-}
-@keyframes dg-line-grow {
+@keyframes kt-line-grow {
   from { transform: scaleX(0); }
   to   { transform: scaleX(1); }
 }
-@keyframes dg-shimmer {
+@keyframes kt-flow {
+  0%   { stroke-dashoffset: 240; }
+  100% { stroke-dashoffset: 0;   }
+}
+@keyframes kt-pulse-dot {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%       { opacity: 0.35; transform: scale(0.8); }
+}
+@keyframes kt-shimmer {
   from { background-position: -200% center; }
   to   { background-position:  200% center; }
 }
-
-/* Grain: reducido a 200% para menor carga de paint */
-@keyframes dg-grain {
-  0%, 100% { transform: translate(0, 0);     }
-  20%       { transform: translate(2%, -2%);  }
-  40%       { transform: translate(-2%, 2%);  }
-  60%       { transform: translate(2%, 2%);   }
-  80%       { transform: translate(-2%, -2%); }
+@keyframes kt-drift {
+  0%, 100% { transform: translate(0, 0);      }
+  50%       { transform: translate(-2%, 2%);   }
 }
 
-.dg-a1 { animation: dg-fade-up .8s .05s cubic-bezier(.22,1,.36,1) both; }
-.dg-a2 { animation: dg-fade-up .8s .22s cubic-bezier(.22,1,.36,1) both; }
-.dg-a3 { animation: dg-fade-up .8s .40s cubic-bezier(.22,1,.36,1) both; }
-.dg-a4 { animation: dg-fade-up .8s .58s cubic-bezier(.22,1,.36,1) both; }
+.kt-a1 { animation: kt-fade-up .75s .05s cubic-bezier(.22,1,.36,1) both; }
+.kt-a2 { animation: kt-fade-up .75s .18s cubic-bezier(.22,1,.36,1) both; }
+.kt-a3 { animation: kt-fade-up .75s .31s cubic-bezier(.22,1,.36,1) both; }
+.kt-a4 { animation: kt-fade-up .75s .44s cubic-bezier(.22,1,.36,1) both; }
 
-.dg-blink     { animation: dg-blink 2.4s ease-in-out infinite; }
-.dg-line-grow { animation: dg-line-grow 1.1s .9s ease both; transform-origin: left; }
+.kt-line-grow { animation: kt-line-grow 1s .7s ease both; transform-origin: left; }
+.kt-flow-path { animation: kt-flow 3.5s linear infinite; }
+.kt-pulse-dot  { animation: kt-pulse-dot 1.8s ease-in-out infinite; }
 
-.dg-card { transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease; }
-.dg-card:hover { transform: translateY(-6px); }
-
-.dg-img-card { transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s ease; }
-.dg-img-card:hover { transform: translateY(-8px); }
-.dg-img-card img { transition: transform .7s cubic-bezier(.22,1,.36,1); }
-.dg-img-card:hover img { transform: scale(1.08); }
-
-/* Grain: pseudo-elemento reducido a 200% (era 400%) → menos área a pintar */
-.dg-grain::after {
-  content: '';
-  position: absolute;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  opacity: 0.028;
-  animation: dg-grain 1s steps(1) infinite; /* 0.5s → 1s: mitad de repaints */
-  pointer-events: none;
-  z-index: 1;
-  will-change: transform;
-}
-
-.dg-shimmer-text {
-  background: linear-gradient(90deg, #fff 0%, #7dd3fc 40%, #fff 60%, #7dd3fc 100%);
+.kt-shimmer-text {
+  background: linear-gradient(90deg, var(--kt-ink) 0%, var(--kt-teal-500) 40%, var(--kt-ink) 60%, var(--kt-teal-500) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: dg-shimmer 4s linear infinite;
+  animation: kt-shimmer 5s linear infinite;
 }
 
-.stat-item { transition: transform .22s ease; }
-.stat-item:hover { transform: translateY(-4px); }
+.kt-card { transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease, border-color .25s ease; }
+.kt-card:hover { transform: translateY(-6px); }
+
+.kt-img-card { transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s ease; }
+.kt-img-card:hover { transform: translateY(-8px); }
+.kt-img-card img,
+.kt-img-card video { transition: transform .7s cubic-bezier(.22,1,.36,1); }
+.kt-img-card:hover img,
+.kt-img-card:hover video { transform: scale(1.06); }
+
+/* Textura sutil de puntos — precisión / biomecánica, no "grano" de gym oscuro */
+.kt-dotgrid {
+  background-image: radial-gradient(var(--kt-border) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.kt-drift { animation: kt-drift 10s ease-in-out infinite; }

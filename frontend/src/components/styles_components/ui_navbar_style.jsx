@@ -3,40 +3,40 @@
 // ─────────────────────────────────────────────────────────────────────────────
 const C = {
   // Links / botones ACTIVOS (página actual, item seleccionado)
-  activo_bg:       "bg-sky-600",
+  activo_bg:       "bg-(--kt-teal-700)",
   activo_texto:    "text-white",
-  activo_sombra:   "shadow-sky-500/25",
+  activo_sombra:   "shadow-[#18C7D8]/25",
 
   // HOVER sobre links inactivos (nav desktop, items dropdown, mobile)
-  hover_bg:        "hover:bg-sky-50",
-  hover_texto:     "hover:text-sky-700",
+  hover_bg:        "hover:bg-[#E3FAFC]",
+  hover_texto:     "hover:text-[#0B7D8F]",
 
   // Estado "abierto" suave (dropdown trigger, accordion mobile abierto)
-  suave_bg:        "bg-sky-50",
-  suave_texto:     "text-sky-700",
-  suave_bg_t:      "bg-sky-50/60",
+  suave_bg:        "bg-[#E3FAFC]",
+  suave_texto:     "text-[#0B7D8F]",
+  suave_bg_t:      "bg-[#E3FAFC]/60",
 
   // Hover oscuro para botones sólidos (btn login, mobile_btn_login)
-  btn_hover:       "hover:bg-sky-700",
+  btn_hover:       "hover:bg-[#0B7D8F]",
 
   // Iconos en estado activo / abierto
-  icono_bg:        "bg-sky-100",
-  icono_texto:     "text-sky-600",
-  icono_texto_sm:  "text-sky-400",
+  icono_bg:        "bg-[#E3FAFC]",
+  icono_texto:     "text-[#0B7D8F]",
+  icono_texto_sm:  "text-(--kt-teal-700)",
 
   // Bordes y sombras de acento
-  borde_acento:    "border-sky-100",
-  borde_acento_t:  "border-sky-100/60",
-  sombra_acento:   "shadow-sky-500/8",
+  borde_acento:    "border-[#B8EEF3]",
+  borde_acento_t:  "border-[#B8EEF3]/60",
+  sombra_acento:   "shadow-[#18C7D8]/8",
 
   // Textos de acento
-  texto_acento:    "text-sky-500",
+  texto_acento:    "text-(--kt-teal-700)",
 
   // Gradiente cabecera de paneles dropdown
-  grad_header:     "from-slate-50 to-sky-50/50",
+  grad_header:     "from-slate-50 to-[#E3FAFC]/50",
 
   // Focus ring
-  foco_ring:       "focus-visible:ring-sky-400",
+  foco_ring:       "focus-visible:ring-(--kt-teal-700)",
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -52,7 +52,7 @@ export const UI_NAVBAR = {
     "shadow-lg shadow-slate-900/8",
 
   barra_linea_acento:
-    "absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-sky-400 via-blue-500 to-indigo-400",
+    "absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-[#18C7D8] via-[#0B7D8F] to-[#18C7D8]",
 
   barra_nav_container:
     "mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8",
@@ -68,7 +68,7 @@ export const UI_NAVBAR = {
     `group flex shrink-0 items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 ${C.foco_ring} focus-visible:ring-offset-2`,
 
   brand_badge:
-    "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-sky-500 to-blue-600 text-[10px] font-black text-white shadow-md shadow-sky-500/30 transition-transform duration-200 group-hover:scale-105",
+    "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-[10px] font-black text-white shadow-md shadow-[#18C7D8]/30 transition-transform duration-200 group-hover:scale-105",
 
   brand_badge_brillo:
     "absolute inset-0 rounded-xl bg-linear-to-b from-white/20 to-transparent",
@@ -77,10 +77,10 @@ export const UI_NAVBAR = {
     "hidden leading-tight sm:block",
 
   brand_titulo:
-    "text-sm font-black tracking-tight text-slate-900",
+    "kt-display text-base font-bold tracking-tight text-slate-900",
 
   brand_subtitulo:
-    "text-[11px] font-medium text-slate-400",
+    "text-[11px] font-medium text-(--kt-ink-mute)",
 
   // ════════════════════════════════════════════════════════════════
   // BOTONES DE ACCIÓN — BARRA
@@ -154,7 +154,7 @@ export const UI_NAVBAR = {
   dropdown_grupo_cabecera:
     "mx-1 mb-0.5 mt-2 flex items-center gap-2 px-2 py-1 first:mt-0",
   dropdown_grupo_icono:
-    "flex h-5 w-5 items-center justify-center rounded-md bg-slate-100 text-slate-400",
+    "flex h-5 w-5 items-center justify-center rounded-md bg-slate-100 text-slate-500",
   dropdown_grupo_divisor:
     "mx-3 mt-1.5 border-b border-slate-100 last:hidden",
 
@@ -163,7 +163,7 @@ export const UI_NAVBAR = {
   // ════════════════════════════════════════════════════════════════
 
   item_grupo_label:
-    "text-[10px] font-black uppercase tracking-widest text-slate-400",
+    "text-[10px] font-black uppercase tracking-widest text-slate-500",
   item_lista:
     "space-y-0.5",
 
@@ -248,7 +248,7 @@ export const UI_NAVBAR = {
     `shrink-0 rotate-180 ${C.texto_acento} transition-all duration-200`,
 
   mobile_dropdown_chevron_cerrado:
-    "shrink-0 text-slate-400 transition-all duration-200",
+    "shrink-0 text-slate-500 transition-all duration-200",
 
   mobile_dropdown_contenido:
     `${C.borde_acento_t} border-t px-2 pb-2 pt-1.5`,
@@ -258,7 +258,7 @@ export const UI_NAVBAR = {
   mobile_subgrupo_cabecera:
     "flex items-center gap-2 px-2 py-1",
   mobile_subgrupo_icono:
-    "flex h-5 w-5 items-center justify-center rounded-md bg-slate-100 text-slate-400",
+    "flex h-5 w-5 items-center justify-center rounded-md bg-slate-100 text-slate-500",
 
   mobile_pie_usuario:
     "mt-4 border-t border-slate-200/60 pt-4",
@@ -271,11 +271,11 @@ export const UI_NAVBAR = {
   // ════════════════════════════════════════════════════════════════
 
   userbox_avatar_xl:
-    "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-sky-500 to-blue-600 text-sm font-black text-white shadow-md shadow-sky-500/30 ring-2 ring-white ring-offset-1",
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-sm font-black text-white shadow-md shadow-[#18C7D8]/30 ring-2 ring-white ring-offset-1",
   userbox_avatar_lg:
-    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-sky-500 to-blue-600 text-sm font-black text-white shadow-md shadow-sky-500/30 ring-2 ring-white ring-offset-1",
+    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-sm font-black text-white shadow-md shadow-[#18C7D8]/30 ring-2 ring-white ring-offset-1",
   userbox_avatar_sm:
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-sky-500 to-blue-600 text-xs font-black text-white shadow-sm shadow-sky-500/30",
+    "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-xs font-black text-white shadow-sm shadow-[#18C7D8]/30",
 
   userbox_online_sm:
     "relative flex h-1.5 w-1.5 shrink-0",
@@ -315,9 +315,9 @@ export const UI_NAVBAR = {
   userbox_desktop_nombre:
     "max-w-28 truncate text-xs font-black text-slate-900",
   userbox_desktop_rol:
-    "max-w-28 truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400",
+    "max-w-28 truncate text-[10px] font-semibold uppercase tracking-wide text-(--kt-ink-mute)",
   userbox_desktop_chevron:
-    "shrink-0 text-slate-400 transition-transform duration-200",
+    "shrink-0 text-slate-500 transition-transform duration-200",
 
   userbox_desktop_panel:
     "absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/12 ring-1 ring-black/5",

@@ -1,141 +1,48 @@
-import { useRef, useEffect } from "react";
 import {
-  MapPin, Phone, Dumbbell, Users, Instagram,
-  ArrowRight, Flame, Trophy,
+  MapPin, Instagram, ArrowRight, ArrowDown,
+  Dumbbell, HeartPulse, Target, LineChart, UserCheck, ImageOff,
 } from "lucide-react";
-import Carousel from "./ui/carrousel.jsx";
-import { images } from "../assets/index.js";
 import { useHomeContent } from "../hooks/use_home_content.js";
 
-const slides = [
-  {
-    kicker: "Contacto",
-    icon: <Phone size={16} />,
-    title: "Estamos para ayudarte",
-    highlight: "para lograr tus objetivos",
-    subtitle: "Consultas, horarios y asesoramiento",
-    image: images.principal2,
-    points: [
-      // {
-      //   icon: Phone,
-      //   label: "WhatsApp",
-      //   description: "Respuesta inmediata",
-      //   href: "https://wa.me/543705023131",
-      //   external: true,
-      // },
-      {
-        icon: MapPin,
-        label: "Ver ubicación",
-        description: "Av. Dr. Luis Gutnisky 3870, Formosa Capital",
-        href: "https://maps.app.goo.gl/Q6khBsqhu5xgsnebA",
-        external: true,
-      },
-      {
-        icon: Instagram,
-        label: "Instagram",
-        description: "DYNAMIC GYM",
-        href: "https://www.instagram.com/dynamic.gymm",
-        external: true,
-      },
-    ],
-  },
-  {
-    kicker: "Entrenamiento",
-    icon: <Dumbbell size={16} />,
-    title: "Planes profesionales",
-    highlight: "para cada objetivo",
-    image: images.maquinas1,
-    points: [
-      {
-        icon: Users,
-        label: "Clases guiadas",
-        description: "Profesores certificados",
-      },
-      {
-        icon: Dumbbell,
-        label: "Fuerza y potencia",
-        description: "Equipamiento moderno",
-      },
-    ],
-  },
-];
-
-const STATS = [
-  { icon: Users,    value: "200+", label: "Miembros activos"    },
-  { icon: Dumbbell, value: "100%", label: "Equipos modernos"    },
-  { icon: Trophy,   value: "5+",   label: "Años de experiencia" },
-  { icon: Flame,    value: "10+",  label: "Entrenamientos/mes"  },
-];
-
-const FEATURES = [
-  {
-    icon: Users,
-    title: "Profesores Certificados",
-    desc: "Entrenadores con formación profesional para guiarte de forma personalizada hacia tus objetivos.",
-    image: images.maquinas1,
-    iconCls: "text-sky-400 bg-sky-500/15 group-hover:bg-sky-500/30",
-    glowCls: "group-hover:shadow-sky-500/20",
-    barCls: "bg-sky-500",
-  },
+const PILARES = [
   {
     icon: Dumbbell,
-    title: "Equipamiento Moderno",
-    desc: "Máquinas de última generación y pesos libres para trabajar cada grupo muscular con precisión.",
-    image: images.maquinas2,
-    iconCls: "text-amber-400 bg-amber-500/15 group-hover:bg-amber-500/30",
-    glowCls: "group-hover:shadow-amber-500/20",
-    barCls: "bg-amber-500",
+    title: "Entrenamiento personalizado",
+    text: "Cada plan se arma a tu medida — objetivos, nivel y disponibilidad. Nada de rutinas genéricas.",
   },
   {
-    icon: Flame,
-    title: "Comunidad Motivadora",
-    desc: "Un ambiente de energía donde cada miembro se convierte en tu fuente de inspiración diaria.",
-    image: images.maquinas3,
-    iconCls: "text-rose-400 bg-rose-500/15 group-hover:bg-rose-500/30",
-    glowCls: "group-hover:shadow-rose-500/20",
-    barCls: "bg-rose-500",
+    icon: HeartPulse,
+    title: "Kinesiología",
+    text: "Evaluación, recuperación y rehabilitación guiada por profesionales, integrada a tu entrenamiento.",
   },
 ];
 
+const VALOR = [
+  { icon: Target,     label: "Plan a tu medida" },
+  { icon: UserCheck,  label: "Profesional asignado" },
+  { icon: LineChart,  label: "Seguimiento por ejercicio" },
+  { icon: HeartPulse, label: "Kinesiología incluida" },
+];
+
+// TODO: reemplazar por los datos reales de Kinetica
 const CONTACTS = [
-  // {
-  //   icon: Phone,
-  //   label: "WhatsApp",
-  //   desc: "Respuesta inmediata",
-  //   sub: "+54 370 502-3131",
-  //   href: "https://wa.me/543705023131",
-  //   iconCls: "text-emerald-400 bg-emerald-500/10 group-hover:bg-emerald-500/25",
-  //   hoverBorder: "hover:border-emerald-500/50",
-  //   accentCls: "text-emerald-400",
-  //   glowCls: "hover:shadow-emerald-500/10",
-  // },
   {
     icon: MapPin,
     label: "Ubicación",
-    desc: "Cómo llegar",
-    sub: "Av. Dr. Luis Gutnisky 3870, Formosa Capital",
-    href: "https://maps.app.goo.gl/Q6khBsqhu5xgsnebA",
-    iconCls: "text-sky-400 bg-sky-500/10 group-hover:bg-sky-500/25",
-    hoverBorder: "hover:border-sky-500/50",
-    accentCls: "text-sky-400",
-    glowCls: "hover:shadow-sky-500/10",
+    sub: "[Tu dirección acá]",
+    href: "#",
   },
   {
     icon: Instagram,
     label: "Instagram",
-    desc: "Seguinos",
-    sub: "@dynamic.gymm",
-    href: "https://www.instagram.com/dynamic.gymm",
-    iconCls: "text-pink-400 bg-pink-500/10 group-hover:bg-pink-500/25",
-    hoverBorder: "hover:border-pink-500/50",
-    accentCls: "text-pink-400",
-    glowCls: "hover:shadow-pink-500/10",
+    sub: "@kinetica",
+    href: "#",
   },
 ];
 
 function contenidoASlide(c) {
   return {
-    image: c.cloudinary_url,
+    url: c.cloudinary_url,
     tipoMedia: c.tipo_media,
     title: c.titulo,
     subtitle: c.descripcion,
@@ -143,236 +50,156 @@ function contenidoASlide(c) {
 }
 
 export default function HomePage() {
-  const { contenidosDeArea } = useHomeContent();
+  const { areas, loading, contenidosDeArea } = useHomeContent();
 
-  // Contenido subido desde el panel admin — si todavía no cargaron nada para
-  // el área, se usan los slides fijos de abajo como fallback.
-  const gymContenidos = contenidosDeArea("Gym");
-  const kineContenidos = contenidosDeArea("Kinesiología");
-
-  const gymSlides = gymContenidos.length ? gymContenidos.map(contenidoASlide) : slides;
-  const kineSlides = kineContenidos.map(contenidoASlide);
-
-  // ── Parallax sin re-render ─────────────────────────────────────────────────
-  // En vez de setState (que re-renderiza todo el componente en cada scroll),
-  // mutamos directamente el estilo del elemento via ref.
-  const parallaxRef = useRef(null);
-
-  useEffect(() => {
-    const el = parallaxRef.current;
-    if (!el) return;
-
-    const onScroll = () => {
-      el.style.transform = `translateY(${window.scrollY * 0.25}px)`;
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const areasConContenido = areas
+    .map((a) => ({ ...a, slides: contenidosDeArea(a.descripcion).map(contenidoASlide) }))
+    .filter((a) => a.slides.length > 0);
 
   return (
-    <div className="dg-body-font min-h-screen bg-[#060a12] text-white overflow-x-hidden">
+    <div className="kt-body min-h-screen bg-white text-[#222222]">
 
       {/* ── HERO ──────────────────────────────────────────── */}
-      <section className="dg-grain relative flex h-screen min-h-[640px] items-center justify-center overflow-hidden">
+      <section className="relative overflow-hidden bg-linear-to-b from-[#F5F7F9] to-white">
+        <div className="kt-dotgrid pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_70%_60%_at_50%_20%,black,transparent)]" />
 
-        {/* Background parallax — controlado por ref, sin setState */}
-        <div ref={parallaxRef} className="absolute inset-0">
-          <img
-            src={images.principal}
-            alt="Dynamic Gym"
-            fetchPriority="high"
-            className="h-full w-full object-cover scale-110"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#060a12]/70 via-[#060a12]/45 to-[#060a12]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#060a12]/55 via-transparent to-[#060a12]/55" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_40%,_transparent,_rgba(6,10,18,0.5))]" />
-        </div>
+        <KineticPath className="pointer-events-none absolute -right-24 top-10 h-[420px] w-[420px] opacity-70 md:right-0" />
 
-        {/* Top accent line */}
-        <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-80" />
-
-        {/* Diagonal decorative line */}
-        <div
-          className="absolute bottom-0 left-0 w-1/2 h-[1px] bg-gradient-to-r from-sky-500/30 to-transparent"
-          style={{ transform: "rotate(-1.5deg) translateY(-60px)" }}
-        />
-
-        {/* Content */}
-        <div className="relative z-10 px-6 text-center max-w-5xl mx-auto">
-          <div className="dg-a1 inline-flex items-center gap-2.5 rounded-full border border-sky-500/35 bg-sky-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400 mb-10 backdrop-blur-sm">
-            <span className="dg-blink h-1.5 w-1.5 rounded-full bg-sky-400" />
-            Dynamic Gym · Formosa Capital
+        <div className="relative mx-auto max-w-5xl px-6 pb-24 pt-28 text-center sm:pt-36">
+          <div className="kt-a1 inline-flex items-center gap-2 rounded-full border border-[#D9E1E6] bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#0B7D8F] shadow-sm">
+            <span className="kt-pulse-dot h-1.5 w-1.5 rounded-full bg-[#18C7D8]" />
+            Centro de Entrenamiento y Kinesiología
           </div>
 
-          <h1 className="dg-display dg-a2 text-[3.35rem] sm:text-7xl md:text-[8rem] lg:text-[9.5rem] font-black uppercase leading-[0.86] tracking-tight">
-            ROMPE
-            <span className="block dg-shimmer-text drop-shadow-[0_0_50px_rgba(14,165,233,0.35)]">
-              TUS LÍMITES
-            </span>
+          <h1 className="kt-display kt-a2 mt-8 text-6xl font-bold uppercase leading-[0.92] tracking-tight sm:text-7xl md:text-8xl">
+            KINE
+            <span className="kt-shimmer-text">TICA</span>
           </h1>
 
-          <p className="dg-a3 mt-8 max-w-md mx-auto text-base text-gray-400 leading-relaxed">
-            Profesores certificados, equipamiento moderno y una comunidad
-            que te impulsa a dar el 100&nbsp;% cada día.
+          <p className="kt-a3 mx-auto mt-7 max-w-lg text-base leading-relaxed text-[#666666] sm:text-lg">
+            Entrenamiento 100&nbsp;% personalizado con seguimiento real de
+            cada ejercicio, y kinesiología para acompañar tu recuperación.
           </p>
 
-          <div className="dg-a4 mt-11 flex flex-col sm:flex-row items-center justify-center gap-4">
-            {/* <a
-              href="https://wa.me/543705023131"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2.5 rounded-2xl bg-sky-500 px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-sky-500/35 hover:bg-sky-400 hover:scale-105 hover:shadow-sky-400/45 transition-all duration-200"
-            >
-              Contactar ahora
-              <ArrowRight size={15} className="group-hover:translate-x-1.5 transition-transform" />
-            </a> */}
+          <div className="kt-a4 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
-              href="#gimnasio"
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-bold uppercase tracking-wider text-white backdrop-blur-sm hover:bg-white/10 hover:border-white/28 transition-all duration-200"
+              href="#pilares"
+              className="group inline-flex items-center gap-2.5 rounded-2xl bg-(--kt-teal-700) px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-[#18C7D8]/30 transition-all duration-200 hover:bg-[#0B7D8F] hover:shadow-[#0B7D8F]/30"
             >
-              Ver el gym
+              Conocenos
+              <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+            </a>
+            <a
+              href="#contacto"
+              className="inline-flex items-center gap-2 rounded-2xl border border-[#D9E1E6] bg-white px-8 py-4 text-sm font-bold uppercase tracking-wider text-[#222222] transition-all duration-200 hover:border-[#18C7D8] hover:text-[#0B7D8F]"
+            >
+              Contacto
             </a>
           </div>
-        </div>
 
-        {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-600">
-          <span className="text-[10px] uppercase tracking-[0.25em]">Scroll</span>
-          <div className="h-9 w-px bg-gradient-to-b from-gray-600 to-transparent animate-pulse" />
+          <a
+            href="#pilares"
+            aria-label="Bajar a la siguiente sección"
+            className="mt-16 inline-flex flex-col items-center gap-2 text-[#666666] transition-colors hover:text-[#0B7D8F]"
+          >
+            <span className="text-[10px] uppercase tracking-[0.25em]">Descubrí más</span>
+            <ArrowDown size={16} className="animate-bounce" />
+          </a>
         </div>
       </section>
 
-      {/* ── STATS ─────────────────────────────────────────── */}
-      <section className="border-y border-white/6 bg-[#0b0f18] py-14">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {STATS.map(({ icon: Icon, value, label }) => (
-              <div key={label} className="stat-item group">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/15 transition-colors group-hover:bg-sky-500/20 group-hover:ring-sky-500/30">
-                  <Icon size={22} />
-                </div>
-                <div className="dg-display text-4xl font-black text-white">{value}</div>
-                <div className="mt-1 text-[11px] uppercase tracking-wider text-gray-500">{label}</div>
+      {/* ── VALOR (chips) ─────────────────────────────────── */}
+      <section className="border-y border-[#D9E1E6] bg-[#F5F7F9] py-10">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 px-6 sm:grid-cols-4">
+          {VALOR.map(({ icon: Icon, label }) => (
+            <div key={label} className="flex flex-col items-center gap-2.5 text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#0B7D8F] shadow-sm ring-1 ring-[#D9E1E6]">
+                <Icon size={19} />
               </div>
-            ))}
-          </div>
+              <span className="text-xs font-semibold leading-tight text-[#222222]">{label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ── FEATURES (IMAGE CARDS) ────────────────────────── */}
-      <section id="planes" className="py-28 px-6">
-        <div className="max-w-5xl mx-auto">
+      {/* ── DOS PILARES ───────────────────────────────────── */}
+      <section id="pilares" className="py-24 px-6">
+        <div className="mx-auto max-w-5xl">
+          <SectionKicker>Nuestro fuerte</SectionKicker>
+          <h2 className="kt-display mt-3 text-4xl font-bold uppercase leading-none sm:text-5xl">
+            Entrenamiento y kinesiología,
+            <span className="block text-(--kt-teal-700)">en un solo lugar</span>
+          </h2>
 
-          <div className="text-center mb-18">
-            <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-sky-400">
-              ¿Por qué elegirnos?
-            </span>
-            <h2 className="dg-display mt-3 text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-none">
-              ENTRENAMIENTO
-              <span className="block text-sky-400">DE ÉLITE</span>
-            </h2>
-            <div className="dg-line-grow mx-auto mt-5 h-[2px] w-16 origin-left bg-gradient-to-r from-sky-500 to-sky-400" />
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {FEATURES.map(({ icon: Icon, title, desc, image, iconCls, glowCls, barCls }) => (
+          <div className="mt-14 grid gap-6 md:grid-cols-2">
+            {PILARES.map(({ icon: Icon, title, text }) => (
               <div
                 key={title}
-                className={`dg-img-card group relative rounded-3xl overflow-hidden border border-white/10 shadow-xl ${glowCls} h-[400px]`}
+                className="kt-card group rounded-3xl border border-[#D9E1E6] bg-white p-8 shadow-sm"
               >
-                {/* Lazy: estas imágenes están debajo del fold */}
-                <img
-                  src={image}
-                  alt={title}
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#060a12] via-[#060a12]/60 to-[#060a12]/10" />
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-[#060a12]/40" />
-                <div className={`absolute top-0 inset-x-0 h-[2px] ${barCls} opacity-70`} />
-                <div className="absolute inset-0 flex flex-col justify-end p-7">
-                  <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300 ${iconCls}`}>
-                    <Icon size={24} />
-                  </div>
-                  <h3 className="dg-display text-3xl font-black uppercase leading-none mb-3">
-                    {title}
-                  </h3>
-                  <p className="text-gray-400 text-sm leading-relaxed translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-350">
-                    {desc}
-                  </p>
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-white shadow-md shadow-[#18C7D8]/25 transition-transform duration-300 group-hover:scale-105">
+                  <Icon size={26} />
                 </div>
+                <h3 className="kt-display mt-6 text-2xl font-bold">{title}</h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-[#666666]">{text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── GALLERY / CAROUSEL ────────────────────────────── */}
-      <section id="gimnasio" className="py-20 px-6 bg-[#0b0f18]">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-sky-400">
-              Nuestro espacio
-            </span>
-            <h2 className="dg-display mt-3 text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-none">
-              CONOCÉ EL
-              <span className="block text-sky-400">GYM</span>
-            </h2>
-          </div>
-          <Carousel slides={gymSlides} autoPlay intervalMs={6500} />
+      {/* ── GALERÍA CONFIGURABLE (por área, desde el panel admin) ── */}
+      <section id="galeria" className="bg-[#F5F7F9] py-24 px-6">
+        <div className="mx-auto max-w-6xl">
+          <SectionKicker>Lo que hacemos</SectionKicker>
+          <h2 className="kt-display mt-3 text-4xl font-bold uppercase leading-none sm:text-5xl">
+            Conocé el espacio
+          </h2>
+
+          {!loading && areasConContenido.length === 0 && (
+            <div className="mt-14 flex flex-col items-center gap-3 rounded-3xl border border-dashed border-[#D9E1E6] bg-white py-20 text-center">
+              <ImageOff size={28} className="text-[#666666]" />
+              <p className="text-sm font-semibold text-[#222222]">Todavía no hay contenido cargado</p>
+              <p className="max-w-sm text-xs text-[#666666]">
+                Las fotos y videos que se suban desde el panel de administración van a aparecer acá, agrupadas por área.
+              </p>
+            </div>
+          )}
+
+          {areasConContenido.map((area) => (
+            <div key={area.id} className="mt-14 first:mt-10">
+              <h3 className="kt-display text-xl font-bold text-[#0B7D8F]">{area.descripcion}</h3>
+              <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {area.slides.map((slide, i) => (
+                  <GalleryCard key={i} slide={slide} />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ── KINESIOLOGÍA (solo si hay contenido cargado) ──── */}
-      {kineSlides.length > 0 && (
-        <section id="kinesiologia" className="py-20 px-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-sky-400">
-                Recuperación y bienestar
-              </span>
-              <h2 className="dg-display mt-3 text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-none">
-                KINESIOLOGÍA
-              </h2>
-            </div>
-            <Carousel slides={kineSlides} autoPlay intervalMs={7000} />
-          </div>
-        </section>
-      )}
+      {/* ── CONTACTO ──────────────────────────────────────── */}
+      <section id="contacto" className="py-24 px-6">
+        <div className="mx-auto max-w-4xl">
+          <SectionKicker>Hablemos</SectionKicker>
+          <h2 className="kt-display mt-3 text-4xl font-bold uppercase leading-none sm:text-5xl">
+            Empezá hoy
+          </h2>
 
-      {/* ── CONTACT ───────────────────────────────────────── */}
-      <section id="contacto" className="py-28 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-sky-400">
-              Contacto directo
-            </span>
-            <h2 className="dg-display mt-3 text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-none">
-              HABLEMOS
-              <span className="block text-sky-400">HOY</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-5">
-            {CONTACTS.map(({ icon: Icon, label, desc, sub, href, iconCls, hoverBorder, accentCls, glowCls }) => (
+          <div className="mt-12 grid gap-5 sm:grid-cols-2">
+            {CONTACTS.map(({ icon: Icon, label, sub, href }) => (
               <a
                 key={label}
                 href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`dg-card group flex flex-col gap-4 rounded-3xl border border-white/8 bg-white/[0.03] p-7 shadow-lg transition-all ${hoverBorder} hover:bg-white/[0.06] ${glowCls}`}
+                className="kt-card group flex items-center gap-4 rounded-3xl border border-[#D9E1E6] bg-white p-6 shadow-sm transition-colors hover:border-[#18C7D8]"
               >
-                <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300 ${iconCls}`}>
-                  <Icon size={26} />
+                <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-[#E3FAFC] text-[#0B7D8F] transition-colors group-hover:bg-(--kt-teal-700) group-hover:text-white">
+                  <Icon size={22} />
                 </div>
                 <div>
-                  <div className="font-bold text-white text-lg leading-none">{label}</div>
-                  <div className="text-[11px] text-gray-500 uppercase tracking-wide mt-1">{desc}</div>
-                  <div className="mt-2 text-sm text-gray-400">{sub}</div>
-                </div>
-                <div className={`mt-auto inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider ${accentCls}`}>
-                  Ir <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                  <div className="text-sm font-bold text-[#222222]">{label}</div>
+                  <div className="mt-0.5 text-sm text-[#666666]">{sub}</div>
                 </div>
               </a>
             ))}
@@ -381,43 +208,76 @@ export default function HomePage() {
       </section>
 
       {/* ── FOOTER CTA ────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-t border-white/8 py-28 px-6 text-center">
-        <div className="absolute inset-0">
-          {/* Lazy: imagen de fondo del footer, no es LCP */}
-          <img
-            src={images.principal2}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover opacity-10 scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#060a12]/90 via-[#060a12]/80 to-[#060a12]" />
-        </div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_100%,_rgba(14,165,233,0.09),_transparent)]" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/45 to-transparent" />
-
-        <div className="relative max-w-2xl mx-auto">
-          <h2 className="dg-display text-6xl md:text-7xl lg:text-8xl font-black uppercase leading-none mb-6">
-            TU MEJOR
-            <span className="block text-sky-400 drop-shadow-[0_0_35px_rgba(14,165,233,0.40)]">
-              VERSIÓN
-            </span>
-            TE ESPERA
+      <section className="relative overflow-hidden border-t border-[#D9E1E6] bg-linear-to-br from-[#0B7D8F] to-(--kt-teal-700) py-24 px-6 text-center text-white">
+        <KineticPath className="pointer-events-none absolute -left-20 -bottom-20 h-[360px] w-[360px] opacity-20" light />
+        <div className="relative mx-auto max-w-2xl">
+          <h2 className="kt-display text-5xl font-bold uppercase leading-none sm:text-6xl">
+            Movete con
+            <span className="block">un plan</span>
           </h2>
-          <p className="text-gray-500 mb-10 text-base tracking-wide">
-            Comenzá hoy. Sin excusas.
+          <p className="mt-6 text-base text-white/85">
+            Entrenamiento personalizado y kinesiología, pensados para vos.
           </p>
-          {/* <a
-            href="https://wa.me/543705023131"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 rounded-2xl bg-sky-500 px-10 py-4 font-bold uppercase tracking-wider text-white shadow-xl shadow-sky-500/30 hover:bg-sky-400 hover:scale-105 transition-all duration-200"
-          >
-            <Phone size={18} />
-            Empezar ahora
-          </a> */}
         </div>
       </section>
 
     </div>
+  );
+}
+
+function SectionKicker({ children }) {
+  return (
+    <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-(--kt-teal-700)">
+      {children}
+    </span>
+  );
+}
+
+function GalleryCard({ slide }) {
+  return (
+    <div className="kt-img-card rounded-3xl border border-[#D9E1E6] bg-white shadow-sm overflow-hidden">
+      <div className="relative h-56 overflow-hidden bg-[#F5F7F9]">
+        {slide.tipoMedia === "video" ? (
+          <video
+            src={slide.url}
+            className="h-full w-full object-cover"
+            autoPlay muted loop playsInline controls
+          />
+        ) : (
+          <img src={slide.url} alt={slide.title || ""} className="h-full w-full object-cover" />
+        )}
+      </div>
+      {(slide.title || slide.subtitle) && (
+        <div className="p-5">
+          {slide.title && <h4 className="text-sm font-bold text-[#222222]">{slide.title}</h4>}
+          {slide.subtitle && <p className="mt-1 text-xs leading-relaxed text-[#666666]">{slide.subtitle}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function KineticPath({ className = "", light = false }) {
+  const stroke = light ? "#FFFFFF" : "#18C7D8";
+  return (
+    <svg viewBox="0 0 400 400" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M20 320 C 100 320, 100 200, 180 200 S 260 80, 340 80"
+        stroke={stroke}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeDasharray="8 10"
+        opacity="0.55"
+      />
+      <path
+        d="M20 200 C 90 200, 110 300, 190 300 S 280 180, 380 180"
+        stroke={stroke}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeDasharray="240"
+        className="kt-flow-path"
+      />
+      <circle cx="380" cy="180" r="5" fill={stroke} className="kt-pulse-dot" />
+    </svg>
   );
 }
