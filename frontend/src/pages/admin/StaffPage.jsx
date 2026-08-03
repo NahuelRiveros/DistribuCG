@@ -8,8 +8,10 @@ import {
   actualizarStaff,
   cambiarPasswordStaff,
   cambiarEstadoStaff,
+  cambiarRolStaff,
+  eliminarStaff,
 } from "../../api/staff_api";
-import { Users, UserPlus, Edit2, KeyRound, ShieldCheck, ShieldOff, RefreshCw } from "lucide-react";
+import { Users, UserPlus, Edit2, KeyRound, ShieldCheck, ShieldOff, RefreshCw, Trash2 } from "lucide-react";
 
 function formatearFecha(fecha) {
   if (!fecha) return "—";
@@ -60,7 +62,11 @@ export default function StaffPage() {
       setGuardando(true);
       setErrorAccion("");
       if (staffSeleccionado?.gym_usuario_id) {
-        await actualizarStaff(staffSeleccionado.gym_usuario_id, payload);
+        const { rol_codigo, ...datos } = payload;
+        await actualizarStaff(staffSeleccionado.gym_usuario_id, datos);
+        if (rol_codigo && rol_codigo !== staffSeleccionado.rol_codigo) {
+          await cambiarRolStaff(staffSeleccionado.gym_usuario_rol_id, rol_codigo);
+        }
       } else {
         await crearStaff(payload);
       }
@@ -70,6 +76,17 @@ export default function StaffPage() {
       setErrorAccion(err?.response?.data?.mensaje || "No se pudo guardar el staff");
     } finally {
       setGuardando(false);
+    }
+  }
+
+  async function eliminarUsuario(usuario) {
+    if (!window.confirm(`¿Eliminar definitivamente a ${usuario.gym_persona_nombre} ${usuario.gym_persona_apellido}? Esta acción no se puede deshacer.`)) return;
+    try {
+      setErrorAccion("");
+      await eliminarStaff(usuario.gym_usuario_id);
+      await cargarStaff();
+    } catch (err) {
+      setErrorAccion(err?.response?.data?.mensaje || "No se pudo eliminar el usuario");
     }
   }
 
@@ -199,6 +216,13 @@ export default function StaffPage() {
       variant: "success",
       onClick: (row) => toggleEstado(row),
       show: (row) => !row.gym_usuario_activo,
+    },
+    {
+      key: "eliminar",
+      label: "Eliminar",
+      icon: <Trash2 size={12} />,
+      variant: "danger",
+      onClick: (row) => eliminarUsuario(row),
     },
   ];
 

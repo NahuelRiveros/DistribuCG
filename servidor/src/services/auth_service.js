@@ -30,6 +30,10 @@ export async function login({ email, password }) {
     return { ok: false, codigo: "SIN_USUARIO", mensaje: "La persona no tiene usuario habilitado" };
   }
 
+  if (usuario.eliminado_en) {
+    return { ok: false, codigo: "CREDENCIALES_INVALIDAS", mensaje: "Email o contraseña incorrectos" };
+  }
+
   if (usuario.activo === false) {
     return { ok: false, codigo: "USUARIO_INACTIVO", mensaje: "Usuario inactivo" };
   }

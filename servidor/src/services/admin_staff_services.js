@@ -13,6 +13,13 @@ const ROLES_PERSONAL = ["staff", "kinesiologo", "admin"];
 const ahoraArgentina = () =>
   sequelize.literal(`TIMEZONE('America/Argentina/Cordoba', CURRENT_TIMESTAMP)`);
 
+async function usuarioEsAdmin(usuarioId) {
+  const rolAdmin = await Rol.findOne({ where: { codigo: "admin" } });
+  if (!rolAdmin) return false;
+  const tiene = await UsuarioRol.findOne({ where: { usuario_id: usuarioId, rol_id: rolAdmin.id } });
+  return Boolean(tiene);
+}
+
 export async function listarStaff() {
   const rolesPersonal = await Rol.findAll({ where: { codigo: { [Op.in]: ROLES_PERSONAL } } });
   if (!rolesPersonal.length) return [];
@@ -23,6 +30,8 @@ export async function listarStaff() {
       {
         model: Usuario,
         as: "usuario",
+        where: { eliminado_en: null },
+        required: true,
         include: [
           {
             model: Persona,
@@ -209,15 +218,18 @@ export async function actualizarStaff(usuarioId, data) {
   });
 }
 
-export async function cambiarPasswordStaff(usuarioId, nuevaPassword) {
+export async function cambiarPasswordStaff(usuarioId, nuevaPassword, solicitanteEsSuperAdmin) {
   const pass = String(nuevaPassword ?? "").trim();
 
   if (!pass || pass.length < 4)
     return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: "La contraseña debe tener al menos 4 caracteres" };
 
   const usuario = await Usuario.findByPk(usuarioId);
-  if (!usuario)
+  if (!usuario || usuario.eliminado_en)
     return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Staff no encontrado" };
+
+  if (!solicitanteEsSuperAdmin && (await usuarioEsAdmin(usuarioId)))
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede cambiar la contraseña de un admin" };
 
   const hash = await bcrypt.hash(pass, 10);
   await usuario.update({ contrasena: hash, actualizado_en: ahoraArgentina() });
@@ -225,10 +237,13 @@ export async function cambiarPasswordStaff(usuarioId, nuevaPassword) {
   return { ok: true, codigo: "PASSWORD_ACTUALIZADA", mensaje: "Contraseña actualizada correctamente" };
 }
 
-export async function cambiarEstadoStaff(usuarioId, activo) {
+export async function cambiarEstadoStaff(usuarioId, activo, solicitanteEsSuperAdmin) {
   const usuario = await Usuario.findByPk(usuarioId);
-  if (!usuario)
+  if (!usuario || usuario.eliminado_en)
     return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Staff no encontrado" };
+
+  if (!solicitanteEsSuperAdmin && (await usuarioEsAdmin(usuarioId)))
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede activar o desactivar a un admin" };
 
   await usuario.update({ activo, actualizado_en: ahoraArgentina() });
 
@@ -236,4 +251,54 @@ export async function cambiarEstadoStaff(usuarioId, activo) {
     ok: true, codigo: "ESTADO_ACTUALIZADO",
     mensaje: activo ? "Staff activado correctamente" : "Staff desactivado correctamente",
   };
+}
+
+export async function cambiarRolStaff(usuarioRolId, nuevoRolCodigo, solicitanteEsSuperAdmin) {
+  if (!ROLES_PERSONAL.includes(nuevoRolCodigo))
+    return { ok: false, codigo: "ROL_INVALIDO", mensaje: "Rol inválido" };
+
+  const relacion = await UsuarioRol.findByPk(usuarioRolId, { include: [{ model: Rol, as: "rol" }] });
+  if (!relacion)
+    return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Relación de rol no encontrada" };
+
+  const rolActual = relacion.rol?.codigo;
+  if (!ROLES_PERSONAL.includes(rolActual))
+    return { ok: false, codigo: "NO_PERMITIDO", mensaje: "No se puede modificar este rol desde acá" };
+
+  if ((rolActual === "admin" || nuevoRolCodigo === "admin") && !solicitanteEsSuperAdmin)
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede asignar o quitar el rol admin" };
+
+  if (rolActual === nuevoRolCodigo)
+    return { ok: true, codigo: "SIN_CAMBIOS", mensaje: "El usuario ya tiene ese rol" };
+
+  const nuevoRol = await Rol.findOne({ where: { codigo: nuevoRolCodigo } });
+  if (!nuevoRol)
+    return { ok: false, codigo: "SIN_ROL", mensaje: `No existe el rol '${nuevoRolCodigo}' en la tabla rol` };
+
+  const yaTiene = await UsuarioRol.findOne({ where: { usuario_id: relacion.usuario_id, rol_id: nuevoRol.id } });
+  if (yaTiene)
+    return { ok: false, codigo: "ROL_YA_ASIGNADO", mensaje: "El usuario ya tiene ese rol asignado" };
+
+  await relacion.update({ rol_id: nuevoRol.id, actualizado_en: ahoraArgentina() });
+
+  return {
+    ok: true, codigo: "ROL_ACTUALIZADO", mensaje: "Rol actualizado correctamente",
+    usuario_id: relacion.usuario_id, rol: nuevoRolCodigo,
+  };
+}
+
+export async function eliminarStaff(usuarioId, solicitanteEsSuperAdmin, solicitanteUsuarioId) {
+  if (Number(usuarioId) === Number(solicitanteUsuarioId))
+    return { ok: false, codigo: "AUTOELIMINACION", mensaje: "No podés eliminar tu propio usuario" };
+
+  const usuario = await Usuario.findByPk(usuarioId);
+  if (!usuario || usuario.eliminado_en)
+    return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Staff no encontrado" };
+
+  if (!solicitanteEsSuperAdmin && (await usuarioEsAdmin(usuarioId)))
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede eliminar a un admin" };
+
+  await usuario.update({ eliminado_en: ahoraArgentina(), activo: false, actualizado_en: ahoraArgentina() });
+
+  return { ok: true, codigo: "STAFF_ELIMINADO", mensaje: "Usuario eliminado correctamente" };
 }

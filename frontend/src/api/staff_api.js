@@ -33,3 +33,17 @@ export async function cambiarEstadoStaff(usuarioId, activo) {
   });
   return r.data;
 }
+
+// ROL
+export async function cambiarRolStaff(usuarioRolId, rol_codigo) {
+  const r = await http.patch(`/staff/rol/${usuarioRolId}`, {
+    rol_codigo,
+  });
+  return r.data;
+}
+
+// ELIMINAR
+export async function eliminarStaff(usuarioId) {
+  const r = await http.delete(`/staff/${usuarioId}`);
+  return r.data;
+}

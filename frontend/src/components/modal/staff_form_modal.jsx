@@ -124,6 +124,8 @@ export default function StaffFormModal({
     if (!esEdicion) {
       payload.password = String(data.password).trim();
       payload.rol_codigo = data.rol_codigo || "staff";
+    } else if (esSuperAdmin) {
+      payload.rol_codigo = data.rol_codigo || "staff";
     }
 
     await onGuardar(payload);
@@ -208,7 +210,19 @@ export default function StaffFormModal({
             </div>
           )}
 
-          {!esEdicion && rolSeleccionado === "admin" && (
+          {esEdicion && esSuperAdmin && (
+            <SelectField
+              label="Rol"
+              name="rol_codigo"
+              register={register}
+              options={opcionesRol}
+              fijoValue={staffEditar?.rol_codigo || "staff"}
+              showPlaceholderOption={false}
+              helperText="Como super administrador podés reasignar el rol de este usuario."
+            />
+          )}
+
+          {rolSeleccionado === "admin" && (
             <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
               Este usuario tendrá acceso administrativo completo al sistema.
             </p>

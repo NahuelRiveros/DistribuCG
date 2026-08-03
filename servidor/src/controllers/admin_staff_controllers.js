@@ -4,6 +4,8 @@ import {
   actualizarStaff,
   cambiarPasswordStaff,
   cambiarEstadoStaff,
+  cambiarRolStaff,
+  eliminarStaff,
 } from "../services/admin_staff_services.js";
 
 // 📋 listar
@@ -87,13 +89,15 @@ export async function cambiarPasswordStaffController(req, res) {
   try {
     const { usuarioId } = req.params;
     const { password } = req.body ?? {};
+    const solicitanteEsSuperAdmin = (req.user?.roles ?? []).includes("super_admin");
 
-    const result = await cambiarPasswordStaff(usuarioId, password);
+    const result = await cambiarPasswordStaff(usuarioId, password, solicitanteEsSuperAdmin);
 
     if (!result.ok) {
-      return res.status(
-        result.codigo === "NO_ENCONTRADO" ? 404 : 400
-      ).json(result);
+      const status = result.codigo === "NO_ENCONTRADO" ? 404
+        : result.codigo === "SIN_PERMISO" ? 403
+        : 400;
+      return res.status(status).json(result);
     }
 
     return res.json(result);
@@ -112,6 +116,7 @@ export async function cambiarEstadoStaffController(req, res) {
   try {
     const { usuarioId } = req.params;
     const { activo } = req.body ?? {};
+    const solicitanteEsSuperAdmin = (req.user?.roles ?? []).includes("super_admin");
 
     if (typeof activo !== "boolean") {
       return res.status(400).json({
@@ -121,10 +126,13 @@ export async function cambiarEstadoStaffController(req, res) {
       });
     }
 
-    const result = await cambiarEstadoStaff(usuarioId, activo);
+    const result = await cambiarEstadoStaff(usuarioId, activo, solicitanteEsSuperAdmin);
 
     if (!result.ok) {
-      return res.status(404).json(result);
+      const status = result.codigo === "NO_ENCONTRADO" ? 404
+        : result.codigo === "SIN_PERMISO" ? 403
+        : 400;
+      return res.status(status).json(result);
     }
 
     return res.json(result);
@@ -134,6 +142,59 @@ export async function cambiarEstadoStaffController(req, res) {
       ok: false,
       codigo: "ERROR_ESTADO_STAFF",
       mensaje: "No se pudo cambiar el estado",
+    });
+  }
+}
+
+// 🎭 cambiar rol
+export async function cambiarRolStaffController(req, res) {
+  try {
+    const { usuarioRolId } = req.params;
+    const { rol_codigo } = req.body ?? {};
+    const solicitanteEsSuperAdmin = (req.user?.roles ?? []).includes("super_admin");
+
+    const result = await cambiarRolStaff(usuarioRolId, rol_codigo, solicitanteEsSuperAdmin);
+
+    if (!result.ok) {
+      const status = result.codigo === "NO_ENCONTRADO" ? 404
+        : result.codigo === "SIN_PERMISO" ? 403
+        : 400;
+      return res.status(status).json(result);
+    }
+
+    return res.json(result);
+  } catch (e) {
+    console.error("cambiarRolStaffController:", e);
+    return res.status(500).json({
+      ok: false,
+      codigo: "ERROR_ROL_STAFF",
+      mensaje: "No se pudo cambiar el rol",
+    });
+  }
+}
+
+// 🗑️ eliminar
+export async function eliminarStaffController(req, res) {
+  try {
+    const { usuarioId } = req.params;
+    const solicitanteEsSuperAdmin = (req.user?.roles ?? []).includes("super_admin");
+
+    const result = await eliminarStaff(usuarioId, solicitanteEsSuperAdmin, req.user?.usuario_id);
+
+    if (!result.ok) {
+      const status = result.codigo === "NO_ENCONTRADO" ? 404
+        : result.codigo === "SIN_PERMISO" ? 403
+        : 400;
+      return res.status(status).json(result);
+    }
+
+    return res.json(result);
+  } catch (e) {
+    console.error("eliminarStaffController:", e);
+    return res.status(500).json({
+      ok: false,
+      codigo: "ERROR_ELIMINAR_STAFF",
+      mensaje: "No se pudo eliminar el usuario",
     });
   }
 }

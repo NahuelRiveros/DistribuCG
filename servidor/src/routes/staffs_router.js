@@ -5,6 +5,8 @@ import {
   actualizarStaffController,
   cambiarPasswordStaffController,
   cambiarEstadoStaffController,
+  cambiarRolStaffController,
+  eliminarStaffController,
 } from "../controllers/admin_staff_controllers.js";
 
 import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
@@ -28,3 +30,9 @@ staffRouter.patch("/:usuarioId/password", cambiarPasswordStaffController);
 
 // 🔄 activar / desactivar usuario
 staffRouter.patch("/:usuarioId/estado", cambiarEstadoStaffController);
+
+// 🎭 cambiar rol (por usuario_rol_id, la fila específica de la relación)
+staffRouter.patch("/rol/:usuarioRolId", cambiarRolStaffController);
+
+// 🗑️ eliminar (baja definitiva, soft-delete)
+staffRouter.delete("/:usuarioId", eliminarStaffController);
