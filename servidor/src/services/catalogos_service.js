@@ -4,10 +4,13 @@
   TipoPersona,
   PlanTipo,
   CategoriaProducto,
+  Patologia,
+  Ejercicio,
+  TipoEjercicio,
 } from "../models/index.js";
 
 export async function obtenerCatalogos() {
-  const [tiposDocumento, sexos, tiposPersona, tiposPlan, categoriasProducto] = await Promise.all([
+  const [tiposDocumento, sexos, tiposPersona, tiposPlan, categoriasProducto, patologias, ejerciciosKinesiologia] = await Promise.all([
     TipoDocumento.findAll({
       attributes: ["id", "descripcion"],
       order: [["descripcion", "ASC"]],
@@ -30,6 +33,16 @@ export async function obtenerCatalogos() {
       where: { activo: true },
       order: [["descripcion", "ASC"]],
     }),
+    Patologia.findAll({
+      attributes: ["id", "descripcion"],
+      order: [["descripcion", "ASC"]],
+    }),
+    Ejercicio.findAll({
+      attributes: ["id", "nombre"],
+      where: { activo: true },
+      include: [{ model: TipoEjercicio, as: "tipo_ejercicio", attributes: ["descripcion"], where: { descripcion: "Kinesiología" } }],
+      order: [["nombre", "ASC"]],
+    }),
   ]);
 
   return {
@@ -44,5 +57,7 @@ export async function obtenerCatalogos() {
       precio:      Number(x.precio),
     })),
     categoriasProducto: categoriasProducto.map((x) => ({ value: x.id, label: x.descripcion })),
+    patologias:      patologias.map((x) => ({ value: x.id, label: x.descripcion })),
+    ejerciciosKinesiologia: ejerciciosKinesiologia.map((x) => ({ value: x.id, label: x.nombre })),
   };
 }

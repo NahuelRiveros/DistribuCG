@@ -86,6 +86,12 @@ export const navbar_config = {
           roles: ["admin", "staff"],
         },
         {
+          label: "Kinesiología",
+          to: "/admin/kinesiologia",
+          requiereAuth: true,
+          roles: ["admin", "staff"],
+        },
+        {
           label: "Personal",
           to: "/admin/staffManager",
           requiereAuth: true,

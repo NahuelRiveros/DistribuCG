@@ -165,6 +165,10 @@ RegistroEjercicio.belongsTo(Ejercicio, { foreignKey: "ejercicio_id", as: "ejerci
 Usuario.hasMany(RegistroEjercicio,     { foreignKey: "registrado_por_id", as: "registros_ejercicio_cargados" });
 RegistroEjercicio.belongsTo(Usuario,   { foreignKey: "registrado_por_id", as: "registrado_por" });
 
+// ─── PacientePatologia → PacienteKinesiologia / Patologia (acceso directo al puente) ──
+PacientePatologia.belongsTo(PacienteKinesiologia, { foreignKey: "paciente_kinesiologia_id", as: "paciente_kinesiologia" });
+PacientePatologia.belongsTo(Patologia,            { foreignKey: "patologia_id",             as: "patologia" });
+
 // ─── PacienteKinesiologia ↔ Patologia (N:N vía PacientePatologia) ────────────
 PacienteKinesiologia.belongsToMany(Patologia, {
   through:    PacientePatologia,

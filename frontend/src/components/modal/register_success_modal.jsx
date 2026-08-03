@@ -103,9 +103,11 @@ export default function RegisterSuccessModal({ open, persona, alumno, delayMs = 
             </div>
             <div>
               <div className="text-xs uppercase tracking-wider text-gray-400 mb-0.5">
-                Estado del alumno
+                {alumno ? "Estado del alumno" : "Estado"}
               </div>
-              <div className="text-xl font-bold text-white">Activo en el sistema</div>
+              <div className="text-xl font-bold text-white">
+                {alumno ? "Activo en el sistema" : "Persona registrada, sin membresía"}
+              </div>
             </div>
           </div>
         </div>
