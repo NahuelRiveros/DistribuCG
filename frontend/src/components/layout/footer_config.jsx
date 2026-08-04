@@ -1,6 +1,5 @@
 import {
-  ScanLine, Users, Home, LogIn,
-  Dumbbell, Activity, HeartPulse, Trophy,
+  ScanLine, Dumbbell, Activity, HeartPulse, Trophy,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,15 +64,6 @@ export const footer_config = {
       titulo: "Constancia que se nota",
       texto: "Registro de cada ingreso y avance, para que el progreso quede a la vista y no se pierda en el camino.",
     },
-  ],
-
-  // ── Acceso rápido ────────────────────────────────────────────────────────
-  accesos: [
-    { codigo: "home",         modulo: null,           habilitado: true, icon: Home,       label: "Inicio",                    to: "/" },
-    { codigo: "kiosco",       modulo: "gym",          habilitado: true, icon: ScanLine,   label: "Ingreso / Kiosk",           to: "/kiosk" },
-    { codigo: "kinesiologia", modulo: "kinesiologia", habilitado: true, icon: HeartPulse, label: "Pacientes de kinesiología", to: "/admin/kinesiologia" },
-    { codigo: "login",        modulo: null,           habilitado: true, icon: LogIn,      label: "Iniciar sesión",            to: "/login" },
-    { codigo: "alumnos",      modulo: "gym",          habilitado: true, icon: Users,      label: "Lista de alumnos",          to: "/admin/estadisticas/alumnos" },
   ],
 
   // ── ¿Por qué elegirnos? ──────────────────────────────────────────────────

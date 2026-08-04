@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { footer_config } from "./footer_config.jsx";
 import { moduloHabilitado } from "../../config/modulos_config.js";
 import { useAuth } from "../../auth/auth_context.jsx";
@@ -22,13 +21,12 @@ const ANIMATIONS = `
 `;
 
 export default function Footer() {
-  const { marca, enfoque, accesos, diferenciales, callout, legal } = footer_config;
+  const { marca, enfoque, diferenciales, callout, legal } = footer_config;
   const { modulosHabilitados } = useAuth();
 
   const activo = (item) => item.habilitado && moduloHabilitado(item.modulo, modulosHabilitados);
 
   const enfoqueActivo        = enfoque.filter(activo);
-  const accesosActivos       = accesos.filter(activo);
   const diferencialesActivos = diferenciales.filter(activo);
 
   return (
@@ -53,7 +51,7 @@ export default function Footer() {
 
         {/* ── Contenido principal ── */}
         <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
-          <div className="grid grid-cols-1 gap-x-10 gap-y-12 py-14 md:grid-cols-2 xl:grid-cols-[1.5fr_1fr_0.85fr_1fr]">
+          <div className="grid grid-cols-1 gap-x-10 gap-y-12 py-14 md:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr]">
 
             {/* ── Marca ── */}
             <div className="space-y-5">
@@ -95,32 +93,6 @@ export default function Footer() {
                 <ul className="space-y-3.5">
                   {enfoqueActivo.map((m) => (
                     <EnfoqueItem key={m.codigo} {...m} />
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* ── Acceso rápido ── */}
-            {accesosActivos.length > 0 && (
-              <div>
-                <SectionHeader label="Acceso rápido" code="NAV-LNK" />
-                <ul className="space-y-1">
-                  {accesosActivos.map((item) => (
-                    <li key={item.codigo}>
-                      <Link
-                        to={item.to}
-                        className="group flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-slate-400 transition-all duration-150 hover:bg-white/[0.04] hover:text-[#18C7D8]"
-                      >
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-white/8 bg-white/[0.04] text-slate-500 transition-all group-hover:border-[#18C7D8]/25 group-hover:text-[#18C7D8]">
-                          <item.icon size={11} />
-                        </span>
-                        <span className="flex-1">{item.label}</span>
-                        <ArrowRight
-                          size={10}
-                          className="text-[#18C7D8] opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-                        />
-                      </Link>
-                    </li>
                   ))}
                 </ul>
               </div>
