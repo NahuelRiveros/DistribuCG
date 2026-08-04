@@ -1,5 +1,5 @@
 import {
-  ScanLine, Users, CreditCard, BarChart2, Home, LogIn,
+  ScanLine, Users, Home, LogIn,
   Dumbbell, Activity, HeartPulse, Trophy,
 } from "lucide-react";
 
@@ -19,58 +19,51 @@ export const footer_config = {
   marca: {
     nombre: "Kinetica",
     tagline:
-      "Centro de entrenamiento y kinesiología. Seguimiento personalizado de cada ejercicio, alumnos, planes y estadísticas en un solo lugar.",
+      "Entrenamiento y kinesiología con profesionales que acompañan de cerca cada objetivo, sesión a sesión — no una rutina genérica.",
     estadoLabel: "Sistema activo",
     selloLabel: "Gestión · Rendimiento · Control",
   },
 
-  // ── Módulos del sistema ──────────────────────────────────────────────────
-  // "codigo" coincide con Modulo.codigo del backend (servidor/src/database/seed.js)
-  modulos: [
+  // ── Nuestro enfoque ──────────────────────────────────────────────────────
+  // A diferencia de "accesos" (links funcionales), esto es contenido de marca:
+  // por qué importa cada disciplina y qué acompañamiento reciben. Se filtra
+  // por módulo igual que el resto — un cliente solo-gym no ve las de kinesio.
+  enfoque: [
     {
-      codigo: "kiosco",
-      modulo: "gym",
-      habilitado: true,
-      icon: ScanLine,
-      code: "MOD-01",
-      titulo: "Control de ingreso",
-      texto: "Registro de asistencia por DNI en tiempo real",
-    },
-    {
-      codigo: "alumnos",
-      modulo: "gym",
-      habilitado: true,
-      icon: Users,
-      code: "MOD-02",
-      titulo: "Gestión de alumnos",
-      texto: "Alta, seguimiento y estado de cada alumno",
-    },
-    {
-      codigo: "pagos",
-      modulo: "gym",
-      habilitado: true,
-      icon: CreditCard,
-      code: "MOD-03",
-      titulo: "Planes y pagos",
-      texto: "Administración de planes vigentes y cobros",
-    },
-    {
-      codigo: "kinesiologia",
+      codigo: "por-que-kinesiologia",
       modulo: "kinesiologia",
       habilitado: true,
       icon: HeartPulse,
-      code: "MOD-04",
-      titulo: "Kinesiología",
-      texto: "Fichas, evaluación inicial y seguimiento de pacientes",
+      code: "01",
+      titulo: "Por qué kinesiología",
+      texto: "Previene lesiones, acelera recuperaciones y sostiene el movimiento a largo plazo — no solo cuando algo duele.",
     },
     {
-      codigo: "estadisticas",
+      codigo: "acompanamiento",
+      modulo: "kinesiologia",
+      habilitado: true,
+      icon: Activity,
+      code: "02",
+      titulo: "Acompañamiento profesional",
+      texto: "Evaluación inicial, objetivos claros y seguimiento sesión a sesión con un kinesiólogo, no una rutina genérica.",
+    },
+    {
+      codigo: "entrenamiento",
       modulo: "gym",
       habilitado: true,
-      icon: BarChart2,
-      code: "MOD-05",
-      titulo: "Estadísticas",
-      texto: "Asistencia, recaudación y análisis del gimnasio",
+      icon: Dumbbell,
+      code: "03",
+      titulo: "Entrenamiento con propósito",
+      texto: "Planes armados según tu objetivo real, con seguimiento de cada ejercicio y ajustes en el camino.",
+    },
+    {
+      codigo: "asistencia",
+      modulo: "gym",
+      habilitado: true,
+      icon: ScanLine,
+      code: "04",
+      titulo: "Constancia que se nota",
+      texto: "Registro de cada ingreso y avance, para que el progreso quede a la vista y no se pierda en el camino.",
     },
   ],
 
@@ -85,10 +78,10 @@ export const footer_config = {
 
   // ── ¿Por qué elegirnos? ──────────────────────────────────────────────────
   diferenciales: [
-    { modulo: "gym",          habilitado: true, icon: Dumbbell,   titulo: "Personalizado", texto: "Plan de entrenamiento a tu medida" },
-    { modulo: "gym",          habilitado: true, icon: Activity,   titulo: "Seguimiento",   texto: "Registro de cada ejercicio y avance" },
-    { modulo: "kinesiologia", habilitado: true, icon: HeartPulse, titulo: "Kinesiología",  texto: "Recuperación y rehabilitación guiada" },
-    { modulo: null,           habilitado: true, icon: Trophy,     titulo: "Resultados",    texto: "Progreso medible, sesión a sesión" },
+    { modulo: "gym",          habilitado: true, icon: Dumbbell,   titulo: "A tu medida",      texto: "Un plan pensado para tu objetivo, no una tabla genérica" },
+    { modulo: "kinesiologia", habilitado: true, icon: HeartPulse, titulo: "Mirada clínica",   texto: "Evaluación profesional antes de cada tratamiento" },
+    { modulo: "gym",          habilitado: true, icon: Activity,   titulo: "Seguimiento real", texto: "Cada sesión queda registrada, no se pierde en el camino" },
+    { modulo: null,           habilitado: true, icon: Trophy,     titulo: "Resultados",       texto: "Progreso medible, sesión a sesión" },
   ],
 
   callout: {

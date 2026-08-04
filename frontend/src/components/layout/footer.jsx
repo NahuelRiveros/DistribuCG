@@ -22,12 +22,12 @@ const ANIMATIONS = `
 `;
 
 export default function Footer() {
-  const { marca, modulos, accesos, diferenciales, callout, legal } = footer_config;
+  const { marca, enfoque, accesos, diferenciales, callout, legal } = footer_config;
   const { modulosHabilitados } = useAuth();
 
   const activo = (item) => item.habilitado && moduloHabilitado(item.modulo, modulosHabilitados);
 
-  const modulosActivos       = modulos.filter(activo);
+  const enfoqueActivo        = enfoque.filter(activo);
   const accesosActivos       = accesos.filter(activo);
   const diferencialesActivos = diferenciales.filter(activo);
 
@@ -88,13 +88,13 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* ── Módulos ── */}
-            {modulosActivos.length > 0 && (
+            {/* ── Nuestro enfoque ── */}
+            {enfoqueActivo.length > 0 && (
               <div>
-                <SectionHeader label="Módulos del sistema" code="SYS-MOD" />
+                <SectionHeader label="Nuestro enfoque" code="KT-WHY" />
                 <ul className="space-y-3.5">
-                  {modulosActivos.map((m) => (
-                    <ModuleItem key={m.codigo} {...m} />
+                  {enfoqueActivo.map((m) => (
+                    <EnfoqueItem key={m.codigo} {...m} />
                   ))}
                 </ul>
               </div>
@@ -195,7 +195,7 @@ function SectionHeader({ label, code }) {
   );
 }
 
-function ModuleItem({ icon, code, titulo, texto }) {
+function EnfoqueItem({ icon, code, titulo, texto }) {
   const Icon = icon;
   return (
     <li className="group flex items-start gap-3">
