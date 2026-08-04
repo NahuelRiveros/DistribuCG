@@ -27,7 +27,7 @@ export default function RegisterSuccessModal({ open, persona, alumno, delayMs = 
   const nombre = [persona?.nombre, persona?.apellido].filter(Boolean).join(" ");
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#060a12]/96 flex flex-col">
+    <div className="fixed inset-0 z-[var(--z-modal)] bg-[var(--kt-night)]/96 flex flex-col">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap');
         .rs-d { font-family: 'Barlow Condensed', sans-serif; }

@@ -141,7 +141,7 @@ export default function KioskPage() {
         }
       `}</style>
 
-      <div className="kiosk-body min-h-screen bg-[#060a12] flex flex-col overflow-hidden select-none">
+      <div className="kiosk-body min-h-screen bg-[var(--kt-night)] flex flex-col overflow-hidden select-none">
 
         {/* ── TOP BAR ── */}
         <div className="flex items-center justify-between px-8 pt-6 pb-4">

@@ -119,7 +119,7 @@ export default function RegisterAlumnoPage() {
       <div className="min-h-screen bg-slate-50 lg:grid lg:grid-cols-2">
 
         {/* ── PANEL IZQUIERDO (desktop) ─────────────────── */}
-        <div className="hidden lg:flex flex-col justify-between bg-[#060a12] px-14 py-16">
+        <div className="hidden lg:flex flex-col justify-between bg-[var(--kt-night)] px-14 py-16">
 
           {/* Logo */}
           <div className="flex items-center gap-3">

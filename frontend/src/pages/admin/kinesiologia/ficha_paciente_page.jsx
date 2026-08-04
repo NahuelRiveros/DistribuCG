@@ -205,8 +205,8 @@ export default function FichaPacientePage() {
           <ArrowLeft size={15} /> Volver al listado
         </button>
 
-        <div className="overflow-hidden rounded-2xl border border-[#B8EEF3] bg-white shadow-sm">
-          <div className="h-1 w-full bg-linear-to-r from-(--kt-teal-700) via-[#0B7D8F] to-[#18C7D8]" />
+        <div className="overflow-hidden rounded-2xl border border-[var(--kt-turquoise-border)] bg-white shadow-sm">
+          <div className="h-1 w-full bg-linear-to-r from-(--kt-teal-700) via-[var(--kt-petrol)] to-[var(--kt-turquoise)]" />
           <div className="flex items-center gap-3 px-5 py-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-(--kt-teal-700) text-white">
               <HeartPulse size={20} />

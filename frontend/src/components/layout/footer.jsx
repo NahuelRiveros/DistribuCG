@@ -41,8 +41,8 @@ export default function Footer() {
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:200px_200px]" />
 
         {/* ── Línea superior animada ── */}
-        <div className="relative z-10 h-[2px] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0B7D8F] via-[#18C7D8] to-[#0B7D8F] opacity-80" />
+        <div className="relative z-[var(--z-content)] h-[2px] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--kt-petrol)] via-[var(--kt-turquoise)] to-[var(--kt-petrol)] opacity-80" />
           <div
             className="absolute inset-y-0 w-32 rounded-full bg-white/70 blur-md"
             style={{ animation: "scanLine 5s ease-in-out infinite" }}
@@ -50,7 +50,7 @@ export default function Footer() {
         </div>
 
         {/* ── Contenido principal ── */}
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
+        <div className="relative z-[var(--z-content)] mx-auto w-full max-w-7xl px-6">
           <div className="grid grid-cols-1 gap-x-10 gap-y-12 py-14 md:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr]">
 
             {/* ── Marca ── */}
@@ -58,12 +58,12 @@ export default function Footer() {
               <div className="flex items-center gap-2.5">
                 <span className="relative flex h-2 w-2">
                   <span
-                    className="absolute inline-flex h-full w-full rounded-full bg-[#18C7D8]"
+                    className="absolute inline-flex h-full w-full rounded-full bg-[var(--kt-turquoise)]"
                     style={{ animation: "statusBlink 2.4s ease-in-out infinite" }}
                   />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#18C7D8] opacity-80" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--kt-turquoise)] opacity-80" />
                 </span>
-                <span className="font-mono text-[9px] tracking-[0.35em] text-[#18C7D8]/50 uppercase">
+                <span className="font-mono text-[9px] tracking-[0.35em] text-[var(--kt-turquoise)]/50 uppercase">
                   {marca.estadoLabel}
                 </span>
               </div>
@@ -78,9 +78,9 @@ export default function Footer() {
                 {marca.tagline}
               </p>
 
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#18C7D8]/20 bg-[#18C7D8]/8 px-3.5 py-1.5">
-                <ShieldCheck size={10} className="text-[#18C7D8]/70" />
-                <span className="font-mono text-[9px] tracking-widest text-[#18C7D8]/60 uppercase">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kt-turquoise)]/20 bg-[var(--kt-turquoise)]/8 px-3.5 py-1.5">
+                <ShieldCheck size={10} className="text-[var(--kt-turquoise)]/70" />
+                <span className="font-mono text-[9px] tracking-widest text-[var(--kt-turquoise)]/60 uppercase">
                   {marca.selloLabel}
                 </span>
               </div>
@@ -106,7 +106,7 @@ export default function Footer() {
                 <ul className="space-y-3">
                   {diferencialesActivos.map((item) => (
                     <li key={item.titulo} className="flex items-center gap-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.08] text-[#18C7D8]">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-[var(--kt-turquoise)]/15 bg-[var(--kt-turquoise)]/[0.08] text-[var(--kt-turquoise)]">
                         <item.icon size={13} />
                       </span>
                       <div>
@@ -119,10 +119,10 @@ export default function Footer() {
 
                 {callout && (
                   <div
-                    className="mt-6 rounded-2xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.06] p-4"
+                    className="mt-6 rounded-2xl border border-[var(--kt-turquoise)]/15 bg-[var(--kt-turquoise)]/[0.06] p-4"
                     style={{ animation: "glowPulse 4s ease-in-out infinite" }}
                   >
-                    <p className="font-mono text-[11px] font-semibold tracking-wider text-[#18C7D8] uppercase">
+                    <p className="font-mono text-[11px] font-semibold tracking-wider text-[var(--kt-turquoise)] uppercase">
                       {callout.titulo}
                     </p>
                     <p className="mt-1.5 text-sm leading-6 text-slate-300">
@@ -137,7 +137,7 @@ export default function Footer() {
         </div>
 
         {/* ── Barra inferior ── */}
-        <div className="relative z-10 border-t border-white/[0.06]">
+        <div className="relative z-[var(--z-content)] border-t border-white/[0.06]">
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-6 py-5 sm:flex-row sm:justify-between">
             <p className="font-mono text-[11px] tracking-wide text-slate-500">
               © {new Date().getFullYear()} ·{" "}
@@ -171,7 +171,7 @@ function EnfoqueItem({ icon, code, titulo, texto }) {
   const Icon = icon;
   return (
     <li className="group flex items-start gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#18C7D8]/15 bg-[#18C7D8]/[0.08] text-[#18C7D8] transition-all duration-200 group-hover:border-[#18C7D8]/35 group-hover:bg-[#18C7D8]/[0.14]">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[var(--kt-turquoise)]/15 bg-[var(--kt-turquoise)]/[0.08] text-[var(--kt-turquoise)] transition-all duration-200 group-hover:border-[var(--kt-turquoise)]/35 group-hover:bg-[var(--kt-turquoise)]/[0.14]">
         <Icon size={13} />
       </div>
       <div className="min-w-0 flex-1">

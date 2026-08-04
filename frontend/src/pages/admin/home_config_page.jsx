@@ -21,8 +21,8 @@ export default function HomeConfigPage() {
       <div className="mx-auto w-full max-w-5xl space-y-4">
 
         {/* ── ENCABEZADO ── */}
-        <div className="overflow-hidden rounded-2xl border border-[#B8EEF3] bg-white shadow-sm shadow-[#18C7D8]/10">
-          <div className="h-1 w-full bg-linear-to-r from-(--kt-teal-700) via-[#0B7D8F] to-[#18C7D8]" />
+        <div className="overflow-hidden rounded-2xl border border-[var(--kt-turquoise-border)] bg-white shadow-sm shadow-[var(--kt-turquoise)]/10">
+          <div className="h-1 w-full bg-linear-to-r from-(--kt-teal-700) via-[var(--kt-petrol)] to-[var(--kt-turquoise)]" />
           <div className="px-5 py-4">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-(--kt-teal-700) px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
               <Image size={11} />

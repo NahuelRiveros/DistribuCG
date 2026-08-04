@@ -33,7 +33,7 @@ export default function PagoSuccessModal({ open, alumno, plan, pago, delayMs = 6
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#060a12]/96 flex flex-col">
+    <div className="fixed inset-0 z-[var(--z-modal)] bg-[var(--kt-night)]/96 flex flex-col">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap');
         .pm-d { font-family: 'Barlow Condensed', sans-serif; }

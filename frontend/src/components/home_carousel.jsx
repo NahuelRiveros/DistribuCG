@@ -60,7 +60,7 @@ export default function HomeCarousel({ items, renderItem }) {
             onClick={() => mover(-1)}
             disabled={activo === 0}
             aria-label="Anterior"
-            className="absolute left-0 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#D9E1E6] bg-white p-2.5 text-[#0B7D8F] shadow-md transition hover:bg-(--kt-teal-700) hover:text-white disabled:pointer-events-none disabled:opacity-0 sm:flex"
+            className="absolute left-0 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--kt-border)] bg-white p-2.5 text-[var(--kt-petrol)] shadow-md transition hover:bg-(--kt-teal-700) hover:text-white disabled:pointer-events-none disabled:opacity-0 sm:flex"
           >
             <ChevronLeft size={18} />
           </button>
@@ -69,7 +69,7 @@ export default function HomeCarousel({ items, renderItem }) {
             onClick={() => mover(1)}
             disabled={activo === items.length - 1}
             aria-label="Siguiente"
-            className="absolute right-0 top-1/2 hidden translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#D9E1E6] bg-white p-2.5 text-[#0B7D8F] shadow-md transition hover:bg-(--kt-teal-700) hover:text-white disabled:pointer-events-none disabled:opacity-0 sm:flex"
+            className="absolute right-0 top-1/2 hidden translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--kt-border)] bg-white p-2.5 text-[var(--kt-petrol)] shadow-md transition hover:bg-(--kt-teal-700) hover:text-white disabled:pointer-events-none disabled:opacity-0 sm:flex"
           >
             <ChevronRight size={18} />
           </button>
@@ -81,7 +81,7 @@ export default function HomeCarousel({ items, renderItem }) {
                 type="button"
                 onClick={() => irA(i)}
                 aria-label={`Ir a la diapositiva ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all ${i === activo ? "w-6 bg-(--kt-teal-700)" : "w-1.5 bg-[#D9E1E6] hover:bg-[#18C7D8]"}`}
+                className={`h-1.5 rounded-full transition-all ${i === activo ? "w-6 bg-(--kt-teal-700)" : "w-1.5 bg-[var(--kt-border)] hover:bg-[var(--kt-turquoise)]"}`}
               />
             ))}
           </div>

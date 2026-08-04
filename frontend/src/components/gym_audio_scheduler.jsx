@@ -220,7 +220,7 @@ export default function GymAudioScheduler() {
       {botonMontado && mostrarBoton && (
         <button
           onClick={desbloquearAudio}
-          className={`fixed bottom-6 right-6 z-9998 flex items-center gap-2 rounded-2xl bg-(--kt-teal-700) px-6 py-4 text-base font-bold text-white shadow-2xl shadow-[#18C7D8]/30 ring-4 ring-[#18C7D8]/40 transition-all duration-400 ease-out hover:bg-[#0B7D8F] focus-visible:outline-none focus-visible:ring-[#18C7D8]/70 ${
+          className={`fixed bottom-6 right-6 z-[var(--z-banner)] flex items-center gap-2 rounded-2xl bg-(--kt-teal-700) px-6 py-4 text-base font-bold text-white shadow-2xl shadow-[var(--kt-turquoise)]/30 ring-4 ring-[var(--kt-turquoise)]/40 transition-all duration-400 ease-out hover:bg-[var(--kt-petrol)] focus-visible:outline-none focus-visible:ring-[var(--kt-turquoise)]/70 ${
             botonSaliendo
               ? "translate-y-2 opacity-0"
               : "translate-y-0 opacity-100 animate-pulse hover:animate-none"

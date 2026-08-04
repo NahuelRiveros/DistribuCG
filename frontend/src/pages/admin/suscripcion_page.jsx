@@ -94,11 +94,11 @@ export default function SuscripcionPage() {
       <div className="mx-auto max-w-xl space-y-4">
 
         {/* ── ENCABEZADO ── */}
-        <div className="overflow-hidden rounded-2xl border border-[#B8EEF3] bg-white shadow-sm shadow-[#18C7D8]/10">
-          <div className="h-1 w-full bg-linear-to-r from-(--kt-teal-700) via-[#0B7D8F] to-[#18C7D8]" />
+        <div className="overflow-hidden rounded-2xl border border-[var(--kt-turquoise-border)] bg-white shadow-sm shadow-[var(--kt-turquoise)]/10">
+          <div className="h-1 w-full bg-linear-to-r from-(--kt-teal-700) via-[var(--kt-petrol)] to-[var(--kt-turquoise)]" />
           <div className="flex items-center justify-between px-5 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--kt-teal-700) shadow-sm shadow-[#18C7D8]/25">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--kt-teal-700) shadow-sm shadow-[var(--kt-turquoise)]/25">
                 <CreditCard size={20} className="text-white" />
               </div>
               <div>

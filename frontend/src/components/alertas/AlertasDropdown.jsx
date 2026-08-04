@@ -39,7 +39,7 @@ export default function AlertasDropdown({ hoy = [], proximos = [] }) {
 
       {/* 📦 Panel */}
       {abierto && (
-        <div className="absolute right-0 mt-3 w-80 bg-[#0f172a] border border-cyan-400/20 rounded-xl shadow-lg p-3 z-50 backdrop-blur">
+        <div className="absolute right-0 mt-3 w-80 bg-slate-900 border border-cyan-400/20 rounded-xl shadow-lg p-3 z-[var(--z-modal)] backdrop-blur">
           <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
             🎂 Cumpleaños
           </h3>

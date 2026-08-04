@@ -84,16 +84,16 @@ export default function TextosTab() {
         <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
           <Eye size={12} /> Vista previa del hero
         </div>
-        <div className="bg-linear-to-b from-[#F5F7F9] to-white px-6 py-10 text-center">
-          <div className="kt-body inline-flex items-center gap-2 rounded-full border border-[#D9E1E6] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#0B7D8F] shadow-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#18C7D8]" />
+        <div className="bg-linear-to-b from-[var(--kt-bg-soft)] to-white px-6 py-10 text-center">
+          <div className="kt-body inline-flex items-center gap-2 rounded-full border border-[var(--kt-border)] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--kt-petrol)] shadow-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--kt-turquoise)]" />
             {valores.hero_kicker || "…"}
           </div>
-          <h3 className="kt-display mt-4 text-3xl font-bold uppercase leading-none text-[#222222]">KINE<span className="text-(--kt-teal-700)">TICA</span></h3>
-          <p className="kt-body mx-auto mt-3 max-w-sm text-xs leading-relaxed text-[#666666]">{valores.hero_subtitulo || "…"}</p>
+          <h3 className="kt-display mt-4 text-3xl font-bold uppercase leading-none text-[var(--kt-ink)]">KINE<span className="text-(--kt-teal-700)">TICA</span></h3>
+          <p className="kt-body mx-auto mt-3 max-w-sm text-xs leading-relaxed text-[var(--kt-ink-soft)]">{valores.hero_subtitulo || "…"}</p>
           <div className="mt-5 flex items-center justify-center gap-2">
             <span className="rounded-xl bg-(--kt-teal-700) px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white">{valores.hero_cta_primario || "…"}</span>
-            <span className="rounded-xl border border-[#D9E1E6] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#222222]">{valores.hero_cta_secundario || "…"}</span>
+            <span className="rounded-xl border border-[var(--kt-border)] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--kt-ink)]">{valores.hero_cta_secundario || "…"}</span>
           </div>
         </div>
       </div>

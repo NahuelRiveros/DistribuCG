@@ -65,7 +65,7 @@ export default function KioskErrorModal({ resp, onClose, autoCloseMs = 6000 }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#060a12]/96 flex flex-col">
+    <div className="fixed inset-0 z-[var(--z-modal)] bg-[var(--kt-night)]/96 flex flex-col">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap');
         .em-d { font-family: 'Barlow Condensed', sans-serif; }

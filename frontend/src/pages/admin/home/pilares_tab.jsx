@@ -25,7 +25,7 @@ function PilarFormModal({ abierto, onClose, onGuardar, pilar, guardando }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
         <div className="border-b border-slate-100 px-6 py-4">
           <h2 className="text-xl font-bold text-gray-900">{pilar ? "Editar pilar" : "Nuevo pilar"}</h2>
@@ -144,7 +144,7 @@ export default function PilaresTab() {
             return (
               <div key={item.id} className="flex items-center gap-3.5 rounded-2xl border border-slate-200 bg-white p-4">
                 <GripVertical size={14} className="shrink-0 text-slate-300" />
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-white">
                   <Icon size={20} />
                 </div>
                 <div className="min-w-0 flex-1">

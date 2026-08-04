@@ -53,7 +53,7 @@ export default function HistorialStockModal({ abierto, producto, onClose }) {
   if (!abierto || !producto) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-2xl max-h-[85vh] rounded-2xl bg-white shadow-xl flex flex-col">
         <div className="flex items-center justify-between border-b px-6 py-4">
           <div>

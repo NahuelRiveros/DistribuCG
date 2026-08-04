@@ -5,35 +5,35 @@ const C = {
   // Links / botones ACTIVOS (página actual, item seleccionado)
   activo_bg:       "bg-(--kt-teal-700)",
   activo_texto:    "text-white",
-  activo_sombra:   "shadow-[#18C7D8]/25",
+  activo_sombra:   "shadow-[var(--kt-turquoise)]/25",
 
   // HOVER sobre links inactivos (nav desktop, items dropdown, mobile)
-  hover_bg:        "hover:bg-[#E3FAFC]",
-  hover_texto:     "hover:text-[#0B7D8F]",
+  hover_bg:        "hover:bg-[var(--kt-turquoise-soft)]",
+  hover_texto:     "hover:text-[var(--kt-petrol)]",
 
   // Estado "abierto" suave (dropdown trigger, accordion mobile abierto)
-  suave_bg:        "bg-[#E3FAFC]",
-  suave_texto:     "text-[#0B7D8F]",
-  suave_bg_t:      "bg-[#E3FAFC]/60",
+  suave_bg:        "bg-[var(--kt-turquoise-soft)]",
+  suave_texto:     "text-[var(--kt-petrol)]",
+  suave_bg_t:      "bg-[var(--kt-turquoise-soft)]/60",
 
   // Hover oscuro para botones sólidos (btn login, mobile_btn_login)
-  btn_hover:       "hover:bg-[#0B7D8F]",
+  btn_hover:       "hover:bg-[var(--kt-petrol)]",
 
   // Iconos en estado activo / abierto
-  icono_bg:        "bg-[#E3FAFC]",
-  icono_texto:     "text-[#0B7D8F]",
+  icono_bg:        "bg-[var(--kt-turquoise-soft)]",
+  icono_texto:     "text-[var(--kt-petrol)]",
   icono_texto_sm:  "text-(--kt-teal-700)",
 
   // Bordes y sombras de acento
-  borde_acento:    "border-[#B8EEF3]",
-  borde_acento_t:  "border-[#B8EEF3]/60",
-  sombra_acento:   "shadow-[#18C7D8]/8",
+  borde_acento:    "border-[var(--kt-turquoise-border)]",
+  borde_acento_t:  "border-[var(--kt-turquoise-border)]/60",
+  sombra_acento:   "shadow-[var(--kt-turquoise)]/8",
 
   // Textos de acento
   texto_acento:    "text-(--kt-teal-700)",
 
   // Gradiente cabecera de paneles dropdown
-  grad_header:     "from-slate-50 to-[#E3FAFC]/50",
+  grad_header:     "from-slate-50 to-[var(--kt-turquoise-soft)]/50",
 
   // Focus ring
   foco_ring:       "focus-visible:ring-(--kt-teal-700)",
@@ -47,12 +47,12 @@ export const UI_NAVBAR = {
   // ════════════════════════════════════════════════════════════════
 
   barra_header:                                            // ← bg de toda la barra (ambos tamaños)
-    "sticky top-0 z-50 border-b border-slate-200/70 bg-slate-100/96 backdrop-blur-xl transition-all duration-300",
+    "sticky top-0 z-[var(--z-modal)] border-b border-slate-200/70 bg-slate-100/96 backdrop-blur-xl transition-all duration-300",
   barra_header_con_sombra:
     "shadow-lg shadow-slate-900/8",
 
   barra_linea_acento:
-    "absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-[#18C7D8] via-[#0B7D8F] to-[#18C7D8]",
+    "absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-[var(--kt-turquoise)] via-[var(--kt-petrol)] to-[var(--kt-turquoise)]",
 
   barra_nav_container:
     "mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8",
@@ -68,7 +68,7 @@ export const UI_NAVBAR = {
     `group flex shrink-0 items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 ${C.foco_ring} focus-visible:ring-offset-2`,
 
   brand_badge:
-    "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-[10px] font-black text-white shadow-md shadow-[#18C7D8]/30 transition-transform duration-200 group-hover:scale-105",
+    "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-[10px] font-black text-white shadow-md shadow-[var(--kt-turquoise)]/30 transition-transform duration-200 group-hover:scale-105",
 
   brand_badge_brillo:
     "absolute inset-0 rounded-xl bg-linear-to-b from-white/20 to-transparent",
@@ -127,9 +127,9 @@ export const UI_NAVBAR = {
     "rotate-180",
 
   dropdown_panel:
-    "absolute top-full z-50 mt-2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 left-0 w-72",
+    "absolute top-full z-[var(--z-modal)] mt-2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 left-0 w-72",
   dropdown_panel_ancho:
-    "absolute top-full z-50 mt-2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 right-0 min-w-150",
+    "absolute top-full z-[var(--z-modal)] mt-2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 right-0 min-w-150",
 
   dropdown_cabecera:
     `flex items-center gap-2.5 border-b border-slate-100 bg-linear-to-r ${C.grad_header} px-4 py-2.5`,
@@ -271,11 +271,11 @@ export const UI_NAVBAR = {
   // ════════════════════════════════════════════════════════════════
 
   userbox_avatar_xl:
-    "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-sm font-black text-white shadow-md shadow-[#18C7D8]/30 ring-2 ring-white ring-offset-1",
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-sm font-black text-white shadow-md shadow-[var(--kt-turquoise)]/30 ring-2 ring-white ring-offset-1",
   userbox_avatar_lg:
-    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-sm font-black text-white shadow-md shadow-[#18C7D8]/30 ring-2 ring-white ring-offset-1",
+    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-sm font-black text-white shadow-md shadow-[var(--kt-turquoise)]/30 ring-2 ring-white ring-offset-1",
   userbox_avatar_sm:
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[#0B7D8F] text-xs font-black text-white shadow-sm shadow-[#18C7D8]/30",
+    "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-xs font-black text-white shadow-sm shadow-[var(--kt-turquoise)]/30",
 
   userbox_online_sm:
     "relative flex h-1.5 w-1.5 shrink-0",
@@ -320,7 +320,7 @@ export const UI_NAVBAR = {
     "shrink-0 text-slate-500 transition-transform duration-200",
 
   userbox_desktop_panel:
-    "absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/12 ring-1 ring-black/5",
+    "absolute right-0 top-full z-[var(--z-modal)] mt-2 w-60 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/12 ring-1 ring-black/5",
   userbox_desktop_panel_header:
     "flex items-center gap-3 border-b border-slate-100 p-4",
   userbox_desktop_links_area:

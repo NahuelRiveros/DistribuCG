@@ -133,10 +133,10 @@ export default function AgregarPacienteModal({ open, onClose, onCreado }) {
   const pag = data?.pagination || { page: 1, totalPages: 1, total: 0, limit };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[var(--z-modal-nested)] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gray-900/50" onClick={cerrar} aria-hidden="true" />
 
-      <div role="dialog" aria-modal="true" className={`relative z-10 w-full rounded-2xl border border-gray-200 bg-white shadow-xl ${persona ? "max-w-lg" : "max-w-2xl"}`}>
+      <div role="dialog" aria-modal="true" className={`relative z-[var(--z-content)] w-full rounded-2xl border border-gray-200 bg-white shadow-xl ${persona ? "max-w-lg" : "max-w-2xl"}`}>
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <div className="flex items-center gap-2.5">
             {persona && (

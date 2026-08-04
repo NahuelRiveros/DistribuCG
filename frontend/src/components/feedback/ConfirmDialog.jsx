@@ -37,7 +37,7 @@ export default function ConfirmDialog({
   const ResolvedIcon = Icon ?? DefaultIcon;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[var(--z-modal-nested)] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-gray-900/50"
         onClick={!loading ? onClose : undefined}
@@ -48,7 +48,7 @@ export default function ConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
-        className="relative z-10 w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-xl"
+        className="relative z-[var(--z-content)] w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-xl"
       >
         <div className={cn("mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border", ICON_WRAP[variant] ?? ICON_WRAP.danger)}>
           <ResolvedIcon className={cn("h-5 w-5", ICON_COLOR[variant] ?? ICON_COLOR.danger)} />

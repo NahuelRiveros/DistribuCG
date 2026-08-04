@@ -98,8 +98,8 @@ export default function PatologiasPage() {
           <ArrowLeft size={15} /> Volver a pacientes
         </button>
 
-        <div className="overflow-hidden rounded-2xl border border-[#B8EEF3] bg-white shadow-sm">
-          <div className="h-1 w-full bg-linear-to-r from-(--kt-teal-700) via-[#0B7D8F] to-[#18C7D8]" />
+        <div className="overflow-hidden rounded-2xl border border-[var(--kt-turquoise-border)] bg-white shadow-sm">
+          <div className="h-1 w-full bg-linear-to-r from-(--kt-teal-700) via-[var(--kt-petrol)] to-[var(--kt-turquoise)]" />
           <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-(--kt-teal-700) px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">

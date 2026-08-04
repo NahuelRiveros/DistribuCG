@@ -60,7 +60,7 @@ export default function KioskLogModal({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/80 p-4">
       <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#0d1117] shadow-2xl flex flex-col max-h-[85vh]">
 
         {/* Header */}

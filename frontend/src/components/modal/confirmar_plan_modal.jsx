@@ -10,7 +10,7 @@ export default function ConfirmarActualizacionPlanModal({
   if (!abierto) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
         <h3 className="text-xl font-bold text-gray-800">
           Confirmar actualización

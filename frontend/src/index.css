@@ -1,10 +1,31 @@
 @import "tailwindcss";
 
-/* ── Kinetica: paleta de marca ────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   SISTEMA DE DISEÑO — KINETICA
+   ─────────────────────────────────────────────────────────────────────────
+   Un solo archivo controla color, radio, sombra, z-index y duración de todo
+   el frontend. Para reusar esto en otro proyecto/cliente: copiar este
+   bloque completo y editar solo los valores de acá — el resto del código
+   (componentes .jsx) no necesita tocarse, porque:
+
+   1) `--kt-*` (abajo) es la fuente de verdad de la marca: cada color se
+      define UNA vez acá y todo lo demás lo referencia con var(--kt-x).
+   2) El bloque @theme reexpone esos mismos valores como colores nativos de
+      Tailwind (bg-primary, text-accent, etc.) para código nuevo, Y redefine
+      la escala neutra de Tailwind (slate/gray) para que TODO el código ya
+      existente que usa bg-slate-600, text-gray-400, etc. (~150 archivos)
+      quede centralizado acá también, sin tener que renombrar ni una clase.
+   3) --z-* y --duration-* son props planas (Tailwind v4 no las tematiza),
+      se usan como z-[var(--z-modal)] / duration-[var(--duration-base)].
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
+  /* ── Marca ─────────────────────────────────────────────────────────────── */
   --kt-turquoise:      #18C7D8; /* decorativo / fondos oscuros — no usar como texto ni como fondo de botón con texto encima (2.1:1) */
   --kt-turquoise-soft: #E3FAFC;
+  --kt-turquoise-border: #B8EEF3; /* borde sutil de tarjetas/cabeceras con acento de marca */
   --kt-petrol:         #0B7D8F; /* accesible con texto blanco (4.83:1) */
+  --kt-night:          #060a12; /* paneles oscuros (kiosk, register, pagos) */
   --kt-bg:             #FFFFFF;
   --kt-bg-soft:        #F5F7F9;
   --kt-ink:            #222222;
@@ -20,6 +41,84 @@
   --kt-success:    #047857; --kt-success-bg: #ECFDF5;
   --kt-warning:    #B45309; --kt-warning-bg: #FFFBEB;
   --kt-danger:     #B91C1C; --kt-danger-bg: #FEF2F2;
+
+  /* ── Radio de bordes — vocabulario semántico sobre la escala de Tailwind ── */
+  --radius-chip: 999px;   /* rounded-full ya cubre esto, alias solo para claridad de intención */
+  --radius-card: 1rem;    /* = rounded-2xl */
+  --radius-modal: 1.25rem;
+
+  /* ── Sombras con tinte de marca (para el resto, usar shadow-sm/md/lg/xl de Tailwind) */
+  --shadow-glow-accent: 0 0 22px rgba(24, 199, 216, 0.18);
+
+  /* ── Z-index con nombre — evita números mágicos apilados sin criterio.
+     Uso: className="... z-[var(--z-modal)]" ── */
+  --z-content:     10; /* contenido por encima de una capa decorativa local */
+  --z-modal:        50; /* overlay estándar de modal/dialog */
+  --z-modal-nested: 200; /* confirm dialog apilado sobre otro modal */
+  --z-banner:      9998; /* banner flotante persistente (ej. audio) */
+  --z-blocking:    9999; /* pantalla bloqueante (ej. server caído) */
+
+  /* ── Duración de transición con nombre — Tailwind ya trae una escala
+     numérica coherente (duration-150/200/300...); esto es solo vocabulario
+     para nuevas features que quieran expresar intención sin pensar en ms. */
+  --duration-fast:   150ms;
+  --duration-base:   200ms;
+  --duration-slow:   300ms;
+  --duration-slower: 500ms;
+}
+
+@theme {
+  /* ── Marca, reexpuesta como color nativo de Tailwind (bg-primary, etc.) ── */
+  --color-primary:      var(--kt-teal-700);
+  --color-primary-dark: var(--kt-teal-900);
+  --color-primary-soft: var(--kt-teal-500);
+  --color-accent:       var(--kt-turquoise);
+  --color-accent-soft:  var(--kt-turquoise-soft);
+  --color-success:      var(--kt-success);
+  --color-success-bg:   var(--kt-success-bg);
+  --color-warning:      var(--kt-warning);
+  --color-warning-bg:   var(--kt-warning-bg);
+  --color-danger:       var(--kt-danger);
+  --color-danger-bg:    var(--kt-danger-bg);
+
+  /* ── Escala neutra propia — incialmente igual a la escala default de
+     Tailwind (mismo hex, cero cambio visual), pero ahora vive en este
+     archivo. slate-* y gray-* del código existente apuntan acá abajo. ── */
+  --color-neutral-50:  #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  --color-slate-50:  var(--color-neutral-50);
+  --color-slate-100: var(--color-neutral-100);
+  --color-slate-200: var(--color-neutral-200);
+  --color-slate-300: var(--color-neutral-300);
+  --color-slate-400: var(--color-neutral-400);
+  --color-slate-500: var(--color-neutral-500);
+  --color-slate-600: var(--color-neutral-600);
+  --color-slate-700: var(--color-neutral-700);
+  --color-slate-800: var(--color-neutral-800);
+  --color-slate-900: var(--color-neutral-900);
+  --color-slate-950: var(--color-neutral-950);
+
+  --color-gray-50:  var(--color-neutral-50);
+  --color-gray-100: var(--color-neutral-100);
+  --color-gray-200: var(--color-neutral-200);
+  --color-gray-300: var(--color-neutral-300);
+  --color-gray-400: var(--color-neutral-400);
+  --color-gray-500: var(--color-neutral-500);
+  --color-gray-600: var(--color-neutral-600);
+  --color-gray-700: var(--color-neutral-700);
+  --color-gray-800: var(--color-neutral-800);
+  --color-gray-900: var(--color-neutral-900);
+  --color-gray-950: var(--color-neutral-950);
 }
 
 /* ── Kinetica: fuentes (definidas en index.html via <link>, aquí solo asignamos) ── */

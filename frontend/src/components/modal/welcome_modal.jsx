@@ -26,7 +26,7 @@ export default function WelcomeModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/40 z-[var(--z-modal)] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md text-center">
 
         <CheckCircle className="mx-auto text-green-600" size={48} />

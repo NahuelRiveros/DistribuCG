@@ -73,7 +73,7 @@ export default function LoginPage() {
     <div className="relative min-h-screen overflow-hidden bg-slate-100">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(24,199,216,0.10),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.08),_transparent_30%)]" />
 
-      <div className="relative z-10 min-h-screen grid grid-cols-1 lg:grid-cols-2">
+      <div className="relative z-[var(--z-content)] min-h-screen grid grid-cols-1 lg:grid-cols-2">
         <div className="hidden lg:flex items-center justify-center p-10">
           <div className="max-w-xl">
             <div className="inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 shadow-sm backdrop-blur">

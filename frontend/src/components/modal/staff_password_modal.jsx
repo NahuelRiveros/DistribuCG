@@ -82,7 +82,7 @@ export default function StaffPasswordModal({
     : "";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-xl rounded-2xl bg-white shadow-xl">
         <div className="border-b border-blue-100 px-6 py-4">
           <h2 className="text-xl font-bold text-gray-900">Cambiar contraseña</h2>
