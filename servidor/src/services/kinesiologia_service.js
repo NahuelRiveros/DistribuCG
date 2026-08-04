@@ -49,7 +49,15 @@ export async function listarPersonasRegistradas({ q, dni, page = 1, limit = 20, 
   const l = Math.min(100, Math.max(1, Number(limit) || 20));
   const offset = (p - 1) * l;
 
-  const where = [`p.eliminado_en IS NULL`];
+  const where = [
+    `p.eliminado_en IS NULL`,
+    `NOT EXISTS (
+      SELECT 1 FROM usuario u
+      JOIN usuario_rol ur ON ur.usuario_id = u.id
+      JOIN rol r          ON r.id = ur.rol_id
+      WHERE u.persona_id = p.id AND r.codigo IN ('admin', 'super_admin', 'staff')
+    )`,
+  ];
   const repl = { limit: l, offset };
 
   if (dni) {
