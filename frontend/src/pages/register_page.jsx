@@ -302,18 +302,22 @@ export default function RegisterAlumnoPage() {
 
               {/* ── ERROR + SUBMIT ── */}
               <div className="space-y-4 pt-2">
-                <label className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={crearAlumno}
-                    onChange={(e) => setCrearAlumno(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-sky-500 focus:ring-sky-400"
-                  />
-                  Dar de alta como alumno del gimnasio
-                  <span className="ml-auto text-xs text-slate-400">
-                    {crearAlumno ? "" : "solo se registra la persona"}
-                  </span>
-                </label>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
+                  <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={crearAlumno}
+                      onChange={(e) => setCrearAlumno(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-sky-500 focus:ring-sky-400"
+                    />
+                    Dar de alta como alumno del gimnasio
+                  </label>
+                  <p className="mt-1.5 pl-6 text-xs leading-relaxed text-slate-500">
+                    {crearAlumno
+                      ? "Va a poder tener un plan, pagar cuota y registrar ingresos por DNI en el gimnasio."
+                      : "Se registra solo la persona, sin cuota de gimnasio. Usalo si viene únicamente por kinesiología — después la sumás como paciente kinesiológico desde el panel de Kinesiología."}
+                  </p>
+                </div>
 
                 <FormError message={error} />
 
