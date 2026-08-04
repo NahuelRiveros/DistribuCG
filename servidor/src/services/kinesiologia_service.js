@@ -55,7 +55,7 @@ export async function listarPersonasRegistradas({ q, dni, page = 1, limit = 20, 
       SELECT 1 FROM usuario u
       JOIN usuario_rol ur ON ur.usuario_id = u.id
       JOIN rol r          ON r.id = ur.rol_id
-      WHERE u.persona_id = p.id AND r.codigo IN ('admin', 'super_admin', 'staff')
+      WHERE u.persona_id = p.id AND r.codigo IN ('admin', 'super_admin', 'staff', 'kinesiologo')
     )`,
   ];
   const repl = { limit: l, offset };
