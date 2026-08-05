@@ -88,12 +88,12 @@ export async function registrarPagoPorDni({
       INSERT INTO membresia (
         alumno_id, monto_pagado, fecha_inicio, fecha_fin,
         dias_totales, ingresos_disponibles, metodo_pago,
-        actualizado_en, plan_tipo_id, cobrado_por_id
+        creado_en, actualizado_en, plan_tipo_id, cobrado_por_id
       )
       VALUES (
         :alumno_id, :monto_pagado, :inicio::date, :fin::date,
         :dias_totales, :ingresos_totales, :metodo_pago,
-        (now() AT TIME ZONE '${TZ_BA}'), :tipo_plan_id, :usuario_id_cobro
+        (now() AT TIME ZONE '${TZ_BA}'), (now() AT TIME ZONE '${TZ_BA}'), :tipo_plan_id, :usuario_id_cobro
       )
       RETURNING id, actualizado_en, cobrado_por_id
       `,

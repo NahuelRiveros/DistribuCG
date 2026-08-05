@@ -136,9 +136,9 @@ export async function actualizarPlanVigentePorDni({
       `
       INSERT INTO alumno_estado_log (
         alumno_id, estado_anterior_id, estado_nuevo_id,
-        motivo, fuente, modificado_por
+        motivo, fuente, modificado_por, creado_en
       )
-      VALUES (:alumno_id, :estado_anterior, :estado_nuevo, :motivo, :fuente, :modificado_por)
+      VALUES (:alumno_id, :estado_anterior, :estado_nuevo, :motivo, :fuente, :modificado_por, (now() AT TIME ZONE 'America/Argentina/Buenos_Aires'))
       `,
       {
         replacements: {
