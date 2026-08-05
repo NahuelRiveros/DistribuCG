@@ -38,6 +38,8 @@ import { FichaKinesiologica } from "./kinesiologia/ficha_kinesiologica.js";
 import { TestFuncional }     from "./kinesiologia/test_funcional.js";
 import { TestFuerza }        from "./kinesiologia/test_fuerza.js";
 import { RegistroSesionKinesiologia } from "./kinesiologia/registro_sesion_kinesiologia.js";
+import { SesionKinesiologica } from "./kinesiologia/sesion_kinesiologica.js";
+import { SesionKinesiologicaEjercicio } from "./kinesiologia/sesion_kinesiologica_ejercicio.js";
 
 // ── seguimiento/ — asignación profesional y avances de ejercicio ────────────
 import { AsignacionProfesional } from "./seguimiento/asignacion_profesional.js";
@@ -213,10 +215,22 @@ TestFuerza.belongsTo(FichaKinesiologica, { foreignKey: "ficha_id", as: "ficha" }
 TestFuerza.belongsTo(Ejercicio,          { foreignKey: "ejercicio_id", as: "ejercicio" });
 TestFuerza.belongsTo(Usuario,            { foreignKey: "registrado_por_id", as: "registrado_por" });
 
-FichaKinesiologica.hasMany(RegistroSesionKinesiologia,   { foreignKey: "ficha_id", as: "sesiones" });
+// RegistroSesionKinesiologia queda congelada como histórico (ver
+// sesion_kinesiologica_legacy en seed.js) — no se le agrega el alias
+// "sesiones" para no chocar con el de abajo, pero el modelo sigue vivo
+// y sincronizándose (bootstrap.js) para que la migración pueda leerla.
 RegistroSesionKinesiologia.belongsTo(FichaKinesiologica, { foreignKey: "ficha_id", as: "ficha" });
 RegistroSesionKinesiologia.belongsTo(Ejercicio,          { foreignKey: "ejercicio_id", as: "ejercicio" });
 RegistroSesionKinesiologia.belongsTo(Usuario,            { foreignKey: "registrado_por_id", as: "registrado_por" });
+
+// ─── FichaKinesiologica ↔ SesionKinesiologica ↔ SesionKinesiologicaEjercicio ──
+FichaKinesiologica.hasMany(SesionKinesiologica,   { foreignKey: "ficha_id", as: "sesiones" });
+SesionKinesiologica.belongsTo(FichaKinesiologica, { foreignKey: "ficha_id", as: "ficha" });
+SesionKinesiologica.belongsTo(Usuario,            { foreignKey: "registrado_por_id", as: "registrado_por" });
+
+SesionKinesiologica.hasMany(SesionKinesiologicaEjercicio,   { foreignKey: "sesion_id", as: "ejercicios" });
+SesionKinesiologicaEjercicio.belongsTo(SesionKinesiologica, { foreignKey: "sesion_id", as: "sesion" });
+SesionKinesiologicaEjercicio.belongsTo(Ejercicio,           { foreignKey: "ejercicio_id", as: "ejercicio" });
 
 export {
   Sexo, TipoDocumento, TipoPersona, AlumnoEstado,
@@ -228,6 +242,7 @@ export {
   TipoEjercicio, GrupoMuscular, Ejercicio, RegistroEjercicio,
   Patologia, PacientePatologia,
   FichaKinesiologica, TestFuncional, TestFuerza, RegistroSesionKinesiologia,
+  SesionKinesiologica, SesionKinesiologicaEjercicio,
   HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto,
   ModuloNegocio,
 };

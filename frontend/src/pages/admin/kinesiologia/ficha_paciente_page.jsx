@@ -13,9 +13,29 @@ function EscalaBadge({ label, valor }) {
   );
 }
 
+function EjerciciosSesionList({ ejercicios }) {
+  if (!ejercicios?.length) return null;
+  return (
+    <ul className="mt-1.5 space-y-1">
+      {ejercicios.map((ej) => (
+        <li key={ej.id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs">
+          <span className="text-slate-700">{ej.ejercicio?.nombre ?? "Ejercicio"}</span>
+          <span className="text-slate-500">
+            {[
+              ej.peso ? `${ej.peso}kg` : null,
+              ej.series ? `${ej.series}s` : null,
+              ej.repeticiones ? `${ej.repeticiones}r` : null,
+              ej.rir != null ? `RIR ${ej.rir}` : null,
+            ].filter(Boolean).join(" · ") || "—"}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function SesionRow({ sesion, onEditar }) {
   const dolorOk = sesion.dolor_durante <= 3;
-  const rirOk = sesion.rir == null || sesion.rir >= 2;
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3.5">
       <div className="flex items-center justify-between gap-2">
@@ -34,7 +54,7 @@ function SesionRow({ sesion, onEditar }) {
           </button>
         </div>
       </div>
-      {sesion.ejercicio?.nombre && <p className="mt-1 text-xs text-slate-500">{sesion.ejercicio.nombre}</p>}
+      <EjerciciosSesionList ejercicios={sesion.ejercicios} />
       <div className="mt-2.5 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
         <EscalaBadge label="Movimiento" valor={sesion.calidad_movimiento} />
         <EscalaBadge label="Tolerancia" valor={sesion.tolerancia_carga} />
@@ -47,11 +67,6 @@ function SesionRow({ sesion, onEditar }) {
         </span>
         {sesion.dolor_24h != null && (
           <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">Dolor 24h: {sesion.dolor_24h}/10</span>
-        )}
-        {sesion.rir != null && (
-          <span className={`rounded-full px-2 py-0.5 font-semibold ${rirOk ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-            RIR: {sesion.rir}
-          </span>
         )}
       </div>
       {sesion.observaciones && <p className="mt-2 text-xs text-slate-500">{sesion.observaciones}</p>}

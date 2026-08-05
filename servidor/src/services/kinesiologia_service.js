@@ -2,7 +2,8 @@ import { sequelize } from "../database/sequelize.js";
 import { QueryTypes } from "sequelize";
 import {
   Persona, Alumno, PacienteKinesiologia, PacientePatologia,
-  FichaKinesiologica, TestFuncional, TestFuerza, RegistroSesionKinesiologia,
+  FichaKinesiologica, TestFuncional, TestFuerza,
+  SesionKinesiologica, SesionKinesiologicaEjercicio,
 } from "../models/index.js";
 import { normalizarDocumento } from "./persona_service.js";
 
@@ -274,7 +275,16 @@ export async function obtenerDetallePaciente({ paciente_kinesiologia_id }) {
         include: [
           { model: TestFuncional, as: "tests_funcionales", include: [{ association: "ejercicio" }] },
           { model: TestFuerza, as: "tests_fuerza", include: [{ association: "ejercicio" }] },
-          { model: RegistroSesionKinesiologia, as: "sesiones", include: [{ association: "ejercicio" }] },
+          {
+            model: SesionKinesiologica,
+            as: "sesiones",
+            include: [{
+              association: "ejercicios",
+              separate: true,
+              order: [["orden", "ASC"]],
+              include: [{ association: "ejercicio" }],
+            }],
+          },
         ],
       },
     ],
@@ -300,16 +310,54 @@ export async function registrarTestFuerza({ ficha_id, ejercicio_id, repeticiones
   return { ok: true, test_fuerza: registro };
 }
 
-export async function registrarSesionKinesiologia(data) {
-  const registro = await RegistroSesionKinesiologia.create(data);
-  return { ok: true, sesion: registro };
+const INCLUDE_EJERCICIOS_SESION = [{
+  association: "ejercicios",
+  separate: true,
+  order: [["orden", "ASC"]],
+  include: [{ association: "ejercicio" }],
+}];
+
+/** Crea una sesión (checklist) con N ejercicios asociados (puede ser ninguno). */
+export async function registrarSesionKinesiologia({ ejercicios, ...checklist }) {
+  const sesion = await sequelize.transaction(async (t) => {
+    const nueva = await SesionKinesiologica.create(checklist, { transaction: t });
+
+    if (ejercicios?.length) {
+      await SesionKinesiologicaEjercicio.bulkCreate(
+        ejercicios.map((ej, i) => ({ ...ej, sesion_id: nueva.id, orden: i })),
+        { transaction: t }
+      );
+    }
+
+    return nueva;
+  });
+
+  await sesion.reload({ include: INCLUDE_EJERCICIOS_SESION });
+  return { ok: true, sesion };
 }
 
-/** Edita una sesión ya guardada — sin restricción de ventana de tiempo. */
-export async function actualizarSesionKinesiologia(id, data) {
-  const sesion = await RegistroSesionKinesiologia.findByPk(id);
+/**
+ * Edita una sesión ya guardada — sin restricción de ventana de tiempo.
+ * La lista de ejercicios se reemplaza por completo (no hay diff incremental).
+ */
+export async function actualizarSesionKinesiologia(id, { ejercicios, ...checklist }) {
+  const sesion = await SesionKinesiologica.findByPk(id);
   if (!sesion) return { ok: false, codigo: "NO_EXISTE", mensaje: "La sesión no existe" };
 
-  await sesion.update({ ...data, actualizado_en: new Date() });
+  await sequelize.transaction(async (t) => {
+    await sesion.update({ ...checklist, actualizado_en: new Date() }, { transaction: t });
+
+    if (ejercicios) {
+      await SesionKinesiologicaEjercicio.destroy({ where: { sesion_id: id }, transaction: t });
+      if (ejercicios.length) {
+        await SesionKinesiologicaEjercicio.bulkCreate(
+          ejercicios.map((ej, i) => ({ ...ej, sesion_id: id, orden: i })),
+          { transaction: t }
+        );
+      }
+    }
+  });
+
+  await sesion.reload({ include: INCLUDE_EJERCICIOS_SESION });
   return { ok: true, mensaje: "Sesión actualizada correctamente", sesion };
 }

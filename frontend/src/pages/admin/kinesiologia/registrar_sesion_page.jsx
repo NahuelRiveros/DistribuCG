@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Plus, X } from "lucide-react";
 import { registrarSesionKinesiologia, actualizarSesionKinesiologia } from "../../../api/kinesiologia_api.js";
 import { useCatalogos } from "../../../hooks/use_catalogos.js";
 
@@ -31,6 +31,65 @@ function agruparEjerciciosPorZona(ejercicios) {
   return ORDEN_ZONAS
     .filter((zona) => porZona.has(zona))
     .map((zona) => ({ zona, ejercicios: porZona.get(zona) }));
+}
+
+function SelectorZonaEjercicio({ zona, opciones, onAgregar }) {
+  const [ejercicioId, setEjercicioId] = useState("");
+  const [peso, setPeso] = useState("");
+  const [series, setSeries] = useState("");
+  const [repeticiones, setRepeticiones] = useState("");
+  const [rir, setRir] = useState("");
+
+  function agregar() {
+    if (!ejercicioId) return;
+    const opcion = opciones.find((op) => String(op.value) === String(ejercicioId));
+    onAgregar({
+      ejercicio_id: Number(ejercicioId),
+      nombre: opcion?.label ?? "",
+      peso: peso || null,
+      series: series || null,
+      repeticiones: repeticiones || null,
+      rir: rir === "" ? null : Number(rir),
+    });
+    setEjercicioId(""); setPeso(""); setSeries(""); setRepeticiones(""); setRir("");
+  }
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2.5">
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{zona}</p>
+
+      <select
+        value={ejercicioId}
+        onChange={(e) => setEjercicioId(e.target.value)}
+        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-(--kt-teal-700)"
+      >
+        <option value="">Elegir ejercicio…</option>
+        {opciones.map((op) => (
+          <option key={op.value} value={op.value}>
+            {op.label}{op.grupo_muscular ? ` (${op.grupo_muscular})` : ""}
+          </option>
+        ))}
+      </select>
+
+      {ejercicioId && (
+        <>
+          <div className="grid grid-cols-4 gap-1.5">
+            <input value={peso} onChange={(e) => setPeso(e.target.value)} inputMode="decimal" placeholder="Peso" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+            <input value={series} onChange={(e) => setSeries(e.target.value)} inputMode="numeric" placeholder="Series" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+            <input value={repeticiones} onChange={(e) => setRepeticiones(e.target.value)} inputMode="numeric" placeholder="Reps" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+            <input value={rir} onChange={(e) => setRir(e.target.value)} inputMode="numeric" placeholder="RIR" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+          </div>
+          <button
+            type="button"
+            onClick={agregar}
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-(--kt-teal-700) py-2 text-xs font-bold text-white transition hover:opacity-90"
+          >
+            <Plus size={13} /> Agregar a la sesión
+          </button>
+        </>
+      )}
+    </div>
+  );
 }
 
 function EscalaSelector({ label, valor, onChange }) {
@@ -94,11 +153,16 @@ export default function RegistrarSesionKinesiologiaPage() {
   const { data: catalogos } = useCatalogos();
   const gruposEjercicios = agruparEjerciciosPorZona(catalogos?.ejerciciosKinesiologia || []);
 
-  const [ejercicioId, setEjercicioId] = useState(sesionEditar?.ejercicio_id ?? "");
-  const [peso, setPeso] = useState(sesionEditar?.peso ?? "");
-  const [series, setSeries] = useState(sesionEditar?.series ?? "");
-  const [repeticiones, setRepeticiones] = useState(sesionEditar?.repeticiones ?? "");
-  const [rir, setRir] = useState(sesionEditar?.rir ?? null);
+  const [ejerciciosSesion, setEjerciciosSesion] = useState(() =>
+    (sesionEditar?.ejercicios || []).map((e) => ({
+      ejercicio_id: e.ejercicio_id,
+      nombre: e.ejercicio?.nombre ?? "",
+      peso: e.peso ?? null,
+      series: e.series ?? null,
+      repeticiones: e.repeticiones ?? null,
+      rir: e.rir ?? null,
+    }))
+  );
   const [dolorDurante, setDolorDurante] = useState(sesionEditar?.dolor_durante ?? null);
   const [dolor24h, setDolor24h] = useState(sesionEditar?.dolor_24h ?? null);
   const [escalas, setEscalas] = useState({
@@ -117,12 +181,22 @@ export default function RegistrarSesionKinesiologiaPage() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState(null);
 
-  const sugerenciaApto = dolorDurante != null && dolorDurante <= 3 && (rir == null || rir >= 2);
+  const rirCargados = ejerciciosSesion.map((e) => e.rir).filter((v) => v != null);
+  const rirMinimo = rirCargados.length ? Math.min(...rirCargados) : null;
+  const sugerenciaApto = dolorDurante != null && dolorDurante <= 3 && (rirMinimo == null || rirMinimo >= 2);
   const aptoFinal = aptoManual !== null ? aptoManual : sugerenciaApto;
 
   const faltanCampos =
     dolorDurante == null ||
     Object.values(escalas).some((v) => v == null);
+
+  function agregarEjercicio(item) {
+    setEjerciciosSesion((lista) => [...lista, item]);
+  }
+
+  function quitarEjercicio(index) {
+    setEjerciciosSesion((lista) => lista.filter((_, i) => i !== index));
+  }
 
   async function guardar() {
     if (faltanCampos) {
@@ -133,11 +207,13 @@ export default function RegistrarSesionKinesiologiaPage() {
     setError(null);
     try {
       const payload = {
-        ejercicio_id: ejercicioId || null,
-        peso: peso || null,
-        series: series || null,
-        repeticiones: repeticiones || null,
-        rir,
+        ejercicios: ejerciciosSesion.map((ej) => ({
+          ejercicio_id: ej.ejercicio_id,
+          peso: ej.peso,
+          series: ej.series,
+          repeticiones: ej.repeticiones,
+          rir: ej.rir,
+        })),
         dolor_durante: dolorDurante,
         dolor_24h: dolor24h,
         ...escalas,
@@ -184,50 +260,42 @@ export default function RegistrarSesionKinesiologiaPage() {
           </p>
         </div>
 
-        {/* Ejercicio + carga */}
+        {/* Ejercicios de la sesión — de a uno por zona, se pueden agregar varios */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-          <select
-            value={ejercicioId}
-            onChange={(e) => setEjercicioId(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none focus:border-(--kt-teal-700)"
-          >
-            <option value="">Ejercicio trabajado (opcional)</option>
-            {gruposEjercicios.map(({ zona, ejercicios }) => (
-              <optgroup key={zona} label={zona}>
-                {ejercicios.map((op) => (
-                  <option key={op.value} value={op.value}>
-                    {op.label}{op.grupo_muscular ? ` (${op.grupo_muscular})` : ""}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          <div className="grid grid-cols-3 gap-2">
-            <input value={peso} onChange={(e) => setPeso(e.target.value)} inputMode="decimal" placeholder="Peso (kg)" className="rounded-xl border border-slate-300 px-2.5 py-2.5 text-sm outline-none focus:border-(--kt-teal-700)" />
-            <input value={series} onChange={(e) => setSeries(e.target.value)} inputMode="numeric" placeholder="Series" className="rounded-xl border border-slate-300 px-2.5 py-2.5 text-sm outline-none focus:border-(--kt-teal-700)" />
-            <input value={repeticiones} onChange={(e) => setRepeticiones(e.target.value)} inputMode="numeric" placeholder="Reps" className="rounded-xl border border-slate-300 px-2.5 py-2.5 text-sm outline-none focus:border-(--kt-teal-700)" />
-          </div>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Ejercicios trabajados (opcional)</p>
+
+          {gruposEjercicios.map(({ zona, ejercicios }) => (
+            <SelectorZonaEjercicio key={zona} zona={zona} opciones={ejercicios} onAgregar={agregarEjercicio} />
+          ))}
+
+          {ejerciciosSesion.length > 0 && (
+            <ul className="space-y-1.5 pt-1">
+              {ejerciciosSesion.map((ej, i) => (
+                <li key={`${ej.ejercicio_id}-${i}`} className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-emerald-800">{ej.nombre}</p>
+                    <p className="text-emerald-600">
+                      {[
+                        ej.peso ? `${ej.peso}kg` : null,
+                        ej.series ? `${ej.series} series` : null,
+                        ej.repeticiones ? `${ej.repeticiones} reps` : null,
+                        ej.rir != null ? `RIR ${ej.rir}` : null,
+                      ].filter(Boolean).join(" · ") || "sin detalle de carga"}
+                    </p>
+                  </div>
+                  <button type="button" onClick={() => quitarEjercicio(i)} className="shrink-0 rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-100">
+                    <X size={14} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
-        {/* Dolor + RIR */}
+        {/* Dolor */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-4">
           <EscalaDolor label="Dolor durante el ejercicio (0–10)" valor={dolorDurante} onChange={setDolorDurante} />
           <EscalaDolor label="Dolor a las 24 h (de la sesión anterior)" valor={dolor24h} onChange={setDolor24h} opcional />
-          <div>
-            <p className="text-sm font-semibold text-slate-700">RIR (repeticiones en reserva)</p>
-            <div className="mt-1.5 grid grid-cols-6 gap-1.5">
-              {[0, 1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setRir(n)}
-                  className={`h-10 rounded-lg border text-sm font-bold transition ${rir === n ? "border-(--kt-teal-700) bg-(--kt-teal-700) text-white" : "border-slate-200 bg-white text-slate-500"}`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Indicadores de progresión */}

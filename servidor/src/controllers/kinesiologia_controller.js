@@ -146,21 +146,26 @@ export async function crearTestFuerza(req, res, next) {
   }
 }
 
-function parseSesionBody(body) {
-  const {
-    ejercicio_id, peso, series, repeticiones, rir,
-    dolor_durante, dolor_24h,
-    calidad_movimiento, tolerancia_carga, confianza_paciente, cumplimiento_programa,
-    tecnica_correcta, sin_compensaciones, buena_recuperacion, apto_para_subir_carga,
-    observaciones, fecha,
-  } = body;
-
+function parseEjercicioSesion(item) {
+  const { ejercicio_id, peso, series, repeticiones, rir } = item ?? {};
   return {
     ejercicio_id: ejercicio_id != null ? toInt(ejercicio_id, null) : null,
     peso: peso ?? null,
     series: series != null ? toInt(series, null) : null,
     repeticiones: repeticiones != null ? toInt(repeticiones, null) : null,
     rir: rir != null ? toInt(rir, null) : null,
+  };
+}
+
+function parseSesionBody(body) {
+  const {
+    dolor_durante, dolor_24h,
+    calidad_movimiento, tolerancia_carga, confianza_paciente, cumplimiento_programa,
+    tecnica_correcta, sin_compensaciones, buena_recuperacion, apto_para_subir_carga,
+    observaciones, fecha, ejercicios,
+  } = body;
+
+  return {
     dolor_durante: toInt(dolor_durante, null),
     dolor_24h: dolor_24h != null ? toInt(dolor_24h, null) : null,
     calidad_movimiento: toInt(calidad_movimiento, null),
@@ -173,6 +178,7 @@ function parseSesionBody(body) {
     apto_para_subir_carga: !!apto_para_subir_carga,
     observaciones: observaciones ?? null,
     fecha: fecha || undefined,
+    ejercicios: Array.isArray(ejercicios) ? ejercicios.map(parseEjercicioSesion) : [],
   };
 }
 
