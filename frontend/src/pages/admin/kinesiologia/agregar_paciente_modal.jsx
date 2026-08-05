@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { X, UserPlus, HeartPulse, CheckCircle2, ArrowLeft } from "lucide-react";
+import { X, UserPlus, HeartPulse, CheckCircle2, ArrowLeft, Check } from "lucide-react";
 import InputField from "../../../components/form/input_field.jsx";
-import SelectField from "../../../components/form/select_field.jsx";
 import DataGrid from "../../../components/table/DataGrid.jsx";
 import { getPersonasRegistradas, agregarPacienteKinesiologia } from "../../../api/kinesiologia_api.js";
 import { useCatalogos } from "../../../hooks/use_catalogos.js";
@@ -57,7 +56,7 @@ export default function AgregarPacienteModal({ open, onClose, onCreado }) {
   const [error, setError] = useState(null);
   const [persona, setPersona] = useState(null);
 
-  const [patologiaId, setPatologiaId] = useState("");
+  const [patologiaIds, setPatologiaIds] = useState([]);
   const [fechaDiagnostico, setFechaDiagnostico] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [objetivo, setObjetivo] = useState("");
@@ -87,7 +86,11 @@ export default function AgregarPacienteModal({ open, onClose, onCreado }) {
 
   function resetear() {
     setBusqueda(""); setPage(1); setData(null); setPersona(null); setError(null);
-    setPatologiaId(""); setFechaDiagnostico(""); setFechaInicio(""); setObjetivo("");
+    setPatologiaIds([]); setFechaDiagnostico(""); setFechaInicio(""); setObjetivo("");
+  }
+
+  function toggleActiva(id) {
+    setPatologiaIds((ids) => ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
   }
 
   function cerrar() {
@@ -105,8 +108,8 @@ export default function AgregarPacienteModal({ open, onClose, onCreado }) {
   }
 
   async function confirmar() {
-    if (!patologiaId || !objetivo.trim()) {
-      setError("Elegí una patología y cargá el objetivo del tratamiento");
+    if (!patologiaIds.length || !objetivo.trim()) {
+      setError("Elegí al menos una patología y cargá el objetivo del tratamiento");
       return;
     }
     setGuardando(true);
@@ -114,7 +117,7 @@ export default function AgregarPacienteModal({ open, onClose, onCreado }) {
     try {
       const r = await agregarPacienteKinesiologia({
         persona_id: persona.persona_id,
-        patologia_id: Number(patologiaId),
+        patologia_ids: patologiaIds,
         fecha_diagnostico: fechaDiagnostico || null,
         fecha_inicio: fechaInicio || null,
         objetivo: objetivo.trim(),
@@ -200,14 +203,29 @@ export default function AgregarPacienteModal({ open, onClose, onCreado }) {
                 <span className="text-slate-500">DNI {persona.documento}</span>
               </div>
 
-              <SelectField
-                label="Patología"
-                name="patologia_id"
-                value={patologiaId}
-                onChange={(e) => setPatologiaId(e.target.value)}
-                options={catalogos?.patologias || []}
-                placeholder="Elegir patología…"
-              />
+              <div>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Patologías <span className="font-normal text-gray-400">(elegí una o varias)</span>
+                </label>
+                <div className="mt-1.5 max-h-40 space-y-1 overflow-y-auto rounded-xl border border-gray-300 p-1.5">
+                  {(catalogos?.patologias || []).map((p) => {
+                    const activa = patologiaIds.includes(p.value);
+                    return (
+                      <button
+                        key={p.value}
+                        type="button"
+                        onClick={() => toggleActiva(p.value)}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
+                          activa ? "bg-(--kt-teal-700)/10 text-(--kt-teal-700)" : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {p.label}
+                        {activa && <Check size={15} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <InputField

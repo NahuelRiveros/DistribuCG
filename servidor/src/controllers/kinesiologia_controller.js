@@ -62,10 +62,10 @@ export async function listaPersonasRegistradas(req, res, next) {
 
 export async function agregarPaciente(req, res, next) {
   try {
-    const { persona_id, patologia_id, fecha_diagnostico, objetivo, fecha_inicio } = req.body;
+    const { persona_id, patologia_ids, fecha_diagnostico, objetivo, fecha_inicio } = req.body;
     const r = await agregarPacienteKinesiologia({
       persona_id: toInt(persona_id, null),
-      patologia_id: toInt(patologia_id, null),
+      patologia_ids: Array.isArray(patologia_ids) ? patologia_ids.map((id) => toInt(id, null)).filter(Boolean) : [],
       fecha_diagnostico,
       objetivo,
       fecha_inicio,

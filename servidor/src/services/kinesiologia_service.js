@@ -115,14 +115,17 @@ export async function listarPersonasRegistradas({ q, dni, page = 1, limit = 20, 
 
 /**
  * Agrega una persona ya registrada al grupo de kinesiología: crea (si hace
- * falta) paciente_kinesiologia, crea la patología del episodio y su ficha
- * con objetivo. Todo en una transacción, igual que registrarPersonaConAlumno.
+ * falta) paciente_kinesiologia, y una patología + ficha por cada
+ * patologia_id recibido (un paciente puede arrancar con varias a la vez).
+ * Todo en una transacción, igual que registrarPersonaConAlumno.
  */
 export async function agregarPacienteKinesiologia({
-  persona_id, patologia_id, fecha_diagnostico, objetivo, fecha_inicio, creado_por_id,
+  persona_id, patologia_ids, fecha_diagnostico, objetivo, fecha_inicio, creado_por_id,
 }) {
-  if (!persona_id || !patologia_id || !objetivo) {
-    return { ok: false, codigo: "VALIDACION", mensaje: "persona_id, patologia_id y objetivo son obligatorios" };
+  const patologiaIds = [...new Set((patologia_ids ?? []).filter(Boolean))];
+
+  if (!persona_id || !patologiaIds.length || !objetivo) {
+    return { ok: false, codigo: "VALIDACION", mensaje: "persona_id, al menos una patología y objetivo son obligatorios" };
   }
 
   return sequelize.transaction(async (t) => {
@@ -137,26 +140,43 @@ export async function agregarPacienteKinesiologia({
       transaction: t,
     });
 
-    const pacientePatologia = await PacientePatologia.create({
-      paciente_kinesiologia_id: pacienteKinesiologia.id,
-      patologia_id,
-      fecha_diagnostico: fecha_diagnostico ?? null,
-      activo: true,
-    }, { transaction: t });
+    const yaActivas = await PacientePatologia.findAll({
+      where: { paciente_kinesiologia_id: pacienteKinesiologia.id, activo: true, patologia_id: patologiaIds },
+      transaction: t,
+    });
+    const idsYaActivos = new Set(yaActivas.map((pp) => pp.patologia_id));
+    const idsNuevos = patologiaIds.filter((id) => !idsYaActivos.has(id));
 
-    const ficha = await FichaKinesiologica.create({
-      paciente_patologia_id: pacientePatologia.id,
-      objetivo,
-      fecha_inicio: fecha_inicio ?? new Date(),
-      creado_por_id,
-    }, { transaction: t });
+    if (!idsNuevos.length) {
+      return { ok: false, codigo: "PATOLOGIAS_YA_ACTIVAS", mensaje: "El paciente ya tiene esas patologías activas" };
+    }
+
+    const fichas = [];
+    for (const patologia_id of idsNuevos) {
+      const pacientePatologia = await PacientePatologia.create({
+        paciente_kinesiologia_id: pacienteKinesiologia.id,
+        patologia_id,
+        fecha_diagnostico: fecha_diagnostico ?? null,
+        activo: true,
+      }, { transaction: t });
+
+      const ficha = await FichaKinesiologica.create({
+        paciente_patologia_id: pacientePatologia.id,
+        objetivo,
+        fecha_inicio: fecha_inicio ?? new Date(),
+        creado_por_id,
+      }, { transaction: t });
+
+      fichas.push({ paciente_patologia_id: pacientePatologia.id, ficha_id: ficha.id, patologia_id });
+    }
 
     return {
       ok: true,
-      mensaje: "Paciente agregado a kinesiología correctamente",
+      mensaje: fichas.length > 1
+        ? `Paciente agregado a kinesiología con ${fichas.length} patologías`
+        : "Paciente agregado a kinesiología correctamente",
       paciente_kinesiologia_id: pacienteKinesiologia.id,
-      paciente_patologia_id: pacientePatologia.id,
-      ficha_id: ficha.id,
+      fichas,
     };
   });
 }
