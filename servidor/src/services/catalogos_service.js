@@ -7,6 +7,7 @@
   Patologia,
   Ejercicio,
   TipoEjercicio,
+  GrupoMuscular,
 } from "../models/index.js";
 
 export async function obtenerCatalogos() {
@@ -41,7 +42,10 @@ export async function obtenerCatalogos() {
     Ejercicio.findAll({
       attributes: ["id", "nombre"],
       where: { activo: true },
-      include: [{ model: TipoEjercicio, as: "tipo_ejercicio", attributes: ["descripcion"], where: { descripcion: "Kinesiología" } }],
+      include: [
+        { model: TipoEjercicio, as: "tipo_ejercicio", attributes: ["descripcion"], where: { descripcion: "Kinesiología" } },
+        { model: GrupoMuscular, as: "grupo_muscular", attributes: ["descripcion", "zona"] },
+      ],
       order: [["nombre", "ASC"]],
     }),
   ]);
@@ -59,6 +63,11 @@ export async function obtenerCatalogos() {
     })),
     categoriasProducto: categoriasProducto.map((x) => ({ value: x.id, label: x.descripcion })),
     patologias:      patologias.map((x) => ({ value: x.id, label: x.descripcion })),
-    ejerciciosKinesiologia: ejerciciosKinesiologia.map((x) => ({ value: x.id, label: x.nombre })),
+    ejerciciosKinesiologia: ejerciciosKinesiologia.map((x) => ({
+      value: x.id,
+      label: x.nombre,
+      grupo_muscular: x.grupo_muscular?.descripcion ?? null,
+      zona:           x.grupo_muscular?.zona ?? "Otros",
+    })),
   };
 }

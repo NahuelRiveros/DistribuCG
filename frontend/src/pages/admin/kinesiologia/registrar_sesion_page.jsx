@@ -17,6 +17,22 @@ const CRITERIOS = [
   { key: "buena_recuperacion", label: "Buena recuperación" },
 ];
 
+// Orden fijo de zonas para el select agrupado — "Otros" (ejercicios sin
+// grupo muscular asignado) siempre al final.
+const ORDEN_ZONAS = ["Tren superior", "Tren inferior", "Core y tronco", "Otros"];
+
+function agruparEjerciciosPorZona(ejercicios) {
+  const porZona = new Map();
+  for (const ej of ejercicios) {
+    const zona = ej.zona || "Otros";
+    if (!porZona.has(zona)) porZona.set(zona, []);
+    porZona.get(zona).push(ej);
+  }
+  return ORDEN_ZONAS
+    .filter((zona) => porZona.has(zona))
+    .map((zona) => ({ zona, ejercicios: porZona.get(zona) }));
+}
+
 function EscalaSelector({ label, valor, onChange }) {
   return (
     <div>
@@ -76,6 +92,7 @@ export default function RegistrarSesionKinesiologiaPage() {
   const esEdicion = Boolean(sesionEditar);
 
   const { data: catalogos } = useCatalogos();
+  const gruposEjercicios = agruparEjerciciosPorZona(catalogos?.ejerciciosKinesiologia || []);
 
   const [ejercicioId, setEjercicioId] = useState(sesionEditar?.ejercicio_id ?? "");
   const [peso, setPeso] = useState(sesionEditar?.peso ?? "");
@@ -175,8 +192,14 @@ export default function RegistrarSesionKinesiologiaPage() {
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none focus:border-(--kt-teal-700)"
           >
             <option value="">Ejercicio trabajado (opcional)</option>
-            {(catalogos?.ejerciciosKinesiologia || []).map((op) => (
-              <option key={op.value} value={op.value}>{op.label}</option>
+            {gruposEjercicios.map(({ zona, ejercicios }) => (
+              <optgroup key={zona} label={zona}>
+                {ejercicios.map((op) => (
+                  <option key={op.value} value={op.value}>
+                    {op.label}{op.grupo_muscular ? ` (${op.grupo_muscular})` : ""}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
           <div className="grid grid-cols-3 gap-2">
