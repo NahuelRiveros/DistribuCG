@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X, HelpCircle, AlertTriangle } from "lucide-react";
+import { Check, X, HelpCircle, AlertTriangle, Plus } from "lucide-react";
 import { formatearFechaAR } from "../../../../components/form/formatear_fecha.js";
 import { ORDEN_DIAS, DIA_LABEL, diaSemanaDeFecha } from "../../../../utils/dias_semana.js";
 
@@ -80,7 +80,7 @@ function Celda({ entradas, onClick }) {
   const estilo = ESTILO_ESTADO[estado];
   const titulo = entradas.length
     ? `${entradas.length} sesión${entradas.length > 1 ? "es" : ""} — la más reciente: ${formatearFechaAR(entradas[0].sesion.fecha)}. Click para ver el historial`
-    : "Sin sesión registrada — click para registrar";
+    : "Sin sesión registrada — click para ver y agregar una sesión";
   return (
     <button
       type="button"
@@ -107,15 +107,18 @@ function EscalaMini({ label, valor }) {
 }
 
 // Historial completo del ejercicio en ese día de la semana — puede haber
-// varias entradas de semanas distintas, cada una con su fecha real.
-function DetalleCeldaModal({ nombreEjercicio, dia, entradas, onClose, onEditarSesion, onEliminarSesion }) {
+// varias entradas de semanas distintas, cada una con su fecha real, con
+// resultados distintos según cómo vino evolucionando el paciente.
+function DetalleCeldaModal({ nombreEjercicio, dia, entradas, onClose, onEditarSesion, onEliminarSesion, onRegistrarSesion }) {
   return (
     <div className="fixed inset-0 z-(--z-modal-nested) flex items-center justify-center bg-black/50 p-4">
       <div className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div>
             <h3 className="text-base font-bold text-slate-900">{nombreEjercicio}</h3>
-            <p className="text-xs text-slate-500">{DIA_LABEL[dia]} — {entradas.length} sesión{entradas.length > 1 ? "es" : ""}</p>
+            <p className="text-xs text-slate-500">
+              {DIA_LABEL[dia]} — {entradas.length ? `${entradas.length} sesión${entradas.length > 1 ? "es" : ""}` : "sin sesiones todavía"}
+            </p>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
             <X size={16} />
@@ -123,8 +126,20 @@ function DetalleCeldaModal({ nombreEjercicio, dia, entradas, onClose, onEditarSe
         </div>
 
         <div className="space-y-4 px-5 py-4">
-          {entradas.map(({ sesion, sesionEjercicio: se }, i) => (
-            <div key={se.id} className={i > 0 ? "border-t border-slate-100 pt-4" : ""}>
+          {!entradas.length && (
+            <p className="text-sm text-slate-400">Todavía no se registró ninguna sesión de este ejercicio en este día.</p>
+          )}
+
+          <button
+            type="button"
+            onClick={onRegistrarSesion}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-(--kt-teal-700) py-2.5 text-xs font-bold text-white transition hover:opacity-90"
+          >
+            <Plus size={14} /> Agregar sesión
+          </button>
+
+          {entradas.map(({ sesion, sesionEjercicio: se }) => (
+            <div key={se.id} className="border-t border-slate-100 pt-4">
               <p className="text-xs font-bold uppercase tracking-wide text-(--kt-teal-700)">{formatearFechaAR(sesion.fecha)}</p>
 
               <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-semibold text-slate-600">
@@ -196,9 +211,7 @@ export default function RutinaMatriz({ ficha, onEditarSesion, onRegistrarEjercic
                 <div key={fila.ejercicio_id} className="flex items-center gap-2">
                   <Celda
                     entradas={fila.entradas}
-                    onClick={() => fila.entradas.length
-                      ? setCeldaAbierta({ nombre: fila.nombre, dia, entradas: fila.entradas })
-                      : onRegistrarEjercicio({ ejercicio_id: fila.ejercicio_id, nombre: fila.nombre })}
+                    onClick={() => setCeldaAbierta({ ejercicio_id: fila.ejercicio_id, nombre: fila.nombre, dia, entradas: fila.entradas })}
                   />
                   <span className="truncate text-xs font-semibold text-slate-700" title={fila.nombre}>{fila.nombre}</span>
                 </div>
@@ -210,7 +223,7 @@ export default function RutinaMatriz({ ficha, onEditarSesion, onRegistrarEjercic
 
       {/* leyenda */}
       <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.vacio.bg, borderColor: ESTILO_ESTADO.vacio.border }} /> Sin sesión (click para registrar)</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.vacio.bg, borderColor: ESTILO_ESTADO.vacio.border }} /> Sin sesión (click para ver y agregar)</span>
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.verde.bg, borderColor: ESTILO_ESTADO.verde.border }} /> Dolor 0-3</span>
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.amarillo.bg, borderColor: ESTILO_ESTADO.amarillo.border }} /> Dolor 4-6</span>
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.rojo.bg, borderColor: ESTILO_ESTADO.rojo.border }} /> Dolor 7-10</span>
@@ -224,6 +237,7 @@ export default function RutinaMatriz({ ficha, onEditarSesion, onRegistrarEjercic
           onClose={() => setCeldaAbierta(null)}
           onEditarSesion={(sesion) => { setCeldaAbierta(null); onEditarSesion(sesion); }}
           onEliminarSesion={(sesion) => { setCeldaAbierta(null); onEliminarSesion(sesion); }}
+          onRegistrarSesion={() => { setCeldaAbierta(null); onRegistrarEjercicio({ ejercicio_id: celdaAbierta.ejercicio_id, nombre: celdaAbierta.nombre }); }}
         />
       )}
     </div>

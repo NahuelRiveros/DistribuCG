@@ -1,89 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { HeartPulse, ArrowLeft, Plus, ClipboardList, Dumbbell, Activity, Edit2, Trash2, CalendarDays } from "lucide-react";
+import { HeartPulse, ArrowLeft, Plus, ClipboardList, Dumbbell, Activity, CalendarDays } from "lucide-react";
 import { getDetallePacienteKinesiologia, guardarRutinaKinesiologia, eliminarSesionKinesiologia } from "../../../api/kinesiologia_api.js";
 import { formatearFechaAR } from "../../../components/form/formatear_fecha";
 import { useCatalogos } from "../../../hooks/use_catalogos.js";
 import RutinaMatriz from "./components/rutina_matriz.jsx";
 import RutinaKinesiologiaModal from "../../../components/modal/rutina_kinesiologia_modal.jsx";
-
-function EscalaBadge({ label, valor }) {
-  return (
-    <div className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs">
-      <span className="text-slate-500">{label}</span>
-      <span className="font-bold text-slate-800">{valor}/5</span>
-    </div>
-  );
-}
-
-function EjerciciosSesionList({ ejercicios }) {
-  if (!ejercicios?.length) return null;
-  return (
-    <ul className="mt-1.5 space-y-1">
-      {ejercicios.map((ej) => (
-        <li key={ej.id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs">
-          <span className="text-slate-700">{ej.ejercicio?.nombre ?? "Ejercicio"}</span>
-          <span className="text-slate-500">
-            {[
-              ej.peso ? `${ej.peso}kg` : null,
-              ej.series ? `${ej.series}s` : null,
-              ej.repeticiones ? `${ej.repeticiones}r` : null,
-              ej.rir != null ? `RIR ${ej.rir}` : null,
-            ].filter(Boolean).join(" · ") || "—"}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function SesionRow({ sesion, onEditar, onEliminar }) {
-  const dolorOk = sesion.dolor_durante <= 3;
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3.5">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-bold text-slate-800">{formatearFechaAR(sesion.fecha)}</span>
-        <div className="flex items-center gap-1.5">
-          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${sesion.apto_para_subir_carga ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-50 text-slate-500"}`}>
-            {sesion.apto_para_subir_carga ? "Apto para subir carga" : "Mantener carga"}
-          </span>
-          <button
-            type="button"
-            onClick={() => onEditar(sesion)}
-            title="Editar sesión"
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-(--kt-teal-700)"
-          >
-            <Edit2 size={13} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onEliminar(sesion)}
-            title="Eliminar sesión"
-            className="rounded-lg p-1 text-slate-400 hover:bg-red-50 hover:text-red-600"
-          >
-            <Trash2 size={13} />
-          </button>
-        </div>
-      </div>
-      <EjerciciosSesionList ejercicios={sesion.ejercicios} />
-      <div className="mt-2.5 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-        <EscalaBadge label="Movimiento" valor={sesion.calidad_movimiento} />
-        <EscalaBadge label="Tolerancia" valor={sesion.tolerancia_carga} />
-        <EscalaBadge label="Confianza" valor={sesion.confianza_paciente} />
-        <EscalaBadge label="Cumplimiento" valor={sesion.cumplimiento_programa} />
-      </div>
-      <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-        <span className={`rounded-full px-2 py-0.5 font-semibold ${dolorOk ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-          Dolor durante: {sesion.dolor_durante}/10
-        </span>
-        {sesion.dolor_24h != null && (
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">Dolor 24h: {sesion.dolor_24h}/10</span>
-        )}
-      </div>
-      {sesion.observaciones && <p className="mt-2 text-xs text-slate-500">{sesion.observaciones}</p>}
-    </div>
-  );
-}
 
 function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRutinaGuardada }) {
   const nav = useNavigate();
@@ -121,8 +43,6 @@ function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRu
       setGuardandoRutina(false);
     }
   }
-
-  const ultimaSesion = ficha?.sesiones?.length ? ficha.sesiones[ficha.sesiones.length - 1] : null;
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
@@ -182,7 +102,7 @@ function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRu
             </div>
           )}
 
-          {/* Última sesión + matriz de cumplimiento */}
+          {/* Matriz de cumplimiento */}
           <div>
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -208,15 +128,7 @@ function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRu
             {!ficha.sesiones?.length && !ficha.rutina?.length ? (
               <p className="text-sm text-slate-400">Todavía no hay rutina ni sesiones registradas.</p>
             ) : (
-              <div className="space-y-3">
-                {ultimaSesion && (
-                  <div>
-                    <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">Última sesión</p>
-                    <SesionRow sesion={ultimaSesion} onEditar={editarSesion} onEliminar={eliminarSesion} />
-                  </div>
-                )}
-                <RutinaMatriz ficha={ficha} onEditarSesion={editarSesion} onRegistrarEjercicio={registrarEjercicio} onEliminarSesion={eliminarSesion} />
-              </div>
+              <RutinaMatriz ficha={ficha} onEditarSesion={editarSesion} onRegistrarEjercicio={registrarEjercicio} onEliminarSesion={eliminarSesion} />
             )}
           </div>
         </>
