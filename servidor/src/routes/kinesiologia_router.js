@@ -11,6 +11,7 @@ import {
   crearTestFuerza,
   crearSesion,
   actualizarSesion,
+  guardarRutina,
   listaPatologias,
   crearPatologiaController,
   actualizarPatologiaController,
@@ -33,6 +34,7 @@ kinesiologiaRouter.post("/fichas/:id/test-funcional", crearTestFuncional);
 kinesiologiaRouter.post("/fichas/:id/test-fuerza", crearTestFuerza);
 kinesiologiaRouter.post("/fichas/:id/sesiones", crearSesion);
 kinesiologiaRouter.put("/sesiones/:id", actualizarSesion);
+kinesiologiaRouter.put("/fichas/:id/rutina", guardarRutina);
 
 kinesiologiaRouter.get("/patologias", listaPatologias);
 kinesiologiaRouter.post("/patologias", crearPatologiaController);

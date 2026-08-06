@@ -8,6 +8,7 @@ import {
   registrarTestFuerza,
   registrarSesionKinesiologia,
   actualizarSesionKinesiologia,
+  guardarRutinaFicha,
 } from "../services/kinesiologia_service.js";
 import {
   listarPatologias,
@@ -248,6 +249,21 @@ export async function cambiarEstadoPatologiaController(req, res, next) {
       return res.status(400).json({ ok: false, codigo: "VALIDACION", mensaje: "activo debe ser booleano" });
     }
     const r = await cambiarEstadoPatologia(id, activo);
+    if (!r.ok) return res.status(404).json(r);
+    return res.json(r);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function guardarRutina(req, res, next) {
+  try {
+    const ficha_id = toInt(req.params.id, null);
+    const items = Array.isArray(req.body?.items) ? req.body.items : [];
+    const r = await guardarRutinaFicha(ficha_id, items.map((it) => ({
+      ejercicio_id: toInt(it?.ejercicio_id, null),
+      dia_semana: it?.dia_semana || null,
+    })));
     if (!r.ok) return res.status(404).json(r);
     return res.json(r);
   } catch (err) {

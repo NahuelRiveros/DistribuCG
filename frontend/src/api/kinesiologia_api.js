@@ -45,6 +45,11 @@ export async function actualizarSesionKinesiologia(sesionId, payload) {
   return r.data;
 }
 
+export async function guardarRutinaKinesiologia(fichaId, items) {
+  const r = await http.put(`/kinesiologia/fichas/${fichaId}/rutina`, { items });
+  return r.data;
+}
+
 export async function getPatologias() {
   const r = await http.get("/kinesiologia/patologias");
   return r.data;

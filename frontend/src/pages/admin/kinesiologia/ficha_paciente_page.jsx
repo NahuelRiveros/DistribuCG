@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { HeartPulse, ArrowLeft, Plus, ClipboardList, Dumbbell, Activity, Edit2 } from "lucide-react";
-import { getDetallePacienteKinesiologia } from "../../../api/kinesiologia_api.js";
+import { HeartPulse, ArrowLeft, Plus, ClipboardList, Dumbbell, Activity, Edit2, CalendarDays } from "lucide-react";
+import { getDetallePacienteKinesiologia, guardarRutinaKinesiologia } from "../../../api/kinesiologia_api.js";
 import { formatearFechaAR } from "../../../components/form/formatear_fecha";
+import { useCatalogos } from "../../../hooks/use_catalogos.js";
+import RutinaMatriz from "./components/rutina_matriz.jsx";
+import RutinaKinesiologiaModal from "../../../components/modal/rutina_kinesiologia_modal.jsx";
 
 function EscalaBadge({ label, valor }) {
   return (
@@ -74,15 +77,32 @@ function SesionRow({ sesion, onEditar }) {
   );
 }
 
-function FichaCard({ patologia, pacienteKinesiologiaId }) {
+function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRutinaGuardada }) {
   const nav = useNavigate();
   const ficha = patologia.ficha;
+  const [rutinaModalAbierto, setRutinaModalAbierto] = useState(false);
+  const [guardandoRutina, setGuardandoRutina] = useState(false);
 
   function editarSesion(sesion) {
     nav(`/admin/kinesiologia/${pacienteKinesiologiaId}/sesion?ficha=${ficha.id}`, {
       state: { sesionEditar: sesion },
     });
   }
+
+  async function guardarRutina(items) {
+    setGuardandoRutina(true);
+    try {
+      const r = await guardarRutinaKinesiologia(ficha.id, items);
+      if (r.ok) {
+        setRutinaModalAbierto(false);
+        await onRutinaGuardada?.();
+      }
+    } finally {
+      setGuardandoRutina(false);
+    }
+  }
+
+  const ultimaSesion = ficha?.sesiones?.length ? ficha.sesiones[ficha.sesiones.length - 1] : null;
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
@@ -142,29 +162,54 @@ function FichaCard({ patologia, pacienteKinesiologiaId }) {
             </div>
           )}
 
-          {/* Historial de sesiones */}
+          {/* Última sesión + matriz de cumplimiento */}
           <div>
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
-                <ClipboardList size={13} /> Historial de sesiones
+                <ClipboardList size={13} /> Seguimiento
               </div>
-              <Link
-                to={`/admin/kinesiologia/${pacienteKinesiologiaId}/sesion?ficha=${ficha.id}`}
-                className="inline-flex items-center gap-1 rounded-lg bg-(--kt-teal-700) px-2.5 py-1 text-[11px] font-bold text-white hover:opacity-90"
-              >
-                <Plus size={12} /> Registrar sesión
-              </Link>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setRutinaModalAbierto(true)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-(--kt-teal-700)/25 bg-(--kt-teal-700)/10 px-2.5 py-1 text-[11px] font-bold text-(--kt-teal-700) hover:bg-(--kt-teal-700)/15"
+                >
+                  <CalendarDays size={12} /> Configurar rutina
+                </button>
+                <Link
+                  to={`/admin/kinesiologia/${pacienteKinesiologiaId}/sesion?ficha=${ficha.id}`}
+                  className="inline-flex items-center gap-1 rounded-lg bg-(--kt-teal-700) px-2.5 py-1 text-[11px] font-bold text-white hover:opacity-90"
+                >
+                  <Plus size={12} /> Registrar sesión
+                </Link>
+              </div>
             </div>
-            {!ficha.sesiones?.length ? (
-              <p className="text-sm text-slate-400">Todavía no hay sesiones registradas.</p>
+
+            {!ficha.sesiones?.length && !ficha.rutina?.length ? (
+              <p className="text-sm text-slate-400">Todavía no hay rutina ni sesiones registradas.</p>
             ) : (
-              <div className="space-y-2">
-                {ficha.sesiones.map((s) => <SesionRow key={s.id} sesion={s} onEditar={editarSesion} />)}
+              <div className="space-y-3">
+                {ultimaSesion && (
+                  <div>
+                    <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">Última sesión</p>
+                    <SesionRow sesion={ultimaSesion} onEditar={editarSesion} />
+                  </div>
+                )}
+                <RutinaMatriz ficha={ficha} onEditarSesion={editarSesion} />
               </div>
             )}
           </div>
         </>
       )}
+
+      <RutinaKinesiologiaModal
+        abierto={rutinaModalAbierto}
+        onClose={() => setRutinaModalAbierto(false)}
+        onGuardar={guardarRutina}
+        rutinaActual={ficha?.rutina || []}
+        ejerciciosCatalogo={ejerciciosCatalogo}
+        cargando={guardandoRutina}
+      />
     </div>
   );
 }
@@ -172,28 +217,27 @@ function FichaCard({ patologia, pacienteKinesiologiaId }) {
 export default function FichaPacientePage() {
   const { id } = useParams();
   const nav = useNavigate();
+  const { data: catalogos } = useCatalogos();
 
   const [data, setData] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setCargando(true);
-      try {
-        const r = await getDetallePacienteKinesiologia(id);
-        if (!alive) return;
-        if (!r.ok) { setError(r.mensaje || "No se pudo cargar el paciente"); return; }
-        setData(r);
-      } catch (e) {
-        if (alive) setError(e?.response?.data?.mensaje || "Error inesperado");
-      } finally {
-        if (alive) setCargando(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, [id]);
+  async function cargar() {
+    setCargando(true);
+    try {
+      const r = await getDetallePacienteKinesiologia(id);
+      if (!r.ok) { setError(r.mensaje || "No se pudo cargar el paciente"); return; }
+      setData(r);
+      setError(null);
+    } catch (e) {
+      setError(e?.response?.data?.mensaje || "Error inesperado");
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  useEffect(() => { cargar(); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (cargando) {
     return <div className="min-h-screen bg-slate-50 p-6 text-sm text-slate-400">Cargando…</div>;
@@ -240,7 +284,13 @@ export default function FichaPacientePage() {
         ) : (
           <div className="space-y-4">
             {data.patologias.map((p) => (
-              <FichaCard key={p.id} patologia={p} pacienteKinesiologiaId={data.paciente_kinesiologia_id} />
+              <FichaCard
+                key={p.id}
+                patologia={p}
+                pacienteKinesiologiaId={data.paciente_kinesiologia_id}
+                ejerciciosCatalogo={catalogos?.ejerciciosKinesiologia || []}
+                onRutinaGuardada={cargar}
+              />
             ))}
           </div>
         )}

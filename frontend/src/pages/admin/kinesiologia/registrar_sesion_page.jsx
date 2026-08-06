@@ -3,6 +3,7 @@ import { useParams, useSearchParams, useNavigate, useLocation } from "react-rout
 import { ArrowLeft, Check, Plus, X } from "lucide-react";
 import { registrarSesionKinesiologia, actualizarSesionKinesiologia } from "../../../api/kinesiologia_api.js";
 import { useCatalogos } from "../../../hooks/use_catalogos.js";
+import { agruparEjerciciosPorZona } from "../../../utils/kinesiologia_zonas.js";
 
 const ESCALAS = [
   { key: "calidad_movimiento",   label: "Calidad del movimiento" },
@@ -16,22 +17,6 @@ const CRITERIOS = [
   { key: "sin_compensaciones", label: "Sin compensaciones" },
   { key: "buena_recuperacion", label: "Buena recuperación" },
 ];
-
-// Orden fijo de zonas para el select agrupado — "Otros" (ejercicios sin
-// grupo muscular asignado) siempre al final.
-const ORDEN_ZONAS = ["Tren superior", "Tren inferior", "Core y tronco", "Otros"];
-
-function agruparEjerciciosPorZona(ejercicios) {
-  const porZona = new Map();
-  for (const ej of ejercicios) {
-    const zona = ej.zona || "Otros";
-    if (!porZona.has(zona)) porZona.set(zona, []);
-    porZona.get(zona).push(ej);
-  }
-  return ORDEN_ZONAS
-    .filter((zona) => porZona.has(zona))
-    .map((zona) => ({ zona, ejercicios: porZona.get(zona) }));
-}
 
 function SelectorZonaEjercicio({ zona, opciones, onAgregar }) {
   const [ejercicioId, setEjercicioId] = useState("");

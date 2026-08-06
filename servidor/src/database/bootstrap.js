@@ -7,7 +7,7 @@ import {
   UsuarioRol, Membresia, MovimientoStock, AsignacionProfesional,
   RegistroEjercicio, PacientePatologia, AlumnoEstadoLog,
   FichaKinesiologica, TestFuncional, TestFuerza, RegistroSesionKinesiologia,
-  SesionKinesiologica, SesionKinesiologicaEjercicio,
+  SesionKinesiologica, SesionKinesiologicaEjercicio, RutinaEjercicio,
   Ingreso, ModuloNegocio, HomeTexto, HomePilar, HomeContacto,
 } from "../models/index.js";
 
@@ -67,6 +67,7 @@ async function sincronizar_modelos() {
     TestFuerza,                 // test_fuerza → ficha_kinesiologica, ejercicio, usuario
     RegistroSesionKinesiologia, // registro_sesion_kinesiologia → ficha_kinesiologica, ejercicio, usuario — histórico, congelada, no se le quita el sync para no perder la tabla
     SesionKinesiologica,        // sesion_kinesiologica → ficha_kinesiologica, usuario
+    RutinaEjercicio,            // rutina_ejercicio → ficha_kinesiologica, ejercicio
 
     // ── Nivel 6 — depende de sesion_kinesiologica ────────────────────────────
     SesionKinesiologicaEjercicio, // sesion_kinesiologica_ejercicio → sesion_kinesiologica, ejercicio

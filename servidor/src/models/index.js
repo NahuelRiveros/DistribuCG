@@ -40,6 +40,7 @@ import { TestFuerza }        from "./kinesiologia/test_fuerza.js";
 import { RegistroSesionKinesiologia } from "./kinesiologia/registro_sesion_kinesiologia.js";
 import { SesionKinesiologica } from "./kinesiologia/sesion_kinesiologica.js";
 import { SesionKinesiologicaEjercicio } from "./kinesiologia/sesion_kinesiologica_ejercicio.js";
+import { RutinaEjercicio } from "./kinesiologia/rutina_ejercicio.js";
 
 // ── seguimiento/ — asignación profesional y avances de ejercicio ────────────
 import { AsignacionProfesional } from "./seguimiento/asignacion_profesional.js";
@@ -232,6 +233,11 @@ SesionKinesiologica.hasMany(SesionKinesiologicaEjercicio,   { foreignKey: "sesio
 SesionKinesiologicaEjercicio.belongsTo(SesionKinesiologica, { foreignKey: "sesion_id", as: "sesion" });
 SesionKinesiologicaEjercicio.belongsTo(Ejercicio,           { foreignKey: "ejercicio_id", as: "ejercicio" });
 
+// ─── FichaKinesiologica ↔ RutinaEjercicio (1:N) — el plan que la matriz cruza con las sesiones reales ──
+FichaKinesiologica.hasMany(RutinaEjercicio,   { foreignKey: "ficha_id", as: "rutina" });
+RutinaEjercicio.belongsTo(FichaKinesiologica, { foreignKey: "ficha_id", as: "ficha" });
+RutinaEjercicio.belongsTo(Ejercicio,          { foreignKey: "ejercicio_id", as: "ejercicio" });
+
 export {
   Sexo, TipoDocumento, TipoPersona, AlumnoEstado,
   Rol, Modulo, Permiso, RolPermiso,
@@ -242,7 +248,7 @@ export {
   TipoEjercicio, GrupoMuscular, Ejercicio, RegistroEjercicio,
   Patologia, PacientePatologia,
   FichaKinesiologica, TestFuncional, TestFuerza, RegistroSesionKinesiologia,
-  SesionKinesiologica, SesionKinesiologicaEjercicio,
+  SesionKinesiologica, SesionKinesiologicaEjercicio, RutinaEjercicio,
   HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto,
   ModuloNegocio,
 };

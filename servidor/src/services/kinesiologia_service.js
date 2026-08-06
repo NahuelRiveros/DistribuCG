@@ -3,7 +3,7 @@ import { QueryTypes } from "sequelize";
 import {
   Persona, Alumno, PacienteKinesiologia, PacientePatologia,
   FichaKinesiologica, TestFuncional, TestFuerza,
-  SesionKinesiologica, SesionKinesiologicaEjercicio,
+  SesionKinesiologica, SesionKinesiologicaEjercicio, RutinaEjercicio,
 } from "../models/index.js";
 import { normalizarDocumento } from "./persona_service.js";
 
@@ -298,12 +298,21 @@ export async function obtenerDetallePaciente({ paciente_kinesiologia_id }) {
           {
             model: SesionKinesiologica,
             as: "sesiones",
+            separate: true,
+            order: [["fecha", "ASC"]],
             include: [{
               association: "ejercicios",
               separate: true,
               order: [["orden", "ASC"]],
               include: [{ association: "ejercicio" }],
             }],
+          },
+          {
+            model: RutinaEjercicio,
+            as: "rutina",
+            separate: true,
+            order: [["orden", "ASC"]],
+            include: [{ association: "ejercicio", include: [{ association: "grupo_muscular" }] }],
           },
         ],
       },
@@ -380,4 +389,42 @@ export async function actualizarSesionKinesiologia(id, { ejercicios, ...checklis
 
   await sesion.reload({ include: INCLUDE_EJERCICIOS_SESION });
   return { ok: true, mensaje: "Sesión actualizada correctamente", sesion };
+}
+
+/**
+ * Reemplaza por completo la rutina (lista de ejercicios trackeados) de una
+ * ficha — no hay historial que preservar acá, "guardar la rutina" es
+ * destruir todo lo anterior y volver a insertar la lista nueva.
+ */
+export async function guardarRutinaFicha(ficha_id, items) {
+  const ficha = await FichaKinesiologica.findByPk(ficha_id);
+  if (!ficha) return { ok: false, codigo: "NO_EXISTE", mensaje: "La ficha no existe" };
+
+  const vistos = new Set();
+  const limpios = [];
+  for (const item of items ?? []) {
+    if (!item?.ejercicio_id || vistos.has(item.ejercicio_id)) continue;
+    vistos.add(item.ejercicio_id);
+    limpios.push({
+      ficha_id,
+      ejercicio_id: item.ejercicio_id,
+      dia_semana: item.dia_semana || null,
+      orden: limpios.length,
+    });
+  }
+
+  await sequelize.transaction(async (t) => {
+    await RutinaEjercicio.destroy({ where: { ficha_id }, transaction: t });
+    if (limpios.length) {
+      await RutinaEjercicio.bulkCreate(limpios, { transaction: t });
+    }
+  });
+
+  const rutina = await RutinaEjercicio.findAll({
+    where: { ficha_id },
+    order: [["orden", "ASC"]],
+    include: [{ association: "ejercicio" }],
+  });
+
+  return { ok: true, mensaje: "Rutina actualizada correctamente", rutina };
 }
