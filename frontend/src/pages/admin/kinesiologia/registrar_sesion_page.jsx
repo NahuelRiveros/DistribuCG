@@ -164,11 +164,16 @@ export default function RegistrarSesionKinesiologiaPage() {
   const sesionEditar = location.state?.sesionEditar ?? null;
   const ejercicioPrecargado = location.state?.ejercicioPrecargado ?? null;
   const esEdicion = Boolean(sesionEditar);
+  // Se llega acá desde un click puntual en la matriz (celda vacía de un
+  // ejercicio ya conocido) — no tiene sentido volver a mostrar el selector
+  // completo de ejercicios, solo cargar el detalle de ese uno.
+  const modoEjercicioUnico = Boolean(ejercicioPrecargado) && !esEdicion;
 
   const [rutina, setRutina] = useState([]);
-  const [cargandoRutina, setCargandoRutina] = useState(true);
+  const [cargandoRutina, setCargandoRutina] = useState(!modoEjercicioUnico);
 
   useEffect(() => {
+    if (modoEjercicioUnico) return;
     (async () => {
       setCargandoRutina(true);
       try {
@@ -180,7 +185,7 @@ export default function RegistrarSesionKinesiologiaPage() {
         setCargandoRutina(false);
       }
     })();
-  }, [id, fichaId]);
+  }, [id, fichaId, modoEjercicioUnico]);
 
   const gruposPorDia = agruparRutinaPorDia(rutina);
 
@@ -237,6 +242,10 @@ export default function RegistrarSesionKinesiologiaPage() {
 
   function quitarEjercicio(index) {
     setEjerciciosSesion((lista) => lista.filter((_, i) => i !== index));
+  }
+
+  function actualizarEjercicioUnico(campo, valor) {
+    setEjerciciosSesion((lista) => lista.map((ej, i) => i === 0 ? { ...ej, [campo]: valor } : ej));
   }
 
   async function guardar() {
@@ -297,49 +306,67 @@ export default function RegistrarSesionKinesiologiaPage() {
         <div>
           <h1 className="text-xl font-extrabold text-slate-900">{esEdicion ? "Editar sesión" : "Registrar sesión"}</h1>
           <p className="mt-0.5 text-sm text-slate-500">
-            {esEdicion ? "Corregí los datos de esta sesión ya guardada." : "Cargá los indicadores de progresión de hoy."}
+            {esEdicion
+              ? "Corregí los datos de esta sesión ya guardada."
+              : modoEjercicioUnico
+                ? `Cargando "${ejercicioPrecargado.nombre}" de hoy.`
+                : "Cargá los indicadores de progresión de hoy."}
           </p>
         </div>
 
-        {/* Ejercicios de la sesión — de a uno por día de la rutina configurada, se pueden agregar varios */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Ejercicios trabajados (opcional)</p>
+        {modoEjercicioUnico ? (
+          /* Un solo ejercicio — ya se sabe cuál por el click en la matriz, no hace falta re-elegirlo */
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Ejercicio</p>
+            <p className="text-sm font-bold text-slate-800">{ejerciciosSesion[0]?.nombre}</p>
+            <div className="grid grid-cols-4 gap-1.5">
+              <input value={ejerciciosSesion[0]?.peso ?? ""} onChange={(e) => actualizarEjercicioUnico("peso", e.target.value || null)} inputMode="decimal" placeholder="Peso" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+              <input value={ejerciciosSesion[0]?.series ?? ""} onChange={(e) => actualizarEjercicioUnico("series", e.target.value || null)} inputMode="numeric" placeholder="Series" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+              <input value={ejerciciosSesion[0]?.repeticiones ?? ""} onChange={(e) => actualizarEjercicioUnico("repeticiones", e.target.value || null)} inputMode="numeric" placeholder="Reps" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+              <input value={ejerciciosSesion[0]?.rir ?? ""} onChange={(e) => actualizarEjercicioUnico("rir", e.target.value === "" ? null : Number(e.target.value))} inputMode="numeric" placeholder="RIR" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+            </div>
+          </div>
+        ) : (
+          /* Ejercicios de la sesión — de a uno por día de la rutina configurada, se pueden agregar varios */
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Ejercicios trabajados (opcional)</p>
 
-          {cargandoRutina ? (
-            <p className="text-sm text-slate-400">Cargando rutina…</p>
-          ) : gruposPorDia.length === 0 ? (
-            <p className="text-sm text-slate-400">
-              Este paciente todavía no tiene una rutina configurada — volvé a la ficha y usá "Configurar rutina" para poder elegir ejercicios acá.
-            </p>
-          ) : (
-            gruposPorDia.map(({ dia, ejercicios }) => (
-              <SelectorDiaEjercicio key={dia} dia={dia} ejercicios={ejercicios} onAgregar={agregarEjercicio} />
-            ))
-          )}
+            {cargandoRutina ? (
+              <p className="text-sm text-slate-400">Cargando rutina…</p>
+            ) : gruposPorDia.length === 0 ? (
+              <p className="text-sm text-slate-400">
+                Este paciente todavía no tiene una rutina configurada — volvé a la ficha y usá "Configurar rutina" para poder elegir ejercicios acá.
+              </p>
+            ) : (
+              gruposPorDia.map(({ dia, ejercicios }) => (
+                <SelectorDiaEjercicio key={dia} dia={dia} ejercicios={ejercicios} onAgregar={agregarEjercicio} />
+              ))
+            )}
 
-          {ejerciciosSesion.length > 0 && (
-            <ul className="space-y-1.5 pt-1">
-              {ejerciciosSesion.map((ej, i) => (
-                <li key={`${ej.ejercicio_id}-${i}`} className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs">
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-emerald-800">{ej.nombre}</p>
-                    <p className="text-emerald-600">
-                      {[
-                        ej.peso ? `${ej.peso}kg` : null,
-                        ej.series ? `${ej.series} series` : null,
-                        ej.repeticiones ? `${ej.repeticiones} reps` : null,
-                        ej.rir != null ? `RIR ${ej.rir}` : null,
-                      ].filter(Boolean).join(" · ") || "sin detalle de carga"}
-                    </p>
-                  </div>
-                  <button type="button" onClick={() => quitarEjercicio(i)} className="shrink-0 rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-100">
-                    <X size={14} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+            {ejerciciosSesion.length > 0 && (
+              <ul className="space-y-1.5 pt-1">
+                {ejerciciosSesion.map((ej, i) => (
+                  <li key={`${ej.ejercicio_id}-${i}`} className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-emerald-800">{ej.nombre}</p>
+                      <p className="text-emerald-600">
+                        {[
+                          ej.peso ? `${ej.peso}kg` : null,
+                          ej.series ? `${ej.series} series` : null,
+                          ej.repeticiones ? `${ej.repeticiones} reps` : null,
+                          ej.rir != null ? `RIR ${ej.rir}` : null,
+                        ].filter(Boolean).join(" · ") || "sin detalle de carga"}
+                      </p>
+                    </div>
+                    <button type="button" onClick={() => quitarEjercicio(i)} className="shrink-0 rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-100">
+                      <X size={14} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {/* Dolor */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-4">
