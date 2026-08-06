@@ -6,9 +6,21 @@ import logoS from "../../assets/logoS1.svg";
 // logo que mandó el cliente — no es el archivo original, así que puede
 // necesitar un ajuste fino de curvas/posición una vez que se vea en pantalla.
 const SIZE = {
-  sm:   { text: "text-lg",                          spine: "h-[1.15em]" },
-  md:   { text: "text-3xl sm:text-4xl",              spine: "h-[1.2em]" },
-  hero: { text: "text-6xl sm:text-7xl md:text-[8.15rem]",  spine: "h-[1.72em]" },
+  sm: {
+    text: "text-xl",
+    spine: "h-[1.46em]",
+    spineBox: "w-[0.72em] -ml-[0.21em] translate-y-[0.19em]",
+  },
+  md: {
+    text: "text-3xl sm:text-4xl",
+    spine: "h-[1.52em]",
+    spineBox: "w-[0.76em] -ml-[0.22em] translate-y-[0.2em]",
+  },
+  hero: {
+    text: "text-6xl sm:text-7xl md:text-[8.15rem]",
+    spine: "h-[1.72em]",
+    spineBox: "w-[0.95em] -ml-[0.25em] translate-y-[0.25em]",
+  },
 };
 
 const WORDMARK_STYLE = {
@@ -65,7 +77,7 @@ export default function LogoMoovs({ size = "md", variant = "dark", animated = fa
       >
         {(logo.texto || "MOOV").toUpperCase()}
       </span>
-      <ImagenSpinaS className={`${sizing.spine} w-[0.95em] -ml-[0.25em] translate-y-[0.25em]`} />
+      <ImagenSpinaS className={`${sizing.spine} ${sizing.spineBox}`} />
     </span>
   );
 }
