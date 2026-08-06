@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SISTEMA DE DISEÑO — KINETICA
+   SISTEMA DE DISEÑO — MOOVS
    ─────────────────────────────────────────────────────────────────────────
    Un solo archivo controla color, radio, sombra, z-index y duración de todo
    el frontend. Para reusar esto en otro proyecto/cliente: copiar este
@@ -121,7 +121,7 @@
   --color-gray-950: var(--color-neutral-950);
 }
 
-/* ── Kinetica: fuentes (definidas en index.html via <link>, aquí solo asignamos) ── */
+/* ── Moovs: fuentes (definidas en index.html via <link>, aquí solo asignamos) ── */
 .kt-display { font-family: 'Bricolage Grotesque', sans-serif; }
 .kt-body    { font-family: 'Plus Jakarta Sans', sans-serif; }
 

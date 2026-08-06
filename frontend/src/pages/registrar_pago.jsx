@@ -153,7 +153,7 @@ export default function RegistrarPagoPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/15">
               <Dumbbell size={22} className="text-sky-400" />
             </div>
-            <span className="font-bold uppercase tracking-widest text-white">Kinetica</span>
+            <span className="font-bold uppercase tracking-widest text-white">Moovs</span>
           </div>
 
           <div>
@@ -186,7 +186,7 @@ export default function RegistrarPagoPage() {
             </ul>
           </div>
 
-          <p className="text-xs text-gray-700 uppercase tracking-wider">Kinetica · Sistema interno</p>
+          <p className="text-xs text-gray-700 uppercase tracking-wider">Moovs · Sistema interno</p>
         </div>
 
         {/* ── PANEL DERECHO — formulario ─────────────────── */}

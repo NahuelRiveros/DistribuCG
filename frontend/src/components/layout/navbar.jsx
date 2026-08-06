@@ -8,6 +8,7 @@ import NavbarDesktop from "./navbar_desktop.jsx";
 import NavbarMobile from "./navbar_mobile.jsx";
 import NavbarUserBox from "./navbar_userbox.jsx";
 import { UI_NAVBAR as S } from "../styles_components/ui_navbar_style.jsx";
+import LogoMoovs from "../common/logo_moovs.jsx";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -51,25 +52,28 @@ export default function Navbar() {
         <nav className={S.barra_nav_container}>
           <NavLink to={navbar_config.brand.linkTo} onClick={cerrarMobile} className={S.brand_link}>
             {navbar_config.brand.logoUrl ? (
-              <img
-                src={navbar_config.brand.logoUrl}
-                alt={navbar_config.brand.titulo}
-                className="h-9 w-9 rounded-xl object-cover shadow-md"
-              />
-            ) : (
-              <div className={S.brand_badge}>
-                {navbar_config.brand.fallbackLetter}
-                <div className={S.brand_badge_brillo} />
-              </div>
-            )}
-
-            {navbar_config.brand.mostrarTitulo !== false && (
-              <div className={S.brand_textos}>
-                <p className={S.brand_titulo}>{navbar_config.brand.titulo}</p>
-                {navbar_config.brand.mostrarSubtitulo && navbar_config.brand.subtitulo && (
-                  <p className={S.brand_subtitulo}>{navbar_config.brand.subtitulo}</p>
+              <>
+                <img
+                  src={navbar_config.brand.logoUrl}
+                  alt={navbar_config.brand.titulo}
+                  className="h-9 w-9 rounded-xl object-cover shadow-md"
+                />
+                {navbar_config.brand.mostrarTitulo !== false && (
+                  <div className={S.brand_textos}>
+                    <p className={S.brand_titulo}>{navbar_config.brand.titulo}</p>
+                    {navbar_config.brand.mostrarSubtitulo && navbar_config.brand.subtitulo && (
+                      <p className={S.brand_subtitulo}>{navbar_config.brand.subtitulo}</p>
+                    )}
+                  </div>
                 )}
-              </div>
+              </>
+            ) : (
+              <>
+                <LogoMoovs size="sm" />
+                {navbar_config.brand.mostrarSubtitulo && navbar_config.brand.subtitulo && (
+                  <p className={`hidden sm:block ${S.brand_subtitulo}`}>{navbar_config.brand.subtitulo}</p>
+                )}
+              </>
             )}
           </NavLink>
 

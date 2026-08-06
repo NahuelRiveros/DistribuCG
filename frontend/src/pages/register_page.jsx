@@ -126,7 +126,7 @@ export default function RegisterAlumnoPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/15">
               <Dumbbell size={22} className="text-sky-400" />
             </div>
-            <span className="font-bold uppercase tracking-widest text-white">Kinetica</span>
+            <span className="font-bold uppercase tracking-widest text-white">Moovs</span>
           </div>
 
           {/* Texto central */}
@@ -161,7 +161,7 @@ export default function RegisterAlumnoPage() {
 
           {/* Footer */}
           <p className="text-xs text-gray-700 uppercase tracking-wider">
-            Kinetica · Sistema interno
+            Moovs · Sistema interno
           </p>
         </div>
 

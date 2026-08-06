@@ -29,34 +29,34 @@ const PLANTILLAS = [
   {
     id: "promocion",
     label: "Promoción",
-    subject: "🔥 ¡Promo exclusiva para vos! — Kinetica",
+    subject: "🔥 ¡Promo exclusiva para vos! — Moovs",
     titulo: "💪 ¡No te pierdas nuestras promociones especiales!",
     mensaje:
       "Queremos que sigas entrenando y alcanzando tus objetivos 🚀\n\n" +
       "Por eso este mes tenemos beneficios y promociones especiales para nuestros alumnos.\n\n" +
       "📲 Consultanos por este medio o acercate al gimnasio para conocer todos los detalles.\n\n" +
-      "¡Te esperamos en Kinetica! 💥",
+      "¡Te esperamos en Moovs! 💥",
   },
   {
     id: "vencimiento",
     label: "Vencimiento",
-    subject: "🚨 Tu membresía está por vencer — Kinetica",
+    subject: "🚨 Tu membresía está por vencer — Moovs",
     titulo: "📅 Recordatorio de renovación",
     mensaje:
       "Tu plan está próximo a finalizar y queremos que sigas entrenando sin interrupciones 💪\n\n" +
       "Renová tu membresía y continuá avanzando hacia tus objetivos junto a nosotros.\n\n" +
       "📲 Podés acercarte al gimnasio o escribirnos para más información.\n\n" +
-      "¡Te esperamos en Kinetica! 🔥",
+      "¡Te esperamos en Moovs! 🔥",
   },
 ];
 
 function construirHtml(titulo, mensaje) {
   return `<div style="font-family:sans-serif;max-width:600px;margin:auto;padding:24px">
   ${titulo ? `<h2 style="color:#2563eb;margin-bottom:8px">${titulo}</h2>` : ""}
-  <p style="margin-top:0">Hola <strong>{nombre}</strong>, somos de Kinetica.</p>
+  <p style="margin-top:0">Hola <strong>{nombre}</strong>, somos de Moovs.</p>
   <p style="white-space:pre-line;line-height:1.6">${mensaje}</p>
   <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"/>
-  <p style="color:#94a3b8;font-size:12px;margin:0">Kinetica Formosa<br/>Este mensaje fue enviado a nuestros alumnos.</p>
+  <p style="color:#94a3b8;font-size:12px;margin:0">Moovs Formosa<br/>Este mensaje fue enviado a nuestros alumnos.</p>
 </div>`;
 }
 
@@ -291,7 +291,7 @@ export default function PromocionesPage() {
             <span className="font-semibold text-slate-700">
               [nombre del alumno]
             </span>
-            , somos de Kinetica.
+            , somos de Moovs.
           </div>
 
           {/* Mensaje */}

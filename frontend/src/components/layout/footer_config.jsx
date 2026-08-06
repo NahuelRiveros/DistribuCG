@@ -3,7 +3,7 @@ import {
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CONFIG DEL FOOTER — pensado para poder reusar Kinetica en otro cliente
+// CONFIG DEL FOOTER — pensado para poder reusar Moovs en otro cliente
 // cambiando solo este archivo (no footer.jsx).
 //
 // Cada módulo/acceso lleva `modulo: "gym" | "kinesiologia"` (o sin `modulo`
@@ -16,7 +16,6 @@ import {
 export const footer_config = {
 
   marca: {
-    nombre: "Kinetica",
     tagline:
       "Entrenamiento y kinesiología con profesionales que acompañan de cerca cada objetivo, sesión a sesión — no una rutina genérica.",
     estadoLabel: "Sistema activo",
@@ -80,9 +79,9 @@ export const footer_config = {
   },
 
   legal: {
-    // Nombre que aparece en el copyright — normalmente el mismo que marca.nombre,
-    // pero puede diferir (ej. razón social) si un cliente lo pide.
-    nombreDerechos: "Kinetica",
+    // Nombre que aparece en el copyright — normalmente el mismo que la marca
+    // del logo, pero puede diferir (ej. razón social) si un cliente lo pide.
+    nombreDerechos: "Moovs",
     mostrarDesarrolladoPor: true,
     desarrolladoPor: "Riveros Edgardo Nahuel",
   },

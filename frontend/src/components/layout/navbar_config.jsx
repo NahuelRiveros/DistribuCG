@@ -7,13 +7,12 @@ import {
 
 export const navbar_config = {
   brand: {
-    titulo: "Kinetica",
+    titulo: "Moovs",
     subtitulo: "Entrenamiento · Kinesiología",
     logoUrl: null,
     mostrarTitulo: true,
     mostrarSubtitulo: true,
     linkTo: "/",
-    fallbackLetter: "K",
   },
 
   labels: {

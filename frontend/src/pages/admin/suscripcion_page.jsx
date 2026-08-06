@@ -103,7 +103,7 @@ export default function SuscripcionPage() {
               </div>
               <div>
                 <h1 className="text-lg font-extrabold text-slate-900">Suscripción al Software</h1>
-                <p className="text-xs text-(--kt-ink-mute)">Kinetica — Plan mensual</p>
+                <p className="text-xs text-(--kt-ink-mute)">Moovs — Plan mensual</p>
               </div>
             </div>
             <button

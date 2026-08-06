@@ -57,7 +57,7 @@ function ContactoFormModal({ abierto, onClose, onGuardar, contacto, guardando })
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">Link (opcional)</label>
-            <input {...register("href")} placeholder="https://instagram.com/kinetica"
+            <input {...register("href")} placeholder="https://instagram.com/moovs"
               className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-(--kt-teal-700) focus:outline-none" />
           </div>
           {(errors.label || errors.valor) && <p className="text-sm text-red-600">Completá el nombre y el valor</p>}

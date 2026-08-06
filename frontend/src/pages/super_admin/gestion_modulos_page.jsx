@@ -59,7 +59,7 @@ export default function GestionModulosPage() {
               </span>
               <h1 className="mt-2 text-2xl font-extrabold text-slate-900">Módulos habilitados</h1>
               <p className="mt-0.5 text-sm text-slate-500">
-                Qué módulos de negocio tiene comprados esta instalación de Kinetica.
+                Qué módulos de negocio tiene comprados esta instalación de Moovs.
               </p>
             </div>
             <button

@@ -5,7 +5,7 @@ import maquinas2 from "../assets/maquinas2.jpeg";
 import maquinas3 from "../assets/maquinas3.jpeg";
 
 // Fotos genéricas del gym — disponibles para reusar en el futuro
-// (ej. contenido de respaldo antes de subir fotos reales de Kinetica).
+// (ej. contenido de respaldo antes de subir fotos reales de Moovs).
 export const images = {
   principal,
   principal2,

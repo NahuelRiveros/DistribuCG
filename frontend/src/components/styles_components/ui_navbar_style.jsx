@@ -67,12 +67,6 @@ export const UI_NAVBAR = {
   brand_link:
     `group flex shrink-0 items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 ${C.foco_ring} focus-visible:ring-offset-2`,
 
-  brand_badge:
-    "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-[10px] font-black text-white shadow-md shadow-[var(--kt-turquoise)]/30 transition-transform duration-200 group-hover:scale-105",
-
-  brand_badge_brillo:
-    "absolute inset-0 rounded-xl bg-linear-to-b from-white/20 to-transparent",
-
   brand_textos:
     "hidden leading-tight sm:block",
 

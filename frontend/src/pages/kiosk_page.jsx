@@ -150,7 +150,7 @@ export default function KioskPage() {
               <Dumbbell size={22} className="text-sky-400" />
             </div>
             <span className="kiosk-display text-xl font-bold uppercase tracking-widest text-white">
-              Kinetica
+              Moovs
             </span>
           </div>
 
@@ -217,7 +217,7 @@ export default function KioskPage() {
             onClick={onClickBranding}
             className="cursor-default text-[11px] uppercase tracking-[0.3em] text-gray-700 select-none"
           >
-            Kinetica
+            Moovs
           </span>
         </div>
 

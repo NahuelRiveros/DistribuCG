@@ -5,6 +5,7 @@ import { useHomeContent } from "../hooks/use_home_content.js";
 import { useHomeConfig } from "../hooks/use_home_config.js";
 import { iconoHome } from "../config/home_iconos.js";
 import HomeCarousel from "./home_carousel.jsx";
+import LogoMoovs from "./common/logo_moovs.jsx";
 
 const VALOR = [
   { icon: Target,     label: "Plan a tu medida" },
@@ -45,9 +46,8 @@ export default function HomePage() {
             {texto("hero_kicker", "Centro de Entrenamiento y Kinesiología")}
           </div>
 
-          <h1 className="kt-display kt-a2 mt-8 text-6xl font-bold uppercase leading-[0.92] tracking-tight sm:text-7xl md:text-8xl">
-            KINE
-            <span className="kt-shimmer-text">TICA</span>
+          <h1 className="kt-a2 mt-8 flex justify-center">
+            <LogoMoovs size="hero" animated />
           </h1>
 
           <p className="kt-a3 mx-auto mt-7 max-w-lg text-base leading-relaxed text-[var(--kt-ink-soft)] sm:text-lg">
