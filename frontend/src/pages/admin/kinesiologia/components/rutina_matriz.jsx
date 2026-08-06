@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X, HelpCircle, AlertTriangle, Plus } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { formatearFechaAR } from "../../../../components/form/formatear_fecha.js";
 import { ORDEN_DIAS, DIA_LABEL, diaSemanaDeFecha } from "../../../../utils/dias_semana.js";
 
@@ -92,12 +92,7 @@ function Celda({ entradas, onClick }) {
       title={titulo}
       className="h-9 w-9 shrink-0 cursor-pointer rounded-md border transition hover:brightness-95"
       style={{ background: estilo.bg, borderColor: estilo.border }}
-    >
-      {estado === "vacio" && <HelpCircle size={13} className="mx-auto text-slate-400" />}
-      {estado === "verde" && <Check size={13} className="mx-auto text-(--kt-success)" />}
-      {estado === "amarillo" && <AlertTriangle size={12} className="mx-auto text-(--kt-warning)" />}
-      {estado === "rojo" && <X size={13} className="mx-auto text-(--kt-danger)" />}
-    </button>
+    />
   );
 }
 

@@ -153,11 +153,15 @@ export default function RegistrarSesionKinesiologiaPage() {
   // completo de ejercicios, solo cargar el detalle de ese uno.
   const modoEjercicioUnico = Boolean(ejercicioPrecargado) && !esEdicion;
 
+  // El selector de ejercicios (con su fetch de la rutina) solo hace falta
+  // para registrar una sesión nueva sin venir de una celda puntual —
+  // editando o con ejercicio precargado ya se sabe qué ejercicios van.
+  const necesitaSelectorEjercicios = !modoEjercicioUnico && !esEdicion;
   const [rutina, setRutina] = useState([]);
-  const [cargandoRutina, setCargandoRutina] = useState(!modoEjercicioUnico);
+  const [cargandoRutina, setCargandoRutina] = useState(necesitaSelectorEjercicios);
 
   useEffect(() => {
-    if (modoEjercicioUnico) return;
+    if (!necesitaSelectorEjercicios) return;
     (async () => {
       setCargandoRutina(true);
       try {
@@ -169,7 +173,7 @@ export default function RegistrarSesionKinesiologiaPage() {
         setCargandoRutina(false);
       }
     })();
-  }, [id, fichaId, modoEjercicioUnico]);
+  }, [id, fichaId, necesitaSelectorEjercicios]);
 
   const ejerciciosRutina = (rutina || []).map((r) => ({
     ejercicio_id: r.ejercicio_id,
@@ -237,8 +241,8 @@ export default function RegistrarSesionKinesiologiaPage() {
     setEjerciciosSesion((lista) => lista.filter((_, i) => i !== index));
   }
 
-  function actualizarEjercicioUnico(campo, valor) {
-    setEjerciciosSesion((lista) => lista.map((ej, i) => i === 0 ? { ...ej, [campo]: valor } : ej));
+  function actualizarEjercicio(index, campo, valor) {
+    setEjerciciosSesion((lista) => lista.map((ej, i) => i === index ? { ...ej, [campo]: valor } : ej));
   }
 
   async function guardar() {
@@ -331,14 +335,31 @@ export default function RegistrarSesionKinesiologiaPage() {
             <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Ejercicio</p>
             <p className="text-sm font-bold text-slate-800">{ejerciciosSesion[0]?.nombre}</p>
             <div className="grid grid-cols-4 gap-1.5">
-              <input value={ejerciciosSesion[0]?.peso ?? ""} onChange={(e) => actualizarEjercicioUnico("peso", e.target.value || null)} inputMode="decimal" placeholder="Peso" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
-              <input value={ejerciciosSesion[0]?.series ?? ""} onChange={(e) => actualizarEjercicioUnico("series", e.target.value || null)} inputMode="numeric" placeholder="Series" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
-              <input value={ejerciciosSesion[0]?.repeticiones ?? ""} onChange={(e) => actualizarEjercicioUnico("repeticiones", e.target.value || null)} inputMode="numeric" placeholder="Reps" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
-              <input value={ejerciciosSesion[0]?.rir ?? ""} onChange={(e) => actualizarEjercicioUnico("rir", e.target.value === "" ? null : Number(e.target.value))} inputMode="numeric" placeholder="RIR" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+              <input value={ejerciciosSesion[0]?.peso ?? ""} onChange={(e) => actualizarEjercicio(0, "peso", e.target.value || null)} inputMode="decimal" placeholder="Peso" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+              <input value={ejerciciosSesion[0]?.series ?? ""} onChange={(e) => actualizarEjercicio(0, "series", e.target.value || null)} inputMode="numeric" placeholder="Series" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+              <input value={ejerciciosSesion[0]?.repeticiones ?? ""} onChange={(e) => actualizarEjercicio(0, "repeticiones", e.target.value || null)} inputMode="numeric" placeholder="Reps" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+              <input value={ejerciciosSesion[0]?.rir ?? ""} onChange={(e) => actualizarEjercicio(0, "rir", e.target.value === "" ? null : Number(e.target.value))} inputMode="numeric" placeholder="RIR" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
             </div>
           </div>
+        ) : esEdicion ? (
+          /* Editando una sesión ya guardada — los ejercicios ya están elegidos (vinieron de la rutina al registrarla), acá solo se corrigen los valores de carga */
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Ejercicio{ejerciciosSesion.length > 1 ? "s" : ""}</p>
+            {!ejerciciosSesion.length && <p className="text-sm text-slate-400">Esta sesión no tiene ejercicios asociados.</p>}
+            {ejerciciosSesion.map((ej, i) => (
+              <div key={`${ej.ejercicio_id}-${i}`} className={i > 0 ? "border-t border-slate-100 pt-3" : ""}>
+                <p className="text-sm font-bold text-slate-800">{ej.nombre}</p>
+                <div className="mt-1.5 grid grid-cols-4 gap-1.5">
+                  <input value={ej.peso ?? ""} onChange={(e) => actualizarEjercicio(i, "peso", e.target.value || null)} inputMode="decimal" placeholder="Peso" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+                  <input value={ej.series ?? ""} onChange={(e) => actualizarEjercicio(i, "series", e.target.value || null)} inputMode="numeric" placeholder="Series" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+                  <input value={ej.repeticiones ?? ""} onChange={(e) => actualizarEjercicio(i, "repeticiones", e.target.value || null)} inputMode="numeric" placeholder="Reps" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+                  <input value={ej.rir ?? ""} onChange={(e) => actualizarEjercicio(i, "rir", e.target.value === "" ? null : Number(e.target.value))} inputMode="numeric" placeholder="RIR" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
-          /* Ejercicios de la sesión — de a uno por día de la rutina configurada, se pueden agregar varios */
+          /* Registrar sesión nueva sin venir de una celda puntual — se puede elegir cualquier combinación de ejercicios de la rutina */
           <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Ejercicios trabajados (opcional)</p>
 
