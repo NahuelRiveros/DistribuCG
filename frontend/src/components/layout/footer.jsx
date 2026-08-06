@@ -2,7 +2,7 @@ import { ShieldCheck } from "lucide-react";
 import { footer_config } from "./footer_config.jsx";
 import { moduloHabilitado } from "../../config/modulos_config.js";
 import { useAuth } from "../../auth/auth_context.jsx";
-import LogoMoovs from "../common/logo_moovs.jsx";
+import LogoMoovs from "../brand/logo_moovs.jsx";
 
 const ANIMATIONS = `
   @keyframes scanLine {

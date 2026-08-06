@@ -3,7 +3,7 @@ import AppLayout from "../components/layout/app_layout.jsx";
 import ProtectedRoute from "../components/protected_route.jsx";
 
 
-import HomePage from "../components/home_page.jsx";
+import HomePage from "../components/home/home_page.jsx";
 import KioskPage from "../pages/kiosk_page.jsx";
 import LoginPage from "../pages/login_page.jsx";
 import RegisterAlumnoPage from "../pages/register_page.jsx";

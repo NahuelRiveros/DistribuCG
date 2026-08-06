@@ -1,12 +1,12 @@
 import {
   ArrowRight, ArrowDown, Target, LineChart, UserCheck, HeartPulse, ImageOff,
 } from "lucide-react";
-import { useHomeContent } from "../hooks/use_home_content.js";
-import { useHomeConfig } from "../hooks/use_home_config.js";
-import { iconoHome } from "../config/home_iconos.js";
-import { brandConfig } from "../config/brand_config.js";
+import { useHomeContent } from "../../hooks/use_home_content.js";
+import { useHomeConfig } from "../../hooks/use_home_config.js";
+import { iconoHome } from "../../config/home_iconos.js";
+import { brandConfig } from "../../config/brand_config.js";
 import HomeCarousel from "./home_carousel.jsx";
-import LogoMoovs from "./common/logo_moovs.jsx";
+import LogoMoovs from "../brand/logo_moovs.jsx";
 
 const VALOR = [
   { icon: Target,     label: "Plan a tu medida" },

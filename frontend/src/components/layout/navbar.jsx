@@ -8,7 +8,7 @@ import NavbarDesktop from "./navbar_desktop.jsx";
 import NavbarMobile from "./navbar_mobile.jsx";
 import NavbarUserBox from "./navbar_userbox.jsx";
 import { UI_NAVBAR as S } from "../styles_components/ui_navbar_style.jsx";
-import LogoMoovs from "../common/logo_moovs.jsx";
+import LogoMoovs from "../brand/logo_moovs.jsx";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
