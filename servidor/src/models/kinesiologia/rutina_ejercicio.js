@@ -2,11 +2,11 @@ import { DataTypes } from "sequelize";
 import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
 
 /**
- * Qué ejercicios se trackean para una ficha — es el "plan" que después la
- * matriz cruza contra las sesiones reales (SesionKinesiologicaEjercicio),
- * agrupando por el día de la semana real de cada sesión (no un día fijo
- * elegido acá). No es una tabla de datos clínicos: no tiene historial
- * propio, guardar la rutina reemplaza la lista completa.
+ * Qué ejercicios se trackean para una ficha, y en qué días de la semana
+ * corresponden — es el "plan" que después la matriz cruza contra las
+ * sesiones reales (SesionKinesiologicaEjercicio), agrupando por el día de
+ * la semana real de cada sesión. No es una tabla de datos clínicos: no
+ * tiene historial propio, guardar la rutina reemplaza la lista completa.
  */
 export const RutinaEjercicio = sequelize.define("RutinaEjercicio", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -22,6 +22,11 @@ export const RutinaEjercicio = sequelize.define("RutinaEjercicio", {
     allowNull: false,
     references: { model: "ejercicio", key: "id" },
   },
+
+  // Subconjunto de lunes..domingo. Las rutinas guardadas antes de este
+  // campo quedan en [] — el frontend las trata como "todos los días" para
+  // no perder de golpe lo que ya estaba configurado.
+  dias: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: [] },
 
   orden: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 

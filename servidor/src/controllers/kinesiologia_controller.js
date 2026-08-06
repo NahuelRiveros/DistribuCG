@@ -8,6 +8,7 @@ import {
   registrarTestFuerza,
   registrarSesionKinesiologia,
   actualizarSesionKinesiologia,
+  eliminarSesionKinesiologia,
   guardarRutinaFicha,
 } from "../services/kinesiologia_service.js";
 import {
@@ -211,6 +212,20 @@ export async function actualizarSesion(req, res, next) {
   }
 }
 
+export async function eliminarSesion(req, res, next) {
+  try {
+    const sesion_id = toInt(req.params.id, null);
+    if (!sesion_id) {
+      return res.status(400).json({ ok: false, codigo: "VALIDACION", mensaje: "id inválido" });
+    }
+    const r = await eliminarSesionKinesiologia(sesion_id);
+    if (!r.ok && r.codigo === "NO_EXISTE") return res.status(404).json(r);
+    return res.json(r);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function listaPatologias(req, res, next) {
   try {
     const r = await listarPatologias();
@@ -262,6 +277,7 @@ export async function guardarRutina(req, res, next) {
     const items = Array.isArray(req.body?.items) ? req.body.items : [];
     const r = await guardarRutinaFicha(ficha_id, items.map((it) => ({
       ejercicio_id: toInt(it?.ejercicio_id, null),
+      dias: Array.isArray(it?.dias) ? it.dias.map(String) : [],
     })));
     if (!r.ok) return res.status(404).json(r);
     return res.json(r);

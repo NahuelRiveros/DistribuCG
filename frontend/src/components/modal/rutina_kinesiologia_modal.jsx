@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CalendarDays, Plus, X } from "lucide-react";
 import { agruparEjerciciosPorZona } from "../../utils/kinesiologia_zonas.js";
+import { ORDEN_DIAS, DIA_LABEL } from "../../utils/dias_semana.js";
 
 function SelectorRutinaZona({ zona, opciones, onAgregar }) {
   const [ejercicioId, setEjercicioId] = useState("");
@@ -41,6 +42,28 @@ function SelectorRutinaZona({ zona, opciones, onAgregar }) {
   );
 }
 
+function SelectorDias({ dias, onToggle }) {
+  return (
+    <div className="flex flex-wrap gap-1">
+      {ORDEN_DIAS.map((d) => (
+        <button
+          key={d}
+          type="button"
+          onClick={() => onToggle(d)}
+          title={DIA_LABEL[d]}
+          className={`h-6 w-6 shrink-0 rounded-md text-[10px] font-bold transition ${
+            dias.includes(d)
+              ? "bg-(--kt-teal-700) text-white"
+              : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+          }`}
+        >
+          {DIA_LABEL[d].slice(0, 1)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function RutinaKinesiologiaModal({
   abierto, onClose, onGuardar, rutinaActual = [], ejerciciosCatalogo = [], cargando = false,
 }) {
@@ -54,6 +77,10 @@ export default function RutinaKinesiologiaModal({
       setItems((rutinaActual || []).map((r) => ({
         ejercicio_id: r.ejercicio_id,
         nombre: r.ejercicio?.nombre ?? "",
+        // Rutinas guardadas antes de tener días asignados quedan en [] en la
+        // base — se tratan acá como "todos los días" para no perder lo ya
+        // configurado hasta que el kinesiólogo las ajuste.
+        dias: r.dias?.length ? r.dias : [...ORDEN_DIAS],
       })));
       setError(null);
     }
@@ -69,15 +96,28 @@ export default function RutinaKinesiologiaModal({
       return;
     }
     setError(null);
-    setItems((lista) => [...lista, item]);
+    setItems((lista) => [...lista, { ...item, dias: [] }]);
   }
 
   function quitarItem(index) {
     setItems((lista) => lista.filter((_, i) => i !== index));
   }
 
+  function toggleDia(index, dia) {
+    setItems((lista) => lista.map((item, i) => {
+      if (i !== index) return item;
+      const dias = item.dias.includes(dia) ? item.dias.filter((d) => d !== dia) : [...item.dias, dia];
+      return { ...item, dias };
+    }));
+  }
+
   async function guardar() {
-    await onGuardar(items.map((i) => ({ ejercicio_id: i.ejercicio_id })));
+    if (items.some((i) => !i.dias?.length)) {
+      setError("Elegí al menos un día de la semana para cada ejercicio de la rutina.");
+      return;
+    }
+    setError(null);
+    await onGuardar(items.map((i) => ({ ejercicio_id: i.ejercicio_id, dias: i.dias })));
   }
 
   return (
@@ -89,7 +129,7 @@ export default function RutinaKinesiologiaModal({
             <h2 className="text-xl font-bold text-gray-900">Configurar rutina</h2>
           </div>
           <p className="mt-1 text-sm text-gray-600">
-            Elegí los ejercicios que le corresponden a este paciente. Esto arma las filas de la matriz de seguimiento.
+            Elegí los ejercicios que le corresponden a este paciente y en qué días de la semana. Esto arma la matriz de seguimiento agrupada por día.
           </p>
         </div>
 
@@ -107,11 +147,14 @@ export default function RutinaKinesiologiaModal({
               <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">Rutina actual ({items.length})</p>
               <ul className="space-y-1.5">
                 {items.map((item, i) => (
-                  <li key={`${item.ejercicio_id}-${i}`} className="flex items-center justify-between gap-2 rounded-lg border border-(--kt-teal-700)/15 bg-(--kt-teal-700)/5 px-3 py-2 text-sm">
-                    <p className="truncate font-semibold text-slate-800">{item.nombre}</p>
-                    <button type="button" onClick={() => quitarItem(i)} className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-red-600">
-                      <X size={14} />
-                    </button>
+                  <li key={`${item.ejercicio_id}-${i}`} className="rounded-lg border border-(--kt-teal-700)/15 bg-(--kt-teal-700)/5 px-3 py-2 text-sm space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate font-semibold text-slate-800">{item.nombre}</p>
+                      <button type="button" onClick={() => quitarItem(i)} className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-red-600">
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <SelectorDias dias={item.dias} onToggle={(dia) => toggleDia(i, dia)} />
                   </li>
                 ))}
               </ul>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { HeartPulse, ArrowLeft, Plus, ClipboardList, Dumbbell, Activity, Edit2, CalendarDays } from "lucide-react";
-import { getDetallePacienteKinesiologia, guardarRutinaKinesiologia } from "../../../api/kinesiologia_api.js";
+import { HeartPulse, ArrowLeft, Plus, ClipboardList, Dumbbell, Activity, Edit2, Trash2, CalendarDays } from "lucide-react";
+import { getDetallePacienteKinesiologia, guardarRutinaKinesiologia, eliminarSesionKinesiologia } from "../../../api/kinesiologia_api.js";
 import { formatearFechaAR } from "../../../components/form/formatear_fecha";
 import { useCatalogos } from "../../../hooks/use_catalogos.js";
 import RutinaMatriz from "./components/rutina_matriz.jsx";
@@ -37,7 +37,7 @@ function EjerciciosSesionList({ ejercicios }) {
   );
 }
 
-function SesionRow({ sesion, onEditar }) {
+function SesionRow({ sesion, onEditar, onEliminar }) {
   const dolorOk = sesion.dolor_durante <= 3;
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3.5">
@@ -54,6 +54,14 @@ function SesionRow({ sesion, onEditar }) {
             className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-(--kt-teal-700)"
           >
             <Edit2 size={13} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onEliminar(sesion)}
+            title="Eliminar sesión"
+            className="rounded-lg p-1 text-slate-400 hover:bg-red-50 hover:text-red-600"
+          >
+            <Trash2 size={13} />
           </button>
         </div>
       </div>
@@ -87,6 +95,12 @@ function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRu
     nav(`/admin/kinesiologia/${pacienteKinesiologiaId}/sesion?ficha=${ficha.id}`, {
       state: { sesionEditar: sesion },
     });
+  }
+
+  async function eliminarSesion(sesion) {
+    if (!window.confirm(`¿Eliminar la sesión del ${formatearFechaAR(sesion.fecha)}? Esta acción no se puede deshacer.`)) return;
+    const r = await eliminarSesionKinesiologia(sesion.id);
+    if (r.ok) await onRutinaGuardada?.();
   }
 
   function registrarEjercicio(ejercicio) {
@@ -198,10 +212,10 @@ function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRu
                 {ultimaSesion && (
                   <div>
                     <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">Última sesión</p>
-                    <SesionRow sesion={ultimaSesion} onEditar={editarSesion} />
+                    <SesionRow sesion={ultimaSesion} onEditar={editarSesion} onEliminar={eliminarSesion} />
                   </div>
                 )}
-                <RutinaMatriz ficha={ficha} onEditarSesion={editarSesion} onRegistrarEjercicio={registrarEjercicio} />
+                <RutinaMatriz ficha={ficha} onEditarSesion={editarSesion} onRegistrarEjercicio={registrarEjercicio} onEliminarSesion={eliminarSesion} />
               </div>
             )}
           </div>

@@ -1,45 +1,23 @@
 import { useState } from "react";
 import { Check, X, HelpCircle, AlertTriangle } from "lucide-react";
 import { formatearFechaAR } from "../../../../components/form/formatear_fecha.js";
+import { ORDEN_DIAS, DIA_LABEL, diaSemanaDeFecha } from "../../../../utils/dias_semana.js";
 
-const ORDEN_DIAS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
-const DIA_LABEL = {
-  lunes: "Lunes", martes: "Martes", miercoles: "Miércoles", jueves: "Jueves",
-  viernes: "Viernes", sabado: "Sábado", domingo: "Domingo",
-};
-// getDay(): 0=domingo, 1=lunes, ... 6=sábado
-const DIA_POR_INDICE = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
-
-function diaSemanaDeFecha(fecha) {
-  return DIA_POR_INDICE[new Date(`${fecha}T00:00:00`).getDay()];
-}
-
-// Filas: los ejercicios de la rutina configurada, más cualquier ejercicio
-// que aparezca en una sesión real y no esté en la rutina (nunca se
-// esconde un dato real cargado). Columnas: los 7 días de la semana, fijos
-// — cada celda junta TODAS las sesiones reales de ese ejercicio que
-// cayeron en ese día de la semana, sin importar la fecha exacta ni la
-// semana. La celda se pinta según la sesión más reciente de esa lista.
-function armarMatriz(ficha) {
+// Secciones: una por cada día de la semana que tenga algo para mostrar.
+// Filas dentro de un día: los ejercicios de la rutina configurados para ese
+// día (o para todos, si es una rutina vieja sin días asignados), más
+// cualquier ejercicio que aparezca en una sesión real de ese día y no esté
+// en la rutina (nunca se esconde un dato real cargado). Cada fila junta
+// TODAS las sesiones reales de ese ejercicio que cayeron en ese día de la
+// semana, sin importar la fecha exacta ni la semana — la celda se pinta
+// según la sesión más reciente de esa lista.
+function armarSecciones(ficha) {
   const rutina = ficha?.rutina || [];
   const sesiones = ficha?.sesiones || [];
-
   const idsEnRutina = new Set(rutina.map((r) => r.ejercicio_id));
-  const nombresExtra = new Map();
-  for (const sesion of sesiones) {
-    for (const se of sesion.ejercicios || []) {
-      if (se.ejercicio_id && !idsEnRutina.has(se.ejercicio_id) && !nombresExtra.has(se.ejercicio_id)) {
-        nombresExtra.set(se.ejercicio_id, se.ejercicio?.nombre ?? "Ejercicio");
-      }
-    }
-  }
-
-  const filas = [
-    ...rutina.map((r) => ({ ejercicio_id: r.ejercicio_id, nombre: r.ejercicio?.nombre ?? "Ejercicio" })),
-    ...[...nombresExtra].map(([ejercicio_id, nombre]) => ({ ejercicio_id, nombre })),
-  ];
 
   const celdas = new Map();
+  const nombresExtra = new Map();
   for (const sesion of sesiones) {
     const dia = diaSemanaDeFecha(sesion.fecha);
     for (const se of sesion.ejercicios || []) {
@@ -47,6 +25,9 @@ function armarMatriz(ficha) {
       const key = `${se.ejercicio_id}|${dia}`;
       if (!celdas.has(key)) celdas.set(key, []);
       celdas.get(key).push({ sesion, sesionEjercicio: se });
+      if (!idsEnRutina.has(se.ejercicio_id) && !nombresExtra.has(se.ejercicio_id)) {
+        nombresExtra.set(se.ejercicio_id, se.ejercicio?.nombre ?? "Ejercicio");
+      }
     }
   }
   // más reciente primero, así entradas[0] es "la última vez"
@@ -54,7 +35,27 @@ function armarMatriz(ficha) {
     arr.sort((a, b) => (a.sesion.fecha < b.sesion.fecha ? 1 : a.sesion.fecha > b.sesion.fecha ? -1 : 0));
   }
 
-  return { filas, celdas };
+  const secciones = [];
+  for (const dia of ORDEN_DIAS) {
+    const filas = [];
+    for (const r of rutina) {
+      const dias = r.dias?.length ? r.dias : ORDEN_DIAS;
+      if (!dias.includes(dia)) continue;
+      filas.push({
+        ejercicio_id: r.ejercicio_id,
+        nombre: r.ejercicio?.nombre ?? "Ejercicio",
+        entradas: celdas.get(`${r.ejercicio_id}|${dia}`) || [],
+      });
+    }
+    for (const [ejercicio_id, nombre] of nombresExtra) {
+      const entradas = celdas.get(`${ejercicio_id}|${dia}`) || [];
+      if (!entradas.length) continue; // los "extra" solo se muestran en los días donde realmente hubo sesión
+      filas.push({ ejercicio_id, nombre, entradas });
+    }
+    if (filas.length) secciones.push({ dia, filas });
+  }
+
+  return secciones;
 }
 
 // Escala clínica estándar de dolor (0-10): 0-3 leve, 4-6 moderado, 7-10 alto.
@@ -85,7 +86,7 @@ function Celda({ entradas, onClick }) {
       type="button"
       onClick={onClick}
       title={titulo}
-      className="h-9 w-full cursor-pointer rounded-md border transition hover:brightness-95"
+      className="h-9 w-9 shrink-0 cursor-pointer rounded-md border transition hover:brightness-95"
       style={{ background: estilo.bg, borderColor: estilo.border }}
     >
       {estado === "vacio" && <HelpCircle size={13} className="mx-auto text-slate-400" />}
@@ -107,7 +108,7 @@ function EscalaMini({ label, valor }) {
 
 // Historial completo del ejercicio en ese día de la semana — puede haber
 // varias entradas de semanas distintas, cada una con su fecha real.
-function DetalleCeldaModal({ nombreEjercicio, dia, entradas, onClose, onEditarSesion }) {
+function DetalleCeldaModal({ nombreEjercicio, dia, entradas, onClose, onEditarSesion, onEliminarSesion }) {
   return (
     <div className="fixed inset-0 z-(--z-modal-nested) flex items-center justify-center bg-black/50 p-4">
       <div className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-xl">
@@ -151,13 +152,22 @@ function DetalleCeldaModal({ nombreEjercicio, dia, entradas, onClose, onEditarSe
 
               {sesion.observaciones && <p className="mt-2 text-xs text-slate-500">{sesion.observaciones}</p>}
 
-              <button
-                type="button"
-                onClick={() => onEditarSesion(sesion)}
-                className="mt-3 text-xs font-semibold text-(--kt-teal-700) hover:underline"
-              >
-                Editar esta sesión
-              </button>
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onEditarSesion(sesion)}
+                  className="text-xs font-semibold text-(--kt-teal-700) hover:underline"
+                >
+                  Editar esta sesión
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onEliminarSesion(sesion)}
+                  className="text-xs font-semibold text-red-600 hover:underline"
+                >
+                  Eliminar esta sesión
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -166,48 +176,36 @@ function DetalleCeldaModal({ nombreEjercicio, dia, entradas, onClose, onEditarSe
   );
 }
 
-export default function RutinaMatriz({ ficha, onEditarSesion, onRegistrarEjercicio }) {
+export default function RutinaMatriz({ ficha, onEditarSesion, onRegistrarEjercicio, onEliminarSesion }) {
   const [celdaAbierta, setCeldaAbierta] = useState(null); // { nombre, dia, entradas }
 
-  const { filas, celdas } = armarMatriz(ficha);
+  const secciones = armarSecciones(ficha);
 
-  if (!filas.length) {
+  if (!secciones.length) {
     return <p className="text-sm text-slate-400">Todavía no configuraste una rutina para este paciente.</p>;
   }
 
   return (
     <div>
-      <div className="overflow-x-auto pb-1">
-        <div style={{ minWidth: `${180 + ORDEN_DIAS.length * 64}px` }}>
-          {/* header de días */}
-          <div className="grid mb-1" style={{ gridTemplateColumns: `180px repeat(${ORDEN_DIAS.length}, 64px)` }}>
-            <div />
-            {ORDEN_DIAS.map((d) => (
-              <div key={d} className="text-center text-[10px] font-bold text-slate-400 pb-1">{DIA_LABEL[d].slice(0, 3)}</div>
-            ))}
+      <div className="space-y-3">
+        {secciones.map(({ dia, filas }) => (
+          <div key={dia}>
+            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">{DIA_LABEL[dia]}</p>
+            <div className="space-y-1">
+              {filas.map((fila) => (
+                <div key={fila.ejercicio_id} className="flex items-center gap-2">
+                  <Celda
+                    entradas={fila.entradas}
+                    onClick={() => fila.entradas.length
+                      ? setCeldaAbierta({ nombre: fila.nombre, dia, entradas: fila.entradas })
+                      : onRegistrarEjercicio({ ejercicio_id: fila.ejercicio_id, nombre: fila.nombre })}
+                  />
+                  <span className="truncate text-xs font-semibold text-slate-700" title={fila.nombre}>{fila.nombre}</span>
+                </div>
+              ))}
+            </div>
           </div>
-
-          {/* filas de ejercicios */}
-          <div className="space-y-1">
-            {filas.map((ej) => (
-              <div key={ej.ejercicio_id} className="grid items-center gap-1" style={{ gridTemplateColumns: `180px repeat(${ORDEN_DIAS.length}, 64px)` }}>
-                <div className="truncate pr-2 text-xs font-semibold text-slate-700" title={ej.nombre}>{ej.nombre}</div>
-                {ORDEN_DIAS.map((dia) => {
-                  const entradas = celdas.get(`${ej.ejercicio_id}|${dia}`) || [];
-                  return (
-                    <Celda
-                      key={dia}
-                      entradas={entradas}
-                      onClick={() => entradas.length
-                        ? setCeldaAbierta({ nombre: ej.nombre, dia, entradas })
-                        : onRegistrarEjercicio({ ejercicio_id: ej.ejercicio_id, nombre: ej.nombre })}
-                    />
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* leyenda */}
@@ -225,6 +223,7 @@ export default function RutinaMatriz({ ficha, onEditarSesion, onRegistrarEjercic
           entradas={celdaAbierta.entradas}
           onClose={() => setCeldaAbierta(null)}
           onEditarSesion={(sesion) => { setCeldaAbierta(null); onEditarSesion(sesion); }}
+          onEliminarSesion={(sesion) => { setCeldaAbierta(null); onEliminarSesion(sesion); }}
         />
       )}
     </div>

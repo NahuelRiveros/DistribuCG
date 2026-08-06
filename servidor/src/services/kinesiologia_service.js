@@ -391,10 +391,22 @@ export async function actualizarSesionKinesiologia(id, { ejercicios, ...checklis
   return { ok: true, mensaje: "Sesión actualizada correctamente", sesion };
 }
 
+/** Elimina una sesión ya guardada — sus ejercicios (SesionKinesiologicaEjercicio) caen en cascada. */
+export async function eliminarSesionKinesiologia(id) {
+  const sesion = await SesionKinesiologica.findByPk(id);
+  if (!sesion) return { ok: false, codigo: "NO_EXISTE", mensaje: "La sesión no existe" };
+
+  await sesion.destroy();
+  return { ok: true, mensaje: "Sesión eliminada correctamente" };
+}
+
+const DIAS_VALIDOS = new Set(["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"]);
+
 /**
- * Reemplaza por completo la rutina (lista de ejercicios trackeados) de una
- * ficha — no hay historial que preservar acá, "guardar la rutina" es
- * destruir todo lo anterior y volver a insertar la lista nueva.
+ * Reemplaza por completo la rutina (lista de ejercicios trackeados, con los
+ * días de la semana que le corresponden a cada uno) de una ficha — no hay
+ * historial que preservar acá, "guardar la rutina" es destruir todo lo
+ * anterior y volver a insertar la lista nueva.
  */
 export async function guardarRutinaFicha(ficha_id, items) {
   const ficha = await FichaKinesiologica.findByPk(ficha_id);
@@ -404,10 +416,13 @@ export async function guardarRutinaFicha(ficha_id, items) {
   const limpios = [];
   for (const item of items ?? []) {
     if (!item?.ejercicio_id || vistos.has(item.ejercicio_id)) continue;
+    const dias = [...new Set((item.dias ?? []).filter((d) => DIAS_VALIDOS.has(d)))];
+    if (!dias.length) continue;
     vistos.add(item.ejercicio_id);
     limpios.push({
       ficha_id,
       ejercicio_id: item.ejercicio_id,
+      dias,
       orden: limpios.length,
     });
   }
