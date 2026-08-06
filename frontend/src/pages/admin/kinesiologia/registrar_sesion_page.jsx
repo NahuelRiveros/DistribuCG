@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Check, Plus, X } from "lucide-react";
-import { registrarSesionKinesiologia, actualizarSesionKinesiologia } from "../../../api/kinesiologia_api.js";
-import { useCatalogos } from "../../../hooks/use_catalogos.js";
-import { agruparEjerciciosPorZona } from "../../../utils/kinesiologia_zonas.js";
+import { registrarSesionKinesiologia, actualizarSesionKinesiologia, getDetallePacienteKinesiologia } from "../../../api/kinesiologia_api.js";
 
 const ESCALAS = [
   { key: "calidad_movimiento",   label: "Calidad del movimiento" },
@@ -18,45 +16,76 @@ const CRITERIOS = [
   { key: "buena_recuperacion", label: "Buena recuperación" },
 ];
 
-function SelectorZonaEjercicio({ zona, opciones, onAgregar }) {
-  const [ejercicioId, setEjercicioId] = useState("");
+const ORDEN_DIAS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+const DIA_LABEL = {
+  lunes: "Lunes", martes: "Martes", miercoles: "Miércoles", jueves: "Jueves",
+  viernes: "Viernes", sabado: "Sábado", domingo: "Domingo", otros: "Otros",
+};
+
+// Agrupa la rutina configurada por día — mismo orden y bucket "Otros" que
+// usa la matriz, para que la organización sea consistente en toda la app.
+function agruparRutinaPorDia(rutina) {
+  const grupos = new Map(ORDEN_DIAS.map((d) => [d, []]));
+  grupos.set("otros", []);
+  for (const r of rutina || []) {
+    const dia = r.dia_semana && ORDEN_DIAS.includes(r.dia_semana) ? r.dia_semana : "otros";
+    grupos.get(dia).push({ ejercicio_id: r.ejercicio_id, nombre: r.ejercicio?.nombre ?? "Ejercicio" });
+  }
+  return [...ORDEN_DIAS, "otros"]
+    .filter((d) => grupos.get(d).length > 0)
+    .map((d) => ({ dia: d, ejercicios: grupos.get(d) }));
+}
+
+// Chips de ejercicios de un día — responsive: en pantallas anchas quedan en
+// fila, en angostas se envuelven una debajo de otra (flex-wrap). Cada día es
+// su propia tarjeta, así "Lunes" y sus ejercicios quedan agrupados, y
+// "Martes" con los suyos abajo.
+function SelectorDiaEjercicio({ dia, ejercicios, onAgregar }) {
+  const [seleccionado, setSeleccionado] = useState(null);
   const [peso, setPeso] = useState("");
   const [series, setSeries] = useState("");
   const [repeticiones, setRepeticiones] = useState("");
   const [rir, setRir] = useState("");
 
+  function elegir(ej) {
+    setSeleccionado((actual) => actual?.ejercicio_id === ej.ejercicio_id ? null : ej);
+  }
+
   function agregar() {
-    if (!ejercicioId) return;
-    const opcion = opciones.find((op) => String(op.value) === String(ejercicioId));
+    if (!seleccionado) return;
     onAgregar({
-      ejercicio_id: Number(ejercicioId),
-      nombre: opcion?.label ?? "",
+      ejercicio_id: seleccionado.ejercicio_id,
+      nombre: seleccionado.nombre,
       peso: peso || null,
       series: series || null,
       repeticiones: repeticiones || null,
       rir: rir === "" ? null : Number(rir),
     });
-    setEjercicioId(""); setPeso(""); setSeries(""); setRepeticiones(""); setRir("");
+    setSeleccionado(null); setPeso(""); setSeries(""); setRepeticiones(""); setRir("");
   }
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2.5">
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{zona}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{DIA_LABEL[dia]}</p>
 
-      <select
-        value={ejercicioId}
-        onChange={(e) => setEjercicioId(e.target.value)}
-        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-(--kt-teal-700)"
-      >
-        <option value="">Elegir ejercicio…</option>
-        {opciones.map((op) => (
-          <option key={op.value} value={op.value}>
-            {op.label}{op.grupo_muscular ? ` (${op.grupo_muscular})` : ""}
-          </option>
+      <div className="flex flex-wrap gap-1.5">
+        {ejercicios.map((ej) => (
+          <button
+            key={ej.ejercicio_id}
+            type="button"
+            onClick={() => elegir(ej)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+              seleccionado?.ejercicio_id === ej.ejercicio_id
+                ? "border-(--kt-teal-700) bg-(--kt-teal-700) text-white"
+                : "border-slate-300 bg-white text-slate-600 hover:border-(--kt-teal-700)/50"
+            }`}
+          >
+            {ej.nombre}
+          </button>
         ))}
-      </select>
+      </div>
 
-      {ejercicioId && (
+      {seleccionado && (
         <>
           <div className="grid grid-cols-4 gap-1.5">
             <input value={peso} onChange={(e) => setPeso(e.target.value)} inputMode="decimal" placeholder="Peso" className="rounded-lg border border-slate-300 px-2 py-2 text-xs outline-none focus:border-(--kt-teal-700)" />
@@ -136,8 +165,24 @@ export default function RegistrarSesionKinesiologiaPage() {
   const ejercicioPrecargado = location.state?.ejercicioPrecargado ?? null;
   const esEdicion = Boolean(sesionEditar);
 
-  const { data: catalogos } = useCatalogos();
-  const gruposEjercicios = agruparEjerciciosPorZona(catalogos?.ejerciciosKinesiologia || []);
+  const [rutina, setRutina] = useState([]);
+  const [cargandoRutina, setCargandoRutina] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      setCargandoRutina(true);
+      try {
+        const r = await getDetallePacienteKinesiologia(id);
+        if (!r.ok) return;
+        const ficha = r.patologias?.flatMap((p) => p.ficha ? [p.ficha] : []).find((f) => String(f.id) === String(fichaId));
+        setRutina(ficha?.rutina || []);
+      } finally {
+        setCargandoRutina(false);
+      }
+    })();
+  }, [id, fichaId]);
+
+  const gruposPorDia = agruparRutinaPorDia(rutina);
 
   const [ejerciciosSesion, setEjerciciosSesion] = useState(() => {
     if (sesionEditar?.ejercicios) {
@@ -256,13 +301,21 @@ export default function RegistrarSesionKinesiologiaPage() {
           </p>
         </div>
 
-        {/* Ejercicios de la sesión — de a uno por zona, se pueden agregar varios */}
+        {/* Ejercicios de la sesión — de a uno por día de la rutina configurada, se pueden agregar varios */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
           <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Ejercicios trabajados (opcional)</p>
 
-          {gruposEjercicios.map(({ zona, ejercicios }) => (
-            <SelectorZonaEjercicio key={zona} zona={zona} opciones={ejercicios} onAgregar={agregarEjercicio} />
-          ))}
+          {cargandoRutina ? (
+            <p className="text-sm text-slate-400">Cargando rutina…</p>
+          ) : gruposPorDia.length === 0 ? (
+            <p className="text-sm text-slate-400">
+              Este paciente todavía no tiene una rutina configurada — volvé a la ficha y usá "Configurar rutina" para poder elegir ejercicios acá.
+            </p>
+          ) : (
+            gruposPorDia.map(({ dia, ejercicios }) => (
+              <SelectorDiaEjercicio key={dia} dia={dia} ejercicios={ejercicios} onAgregar={agregarEjercicio} />
+            ))
+          )}
 
           {ejerciciosSesion.length > 0 && (
             <ul className="space-y-1.5 pt-1">
