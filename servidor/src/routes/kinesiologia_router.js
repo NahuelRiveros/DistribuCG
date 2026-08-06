@@ -6,6 +6,7 @@ import {
   listaPersonasRegistradas,
   agregarPaciente,
   listaPacientes,
+  cambiarEstadoPaciente,
   detallePaciente,
   crearTestFuncional,
   crearTestFuerza,
@@ -29,6 +30,7 @@ kinesiologiaRouter.get("/personas", listaPersonasRegistradas);
 
 kinesiologiaRouter.post("/pacientes", agregarPaciente);
 kinesiologiaRouter.get("/pacientes", listaPacientes);
+kinesiologiaRouter.patch("/pacientes/:id/estado", cambiarEstadoPaciente);
 kinesiologiaRouter.get("/pacientes/:id/ficha", detallePaciente);
 
 kinesiologiaRouter.post("/fichas/:id/test-funcional", crearTestFuncional);

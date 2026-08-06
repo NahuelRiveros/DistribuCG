@@ -19,7 +19,15 @@ export const PacienteKinesiologia = sequelize.define("PacienteKinesiologia", {
   // Patologías: ver tabla puente paciente_patologia (N:N con catálogo patologia)
   observaciones_medicas:   { type: DataTypes.TEXT, allowNull: true },
   fecha_inicio_tratamiento: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW },
-  activo:                  { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+  // Estado general del paciente (no el de una patología puntual — ver
+  // FichaKinesiologica.estado para eso). Se puede volver atrás en cualquier
+  // momento, ej. reingresa a tratamiento tras haber quedado "recuperado".
+  estado: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    defaultValue: "en_tratamiento",
+    validate: { isIn: [["en_tratamiento", "finalizado", "recuperado"]] },
+  },
 
   creado_en:      { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   actualizado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
@@ -31,6 +39,6 @@ export const PacienteKinesiologia = sequelize.define("PacienteKinesiologia", {
   timestamps: false,
   indexes: [
     { fields: ["persona_id"] },
-    { fields: ["activo"] },
+    { fields: ["estado"] },
   ],
 });

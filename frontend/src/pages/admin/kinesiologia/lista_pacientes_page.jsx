@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { HeartPulse, Plus, ChevronRight } from "lucide-react";
-import { getPacientesKinesiologia } from "../../../api/kinesiologia_api.js";
+import { HeartPulse, Plus, ChevronRight, Ban, CheckCircle2, RotateCcw } from "lucide-react";
+import { getPacientesKinesiologia, cambiarEstadoPacienteKinesiologia } from "../../../api/kinesiologia_api.js";
 import DataGrid from "../../../components/table/DataGrid.jsx";
 import AgregarPacienteModal from "./agregar_paciente_modal.jsx";
 
@@ -11,51 +11,25 @@ function iniciales(nombre, apellido) {
   return (a + n).toUpperCase() || "?";
 }
 
-function EstadoPacienteBadge({ activo }) {
+const ESTADO_PACIENTE_LABEL = {
+  en_tratamiento: "En tratamiento",
+  finalizado: "Finalizado",
+  recuperado: "Recuperado",
+};
+
+const ESTADO_PACIENTE_ESTILO = {
+  en_tratamiento: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  recuperado: "bg-blue-50 text-blue-700 border-blue-200",
+  finalizado: "bg-slate-50 text-slate-500 border-slate-200",
+};
+
+function EstadoPacienteBadge({ estado }) {
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${activo ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
-      {activo ? "En tratamiento" : "Inactivo"}
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${ESTADO_PACIENTE_ESTILO[estado] ?? ESTADO_PACIENTE_ESTILO.en_tratamiento}`}>
+      {ESTADO_PACIENTE_LABEL[estado] ?? "En tratamiento"}
     </span>
   );
 }
-
-const COLUMNS = [
-  {
-    key: "apellido",
-    label: "Paciente",
-    searchable: true,
-    render: (row) => (
-      <div className="flex items-center gap-2.5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--kt-teal-700) text-[10px] font-extrabold text-white">
-          {iniciales(row.nombre, row.apellido)}
-        </div>
-        <div>
-          <p className="font-semibold text-slate-900 leading-tight">{row.apellido} {row.nombre}</p>
-          {row.celular && <p className="text-[11px] text-slate-400 leading-tight">{row.celular}</p>}
-        </div>
-      </div>
-    ),
-  },
-  { key: "documento", label: "DNI", searchable: true, className: "text-slate-600" },
-  {
-    key: "patologia_desc",
-    label: "Patología",
-    render: (row) => row.patologia_desc || <span className="text-slate-400">—</span>,
-  },
-  {
-    key: "paciente_activo",
-    label: "Estado",
-    render: (row) => <EstadoPacienteBadge activo={row.paciente_activo} />,
-  },
-  {
-    key: "_arrow",
-    label: "",
-    searchable: false,
-    render: () => <ChevronRight size={14} className="text-slate-300" />,
-    className: "text-right",
-    headerClassName: "w-8",
-  },
-];
 
 export default function ListaPacientesKinesiologiaPage() {
   const nav = useNavigate();
@@ -97,6 +71,80 @@ export default function ListaPacientesKinesiologiaPage() {
 
   useEffect(() => { cargar(); }, [page, limit]);
 
+  async function cambiarEstado(row, estado) {
+    if (!window.confirm(`¿Cambiar el estado de ${row.apellido} ${row.nombre} a "${ESTADO_PACIENTE_LABEL[estado]}"?`)) return;
+    const r = await cambiarEstadoPacienteKinesiologia(row.paciente_kinesiologia_id, estado);
+    if (r?.ok) await cargar();
+  }
+
+  const columns = [
+    {
+      key: "apellido",
+      label: "Paciente",
+      searchable: true,
+      render: (row) => (
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--kt-teal-700) text-[10px] font-extrabold text-white">
+            {iniciales(row.nombre, row.apellido)}
+          </div>
+          <div>
+            <p className="font-semibold text-slate-900 leading-tight">{row.apellido} {row.nombre}</p>
+            {row.celular && <p className="text-[11px] text-slate-400 leading-tight">{row.celular}</p>}
+          </div>
+        </div>
+      ),
+    },
+    { key: "documento", label: "DNI", searchable: true, className: "text-slate-600" },
+    {
+      key: "patologia_desc",
+      label: "Patología",
+      render: (row) => row.patologia_desc || <span className="text-slate-400">—</span>,
+    },
+    {
+      key: "paciente_estado",
+      label: "Estado",
+      render: (row) => <EstadoPacienteBadge estado={row.paciente_estado} />,
+    },
+    {
+      key: "_arrow",
+      label: "",
+      searchable: false,
+      render: () => <ChevronRight size={14} className="text-slate-300" />,
+      className: "text-right",
+      headerClassName: "w-8",
+    },
+  ];
+
+  const actions = [
+    {
+      key: "finalizar",
+      label: "Finalizar tratamiento",
+      icon: <Ban size={12} />,
+      iconOnly: true,
+      variant: "default",
+      onClick: (row) => cambiarEstado(row, "finalizado"),
+      show: (row) => row.paciente_estado === "en_tratamiento",
+    },
+    {
+      key: "recuperado",
+      label: "Marcar como recuperado",
+      icon: <CheckCircle2 size={12} />,
+      iconOnly: true,
+      variant: "success",
+      onClick: (row) => cambiarEstado(row, "recuperado"),
+      show: (row) => row.paciente_estado === "en_tratamiento",
+    },
+    {
+      key: "reactivar",
+      label: "Volver a poner en tratamiento",
+      icon: <RotateCcw size={12} />,
+      iconOnly: true,
+      variant: "primary",
+      onClick: (row) => cambiarEstado(row, "en_tratamiento"),
+      show: (row) => row.paciente_estado !== "en_tratamiento",
+    },
+  ];
+
   const items = data?.items || [];
   const pag = data?.pagination || { page: 1, totalPages: 1, total: 0, limit };
 
@@ -133,7 +181,7 @@ export default function ListaPacientesKinesiologiaPage() {
 
         <DataGrid
           rows={items}
-          columns={COLUMNS}
+          columns={columns}
           keyField="paciente_kinesiologia_id"
           loading={cargando}
           searchable
@@ -141,6 +189,7 @@ export default function ListaPacientesKinesiologiaPage() {
           onSearch={handleSearch}
           emptyMessage="Todavía no hay pacientes de kinesiología cargados."
           onRowClick={(row) => nav(`/admin/kinesiologia/${row.paciente_kinesiologia_id}`)}
+          actions={actions}
           page={pag.page}
           totalPages={pag.totalPages}
           totalRows={pag.total}

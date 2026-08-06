@@ -10,6 +10,7 @@ import {
   actualizarSesionKinesiologia,
   eliminarSesionKinesiologia,
   guardarRutinaFicha,
+  cambiarEstadoPacienteKinesiologia,
 } from "../services/kinesiologia_service.js";
 import {
   listarPatologias,
@@ -21,14 +22,6 @@ import {
 function toInt(v, def) {
   const n = Number(v);
   return Number.isFinite(n) ? Math.trunc(n) : def;
-}
-
-function toBoolOrNull(v) {
-  if (v == null) return null;
-  const s = String(v).trim().toLowerCase();
-  if (["1", "true", "si", "sí", "yes"].includes(s)) return true;
-  if (["0", "false", "no"].includes(s)) return false;
-  return null;
 }
 
 export async function buscarPersona(req, res, next) {
@@ -82,16 +75,31 @@ export async function agregarPaciente(req, res, next) {
 
 export async function listaPacientes(req, res, next) {
   try {
-    const { q, dni, activo, page, limit, sort, order } = req.query;
+    const { q, dni, estado, page, limit, sort, order } = req.query;
     const r = await listarPacientesKinesiologia({
       q: q ? String(q).trim() : null,
       dni: dni ? String(dni).trim() : null,
-      activo: toBoolOrNull(activo),
+      estado: estado ? String(estado) : null,
       page: Math.max(1, toInt(page, 1)),
       limit: Math.min(100, Math.max(1, toInt(limit, 20))),
       sort: sort ? String(sort) : "apellido",
       order: order && String(order).toLowerCase() === "asc" ? "asc" : "desc",
     });
+    return res.json(r);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function cambiarEstadoPaciente(req, res, next) {
+  try {
+    const id = toInt(req.params.id, null);
+    const { estado } = req.body ?? {};
+    if (!id) {
+      return res.status(400).json({ ok: false, codigo: "VALIDACION", mensaje: "id inválido" });
+    }
+    const r = await cambiarEstadoPacienteKinesiologia(id, estado);
+    if (!r.ok) return res.status(r.codigo === "NO_EXISTE" ? 404 : 400).json(r);
     return res.json(r);
   } catch (err) {
     next(err);

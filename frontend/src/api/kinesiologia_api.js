@@ -25,6 +25,11 @@ export async function getDetallePacienteKinesiologia(pacienteKinesiologiaId) {
   return r.data;
 }
 
+export async function cambiarEstadoPacienteKinesiologia(pacienteKinesiologiaId, estado) {
+  const r = await http.patch(`/kinesiologia/pacientes/${pacienteKinesiologiaId}/estado`, { estado });
+  return r.data;
+}
+
 export async function registrarTestFuncional(fichaId, payload) {
   const r = await http.post(`/kinesiologia/fichas/${fichaId}/test-funcional`, payload);
   return r.data;

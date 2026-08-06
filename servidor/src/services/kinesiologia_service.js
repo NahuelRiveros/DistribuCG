@@ -89,7 +89,7 @@ export async function listarPersonasRegistradas({ q, dni, page = 1, limit = 20, 
       (a.id IS NOT NULL)  AS es_alumno,
       (pk.id IS NOT NULL) AS ya_es_paciente_kinesiologia,
       pk.id AS paciente_kinesiologia_id,
-      pk.activo AS paciente_activo
+      pk.estado AS paciente_estado
     FROM persona p
     LEFT JOIN alumno a               ON a.persona_id  = p.id
     LEFT JOIN paciente_kinesiologia pk ON pk.persona_id = p.id
@@ -181,9 +181,11 @@ export async function agregarPacienteKinesiologia({
   });
 }
 
+const ESTADOS_PACIENTE_VALIDOS = new Set(["en_tratamiento", "finalizado", "recuperado"]);
+
 /** Listado paginado de pacientes de kinesiología — mismo patrón que listarAlumnos. */
 export async function listarPacientesKinesiologia({
-  q, dni, activo, page = 1, limit = 20, sort = "apellido", order = "asc",
+  q, dni, estado, page = 1, limit = 20, sort = "apellido", order = "asc",
 }) {
   const p = Math.max(1, Number(page) || 1);
   const l = Math.min(100, Math.max(1, Number(limit) || 20));
@@ -206,8 +208,10 @@ export async function listarPacientesKinesiologia({
     `);
     repl.q = `%${q}%`;
   }
-  if (activo === true)  where.push(`pk.activo = true`);
-  if (activo === false) where.push(`pk.activo = false`);
+  if (estado && ESTADOS_PACIENTE_VALIDOS.has(estado)) {
+    where.push(`pk.estado = :estado`);
+    repl.estado = estado;
+  }
 
   const whereSQL = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
@@ -222,7 +226,7 @@ export async function listarPacientesKinesiologia({
   const sqlItems = `
     SELECT
       pk.id AS paciente_kinesiologia_id,
-      pk.activo AS paciente_activo,
+      pk.estado AS paciente_estado,
       pk.fecha_inicio_tratamiento,
 
       p.id AS persona_id,
@@ -324,9 +328,29 @@ export async function obtenerDetallePaciente({ paciente_kinesiologia_id }) {
     ok: true,
     persona: pacienteKinesiologia.persona,
     paciente_kinesiologia_id: pacienteKinesiologia.id,
-    activo: pacienteKinesiologia.activo,
+    estado: pacienteKinesiologia.estado,
     patologias,
   };
+}
+
+/**
+ * Cambia el estado general del paciente (en_tratamiento / finalizado /
+ * recuperado) — no hay restricción de transición, se puede volver a
+ * "en_tratamiento" desde cualquiera de los otros dos en cualquier momento.
+ */
+export async function cambiarEstadoPacienteKinesiologia(paciente_kinesiologia_id, estado) {
+  if (!ESTADOS_PACIENTE_VALIDOS.has(estado)) {
+    return { ok: false, codigo: "VALIDACION", mensaje: "Estado inválido" };
+  }
+
+  const pacienteKinesiologia = await PacienteKinesiologia.findByPk(paciente_kinesiologia_id);
+  if (!pacienteKinesiologia) {
+    return { ok: false, codigo: "NO_EXISTE", mensaje: "El paciente no existe" };
+  }
+
+  await pacienteKinesiologia.update({ estado, actualizado_en: new Date() });
+
+  return { ok: true, mensaje: "Estado actualizado correctamente", estado: pacienteKinesiologia.estado };
 }
 
 export async function registrarTestFuncional({ ficha_id, ejercicio_id, calidad_movimiento, observaciones, fecha, registrado_por_id }) {
