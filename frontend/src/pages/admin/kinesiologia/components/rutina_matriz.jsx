@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, HelpCircle, AlertTriangle } from "lucide-react";
 import { formatearFechaAR } from "../../../../components/form/formatear_fecha.js";
 
 const ORDEN_DIAS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
@@ -62,32 +62,40 @@ function armarMatriz(ficha) {
   return { filas, columnas, celdas };
 }
 
+// Escala clínica estándar de dolor (0-10): 0-3 leve, 4-6 moderado, 7-10 alto.
 function estadoCelda(entradas) {
   if (!entradas?.length) return "vacio";
-  return entradas.some((e) => Number(e.sesion.dolor_durante) > 3) ? "dolor" : "normal";
+  const maxDolor = Math.max(...entradas.map((e) => Number(e.sesion.dolor_durante) || 0));
+  if (maxDolor <= 3) return "verde";
+  if (maxDolor <= 6) return "amarillo";
+  return "rojo";
 }
 
 const ESTILO_ESTADO = {
-  vacio:  { bg: "var(--color-neutral-50)",  border: "var(--color-neutral-200)" },
-  normal: { bg: "var(--kt-success-bg)",     border: "var(--kt-success)" },
-  dolor:  { bg: "var(--kt-danger-bg)",      border: "var(--kt-danger)" },
+  vacio:    { bg: "var(--color-neutral-50)", border: "var(--color-neutral-200)" },
+  verde:    { bg: "var(--kt-success-bg)",    border: "var(--kt-success)" },
+  amarillo: { bg: "var(--kt-warning-bg)",    border: "var(--kt-warning)" },
+  rojo:     { bg: "var(--kt-danger-bg)",     border: "var(--kt-danger)" },
 };
 
 function Celda({ entradas, onClick }) {
   const estado = estadoCelda(entradas);
   const estilo = ESTILO_ESTADO[estado];
-  const clickeable = entradas.length > 0;
+  const titulo = entradas.length
+    ? `${entradas.length} sesión${entradas.length > 1 ? "es" : ""} — click para ver el detalle`
+    : "Sin sesión registrada — click para registrar";
   return (
     <button
       type="button"
-      disabled={!clickeable}
-      onClick={clickeable ? onClick : undefined}
-      title={clickeable ? `${entradas.length} sesión${entradas.length > 1 ? "es" : ""} — click para ver el detalle` : "No realizado"}
-      className={`h-9 w-full rounded-md border transition ${clickeable ? "cursor-pointer hover:brightness-95" : "cursor-default"}`}
+      onClick={onClick}
+      title={titulo}
+      className="h-9 w-full cursor-pointer rounded-md border transition hover:brightness-95"
       style={{ background: estilo.bg, borderColor: estilo.border }}
     >
-      {estado === "normal" && <Check size={13} className="mx-auto text-(--kt-success)" />}
-      {estado === "dolor" && <X size={13} className="mx-auto text-(--kt-danger)" />}
+      {estado === "vacio" && <HelpCircle size={13} className="mx-auto text-slate-400" />}
+      {estado === "verde" && <Check size={13} className="mx-auto text-(--kt-success)" />}
+      {estado === "amarillo" && <AlertTriangle size={12} className="mx-auto text-(--kt-warning)" />}
+      {estado === "rojo" && <X size={13} className="mx-auto text-(--kt-danger)" />}
     </button>
   );
 }
@@ -158,7 +166,7 @@ function DetalleCeldaModal({ nombreEjercicio, fecha, entradas, onClose, onEditar
   );
 }
 
-export default function RutinaMatriz({ ficha, onEditarSesion }) {
+export default function RutinaMatriz({ ficha, onEditarSesion, onRegistrarEjercicio }) {
   const [celdaAbierta, setCeldaAbierta] = useState(null); // { nombre, fecha, entradas }
 
   const { filas, columnas, celdas } = armarMatriz(ficha);
@@ -170,10 +178,18 @@ export default function RutinaMatriz({ ficha, onEditarSesion }) {
   if (!columnas.length) {
     return (
       <div>
-        <p className="text-sm text-slate-400 mb-2">Rutina configurada, sin sesiones registradas todavía.</p>
+        <p className="text-sm text-slate-400 mb-2">Rutina configurada, sin sesiones registradas todavía. Click en un ejercicio para registrar la primera sesión.</p>
         <ul className="space-y-1">
           {filas.flatMap((f) => f.ejercicios).map((ej) => (
-            <li key={ej.ejercicio_id} className="rounded-lg bg-slate-50 px-3 py-1.5 text-sm text-slate-600">{ej.nombre}</li>
+            <li key={ej.ejercicio_id}>
+              <button
+                type="button"
+                onClick={() => onRegistrarEjercicio({ ejercicio_id: ej.ejercicio_id, nombre: ej.nombre })}
+                className="w-full rounded-lg bg-slate-50 px-3 py-1.5 text-left text-sm text-slate-600 transition hover:bg-slate-100"
+              >
+                {ej.nombre}
+              </button>
+            </li>
           ))}
         </ul>
       </div>
@@ -209,7 +225,9 @@ export default function RutinaMatriz({ ficha, onEditarSesion }) {
                           <Celda
                             key={f}
                             entradas={entradas}
-                            onClick={() => setCeldaAbierta({ nombre: ej.nombre, fecha: f, entradas })}
+                            onClick={() => entradas.length
+                              ? setCeldaAbierta({ nombre: ej.nombre, fecha: f, entradas })
+                              : onRegistrarEjercicio({ ejercicio_id: ej.ejercicio_id, nombre: ej.nombre })}
                           />
                         );
                       })}
@@ -224,9 +242,10 @@ export default function RutinaMatriz({ ficha, onEditarSesion }) {
 
       {/* leyenda */}
       <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.vacio.bg, borderColor: ESTILO_ESTADO.vacio.border }} /> No realizado</span>
-        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.normal.bg, borderColor: ESTILO_ESTADO.normal.border }} /> Realizado</span>
-        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.dolor.bg, borderColor: ESTILO_ESTADO.dolor.border }} /> Con dolor</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.vacio.bg, borderColor: ESTILO_ESTADO.vacio.border }} /> Sin sesión (click para registrar)</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.verde.bg, borderColor: ESTILO_ESTADO.verde.border }} /> Dolor 0-3</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.amarillo.bg, borderColor: ESTILO_ESTADO.amarillo.border }} /> Dolor 4-6</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border" style={{ background: ESTILO_ESTADO.rojo.bg, borderColor: ESTILO_ESTADO.rojo.border }} /> Dolor 7-10</span>
       </div>
 
       {celdaAbierta && (

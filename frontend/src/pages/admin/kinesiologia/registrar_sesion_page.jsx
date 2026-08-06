@@ -133,21 +133,32 @@ export default function RegistrarSesionKinesiologiaPage() {
   const location = useLocation();
 
   const sesionEditar = location.state?.sesionEditar ?? null;
+  const ejercicioPrecargado = location.state?.ejercicioPrecargado ?? null;
   const esEdicion = Boolean(sesionEditar);
 
   const { data: catalogos } = useCatalogos();
   const gruposEjercicios = agruparEjerciciosPorZona(catalogos?.ejerciciosKinesiologia || []);
 
-  const [ejerciciosSesion, setEjerciciosSesion] = useState(() =>
-    (sesionEditar?.ejercicios || []).map((e) => ({
-      ejercicio_id: e.ejercicio_id,
-      nombre: e.ejercicio?.nombre ?? "",
-      peso: e.peso ?? null,
-      series: e.series ?? null,
-      repeticiones: e.repeticiones ?? null,
-      rir: e.rir ?? null,
-    }))
-  );
+  const [ejerciciosSesion, setEjerciciosSesion] = useState(() => {
+    if (sesionEditar?.ejercicios) {
+      return sesionEditar.ejercicios.map((e) => ({
+        ejercicio_id: e.ejercicio_id,
+        nombre: e.ejercicio?.nombre ?? "",
+        peso: e.peso ?? null,
+        series: e.series ?? null,
+        repeticiones: e.repeticiones ?? null,
+        rir: e.rir ?? null,
+      }));
+    }
+    if (ejercicioPrecargado) {
+      return [{
+        ejercicio_id: ejercicioPrecargado.ejercicio_id,
+        nombre: ejercicioPrecargado.nombre ?? "",
+        peso: null, series: null, repeticiones: null, rir: null,
+      }];
+    }
+    return [];
+  });
   const [dolorDurante, setDolorDurante] = useState(sesionEditar?.dolor_durante ?? null);
   const [dolor24h, setDolor24h] = useState(sesionEditar?.dolor_24h ?? null);
   const [escalas, setEscalas] = useState({

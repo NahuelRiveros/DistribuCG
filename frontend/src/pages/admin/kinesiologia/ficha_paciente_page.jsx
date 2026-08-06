@@ -89,6 +89,12 @@ function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRu
     });
   }
 
+  function registrarEjercicio(ejercicio) {
+    nav(`/admin/kinesiologia/${pacienteKinesiologiaId}/sesion?ficha=${ficha.id}`, {
+      state: { ejercicioPrecargado: ejercicio },
+    });
+  }
+
   async function guardarRutina(items) {
     setGuardandoRutina(true);
     try {
@@ -195,7 +201,7 @@ function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRu
                     <SesionRow sesion={ultimaSesion} onEditar={editarSesion} />
                   </div>
                 )}
-                <RutinaMatriz ficha={ficha} onEditarSesion={editarSesion} />
+                <RutinaMatriz ficha={ficha} onEditarSesion={editarSesion} onRegistrarEjercicio={registrarEjercicio} />
               </div>
             )}
           </div>
