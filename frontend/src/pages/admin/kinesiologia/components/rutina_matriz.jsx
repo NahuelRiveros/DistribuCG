@@ -6,18 +6,19 @@ import { ORDEN_DIAS, DIA_LABEL, diaSemanaDeFecha } from "../../../../utils/dias_
 // Secciones: una por cada día de la semana que tenga algo para mostrar.
 // Filas dentro de un día: los ejercicios de la rutina configurados para ese
 // día (o para todos, si es una rutina vieja sin días asignados), más
-// cualquier ejercicio que aparezca en una sesión real de ese día y no esté
-// en la rutina (nunca se esconde un dato real cargado). Cada fila junta
+// cualquier sesión real que haya caído en ese día — sea de un ejercicio
+// fuera de la rutina, o de uno que está en la rutina pero programado para
+// otro día (el paciente lo hizo igual ese día). Nunca se esconde un dato
+// real cargado, aunque no coincida con lo planificado. Cada fila junta
 // TODAS las sesiones reales de ese ejercicio que cayeron en ese día de la
 // semana, sin importar la fecha exacta ni la semana — la celda se pinta
 // según la sesión más reciente de esa lista.
 function armarSecciones(ficha) {
   const rutina = ficha?.rutina || [];
   const sesiones = ficha?.sesiones || [];
-  const idsEnRutina = new Set(rutina.map((r) => r.ejercicio_id));
 
   const celdas = new Map();
-  const nombresExtra = new Map();
+  const nombresPorEjercicio = new Map();
   for (const sesion of sesiones) {
     const dia = diaSemanaDeFecha(sesion.fecha);
     for (const se of sesion.ejercicios || []) {
@@ -25,8 +26,8 @@ function armarSecciones(ficha) {
       const key = `${se.ejercicio_id}|${dia}`;
       if (!celdas.has(key)) celdas.set(key, []);
       celdas.get(key).push({ sesion, sesionEjercicio: se });
-      if (!idsEnRutina.has(se.ejercicio_id) && !nombresExtra.has(se.ejercicio_id)) {
-        nombresExtra.set(se.ejercicio_id, se.ejercicio?.nombre ?? "Ejercicio");
+      if (!nombresPorEjercicio.has(se.ejercicio_id)) {
+        nombresPorEjercicio.set(se.ejercicio_id, se.ejercicio?.nombre ?? "Ejercicio");
       }
     }
   }
@@ -38,18 +39,21 @@ function armarSecciones(ficha) {
   const secciones = [];
   for (const dia of ORDEN_DIAS) {
     const filas = [];
+    const vistosEnDia = new Set();
     for (const r of rutina) {
       const dias = r.dias?.length ? r.dias : ORDEN_DIAS;
       if (!dias.includes(dia)) continue;
+      vistosEnDia.add(r.ejercicio_id);
       filas.push({
         ejercicio_id: r.ejercicio_id,
         nombre: r.ejercicio?.nombre ?? "Ejercicio",
         entradas: celdas.get(`${r.ejercicio_id}|${dia}`) || [],
       });
     }
-    for (const [ejercicio_id, nombre] of nombresExtra) {
+    for (const [ejercicio_id, nombre] of nombresPorEjercicio) {
+      if (vistosEnDia.has(ejercicio_id)) continue;
       const entradas = celdas.get(`${ejercicio_id}|${dia}`) || [];
-      if (!entradas.length) continue; // los "extra" solo se muestran en los días donde realmente hubo sesión
+      if (!entradas.length) continue; // solo se agregan días donde realmente hubo sesión
       filas.push({ ejercicio_id, nombre, entradas });
     }
     if (filas.length) secciones.push({ dia, filas });
