@@ -12,9 +12,15 @@ const dialectOptions = {
 // ── Pool de conexiones ────────────────────────────────────────────────────
 // Evita abrir/cerrar la DB en cada request.
 // En Render free tier el DB tiene límite de 25 conexiones → max: 5 es seguro.
+// min: 0 porque Neon suspende el compute tras un rato inactivo: una conexión
+// "min" que se mantiene abierta para siempre queda colgada (stale) del lado
+// del pool sin que Sequelize se entere, y el primer request tras el
+// autosuspend explota con 500 (funciona recién al reintentar/F5). Con min:0
+// el pool descarta conexiones ociosas (idle: 10000) y abre una nueva por
+// request cuando hace falta.
 const poolConfig = {
   max: 5,
-  min: 1,
+  min: 0,
   acquire: 30000,
   idle: 10000,
 };
@@ -24,6 +30,22 @@ const baseConfig = {
   logging: false,
   dialectOptions,
   pool: poolConfig,
+  // Reintenta automáticamente si la conexión murió del lado de Neon
+  // (autosuspend / idle timeout) en vez de devolver 500 al front.
+  retry: {
+    max: 3,
+    match: [
+      /ConnectionError/,
+      /ConnectionRefusedError/,
+      /ConnectionTimedOutError/,
+      /TimeoutError/,
+      /Connection terminated unexpectedly/i,
+      /terminating connection/i,
+      /server closed the connection unexpectedly/i,
+      /ECONNRESET/,
+      /ETIMEDOUT/,
+    ],
+  },
 };
 
 export const sequelize = env.DATABASE_URL
