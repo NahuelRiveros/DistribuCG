@@ -262,7 +262,6 @@ export async function guardarRutina(req, res, next) {
     const items = Array.isArray(req.body?.items) ? req.body.items : [];
     const r = await guardarRutinaFicha(ficha_id, items.map((it) => ({
       ejercicio_id: toInt(it?.ejercicio_id, null),
-      dia_semana: it?.dia_semana || null,
     })));
     if (!r.ok) return res.status(404).json(r);
     return res.json(r);

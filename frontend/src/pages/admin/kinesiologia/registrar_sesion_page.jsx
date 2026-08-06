@@ -16,31 +16,10 @@ const CRITERIOS = [
   { key: "buena_recuperacion", label: "Buena recuperación" },
 ];
 
-const ORDEN_DIAS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
-const DIA_LABEL = {
-  lunes: "Lunes", martes: "Martes", miercoles: "Miércoles", jueves: "Jueves",
-  viernes: "Viernes", sabado: "Sábado", domingo: "Domingo", otros: "Otros",
-};
-
-// Agrupa la rutina configurada por día — mismo orden y bucket "Otros" que
-// usa la matriz, para que la organización sea consistente en toda la app.
-function agruparRutinaPorDia(rutina) {
-  const grupos = new Map(ORDEN_DIAS.map((d) => [d, []]));
-  grupos.set("otros", []);
-  for (const r of rutina || []) {
-    const dia = r.dia_semana && ORDEN_DIAS.includes(r.dia_semana) ? r.dia_semana : "otros";
-    grupos.get(dia).push({ ejercicio_id: r.ejercicio_id, nombre: r.ejercicio?.nombre ?? "Ejercicio" });
-  }
-  return [...ORDEN_DIAS, "otros"]
-    .filter((d) => grupos.get(d).length > 0)
-    .map((d) => ({ dia: d, ejercicios: grupos.get(d) }));
-}
-
-// Chips de ejercicios de un día — responsive: en pantallas anchas quedan en
-// fila, en angostas se envuelven una debajo de otra (flex-wrap). Cada día es
-// su propia tarjeta, así "Lunes" y sus ejercicios quedan agrupados, y
-// "Martes" con los suyos abajo.
-function SelectorDiaEjercicio({ dia, ejercicios, onAgregar }) {
+// Chips con todos los ejercicios de la rutina del paciente, en una lista
+// plana (sin agrupar) — responsive: en pantallas anchas quedan en fila, en
+// angostas se envuelven una debajo de otra (flex-wrap).
+function SelectorEjercicioRutina({ ejercicios, onAgregar }) {
   const [seleccionado, setSeleccionado] = useState(null);
   const [peso, setPeso] = useState("");
   const [series, setSeries] = useState("");
@@ -66,8 +45,6 @@ function SelectorDiaEjercicio({ dia, ejercicios, onAgregar }) {
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2.5">
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{DIA_LABEL[dia]}</p>
-
       <div className="flex flex-wrap gap-1.5">
         {ejercicios.map((ej) => (
           <button
@@ -187,7 +164,10 @@ export default function RegistrarSesionKinesiologiaPage() {
     })();
   }, [id, fichaId, modoEjercicioUnico]);
 
-  const gruposPorDia = agruparRutinaPorDia(rutina);
+  const ejerciciosRutina = (rutina || []).map((r) => ({
+    ejercicio_id: r.ejercicio_id,
+    nombre: r.ejercicio?.nombre ?? "Ejercicio",
+  }));
 
   const [ejerciciosSesion, setEjerciciosSesion] = useState(() => {
     if (sesionEditar?.ejercicios) {
@@ -333,14 +313,12 @@ export default function RegistrarSesionKinesiologiaPage() {
 
             {cargandoRutina ? (
               <p className="text-sm text-slate-400">Cargando rutina…</p>
-            ) : gruposPorDia.length === 0 ? (
+            ) : ejerciciosRutina.length === 0 ? (
               <p className="text-sm text-slate-400">
                 Este paciente todavía no tiene una rutina configurada — volvé a la ficha y usá "Configurar rutina" para poder elegir ejercicios acá.
               </p>
             ) : (
-              gruposPorDia.map(({ dia, ejercicios }) => (
-                <SelectorDiaEjercicio key={dia} dia={dia} ejercicios={ejercicios} onAgregar={agregarEjercicio} />
-              ))
+              <SelectorEjercicioRutina ejercicios={ejerciciosRutina} onAgregar={agregarEjercicio} />
             )}
 
             {ejerciciosSesion.length > 0 && (

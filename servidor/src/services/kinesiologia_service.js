@@ -408,7 +408,6 @@ export async function guardarRutinaFicha(ficha_id, items) {
     limpios.push({
       ficha_id,
       ejercicio_id: item.ejercicio_id,
-      dia_semana: item.dia_semana || null,
       orden: limpios.length,
     });
   }

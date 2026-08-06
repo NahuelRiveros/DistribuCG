@@ -2,35 +2,20 @@ import { useState } from "react";
 import { CalendarDays, Plus, X } from "lucide-react";
 import { agruparEjerciciosPorZona } from "../../utils/kinesiologia_zonas.js";
 
-const DIAS_SEMANA = [
-  { value: "lunes",     label: "Lunes" },
-  { value: "martes",    label: "Martes" },
-  { value: "miercoles", label: "Miércoles" },
-  { value: "jueves",    label: "Jueves" },
-  { value: "viernes",   label: "Viernes" },
-  { value: "sabado",    label: "Sábado" },
-  { value: "domingo",   label: "Domingo" },
-];
-
 function SelectorRutinaZona({ zona, opciones, onAgregar }) {
   const [ejercicioId, setEjercicioId] = useState("");
-  const [diaSemana, setDiaSemana] = useState("");
 
   function agregar() {
     if (!ejercicioId) return;
     const opcion = opciones.find((op) => String(op.value) === String(ejercicioId));
-    onAgregar({
-      ejercicio_id: Number(ejercicioId),
-      nombre: opcion?.label ?? "",
-      dia_semana: diaSemana || null,
-    });
-    setEjercicioId(""); setDiaSemana("");
+    onAgregar({ ejercicio_id: Number(ejercicioId), nombre: opcion?.label ?? "" });
+    setEjercicioId("");
   }
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
       <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{zona}</p>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_140px_auto]">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
         <select
           value={ejercicioId}
           onChange={(e) => setEjercicioId(e.target.value)}
@@ -41,16 +26,6 @@ function SelectorRutinaZona({ zona, opciones, onAgregar }) {
             <option key={op.value} value={op.value}>
               {op.label}{op.grupo_muscular ? ` (${op.grupo_muscular})` : ""}
             </option>
-          ))}
-        </select>
-        <select
-          value={diaSemana}
-          onChange={(e) => setDiaSemana(e.target.value)}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-(--kt-teal-700)"
-        >
-          <option value="">Sin día fijo</option>
-          {DIAS_SEMANA.map((d) => (
-            <option key={d.value} value={d.value}>{d.label}</option>
           ))}
         </select>
         <button
@@ -66,8 +41,6 @@ function SelectorRutinaZona({ zona, opciones, onAgregar }) {
   );
 }
 
-const DIA_LABEL = Object.fromEntries(DIAS_SEMANA.map((d) => [d.value, d.label]));
-
 export default function RutinaKinesiologiaModal({
   abierto, onClose, onGuardar, rutinaActual = [], ejerciciosCatalogo = [], cargando = false,
 }) {
@@ -81,7 +54,6 @@ export default function RutinaKinesiologiaModal({
       setItems((rutinaActual || []).map((r) => ({
         ejercicio_id: r.ejercicio_id,
         nombre: r.ejercicio?.nombre ?? "",
-        dia_semana: r.dia_semana ?? null,
       })));
       setError(null);
     }
@@ -105,7 +77,7 @@ export default function RutinaKinesiologiaModal({
   }
 
   async function guardar() {
-    await onGuardar(items.map((i) => ({ ejercicio_id: i.ejercicio_id, dia_semana: i.dia_semana })));
+    await onGuardar(items.map((i) => ({ ejercicio_id: i.ejercicio_id })));
   }
 
   return (
@@ -117,7 +89,7 @@ export default function RutinaKinesiologiaModal({
             <h2 className="text-xl font-bold text-gray-900">Configurar rutina</h2>
           </div>
           <p className="mt-1 text-sm text-gray-600">
-            Elegí los ejercicios que le corresponden a este paciente y, si querés, el día de la semana. Esto arma las filas de la matriz de seguimiento.
+            Elegí los ejercicios que le corresponden a este paciente. Esto arma las filas de la matriz de seguimiento.
           </p>
         </div>
 
@@ -136,10 +108,7 @@ export default function RutinaKinesiologiaModal({
               <ul className="space-y-1.5">
                 {items.map((item, i) => (
                   <li key={`${item.ejercicio_id}-${i}`} className="flex items-center justify-between gap-2 rounded-lg border border-(--kt-teal-700)/15 bg-(--kt-teal-700)/5 px-3 py-2 text-sm">
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-slate-800">{item.nombre}</p>
-                      <p className="text-xs text-slate-500">{item.dia_semana ? DIA_LABEL[item.dia_semana] : "Sin día fijo"}</p>
-                    </div>
+                    <p className="truncate font-semibold text-slate-800">{item.nombre}</p>
                     <button type="button" onClick={() => quitarItem(i)} className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-red-600">
                       <X size={14} />
                     </button>
