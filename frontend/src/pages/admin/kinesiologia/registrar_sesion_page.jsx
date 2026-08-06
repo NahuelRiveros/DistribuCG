@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Check, Plus, X } from "lucide-react";
 import { registrarSesionKinesiologia, actualizarSesionKinesiologia, getDetallePacienteKinesiologia } from "../../../api/kinesiologia_api.js";
+import { DIA_LABEL, fechaRecienteParaDia } from "../../../utils/dias_semana.js";
 
 // Fecha local (no UTC) en formato YYYY-MM-DD, la que espera <input type="date">.
 function fechaHoyLocal() {
@@ -195,7 +196,11 @@ export default function RegistrarSesionKinesiologiaPage() {
     }
     return [];
   });
-  const [fecha, setFecha] = useState(sesionEditar?.fecha ?? fechaHoyLocal());
+  const [fecha, setFecha] = useState(
+    sesionEditar?.fecha
+    ?? (ejercicioPrecargado?.dia && fechaRecienteParaDia(ejercicioPrecargado.dia))
+    ?? fechaHoyLocal()
+  );
   const [dolorDurante, setDolorDurante] = useState(sesionEditar?.dolor_durante ?? null);
   const [dolor24h, setDolor24h] = useState(sesionEditar?.dolor_24h ?? null);
   const [escalas, setEscalas] = useState({
@@ -313,6 +318,11 @@ export default function RegistrarSesionKinesiologiaPage() {
             onChange={(e) => setFecha(e.target.value)}
             className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-(--kt-teal-700)"
           />
+          {!esEdicion && ejercicioPrecargado?.dia && (
+            <p className="mt-1.5 text-xs text-slate-400">
+              Sugerida para el último {DIA_LABEL[ejercicioPrecargado.dia]} — cambiala si la sesión fue otro día.
+            </p>
+          )}
         </div>
 
         {modoEjercicioUnico ? (

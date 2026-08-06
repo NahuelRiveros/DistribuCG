@@ -241,7 +241,7 @@ export default function RutinaMatriz({ ficha, onEditarSesion, onRegistrarEjercic
           onClose={() => setCeldaAbierta(null)}
           onEditarSesion={(sesion) => { setCeldaAbierta(null); onEditarSesion(sesion); }}
           onEliminarSesion={(sesion) => { setCeldaAbierta(null); onEliminarSesion(sesion); }}
-          onRegistrarSesion={() => { setCeldaAbierta(null); onRegistrarEjercicio({ ejercicio_id: celdaAbierta.ejercicio_id, nombre: celdaAbierta.nombre }); }}
+          onRegistrarSesion={() => { setCeldaAbierta(null); onRegistrarEjercicio({ ejercicio_id: celdaAbierta.ejercicio_id, nombre: celdaAbierta.nombre, dia: celdaAbierta.dia }); }}
         />
       )}
     </div>
