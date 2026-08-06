@@ -5,13 +5,14 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./app/query_client.js";
 import { router } from "./app/router.jsx";
 import { AuthProvider } from "./auth/auth_context.jsx"; // Login Futuro
+import "./config/apply_brand_theme.js";
 import "../src/index.css"
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-      <RouterProvider router={router} />
+        <RouterProvider router={router} />
       </AuthProvider>
     </QueryClientProvider>
   </React.StrictMode>

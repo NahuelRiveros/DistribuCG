@@ -4,6 +4,7 @@ import {
 import { useHomeContent } from "../hooks/use_home_content.js";
 import { useHomeConfig } from "../hooks/use_home_config.js";
 import { iconoHome } from "../config/home_iconos.js";
+import { brandConfig } from "../config/brand_config.js";
 import HomeCarousel from "./home_carousel.jsx";
 import LogoMoovs from "./common/logo_moovs.jsx";
 
@@ -43,7 +44,7 @@ export default function HomePage() {
         <div className="relative mx-auto max-w-5xl px-6 pb-24 pt-28 text-center sm:pt-36">
           <div className="kt-a1 inline-flex items-center gap-2 rounded-full border border-[var(--kt-border)] bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kt-petrol)] shadow-sm">
             <span className="kt-pulse-dot h-1.5 w-1.5 rounded-full bg-[var(--kt-turquoise)]" />
-            {texto("hero_kicker", "Centro de Entrenamiento y Kinesiología")}
+            {texto("hero_kicker", brandConfig.rubro)}
           </div>
 
           <h1 className="kt-a2 mt-8 flex justify-center">
@@ -205,7 +206,7 @@ export default function HomePage() {
             <span className="block">{texto("footer_cta_titulo_resaltado", "un plan")}</span>
           </h2>
           <p className="mt-6 text-base text-white/85">
-            {texto("footer_cta_texto", "Entrenamiento personalizado y kinesiología, pensados para vos.")}
+            {texto("footer_cta_texto", brandConfig.tagline)}
           </p>
         </div>
       </section>

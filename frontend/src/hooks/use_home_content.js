@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { obtenerContenidoHomePublico } from "../api/home_content_api.js";
+import { normalizarTextosProfundo } from "../utils/normalizar_texto.js";
 
 export function useHomeContent() {
   const [areas, setAreas] = useState([]);
@@ -13,7 +14,7 @@ export function useHomeContent() {
       try {
         const r = await obtenerContenidoHomePublico();
         if (!alive) return;
-        setAreas(r?.data ?? []);
+        setAreas(normalizarTextosProfundo(r?.data ?? []));
       } catch (e) {
         if (!alive) return;
         setError(e);

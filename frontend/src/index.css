@@ -21,22 +21,22 @@
 
 :root {
   /* ── Marca ─────────────────────────────────────────────────────────────── */
-  --kt-turquoise:      #18C7D8; /* decorativo / fondos oscuros — no usar como texto ni como fondo de botón con texto encima (2.1:1) */
-  --kt-turquoise-soft: #E3FAFC;
-  --kt-turquoise-border: #B8EEF3; /* borde sutil de tarjetas/cabeceras con acento de marca */
-  --kt-petrol:         #0B7D8F; /* accesible con texto blanco (4.83:1) */
-  --kt-night:          #060a12; /* paneles oscuros (kiosk, register, pagos) */
+  --kt-turquoise:      #87C7E8; /* acento tomado del logo: lineas, foco, detalles; evitar texto chico encima */
+  --kt-turquoise-soft: #EAF6FC;
+  --kt-turquoise-border: #C7E6F4; /* borde sutil de tarjetas/cabeceras con acento de marca */
+  --kt-petrol:         #47556A; /* azul acero principal del wordmark, accesible con texto blanco */
+  --kt-night:          #17283A; /* paneles oscuros (kiosk, register, pagos) */
   --kt-bg:             #FFFFFF;
-  --kt-bg-soft:        #F5F7F9;
-  --kt-ink:            #222222;
-  --kt-ink-soft:       #666666;
-  --kt-border:         #D9E1E6;
+  --kt-bg-soft:        #F3F5F7;
+  --kt-ink:            #243447;
+  --kt-ink-soft:       #647184;
+  --kt-border:         #DDE4EA;
 
   /* ── Paleta accesible (auditoría WCAG, ver kinetica-audit) ──────────────── */
-  --kt-teal-900: #063A42; /* fondos oscuros de marca / titulares — 12.4:1 vs blanco */
-  --kt-teal-700: #0B6E7D; /* acción: botones sólidos, link activo, foco — 5.93:1 con blanco */
-  --kt-teal-500: #0F94A6; /* solo texto/ícono grande (≥24px) o UI no textual — 3.6:1 */
-  --kt-ink-mute: #475569; /* reemplaza slate-400 como texto real — 7.58:1 vs blanco */
+  --kt-teal-900: #243447; /* fondos oscuros de marca / titulares */
+  --kt-teal-700: #47556A; /* acción: botones sólidos, link activo, foco */
+  --kt-teal-500: #6CAFD4; /* acento fuerte derivado del celeste */
+  --kt-ink-mute: #909BAA; /* gris del sistema de marca */
 
   --kt-success:    #047857; --kt-success-bg: #ECFDF5;
   --kt-warning:    #B45309; --kt-warning-bg: #FFFBEB;
@@ -122,8 +122,8 @@
 }
 
 /* ── Moovs: fuentes (definidas en index.html via <link>, aquí solo asignamos) ── */
-.kt-display { font-family: 'Bricolage Grotesque', sans-serif; }
-.kt-body    { font-family: 'Plus Jakarta Sans', sans-serif; }
+.kt-display { font-family: var(--kt-font-display, 'Bricolage Grotesque', sans-serif); }
+.kt-body    { font-family: var(--kt-font-body, 'Plus Jakarta Sans', sans-serif); }
 
 /* ── Animaciones home ─────────────────────────────────────────────────────── */
 @keyframes kt-fade-up {

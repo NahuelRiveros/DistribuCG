@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { obtenerConfigHomePublico } from "../api/home_content_api.js";
+import { normalizarTexto, normalizarTextosProfundo } from "../utils/normalizar_texto.js";
 
 /**
  * Textos, pilares, contactos y layout de galería del home — todo lo que NO
@@ -22,10 +23,10 @@ export function useHomeConfig() {
         const r = await obtenerConfigHomePublico();
         if (!alive) return;
         if (r?.ok) {
-          setTextos(r.textos ?? {});
-          setPilares(r.pilares ?? []);
-          setContactos(r.contactos ?? []);
-          setLayoutPorArea(r.layoutPorArea ?? {});
+          setTextos(normalizarTextosProfundo(r.textos ?? {}));
+          setPilares(normalizarTextosProfundo(r.pilares ?? []));
+          setContactos(normalizarTextosProfundo(r.contactos ?? []));
+          setLayoutPorArea(normalizarTextosProfundo(r.layoutPorArea ?? {}));
         }
       } catch {
         // silencioso: el home sigue con los fallbacks hardcodeados
@@ -38,7 +39,7 @@ export function useHomeConfig() {
   }, []);
 
   function texto(clave, fallback = "") {
-    return textos[clave] || fallback;
+    return textos[clave] || normalizarTexto(fallback);
   }
 
   function layoutDeArea(descripcion) {

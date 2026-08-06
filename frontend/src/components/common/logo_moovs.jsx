@@ -1,4 +1,5 @@
-import { useId } from "react";
+import { brandConfig } from "../../config/brand_config.js";
+import logoS from "../../assets/logoS1.svg";
 
 // Recreación en SVG del isotipo "moovs" (wordmark "moov" + una S final
 // estilizada como columna vertebral, degradé gris → turquesa) a partir del
@@ -7,32 +8,24 @@ import { useId } from "react";
 const SIZE = {
   sm:   { text: "text-lg",                          spine: "h-[1.15em]" },
   md:   { text: "text-3xl sm:text-4xl",              spine: "h-[1.2em]" },
-  hero: { text: "text-6xl sm:text-7xl md:text-8xl",  spine: "h-[1.28em]" },
+  hero: { text: "text-6xl sm:text-7xl md:text-[8.15rem]",  spine: "h-[1.72em]" },
 };
 
-const VERTEBRAS = [[31, 13], [22, 25], [18, 37], [26, 47], [33, 59], [29, 70], [15, 82], [12, 92]];
+const WORDMARK_STYLE = {
+  fontFamily: '"Raleway", "Avenir Next", Avenir, "Helvetica Neue", Arial, sans-serif',
+  fontWeight: 500,
+  letterSpacing: "0",
+};
 
-function SpinaS({ className = "", gradientId }) {
+function ImagenSpinaS({ className = "" }) {
   return (
-    <svg viewBox="0 0 42 100" className={className} aria-hidden="true" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"  stopColor="var(--kt-ink-mute)" />
-          <stop offset="55%" stopColor="var(--kt-teal-700)" />
-          <stop offset="100%" stopColor="var(--kt-turquoise)" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M33 6 C 13 6, 9 28, 21 39 C 35 51, 35 66, 19 77 C 8 85, 8 91, 15 97"
-        fill="none"
-        stroke={`url(#${gradientId})`}
-        strokeWidth="7.5"
-        strokeLinecap="round"
+    <span className={`${className} relative inline-block overflow-hidden`} aria-hidden="true">
+      <img
+        src={logoS}
+        alt=""
+        className="absolute left-1/2 top-0 h-full w-auto max-w-none -translate-x-1/2 object-contain"
       />
-      {VERTEBRAS.map(([cx, cy], i) => (
-        <circle key={i} cx={cx} cy={cy} r={2.4} fill={`url(#${gradientId})`} />
-      ))}
-    </svg>
+    </span>
   );
 }
 
@@ -43,22 +36,36 @@ function SpinaS({ className = "", gradientId }) {
  * sobre fondo claro).
  */
 export default function LogoMoovs({ size = "md", variant = "dark", animated = false, className = "" }) {
-  const gradientId = `moovs-spine-${useId()}`;
   const sizing = SIZE[size] ?? SIZE.md;
   const isLight = variant === "light";
+  const logo = brandConfig.logo ?? {};
+  const textClass = animated ? "kt-shimmer-text" : isLight ? "text-white" : "text-[var(--kt-ink)]";
+
+  if (logo.tipo !== "moovs-spine") {
+    return (
+      <span
+        aria-label={logo.ariaLabel || brandConfig.nombre}
+        className={`inline-flex leading-none ${sizing.text} ${textClass} ${className}`}
+        style={WORDMARK_STYLE}
+      >
+        {logo.texto || brandConfig.nombre}
+      </span>
+    );
+  }
 
   return (
     <span
-      aria-label="Moovs"
-      className={`kt-display inline-flex items-end font-extrabold lowercase leading-none tracking-tight ${sizing.text} ${className}`}
+      aria-label={logo.ariaLabel || brandConfig.nombre}
+      className={`inline-flex items-end leading-none ${sizing.text} ${className}`}
+      style={WORDMARK_STYLE}
     >
       <span
         aria-hidden="true"
-        className={animated ? "kt-shimmer-text" : isLight ? "text-white" : "text-[var(--kt-ink)]"}
+        className={textClass}
       >
-        moov
+        {(logo.texto || "MOOV").toUpperCase()}
       </span>
-      <SpinaS gradientId={gradientId} className={`${sizing.spine} w-auto -ml-[0.04em] translate-y-[0.05em]`} />
+      <ImagenSpinaS className={`${sizing.spine} w-[0.95em] -ml-[0.25em] translate-y-[0.25em]`} />
     </span>
   );
 }

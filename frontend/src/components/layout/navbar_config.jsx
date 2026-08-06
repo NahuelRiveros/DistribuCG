@@ -4,11 +4,12 @@ import {
   Briefcase, Settings, HeartPulse, Stethoscope, Layers, ShoppingCart,
   Megaphone, FileEdit, Volume2, LayoutTemplate, Receipt, KeyRound, ToggleLeft,
 } from "lucide-react";
+import { brandConfig } from "../../config/brand_config.js";
 
 export const navbar_config = {
   brand: {
-    titulo: "Moovs",
-    subtitulo: "Entrenamiento · Kinesiología",
+    titulo: brandConfig.nombre,
+    subtitulo: brandConfig.rubro,
     logoUrl: null,
     mostrarTitulo: true,
     mostrarSubtitulo: true,

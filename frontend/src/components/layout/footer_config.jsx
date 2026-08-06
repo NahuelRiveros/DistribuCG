@@ -1,6 +1,7 @@
 import {
   ScanLine, Dumbbell, Activity, HeartPulse, Trophy,
 } from "lucide-react";
+import { brandConfig } from "../../config/brand_config.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIG DEL FOOTER — pensado para poder reusar Moovs en otro cliente
@@ -81,7 +82,7 @@ export const footer_config = {
   legal: {
     // Nombre que aparece en el copyright — normalmente el mismo que la marca
     // del logo, pero puede diferir (ej. razón social) si un cliente lo pide.
-    nombreDerechos: "Moovs",
+    nombreDerechos: brandConfig.nombre,
     mostrarDesarrolladoPor: true,
     desarrolladoPor: "Riveros Edgardo Nahuel",
   },

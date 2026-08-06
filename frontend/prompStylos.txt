@@ -1,0 +1,56 @@
+Quiero normalizar el sistema de diseño del frontend para que todos los 
+colores, radios, sombras, z-index y duraciones estén definidos una sola 
+vez y el resto del código los referencie como tokens.
+
+## Objetivo
+Que en el futuro, cambiar la paleta de colores o cualquier valor de diseño 
+solo requiera editar UN archivo (el archivo de estilos global).
+
+## Stack de este proyecto
+[COMPLETAR: ej. React + Tailwind CSS v4 / Vue + CSS Variables / Next.js + 
+Tailwind v3 / etc.]
+
+## Archivo de tokens
+[COMPLETAR: ruta del archivo donde van los tokens, ej. 
+src/index.css con @theme de Tailwind v4 / src/styles/tokens.css / 
+tailwind.config.js / etc.]
+
+
+
+## Tarea
+
+1. **Auditar** todos los archivos del frontend y encontrar:
+   - Colores hex hardcodeados (#xxxxxx)
+   - Colores rgba/rgb hardcodeados
+   - Valores de border-radius repetidos
+   - box-shadow hardcodeados
+   - z-index hardcodeados
+   - transition-duration hardcodeados
+   - Clases de utilidad de librerías externas que no corresponden 
+     a la paleta del proyecto (ej. bg-slate-*, bg-white, text-gray-*)
+
+2. **Definir tokens** en el archivo de estilos global para todos los 
+   valores encontrados, agrupados por categoría:
+   - Colores de marca (primary, surface, card, text, border, accent...)
+   - Colores semánticos (success, error, warning, info)
+   - Colores de estados de UI (si aplica: status-pending, status-paid...)
+   - Radio de bordes (xs → pill)
+   - Sombras
+   - Z-index (nav, modal, toast...)
+   - Duraciones de transición (fast, base, slow)
+
+3. **Reemplazar** en todos los archivos:
+   - Inline styles con colores → clases utilitarias o var(--token)
+   - Clases externas que no corresponden → clases del sistema de tokens
+   - box-shadow inline → var(--shadow-nombre)
+   - Valores magic number → var(--token)
+
+4. Al terminar, hacer commit y push.
+
+## Restricciones
+- No cambiar la lógica ni el comportamiento, solo los valores de estilo
+- Los colores semánticos de UI (rojo error, verde success) pueden quedar 
+  con clases de utilidad estándar (rose-*, emerald-*) ya que son 
+  convenciones universales
+- Colores de overlays sobre fondos oscuros (rgba blanco sobre imagen) 
+  pueden quedar como están si son efectos locales
