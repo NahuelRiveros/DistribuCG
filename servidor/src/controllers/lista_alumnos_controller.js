@@ -2,6 +2,7 @@
 import { listarAlumnos } from "../services/lista_alumnos_service.js";
 import { obtenerDetalleAlumno } from "../services/alumno_detalle_service.js";
 import { obtenerAlumnosCumples } from "../services/alumno_cumples.js";
+import { listarProfesoresGym, asignarProfesorAlumno } from "../services/asignacion_profesional_service.js";
 
 function toInt(v, def) {
   const n = Number(v);
@@ -18,13 +19,14 @@ function toBoolOrNull(v) {
 
 export async function listaAlumnos(req, res, next) {
   try {
-    const { q, dni, estado_id, plan_vigente, page, limit, sort, order } = req.query;
+    const { q, dni, estado_id, plan_vigente, profesor_id, page, limit, sort, order } = req.query;
 
     const filtros = {
       q: q ? String(q).trim() : null,
       dni: dni ? String(dni).trim() : null,
       estado_id: estado_id != null && estado_id !== "" ? toInt(estado_id, null) : null,
       plan_vigente: toBoolOrNull(plan_vigente),
+      profesor_id: profesor_id != null && profesor_id !== "" ? toInt(profesor_id, null) : null,
       page: Math.max(1, toInt(page, 1)),
       limit: Math.min(100, Math.max(1, toInt(limit, 20))),
       sort: sort ? String(sort) : "apellido",
@@ -67,5 +69,32 @@ export async function alumnosCumples(req, res, next) {
     return res.status(200).json(data);
   } catch (error) {
     next(error);
+  }
+}
+
+export async function profesoresGym(req, res, next) {
+  try {
+    const profesores = await listarProfesoresGym();
+    return res.json({ ok: true, profesores });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function asignarProfesor(req, res, next) {
+  try {
+    const alumno_id = Number(req.params.id);
+    if (!alumno_id) {
+      return res.status(400).json({ ok: false, codigo: "VALIDACION", mensaje: "id inválido" });
+    }
+    const { profesor_id } = req.body ?? {};
+
+    const r = await asignarProfesorAlumno({ alumno_id, profesor_id: profesor_id || null });
+    if (!r.ok) {
+      return res.status(r.codigo === "NO_EXISTE" ? 404 : 400).json(r);
+    }
+    return res.json(r);
+  } catch (err) {
+    next(err);
   }
 }

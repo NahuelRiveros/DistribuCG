@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAlumnosListado, actualizarEstadosAlumnos } from "../../api/alumnos_api";
+import { getAlumnosListado, actualizarEstadosAlumnos, getProfesoresGym } from "../../api/alumnos_api";
 import { useAuth } from "../../auth/auth_context.jsx";
 import { Users, RefreshCw, ChevronRight } from "lucide-react";
 import { formatearFechaAR } from "../../components/form/formatear_fecha";
@@ -94,6 +94,15 @@ const COLUMNS = [
     render: (_, val) => val ?? "—",
   },
   {
+    key: "profesor_apellido",
+    label: "Profesor",
+    className: "text-slate-600 hidden md:table-cell",
+    headerClassName: "hidden md:table-cell",
+    render: (row) => row.profesor_id
+      ? `${row.profesor_apellido} ${row.profesor_nombre}`
+      : <span className="text-slate-400">—</span>,
+  },
+  {
     key: "_arrow",
     label: "",
     searchable: false,
@@ -111,6 +120,8 @@ export default function ListaAlumnosPage() {
   const esAdmin = usuario?.roles?.includes("admin");
 
   const [planVigente, setPlanVigente] = useState("");
+  const [profesorId, setProfesorId]   = useState("");
+  const [profesores, setProfesores]   = useState([]);
   const [busqueda, setBusqueda]       = useState("");
   const [page, setPage]   = useState(1);
   const [limit, setLimit] = useState(20);
@@ -119,10 +130,11 @@ export default function ListaAlumnosPage() {
   const [cargando, setCargando] = useState(false);
   const [error, setError]       = useState(null);
 
-  async function cargar({ resetPage = false, qOverride, planVigenteOverride } = {}) {
+  async function cargar({ resetPage = false, qOverride, planVigenteOverride, profesorIdOverride } = {}) {
     const nextPage = resetPage ? 1 : page;
     const q  = qOverride  !== undefined ? qOverride  : busqueda;
     const pv = planVigenteOverride !== undefined ? planVigenteOverride : planVigente;
+    const prof = profesorIdOverride !== undefined ? profesorIdOverride : profesorId;
     setCargando(true);
     setError(null);
     try {
@@ -131,6 +143,7 @@ export default function ListaAlumnosPage() {
         sort: "apellido", order: "asc",
         ...(q?.trim() ? { q: q.trim() } : {}),
         ...(pv        ? { plan_vigente: pv } : {}),
+        ...(prof      ? { profesor_id: prof } : {}),
       };
       const r = await getAlumnosListado(params);
       if (!r?.ok) { setError(r?.mensaje || "No se pudo cargar alumnos"); setData(null); return; }
@@ -165,6 +178,15 @@ export default function ListaAlumnosPage() {
   }
 
   useEffect(() => { cargar(); }, [page, limit]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await getProfesoresGym();
+        if (r?.ok) setProfesores(r.profesores || []);
+      } catch { /* el filtro queda vacío si falla */ }
+    })();
+  }, []);
 
   const items = data?.items || [];
   const pag   = data?.pagination || { page: 1, totalPages: 1, total: 0, limit };
@@ -209,6 +231,17 @@ export default function ListaAlumnosPage() {
             <option value="">Plan (todos)</option>
             <option value="true">Con plan vigente</option>
             <option value="false">Sin plan vigente</option>
+          </select>
+
+          <select
+            value={profesorId}
+            onChange={(e) => { const val = e.target.value; setProfesorId(val); cargar({ resetPage: true, profesorIdOverride: val }); }}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+          >
+            <option value="">Profesor (todos)</option>
+            {profesores.map((p) => (
+              <option key={p.value} value={p.value}>{p.label}</option>
+            ))}
           </select>
         </div>
 

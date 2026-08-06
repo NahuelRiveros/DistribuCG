@@ -15,10 +15,27 @@ export async function obtenerDetalleAlumno({ alumno_id }) {
       p.documento AS gym_persona_documento,
       p.email AS gym_persona_email,
       p.celular AS gym_persona_celular,
-      p.fecha_nacimiento AS gym_persona_fechanacimiento
+      p.fecha_nacimiento AS gym_persona_fechanacimiento,
+
+      prof.profesor_id,
+      prof.profesor_nombre,
+      prof.profesor_apellido
     FROM alumno a
     JOIN persona p ON p.id = a.persona_id
     LEFT JOIN alumno_estado ea ON ea.id = a.estado_id
+    LEFT JOIN LATERAL (
+      SELECT
+        ap.profesor_id,
+        pp.nombre   AS profesor_nombre,
+        pp.apellido AS profesor_apellido
+      FROM asignacion_profesional ap
+      JOIN usuario up ON up.id = ap.profesor_id
+      JOIN persona pp ON pp.id = up.persona_id
+      WHERE ap.persona_id = a.persona_id
+        AND ap.tipo = 'entrenamiento'
+        AND ap.activo = true
+      LIMIT 1
+    ) prof ON TRUE
     WHERE a.id = :alumno_id
     LIMIT 1;
   `;

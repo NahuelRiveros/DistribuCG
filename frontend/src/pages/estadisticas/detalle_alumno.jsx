@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getAlumnoDetalle } from "../../api/alumnos_api";
-import { ArrowLeft, BadgeCheck, Ban, RefreshCw, CreditCard, TrendingUp, Zap, Clock } from "lucide-react";
+import { getAlumnoDetalle, getProfesoresGym, asignarProfesorAlumno } from "../../api/alumnos_api";
+import { ArrowLeft, BadgeCheck, Ban, RefreshCw, CreditCard, TrendingUp, Zap, Clock, UserCog } from "lucide-react";
 import { formatearFechaAR } from "../../components/form/formatear_fecha";
 import DataGrid from "../../components/table/DataGrid";
 
@@ -102,6 +102,9 @@ export default function DetalleAlumnoPage() {
   const [cargando, setCargando] = useState(false);
   const [error, setError]       = useState(null);
 
+  const [profesores, setProfesores]           = useState([]);
+  const [guardandoProfesor, setGuardandoProfesor] = useState(false);
+
   async function cargar() {
     setCargando(true);
     setError(null);
@@ -118,6 +121,28 @@ export default function DetalleAlumnoPage() {
   }
 
   useEffect(() => { cargar(); }, [id]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await getProfesoresGym();
+        if (r?.ok) setProfesores(r.profesores || []);
+      } catch { /* el select queda vacío si falla */ }
+    })();
+  }, []);
+
+  async function cambiarProfesor(profesorId) {
+    setGuardandoProfesor(true);
+    try {
+      const r = await asignarProfesorAlumno(id, profesorId);
+      if (!r?.ok) { setError(r?.mensaje || "No se pudo asignar el profesor"); return; }
+      await cargar();
+    } catch (e) {
+      setError(e?.response?.data?.mensaje || e?.message || "Error inesperado al asignar el profesor");
+    } finally {
+      setGuardandoProfesor(false);
+    }
+  }
 
   const alumno     = data?.alumno;
   const planActual = data?.plan_actual;
@@ -182,7 +207,7 @@ export default function DetalleAlumnoPage() {
         )}
 
         {/* ── CARDS PLAN ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="rounded-2xl border border-blue-200 bg-linear-to-br from-blue-600 to-blue-500 px-4 py-4 shadow-sm shadow-blue-500/20">
             <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-blue-100">
               <CreditCard size={11} /> Plan actual
@@ -217,6 +242,23 @@ export default function DetalleAlumnoPage() {
             <p className="mt-0.5 text-xs text-slate-500">
               {resumen?.total_pagos ?? planes.length} {(resumen?.total_pagos ?? planes.length) === 1 ? "pago" : "pagos"}
             </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <UserCog size={11} /> Profesor asignado
+            </div>
+            <select
+              value={alumno?.profesor_id ?? ""}
+              onChange={(e) => cambiarProfesor(e.target.value ? Number(e.target.value) : null)}
+              disabled={guardandoProfesor || cargando}
+              className="mt-1.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-blue-400 focus:ring-1 focus:ring-blue-400 disabled:opacity-50"
+            >
+              <option value="">Sin asignar</option>
+              {profesores.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
           </div>
         </div>
 

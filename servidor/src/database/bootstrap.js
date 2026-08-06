@@ -20,6 +20,7 @@ import {
 export async function bootstrap_database() {
   console.log("🛠️  Iniciando bootstrap...");
   await crear_schema();
+  await aplicar_ajustes_puntuales();
   await sincronizar_modelos();
   console.log("✅ Bootstrap finalizado correctamente");
 }
@@ -27,6 +28,21 @@ export async function bootstrap_database() {
 async function crear_schema() {
   await sequelize.query(`CREATE SCHEMA IF NOT EXISTS "${DB_SCHEMA}"`);
   console.log(`✅ Schema "${DB_SCHEMA}" listo`);
+}
+
+/**
+ * Ajustes puntuales que `sync({ alter: true })` no resuelve solo (ej. cambiar
+ * la definición de un índice único ya existente). Cada entrada debe ser
+ * idempotente (IF EXISTS / IF NOT EXISTS) para poder correr en cada boot.
+ */
+async function aplicar_ajustes_puntuales() {
+  // asignacion_profesional: el único activo pasó de ser por persona_id a
+  // ser por (persona_id, tipo) — así una persona puede tener a la vez un
+  // profesor de gym y un kinesiólogo asignados. sync({ alter:true }) no
+  // reemplaza índices con distinta definición, así que se borra a mano.
+  await sequelize.query(
+    `DROP INDEX IF EXISTS "${DB_SCHEMA}".asignacion_profesional_persona_activa_unq`
+  );
 }
 
 async function sincronizar_modelos() {

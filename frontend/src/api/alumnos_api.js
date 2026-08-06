@@ -25,6 +25,16 @@ export async function getAlumnosCumples(params = {}){
   return r.data;
 }
 
+export async function getProfesoresGym() {
+  const r = await http.get("/alumnos/profesores");
+  return r.data;
+}
+
+export async function asignarProfesorAlumno(alumnoId, profesorId) {
+  const r = await http.patch(`/alumnos/${alumnoId}/profesor`, { profesor_id: profesorId || null });
+  return r.data;
+}
+
 // Consulta pública por DNI — no requiere auth
 export async function consultarPlanPorDni(dni) {
   const r = await http.get(`/consulta/plan/${encodeURIComponent(dni)}`);

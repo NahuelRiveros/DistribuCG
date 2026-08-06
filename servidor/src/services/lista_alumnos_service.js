@@ -6,6 +6,7 @@ export async function listarAlumnos({
   dni,
   estado_id,
   plan_vigente,
+  profesor_id,
   page = 1,
   limit = 20,
   sort = "apellido",
@@ -42,6 +43,11 @@ export async function listarAlumnos({
 
   if (plan_vigente === true)  where.push(`fvig.id IS NOT NULL`);
   if (plan_vigente === false) where.push(`fvig.id IS NULL`);
+
+  if (profesor_id) {
+    where.push(`prof.profesor_id = :profesor_id`);
+    repl.profesor_id = Number(profesor_id);
+  }
 
   const whereSQL = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
@@ -80,7 +86,11 @@ export async function listarAlumnos({
       flast.pago_metodo AS metodo_pago,
       flast.pago_fecha AS fecha_pago,
 
-      CASE WHEN fvig.id IS NOT NULL THEN true ELSE false END AS tiene_plan_vigente
+      CASE WHEN fvig.id IS NOT NULL THEN true ELSE false END AS tiene_plan_vigente,
+
+      prof.profesor_id,
+      prof.profesor_nombre,
+      prof.profesor_apellido
 
     FROM alumno a
     JOIN persona p ON p.id = a.persona_id
@@ -95,6 +105,20 @@ export async function listarAlumnos({
       ORDER BY f.fecha_inicio DESC, f.id DESC
       LIMIT 1
     ) fvig ON TRUE
+
+    LEFT JOIN LATERAL (
+      SELECT
+        ap.profesor_id,
+        pp.nombre   AS profesor_nombre,
+        pp.apellido AS profesor_apellido
+      FROM asignacion_profesional ap
+      JOIN usuario up  ON up.id = ap.profesor_id
+      JOIN persona pp  ON pp.id = up.persona_id
+      WHERE ap.persona_id = a.persona_id
+        AND ap.tipo = 'entrenamiento'
+        AND ap.activo = true
+      LIMIT 1
+    ) prof ON TRUE
 
     LEFT JOIN LATERAL (
       SELECT
@@ -132,6 +156,14 @@ export async function listarAlumnos({
       ORDER BY f.fecha_fin DESC, f.id DESC
       LIMIT 1
     ) fvig ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT ap.profesor_id
+      FROM asignacion_profesional ap
+      WHERE ap.persona_id = a.persona_id
+        AND ap.tipo = 'entrenamiento'
+        AND ap.activo = true
+      LIMIT 1
+    ) prof ON TRUE
     ${whereSQL}
   `;
 
