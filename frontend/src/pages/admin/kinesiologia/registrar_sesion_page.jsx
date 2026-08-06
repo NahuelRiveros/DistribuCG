@@ -3,6 +3,12 @@ import { useParams, useSearchParams, useNavigate, useLocation } from "react-rout
 import { ArrowLeft, Check, Plus, X } from "lucide-react";
 import { registrarSesionKinesiologia, actualizarSesionKinesiologia, getDetallePacienteKinesiologia } from "../../../api/kinesiologia_api.js";
 
+// Fecha local (no UTC) en formato YYYY-MM-DD, la que espera <input type="date">.
+function fechaHoyLocal() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 const ESCALAS = [
   { key: "calidad_movimiento",   label: "Calidad del movimiento" },
   { key: "tolerancia_carga",     label: "Tolerancia a la carga" },
@@ -189,6 +195,7 @@ export default function RegistrarSesionKinesiologiaPage() {
     }
     return [];
   });
+  const [fecha, setFecha] = useState(sesionEditar?.fecha ?? fechaHoyLocal());
   const [dolorDurante, setDolorDurante] = useState(sesionEditar?.dolor_durante ?? null);
   const [dolor24h, setDolor24h] = useState(sesionEditar?.dolor_24h ?? null);
   const [escalas, setEscalas] = useState({
@@ -213,6 +220,7 @@ export default function RegistrarSesionKinesiologiaPage() {
   const aptoFinal = aptoManual !== null ? aptoManual : sugerenciaApto;
 
   const faltanCampos =
+    !fecha ||
     dolorDurante == null ||
     Object.values(escalas).some((v) => v == null);
 
@@ -230,13 +238,14 @@ export default function RegistrarSesionKinesiologiaPage() {
 
   async function guardar() {
     if (faltanCampos) {
-      setError("Completá el dolor durante el ejercicio y los 4 indicadores de progresión");
+      setError("Completá la fecha, el dolor durante el ejercicio y los 4 indicadores de progresión");
       return;
     }
     setGuardando(true);
     setError(null);
     try {
       const payload = {
+        fecha,
         ejercicios: ejerciciosSesion.map((ej) => ({
           ejercicio_id: ej.ejercicio_id,
           peso: ej.peso,
@@ -289,9 +298,21 @@ export default function RegistrarSesionKinesiologiaPage() {
             {esEdicion
               ? "Corregí los datos de esta sesión ya guardada."
               : modoEjercicioUnico
-                ? `Cargando "${ejercicioPrecargado.nombre}" de hoy.`
-                : "Cargá los indicadores de progresión de hoy."}
+                ? `Cargando "${ejercicioPrecargado.nombre}".`
+                : "Cargá los indicadores de progresión de la visita."}
           </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <label className="text-xs font-bold uppercase tracking-wide text-slate-400" htmlFor="fecha-sesion">Fecha de la sesión</label>
+          <input
+            id="fecha-sesion"
+            type="date"
+            value={fecha}
+            max={fechaHoyLocal()}
+            onChange={(e) => setFecha(e.target.value)}
+            className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-(--kt-teal-700)"
+          />
         </div>
 
         {modoEjercicioUnico ? (
