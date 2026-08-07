@@ -69,3 +69,37 @@ export async function login({ email, password }) {
     },
   };
 }
+
+export async function obtenerPerfil(persona_id) {
+  const persona = await Persona.findByPk(persona_id, {
+    attributes: ["nombre", "apellido", "email"],
+  });
+
+  return {
+    ok: true,
+    persona: {
+      nombre:   persona?.nombre   ?? null,
+      apellido: persona?.apellido ?? null,
+      email:    persona?.email    ?? null,
+    },
+  };
+}
+
+export async function resetearPassword({ email, newPassword }) {
+  const persona = await Persona.findOne({
+    where: { email: String(email).trim().toLowerCase() },
+  });
+  if (!persona) {
+    return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Email no encontrado" };
+  }
+
+  const usuario = await Usuario.findOne({ where: { persona_id: persona.id } });
+  if (!usuario) {
+    return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Usuario no encontrado" };
+  }
+
+  const hash = await bcrypt.hash(String(newPassword).trim(), 10);
+  await usuario.update({ contrasena: hash });
+
+  return { ok: true, codigo: "PASSWORD_ACTUALIZADA", mensaje: "Contraseña actualizada correctamente" };
+}

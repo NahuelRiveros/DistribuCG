@@ -1,4 +1,5 @@
 import { registrarIngresoPorDni } from "../services/ingresos_service.js";
+import { estadoCola } from "../services/offline_queue_service.js";
 
 export async function registrarIngreso(req, res, next) {
   try {
@@ -41,6 +42,14 @@ export async function registrarIngreso(req, res, next) {
     }
 
     return res.status(200).json(r);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function estadoColaOfflineController(_req, res, next) {
+  try {
+    return res.json({ ok: true, cola: estadoCola() });
   } catch (err) {
     next(err);
   }
