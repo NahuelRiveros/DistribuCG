@@ -4,7 +4,7 @@ import {
   Briefcase, Settings, HeartPulse, Stethoscope, Layers, ShoppingCart,
   Megaphone, FileEdit, Volume2, LayoutTemplate, Receipt, KeyRound, ToggleLeft,
 } from "lucide-react";
-import { brandConfig } from "../../config/brand_config.js";
+import { brandConfig } from "./brand_config.js";
 
 export const navbar_config = {
   brand: {

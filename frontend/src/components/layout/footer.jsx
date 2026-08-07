@@ -1,5 +1,5 @@
 import { ShieldCheck } from "lucide-react";
-import { footer_config } from "./footer_config.jsx";
+import { footer_config } from "../../config/footer_config.js";
 import { moduloHabilitado } from "../../config/modulos_config.js";
 import { useAuth } from "../../auth/auth_context.jsx";
 import LogoMoovs from "../brand/logo_moovs.jsx";

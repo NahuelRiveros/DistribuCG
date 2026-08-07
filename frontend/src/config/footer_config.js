@@ -1,7 +1,7 @@
 import {
   ScanLine, Dumbbell, Activity, HeartPulse, Trophy,
 } from "lucide-react";
-import { brandConfig } from "../../config/brand_config.js";
+import { brandConfig } from "./brand_config.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIG DEL FOOTER — pensado para poder reusar Moovs en otro cliente

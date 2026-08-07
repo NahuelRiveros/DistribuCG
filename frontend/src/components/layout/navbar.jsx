@@ -3,7 +3,7 @@ import { Menu, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../auth/auth_context.jsx";
 import { filtrarNavbarPorRol } from "./navbar_permissions.js";
-import { navbar_config } from "./navbar_config.jsx";
+import { navbar_config } from "../../config/navbar_config.js";
 import NavbarDesktop from "./navbar_desktop.jsx";
 import NavbarMobile from "./navbar_mobile.jsx";
 import NavbarUserBox from "./navbar_userbox.jsx";
