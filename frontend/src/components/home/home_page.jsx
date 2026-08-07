@@ -1,19 +1,13 @@
 import {
-  ArrowRight, ArrowDown, Target, LineChart, UserCheck, HeartPulse, ImageOff,
+  ArrowRight, ArrowDown, ImageOff,
 } from "lucide-react";
 import { useHomeContent } from "../../hooks/use_home_content.js";
 import { useHomeConfig } from "../../hooks/use_home_config.js";
 import { iconoHome } from "../../config/home_iconos.js";
 import { brandConfig } from "../../config/brand_config.js";
+import { HOME_TEXTOS_DEFAULT, HOME_VALOR } from "../../config/home_config.js";
 import HomeCarousel from "./home_carousel.jsx";
 import LogoMoovs from "../brand/logo_moovs.jsx";
-
-const VALOR = [
-  { icon: Target,     label: "Plan a tu medida" },
-  { icon: UserCheck,  label: "Profesional asignado" },
-  { icon: LineChart,  label: "Seguimiento por ejercicio" },
-  { icon: HeartPulse, label: "Kinesiología incluida" },
-];
 
 function contenidoASlide(c) {
   return {
@@ -52,7 +46,7 @@ export default function HomePage() {
           </h1>
 
           <p className="kt-a3 mx-auto mt-7 max-w-lg text-base leading-relaxed text-[var(--kt-ink-soft)] sm:text-lg">
-            {texto("hero_subtitulo", "Entrenamiento 100 % personalizado con seguimiento real de cada ejercicio, y kinesiología para acompañar tu recuperación.")}
+            {texto("hero_subtitulo", HOME_TEXTOS_DEFAULT.hero_subtitulo)}
           </p>
 
           <div className="kt-a4 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -60,14 +54,14 @@ export default function HomePage() {
               href="#pilares"
               className="group inline-flex items-center gap-2.5 rounded-2xl bg-(--kt-teal-700) px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-[var(--kt-turquoise)]/30 transition-all duration-200 hover:bg-[var(--kt-petrol)] hover:shadow-[var(--kt-petrol)]/30"
             >
-              {texto("hero_cta_primario", "Conocenos")}
+              {texto("hero_cta_primario", HOME_TEXTOS_DEFAULT.hero_cta_primario)}
               <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
             </a>
             <a
               href="#contacto"
               className="inline-flex items-center gap-2 rounded-2xl border border-[var(--kt-border)] bg-white px-8 py-4 text-sm font-bold uppercase tracking-wider text-[var(--kt-ink)] transition-all duration-200 hover:border-[var(--kt-turquoise)] hover:text-[var(--kt-petrol)]"
             >
-              {texto("hero_cta_secundario", "Contacto")}
+              {texto("hero_cta_secundario", HOME_TEXTOS_DEFAULT.hero_cta_secundario)}
             </a>
           </div>
 
@@ -85,7 +79,7 @@ export default function HomePage() {
       {/* ── VALOR (chips) ─────────────────────────────────── */}
       <section className="border-y border-[var(--kt-border)] bg-[var(--kt-bg-soft)] py-10">
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 px-6 sm:grid-cols-4">
-          {VALOR.map(({ icon, label }) => {
+          {HOME_VALOR.map(({ icon, label }) => {
             const Icon = icon;
             return (
               <div key={label} className="flex flex-col items-center gap-2.5 text-center">
@@ -102,10 +96,10 @@ export default function HomePage() {
       {/* ── PILARES (editables desde /admin/home-config) ──── */}
       <section id="pilares" className="py-24 px-6">
         <div className="mx-auto max-w-5xl">
-          <SectionKicker>{texto("pilares_kicker", "Nuestro fuerte")}</SectionKicker>
+          <SectionKicker>{texto("pilares_kicker", HOME_TEXTOS_DEFAULT.pilares_kicker)}</SectionKicker>
           <h2 className="kt-display mt-3 text-4xl font-bold uppercase leading-none sm:text-5xl">
-            {texto("pilares_titulo", "Entrenamiento y kinesiología,")}
-            <span className="block text-(--kt-teal-700)">{texto("pilares_titulo_resaltado", "en un solo lugar")}</span>
+            {texto("pilares_titulo", HOME_TEXTOS_DEFAULT.pilares_titulo)}
+            <span className="block text-(--kt-teal-700)">{texto("pilares_titulo_resaltado", HOME_TEXTOS_DEFAULT.pilares_titulo_resaltado)}</span>
           </h2>
 
           <div className="mt-14 grid gap-6 md:grid-cols-2">
@@ -131,9 +125,9 @@ export default function HomePage() {
       {/* ── GALERÍA CONFIGURABLE (grid o carrusel, por área) ── */}
       <section id="galeria" className="bg-[var(--kt-bg-soft)] py-24 px-6">
         <div className="mx-auto max-w-6xl">
-          <SectionKicker>{texto("galeria_kicker", "Lo que hacemos")}</SectionKicker>
+          <SectionKicker>{texto("galeria_kicker", HOME_TEXTOS_DEFAULT.galeria_kicker)}</SectionKicker>
           <h2 className="kt-display mt-3 text-4xl font-bold uppercase leading-none sm:text-5xl">
-            {texto("galeria_titulo", "Conocé el espacio")}
+            {texto("galeria_titulo", HOME_TEXTOS_DEFAULT.galeria_titulo)}
           </h2>
 
           {!loading && areasConContenido.length === 0 && (
@@ -169,9 +163,9 @@ export default function HomePage() {
       {/* ── CONTACTO (editable desde /admin/home-config) ──── */}
       <section id="contacto" className="py-24 px-6">
         <div className="mx-auto max-w-4xl">
-          <SectionKicker>{texto("contacto_kicker", "Hablemos")}</SectionKicker>
+          <SectionKicker>{texto("contacto_kicker", HOME_TEXTOS_DEFAULT.contacto_kicker)}</SectionKicker>
           <h2 className="kt-display mt-3 text-4xl font-bold uppercase leading-none sm:text-5xl">
-            {texto("contacto_titulo", "Empezá hoy")}
+            {texto("contacto_titulo", HOME_TEXTOS_DEFAULT.contacto_titulo)}
           </h2>
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2">
@@ -202,8 +196,8 @@ export default function HomePage() {
         <KineticPath className="pointer-events-none absolute -left-20 -bottom-20 h-[360px] w-[360px] opacity-20" light />
         <div className="relative mx-auto max-w-2xl">
           <h2 className="kt-display text-5xl font-bold uppercase leading-none sm:text-6xl">
-            {texto("footer_cta_titulo", "Movete con")}
-            <span className="block">{texto("footer_cta_titulo_resaltado", "un plan")}</span>
+            {texto("footer_cta_titulo", HOME_TEXTOS_DEFAULT.footer_cta_titulo)}
+            <span className="block">{texto("footer_cta_titulo_resaltado", HOME_TEXTOS_DEFAULT.footer_cta_titulo_resaltado)}</span>
           </h2>
           <p className="mt-6 text-base text-white/85">
             {texto("footer_cta_texto", brandConfig.tagline)}
