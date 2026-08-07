@@ -5,7 +5,7 @@ import {
   FichaKinesiologica, TestFuncional, TestFuerza,
   SesionKinesiologica, SesionKinesiologicaEjercicio, RutinaEjercicio,
 } from "../../models/index.js";
-import { normalizarDocumento } from "../persona_service.js";
+import { normalizarDocumento } from "../usuarios/persona_service.js";
 
 /**
  * Busca una persona ya registrada por DNI para el flujo "agregar paciente de

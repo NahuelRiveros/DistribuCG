@@ -1,17 +1,17 @@
 import { Router } from "express";
 import { sequelize } from "../database/sequelize.js"; // 👈 IMPORTANTE
 
-import { personasRouter } from "./personas_router.js";
+import { personasRouter } from "./usuarios/personas_router.js";
 import { ingresoRouter } from "./ingreso_router.js";
 import { pagosRouter } from "./pagos_router.js";
 import { listaAlumnosRouter } from "./lista_alumnos_router.js";
 import { estadisticasRouter } from "./estadisticas_router.js";
-import { authRouter } from "./auth_router.js";
-import { adminUsuariosRouter } from "./admin_usuarios_router.js";
+import { authRouter } from "./usuarios/auth_router.js";
+import { adminUsuariosRouter } from "./usuarios/admin_usuarios_router.js";
 import { catalogosRouter } from "./catalogos_router.js";
 import { adminAlumnosRouter } from "./admin_alumnos_router.js";
 import { planesRouter } from "./planes_router.js";
-import { staffRouter } from "./staff_router.js";
+import { staffRouter } from "./usuarios/staff_router.js";
 import { recaudacionRouter } from "./recaudacion_router.js";
 import { consultaPublicaRouter } from "./consulta_publica_router.js";
 import { suscripcionRouter } from "./suscripcion_router.js";

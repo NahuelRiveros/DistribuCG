@@ -1,4 +1,4 @@
-import { crearUsuarioConRoles ,listarUsuarios} from "../services/admin_usuarios_service.js";
+import { crearUsuarioConRoles ,listarUsuarios} from "../../services/usuarios/admin_usuarios_service.js";
 
 
 export async function crearUsuarioController(req, res) {

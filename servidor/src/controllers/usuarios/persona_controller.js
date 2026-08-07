@@ -1,4 +1,4 @@
-import { registrarPersonaConAlumno } from "../services/persona_service.js";
+import { registrarPersonaConAlumno } from "../../services/usuarios/persona_service.js";
 
 export async function registrar(req, res, next) {
   try {

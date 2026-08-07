@@ -1,9 +1,9 @@
 import { Router } from "express";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import { loginController, meController, logoutController, resetPasswordController } from "../controllers/auth_controller.js";
-import { requireAuth } from "../middleware/auth_middleware.js";
-import { seedAdmin, seedStaff } from "../controllers/auth_seed_controller.js";
-import { env } from "../configuracion_servidor/env.js";
+import { loginController, meController, logoutController, resetPasswordController } from "../../controllers/usuarios/auth_controller.js";
+import { requireAuth } from "../../middleware/auth_middleware.js";
+import { seedAdmin, seedStaff } from "../../controllers/usuarios/auth_seed_controller.js";
+import { env } from "../../configuracion_servidor/env.js";
 
 export const authRouter = Router();
 

@@ -1,4 +1,4 @@
-﻿import { login, obtenerPerfil, resetearPassword } from "../services/auth_service.js";
+﻿import { login, obtenerPerfil, resetearPassword } from "../../services/usuarios/auth_service.js";
 
 export async function loginController(req, res) {
   try {

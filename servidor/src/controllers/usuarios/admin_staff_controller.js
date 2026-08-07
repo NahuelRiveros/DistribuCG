@@ -6,7 +6,7 @@ import {
   cambiarEstadoStaff,
   cambiarRolStaff,
   eliminarStaff,
-} from "../services/admin_staff_service.js";
+} from "../../services/usuarios/admin_staff_service.js";
 
 // 📋 listar
 export async function listarStaffController(_req, res) {

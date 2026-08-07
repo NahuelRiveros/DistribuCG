@@ -1,4 +1,4 @@
-﻿import { crearUsuarioConRol } from "../services/auth_seed_service.js";
+﻿import { crearUsuarioConRol } from "../../services/usuarios/auth_seed_service.js";
 
 export async function seedAdmin(req, res) {
   try {
