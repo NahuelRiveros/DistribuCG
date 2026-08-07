@@ -90,11 +90,11 @@ export const UI_NAVBAR = {
   // NAVEGACIÓN DESKTOP (navbar_desktop.jsx)
   // ════════════════════════════════════════════════════════════════
 
-  desktop_contenedor:
-    "hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex",
+  desktop_contenedor:                                      // ← scroll horizontal si no entran todos los menús (evita que se encimen con logo/userbox)
+    "hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 
   desktop_link:
-    "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200",
+    "inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200",
 
   desktop_link_activo:                                     // ← C.activo_bg
     `${C.activo_bg} ${C.activo_texto} shadow-md ${C.activo_sombra}`,
@@ -107,7 +107,7 @@ export const UI_NAVBAR = {
   // ════════════════════════════════════════════════════════════════
 
   dropdown_trigger:
-    "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200 focus:outline-none",
+    "inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200 focus:outline-none",
 
   dropdown_trigger_abierto:
     `${C.suave_bg} ${C.suave_texto}`,
