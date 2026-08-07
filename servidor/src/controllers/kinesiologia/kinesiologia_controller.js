@@ -11,13 +11,13 @@ import {
   eliminarSesionKinesiologia,
   guardarRutinaFicha,
   cambiarEstadoPacienteKinesiologia,
-} from "../services/kinesiologia_service.js";
+} from "../../services/kinesiologia/kinesiologia_service.js";
 import {
   listarPatologias,
   crearPatologia,
   actualizarPatologia,
   cambiarEstadoPatologia,
-} from "../services/patologia_service.js";
+} from "../../services/kinesiologia/patologia_service.js";
 
 function toInt(v, def) {
   const n = Number(v);

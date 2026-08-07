@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
 import {
   buscarPersona,
   listaPersonasRegistradas,
@@ -18,7 +18,7 @@ import {
   crearPatologiaController,
   actualizarPatologiaController,
   cambiarEstadoPatologiaController,
-} from "../controllers/kinesiologia_controller.js";
+} from "../../controllers/kinesiologia/kinesiologia_controller.js";
 
 export const kinesiologiaRouter = Router();
 // Gate de licencia primero (bloquea incluso a admin si el módulo está apagado),

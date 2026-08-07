@@ -18,7 +18,7 @@ import { suscripcionRouter } from "./suscripcion_router.js";
 import { promocionesRouter } from "./promociones_router.js";
 import { stockRouter } from "./stock/stock_router.js";
 import { homeRouter } from "./home_router.js";
-import { kinesiologiaRouter } from "./kinesiologia_router.js";
+import { kinesiologiaRouter } from "./kinesiologia/kinesiologia_router.js";
 import { modulosRouter } from "./modulos_router.js";
 import { verificarSuscripcion } from "../middleware/suscripcion_middleware.js";
 

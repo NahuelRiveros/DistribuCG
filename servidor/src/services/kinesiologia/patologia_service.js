@@ -1,4 +1,4 @@
-import { Patologia } from "../models/index.js";
+import { Patologia } from "../../models/index.js";
 
 export async function listarPatologias() {
   const items = await Patologia.findAll({ order: [["descripcion", "ASC"]] });

@@ -1,11 +1,11 @@
-import { sequelize } from "../database/sequelize.js";
+import { sequelize } from "../../database/sequelize.js";
 import { QueryTypes } from "sequelize";
 import {
   Persona, Alumno, PacienteKinesiologia, PacientePatologia,
   FichaKinesiologica, TestFuncional, TestFuerza,
   SesionKinesiologica, SesionKinesiologicaEjercicio, RutinaEjercicio,
-} from "../models/index.js";
-import { normalizarDocumento } from "./persona_service.js";
+} from "../../models/index.js";
+import { normalizarDocumento } from "../persona_service.js";
 
 /**
  * Busca una persona ya registrada por DNI para el flujo "agregar paciente de
