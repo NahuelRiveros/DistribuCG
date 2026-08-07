@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import Navbar from "./navbar.jsx";
 import Footer from "./footer.jsx";
 import GymAudioScheduler from "../gym_audio_scheduler.jsx";
-import SuscripcionBanner from "../SuscripcionBanner.jsx";
+import SuscripcionBanner from "../suscripcion_banner.jsx";
 
 function ScrollToTop() {
   const { pathname } = useLocation();

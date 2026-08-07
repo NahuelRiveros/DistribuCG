@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import NavbarDropdown from "./navbar_dropdown.jsx";
-import { UI_NAVBAR as S } from "../styles_components/ui_navbar_style.jsx";
+import { UI_NAVBAR as S } from "./navbar_style.js";
 
 export default function NavbarDesktop({ config }) {
   const [openDropdownId, setOpenDropdownId] = useState(null);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PlanFormModal from "../../components/modal/plan_form_modal";
-import DataGrid from "../../components/table/DataGrid";
+import DataGrid from "../../components/table/data_grid";
 import {
   obtenerPlanes,
   crearPlan,

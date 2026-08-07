@@ -16,7 +16,7 @@ import ListaAlumnosPage from "../pages/estadisticas/lista_alumnos.jsx";
 import DetalleAlumnoPage from "../pages/estadisticas/detalle_alumno.jsx";
 import RegistrarPagoPage from "../pages/registrar_pago.jsx";
 import PlanesPage from "../pages/admin/planes_page.jsx";
-import StaffPage from "../pages/admin/StaffPage.jsx";
+import StaffPage from "../pages/admin/staff_page.jsx";
 import RecaudacionesDetallePage from "../pages/estadisticas/recaudacion_detalle_dia_page.jsx";
 import EditarPlanVigentePage from "../pages/admin/editar_plan_vigente_page.jsx";
 import ConsultaPlanPage from "../pages/consulta_plan_page.jsx";

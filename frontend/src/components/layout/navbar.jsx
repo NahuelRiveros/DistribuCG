@@ -7,7 +7,7 @@ import { navbar_config } from "./navbar_config.jsx";
 import NavbarDesktop from "./navbar_desktop.jsx";
 import NavbarMobile from "./navbar_mobile.jsx";
 import NavbarUserBox from "./navbar_userbox.jsx";
-import { UI_NAVBAR as S } from "../styles_components/ui_navbar_style.jsx";
+import { UI_NAVBAR as S } from "./navbar_style.js";
 import LogoMoovs from "../brand/logo_moovs.jsx";
 
 export default function Navbar() {

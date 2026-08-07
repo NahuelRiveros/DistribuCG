@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import StaffFormModal from "../../components/modal/staff_form_modal";
 import StaffPasswordModal from "../../components/modal/staff_password_modal";
-import DataGrid from "../../components/table/DataGrid";
+import DataGrid from "../../components/table/data_grid";
 import {
   obtenerStaff,
   crearStaff,

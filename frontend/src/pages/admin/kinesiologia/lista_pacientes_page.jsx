@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeartPulse, Plus, ChevronRight, Ban, CheckCircle2, RotateCcw } from "lucide-react";
 import { getPacientesKinesiologia, cambiarEstadoPacienteKinesiologia } from "../../../api/kinesiologia_api.js";
-import DataGrid from "../../../components/table/DataGrid.jsx";
+import DataGrid from "../../../components/table/data_grid.jsx";
 import AgregarPacienteModal from "./agregar_paciente_modal.jsx";
 
 function iniciales(nombre, apellido) {

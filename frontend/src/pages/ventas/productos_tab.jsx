@@ -2,7 +2,7 @@ import { useState } from "react";
 import ProductoFormModal from "../../components/modal/producto_form_modal";
 import MovimientoStockModal from "../../components/modal/movimiento_stock_modal";
 import HistorialStockModal from "../../components/modal/historial_stock_modal";
-import DataGrid from "../../components/table/DataGrid";
+import DataGrid from "../../components/table/data_grid";
 import {
   crearProducto,
   actualizarProducto,

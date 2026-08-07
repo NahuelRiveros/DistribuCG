@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "../../auth/auth_context.jsx";
 import NavbarUserBox from "./navbar_userbox.jsx";
-import { UI_NAVBAR as S } from "../styles_components/ui_navbar_style.jsx";
+import { UI_NAVBAR as S } from "./navbar_style.js";
 
 export default function NavbarMobile({ config, open, onNavigate }) {
   const [openGroups, setOpenGroups] = useState({});

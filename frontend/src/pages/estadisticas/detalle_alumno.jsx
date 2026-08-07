@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getAlumnoDetalle, getProfesoresGym, asignarProfesorAlumno } from "../../api/alumnos_api";
 import { ArrowLeft, BadgeCheck, Ban, RefreshCw, CreditCard, TrendingUp, Zap, Clock, UserCog } from "lucide-react";
 import { formatearFechaAR } from "../../components/form/formatear_fecha";
-import DataGrid from "../../components/table/DataGrid";
+import DataGrid from "../../components/table/data_grid";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 

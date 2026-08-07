@@ -1,6 +1,6 @@
 import { useState } from "react";
 import MovimientoStockModal from "../../components/modal/movimiento_stock_modal";
-import DataGrid from "../../components/table/DataGrid";
+import DataGrid from "../../components/table/data_grid";
 import { registrarEntrada, registrarVenta } from "../../api/stock_api.js";
 import { PackagePlus, ShoppingCart } from "lucide-react";
 

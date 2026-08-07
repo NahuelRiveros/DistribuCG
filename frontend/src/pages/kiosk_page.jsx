@@ -4,7 +4,7 @@ import { getAlumnosCumples } from "../api/alumnos_api.js";
 import KioskResultModal from "../components/modal/kiosk_result_modal.jsx";
 import KioskErrorModal from "../components/modal/kiosk_error_modal.jsx";
 import KioskLogModal, { guardarLogKiosk } from "../components/modal/kiosk_log_modal.jsx";
-import AlertasDropdown from "../components/alertas/AlertasDropdown.jsx";
+import AlertasDropdown from "../components/alertas/alertas_dropdown.jsx";
 import { Dumbbell } from "lucide-react";
 
 import sonidoOk from "../sounds/IngresoCorrecto.m4a";

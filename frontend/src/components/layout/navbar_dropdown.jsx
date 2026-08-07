@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { UI_NAVBAR as S } from "../styles_components/ui_navbar_style.jsx";
+import { UI_NAVBAR as S } from "./navbar_style.js";
 
 export default function NavbarDropdown({ dropdown, open = false, onToggle, onClose }) {
   const Icon = dropdown.icon;
