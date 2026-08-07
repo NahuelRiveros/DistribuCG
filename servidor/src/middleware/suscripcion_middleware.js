@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { obtenerEstado } from "../services/software_suscripcion_service.js";
+import { obtenerEstado } from "../services/sistema/software_suscripcion_service.js";
 import { env } from "../configuracion_servidor/env.js";
 
 // ── Cache en memoria — evita golpear la DB en cada request ───────────────────

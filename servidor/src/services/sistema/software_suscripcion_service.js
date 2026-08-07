@@ -11,9 +11,9 @@
  *   vencido  → más de 10 días después del vencimiento (bloqueo suave)
  */
 
-import { sequelize } from "../database/sequelize.js";
+import { sequelize } from "../../database/sequelize.js";
 import { QueryTypes } from "sequelize";
-import { env } from "../configuracion_servidor/env.js";
+import { env } from "../../configuracion_servidor/env.js";
 
 const DIAS_AVISO  = 10;   // días previos al vencimiento → aviso
 const DIAS_GRACIA = 3;    // días de gracia después del vencimiento (solo UI, no bloquea)

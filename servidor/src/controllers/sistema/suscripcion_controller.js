@@ -1,4 +1,4 @@
-import { env } from "../configuracion_servidor/env.js";
+import { env } from "../../configuracion_servidor/env.js";
 import {
   setupTablas,
   crearSuscripcionInicial,
@@ -7,12 +7,12 @@ import {
   fijarFechaVencimiento,
   registrarPago,
   historialPagos,
-} from "../services/software_suscripcion_service.js";
+} from "../../services/sistema/software_suscripcion_service.js";
 import {
   crearPreferencia,
   verificarPago,
-} from "../services/mercadopago_service.js";
-import { invalidarCacheSuscripcion } from "../middleware/suscripcion_middleware.js";
+} from "../../services/sistema/mercadopago_service.js";
+import { invalidarCacheSuscripcion } from "../../middleware/suscripcion_middleware.js";
 
 // ── Setup (una sola vez por instalación) ─────────────────────────────────────
 export async function setupController(req, res, next) {

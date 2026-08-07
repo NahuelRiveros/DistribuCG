@@ -1,4 +1,4 @@
-import { ModuloNegocio } from "../models/index.js";
+import { ModuloNegocio } from "../../models/index.js";
 
 /** { gym: true, kinesiologia: false, ... } — usado por el frontend (nav/footer) y por el middleware. */
 export async function obtenerEstadoModulos() {

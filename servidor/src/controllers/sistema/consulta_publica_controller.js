@@ -1,4 +1,4 @@
-import { consultarPlanPorDni } from "../services/consulta_publica_service.js";
+import { consultarPlanPorDni } from "../../services/sistema/consulta_publica_service.js";
 
 export async function consultarPlanController(req, res, next) {
   try {

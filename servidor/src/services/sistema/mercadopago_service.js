@@ -13,7 +13,7 @@
  */
 
 import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
-import { env } from "../configuracion_servidor/env.js";
+import { env } from "../../configuracion_servidor/env.js";
 
 // ── Cliente MP ───────────────────────────────────────────────────────────────
 

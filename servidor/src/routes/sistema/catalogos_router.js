@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { catalogosController } from "../controllers/catalogos_controller.js";
+import { catalogosController } from "../../controllers/sistema/catalogos_controller.js";
 
 export const catalogosRouter = Router();
 

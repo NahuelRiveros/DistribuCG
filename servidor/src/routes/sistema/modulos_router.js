@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
 import {
   estadoModulos,
   listaModulosNegocio,
   actualizarModuloNegocioController,
-} from "../controllers/modulos_controller.js";
+} from "../../controllers/sistema/modulos_controller.js";
 
 export const modulosRouter = Router();
 

@@ -9,7 +9,7 @@ import {
   HomeTexto, HomePilar, HomeContacto,
   RegistroSesionKinesiologia, SesionKinesiologica, SesionKinesiologicaEjercicio,
 } from "../models/index.js";
-import { setupTablas, crearSuscripcionInicial } from "../services/software_suscripcion_service.js";
+import { setupTablas, crearSuscripcionInicial } from "../services/sistema/software_suscripcion_service.js";
 
 /**
  * Seed de catálogos + usuario super admin — idempotente, seguro de correr

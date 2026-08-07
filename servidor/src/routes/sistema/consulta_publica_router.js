@@ -6,7 +6,7 @@
  */
 
 import { Router } from "express";
-import { consultarPlanController } from "../controllers/consulta_publica_controller.js";
+import { consultarPlanController } from "../../controllers/sistema/consulta_publica_controller.js";
 
 export const consultaPublicaRouter = Router();
 

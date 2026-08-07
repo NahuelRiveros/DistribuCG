@@ -1,4 +1,4 @@
-import { obtenerCatalogos } from "../services/catalogos_service.js";
+import { obtenerCatalogos } from "../../services/sistema/catalogos_service.js";
 
 export async function catalogosController(req, res) {
   try {

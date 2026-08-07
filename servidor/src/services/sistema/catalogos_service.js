@@ -8,7 +8,7 @@
   Ejercicio,
   TipoEjercicio,
   GrupoMuscular,
-} from "../models/index.js";
+} from "../../models/index.js";
 
 export async function obtenerCatalogos() {
   const [tiposDocumento, sexos, tiposPersona, tiposPlan, categoriasProducto, patologias, ejerciciosKinesiologia] = await Promise.all([

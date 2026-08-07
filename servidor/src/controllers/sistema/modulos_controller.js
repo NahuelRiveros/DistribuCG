@@ -2,7 +2,7 @@ import {
   obtenerEstadoModulos,
   listarModulosNegocio,
   actualizarModuloNegocio,
-} from "../services/modulo_negocio_service.js";
+} from "../../services/sistema/modulo_negocio_service.js";
 
 export async function estadoModulos(req, res, next) {
   try {

@@ -1,4 +1,4 @@
-import { moduloNegocioHabilitado } from "../services/modulo_negocio_service.js";
+import { moduloNegocioHabilitado } from "../services/sistema/modulo_negocio_service.js";
 
 /**
  * Gate de licencia por módulo de negocio (gym/kinesiologia) — a diferencia de

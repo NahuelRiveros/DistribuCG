@@ -19,7 +19,7 @@
  */
 
 import { Router } from "express";
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
 import {
   setupController,
   estadoController,
@@ -32,7 +32,7 @@ import {
   adminEstadoController,
   adminExtenderController,
   adminFijarController,
-} from "../controllers/suscripcion_controller.js";
+} from "../../controllers/sistema/suscripcion_controller.js";
 
 export const suscripcionRouter = Router();
 
