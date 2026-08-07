@@ -11,8 +11,8 @@ import {
   recaudacionMensualStock,
   productosMasVendidos,
   mermasDeStock,
-} from "../services/stock_service.js";
-import { validarProductoBody } from "../validator/stock_validators.js";
+} from "../../services/stock/stock_service.js";
+import { validarProductoBody } from "../../validator/stock_validators.js";
 
 function mapearErrorMovimiento(res, resultado) {
   if (resultado.codigo === "PRODUCTO_NO_EXISTE") return res.status(404).json(resultado);

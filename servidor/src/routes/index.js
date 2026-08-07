@@ -16,7 +16,7 @@ import { recaudacionRouter } from "./recaudacion_router.js";
 import { consultaPublicaRouter } from "./consulta_publica_router.js";
 import { suscripcionRouter } from "./suscripcion_router.js";
 import { promocionesRouter } from "./promociones_router.js";
-import { stockRouter } from "./stock_router.js";
+import { stockRouter } from "./stock/stock_router.js";
 import { homeRouter } from "./home_router.js";
 import { kinesiologiaRouter } from "./kinesiologia_router.js";
 import { modulosRouter } from "./modulos_router.js";

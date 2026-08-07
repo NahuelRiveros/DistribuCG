@@ -1,5 +1,5 @@
-import { sequelize } from "../database/sequelize.js";
-import { Producto, MovimientoStock, CategoriaProducto, Usuario, Persona } from "../models/index.js";
+import { sequelize } from "../../database/sequelize.js";
+import { Producto, MovimientoStock, CategoriaProducto, Usuario, Persona } from "../../models/index.js";
 
 const includeCategoria = [{ model: CategoriaProducto, as: "categoria", attributes: ["id", "descripcion"] }];
 

@@ -12,9 +12,9 @@ import {
   recaudacionMensualStockController,
   productosMasVendidosController,
   mermasDeStockController,
-} from "../controllers/stock_controller.js";
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
+} from "../../controllers/stock/stock_controller.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
 
 export const stockRouter = Router();
 
