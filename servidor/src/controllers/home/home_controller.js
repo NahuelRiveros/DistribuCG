@@ -20,7 +20,7 @@ import {
   cambiarEstadoContacto,
   eliminarContacto,
   actualizarLayoutArea,
-} from "../services/home_service.js";
+} from "../../services/home/home_service.js";
 
 export async function listarAreasController(_req, res) {
   try {

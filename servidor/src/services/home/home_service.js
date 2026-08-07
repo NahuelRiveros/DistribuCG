@@ -1,6 +1,6 @@
 import { Readable } from "stream";
-import { cloudinary } from "../configuracion_servidor/cloudinary.js";
-import { HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto } from "../models/index.js";
+import { cloudinary } from "../../configuracion_servidor/cloudinary.js";
+import { HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto } from "../../models/index.js";
 
 function subirBufferACloudinary(buffer, { resourceType, area }) {
   return new Promise((resolve, reject) => {

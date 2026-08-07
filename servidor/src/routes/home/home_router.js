@@ -22,8 +22,8 @@ import {
   cambiarEstadoContactoController,
   eliminarContactoController,
   actualizarLayoutAreaController,
-} from "../controllers/home_controller.js";
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
+} from "../../controllers/home/home_controller.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
