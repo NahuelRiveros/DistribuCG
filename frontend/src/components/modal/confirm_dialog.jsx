@@ -1,5 +1,5 @@
 import { AlertTriangle, Trash2 } from "lucide-react";
-import { cn } from "../../lib/cn";
+import { cn } from "../../utils/cn";
 
 const CONFIRM_BTN = {
   danger:  "border-red-500 bg-red-600 hover:bg-red-700 text-white",

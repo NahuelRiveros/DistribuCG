@@ -12,7 +12,7 @@ import { formatearFechaAR } from "../components/form/formatear_fecha.js";
 import {
   normalizarDocumento,
   calcularNuevoPlanDesdeHoy,
-} from "../components/utils/pagos_utils.js";
+} from "../utils/pagos_utils.js";
 
 function SectionHeader({ number, label, icon: Icon, done = false }) {
   return (

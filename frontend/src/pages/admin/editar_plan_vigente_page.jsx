@@ -14,7 +14,7 @@ import {
   estadoBadge,
   validarFormularioPlan,
   mapearPlanAForm,
-} from "../../components/utils/editar_plan_helpers.js";
+} from "../../utils/editar_plan_helpers.js";
 import {
   ClipboardEdit, Search, BadgeCheck, Ban,
   CreditCard, CalendarDays, Zap, Banknote, Save,
