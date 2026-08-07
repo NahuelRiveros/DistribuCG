@@ -1,9 +1,9 @@
-import { actualizarEstadosAlumnosAutomatico } from "../services/admin_alumnos_service.js";
+import { actualizarEstadosAlumnosAutomatico } from "../../services/gym/admin_alumnos_service.js";
 import {
   obtenerPlanVigentePorDni,
   actualizarPlanVigentePorDni,
   actualizarPersonaAlumnoPorDni,
-} from "../services/admin_planes_alumno_service.js";
+} from "../../services/gym/admin_planes_alumno_service.js";
 
 export async function ActualizarEstadosAutomatico(req, res) {
   try {

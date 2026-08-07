@@ -1,4 +1,4 @@
-import { sequelize } from "../database/sequelize.js";
+import { sequelize } from "../../database/sequelize.js";
 import { QueryTypes } from "sequelize";
 
 const TZ_AR = "America/Argentina/Cordoba";

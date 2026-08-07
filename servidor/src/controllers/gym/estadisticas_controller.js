@@ -5,7 +5,7 @@ import {
   obtenerAsistenciasHoras,
   obtenerAsistenciasHoraDiaSemana,
   obtenerPlanesPopulares,
-} from "../services/estadisticas_service.js";
+} from "../../services/gym/estadisticas_service.js";
 
 /**
  * Helpers

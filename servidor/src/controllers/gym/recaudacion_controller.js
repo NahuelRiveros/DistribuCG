@@ -2,7 +2,7 @@ import {
   obtenerRecaudacionMesesPorAnio,
   obtenerRecaudacionDiasDeMes,
   obtenerDetalleRecaudacionDia,
-} from "../services/recaudacion_service.js";
+} from "../../services/gym/recaudacion_service.js";
 
 function parseIntSafe(v) {
   const n = Number.parseInt(String(v ?? ""), 10);

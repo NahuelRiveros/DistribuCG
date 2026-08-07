@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
 
 import {
   AlumnosNuevos,
@@ -9,7 +9,7 @@ import {
   AsistenciasHoras,
   AsistenciasHorasDia,
   PlanesPopulares,
-} from "../controllers/estadisticas_controller.js";
+} from "../../controllers/gym/estadisticas_controller.js";
 
 export const estadisticasRouter = Router();
 // Nota: este router no tenía ningún guard de auth — se agrega acá junto con

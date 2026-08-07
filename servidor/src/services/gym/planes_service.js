@@ -1,6 +1,6 @@
-﻿import { PlanTipo, Membresia } from "../models/index.js";
+﻿import { PlanTipo, Membresia } from "../../models/index.js";
 import { Op } from "sequelize";
-import { sequelize } from "../database/sequelize.js";
+import { sequelize } from "../../database/sequelize.js";
 
 export async function listarPlanes({ incluirInactivos = true } = {}) {
   const where = {};

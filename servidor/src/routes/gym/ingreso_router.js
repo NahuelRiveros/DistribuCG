@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { registrarIngreso, estadoColaOfflineController } from "../controllers/ingreso_controller.js";
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
+import { registrarIngreso, estadoColaOfflineController } from "../../controllers/gym/ingreso_controller.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
 
 export const ingresoRouter = Router();
 

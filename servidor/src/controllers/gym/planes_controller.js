@@ -6,8 +6,8 @@ import {
   existePlanConDescripcion,
   planEstaUsado,
   cambiarEstadoPlan,
-} from "../services/planes_service.js";
-import { validarPlanBody } from "../validator/planes_validators.js";
+} from "../../services/gym/planes_service.js";
+import { validarPlanBody } from "../../validator/planes_validators.js";
 
 export async function listarPlanesController(req, res) {
   try {

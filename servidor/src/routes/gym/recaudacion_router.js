@@ -3,10 +3,10 @@ import {
   RecaudacionMesesPorAnio,
   RecaudacionDiasDeMes,
   RecaudacionDetalleDia,
-} from "../controllers/recaudacion_controller.js";
+} from "../../controllers/gym/recaudacion_controller.js";
 
-import { requireAuth , requireRole } from "../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
+import { requireAuth , requireRole } from "../../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
 
 
 export const recaudacionRouter = Router();

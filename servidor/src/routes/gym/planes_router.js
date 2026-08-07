@@ -5,9 +5,9 @@ import {
   crearPlanController,
   actualizarPlanController,
   cambiarEstadoPlanController,
-} from "../controllers/planes_controller.js";
-import { requireAuth , requireRole } from "../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
+} from "../../controllers/gym/planes_controller.js";
+import { requireAuth , requireRole } from "../../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
 
 export const planesRouter = Router();
 planesRouter.use(requireModuloHabilitado("gym"));

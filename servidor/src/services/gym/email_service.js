@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { env } from "../configuracion_servidor/env.js";
+import { env } from "../../configuracion_servidor/env.js";
 
 function crearTransporter() {
   if (!env.SMTP_USER || !env.SMTP_PASS) {

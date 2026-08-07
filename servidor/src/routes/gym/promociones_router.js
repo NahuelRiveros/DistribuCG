@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
-import { previewController, numerosController, enviarController } from "../controllers/promociones_controller.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
+import { previewController, numerosController, enviarController } from "../../controllers/gym/promociones_controller.js";
 
 export const promocionesRouter = Router();
 

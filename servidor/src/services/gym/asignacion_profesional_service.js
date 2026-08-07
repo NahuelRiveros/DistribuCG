@@ -1,5 +1,5 @@
-import { sequelize } from "../database/sequelize.js";
-import { Alumno, Usuario, UsuarioRol, Rol, Persona, AsignacionProfesional } from "../models/index.js";
+import { sequelize } from "../../database/sequelize.js";
+import { Alumno, Usuario, UsuarioRol, Rol, Persona, AsignacionProfesional } from "../../models/index.js";
 
 const TIPO_ENTRENAMIENTO = "entrenamiento";
 

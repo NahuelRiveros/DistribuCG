@@ -2,20 +2,20 @@ import { Router } from "express";
 import { sequelize } from "../database/sequelize.js"; // 👈 IMPORTANTE
 
 import { personasRouter } from "./usuarios/personas_router.js";
-import { ingresoRouter } from "./ingreso_router.js";
-import { pagosRouter } from "./pagos_router.js";
-import { listaAlumnosRouter } from "./lista_alumnos_router.js";
-import { estadisticasRouter } from "./estadisticas_router.js";
+import { ingresoRouter } from "./gym/ingreso_router.js";
+import { pagosRouter } from "./gym/pagos_router.js";
+import { listaAlumnosRouter } from "./gym/lista_alumnos_router.js";
+import { estadisticasRouter } from "./gym/estadisticas_router.js";
 import { authRouter } from "./usuarios/auth_router.js";
 import { adminUsuariosRouter } from "./usuarios/admin_usuarios_router.js";
 import { catalogosRouter } from "./sistema/catalogos_router.js";
-import { adminAlumnosRouter } from "./admin_alumnos_router.js";
-import { planesRouter } from "./planes_router.js";
+import { adminAlumnosRouter } from "./gym/admin_alumnos_router.js";
+import { planesRouter } from "./gym/planes_router.js";
 import { staffRouter } from "./usuarios/staff_router.js";
-import { recaudacionRouter } from "./recaudacion_router.js";
+import { recaudacionRouter } from "./gym/recaudacion_router.js";
 import { consultaPublicaRouter } from "./sistema/consulta_publica_router.js";
 import { suscripcionRouter } from "./sistema/suscripcion_router.js";
-import { promocionesRouter } from "./promociones_router.js";
+import { promocionesRouter } from "./gym/promociones_router.js";
 import { stockRouter } from "./stock/stock_router.js";
 import { homeRouter } from "./home/home_router.js";
 import { kinesiologiaRouter } from "./kinesiologia/kinesiologia_router.js";

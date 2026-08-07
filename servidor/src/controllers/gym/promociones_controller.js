@@ -1,5 +1,5 @@
-import { enviarEmailsMasivos } from "../services/email_service.js";
-import { FILTROS, obtenerDestinatariosEmail, obtenerDestinatariosCelular } from "../services/promociones_service.js";
+import { enviarEmailsMasivos } from "../../services/gym/email_service.js";
+import { FILTROS, obtenerDestinatariosEmail, obtenerDestinatariosCelular } from "../../services/gym/promociones_service.js";
 
 export async function previewController(req, res, next) {
   try {

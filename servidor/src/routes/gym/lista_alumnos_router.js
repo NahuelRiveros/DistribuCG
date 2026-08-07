@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { listaAlumnos , detalleAlumno , alumnosCumples, profesoresGym, asignarProfesor } from "../controllers/lista_alumnos_controller.js";
+import { listaAlumnos , detalleAlumno , alumnosCumples, profesoresGym, asignarProfesor } from "../../controllers/gym/lista_alumnos_controller.js";
 
 export const listaAlumnosRouter = Router ();
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
 
 listaAlumnosRouter.use(requireAuth, requireModuloHabilitado("gym"), requireRole("staff","admin","kinesiologo"));
 listaAlumnosRouter.get("/listado", listaAlumnos);

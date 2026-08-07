@@ -12,8 +12,8 @@ import {
   marcarComoSincronizado,
   marcarComoErrorPermanente,
   contarPendientes,
-} from "../services/offline_queue_service.js";
-import { registrarIngresoPorDni } from "../services/ingresos_service.js";
+} from "../services/gym/offline_queue_service.js";
+import { registrarIngresoPorDni } from "../services/gym/ingresos_service.js";
 
 let _sincronizando = false;
 

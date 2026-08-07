@@ -1,4 +1,4 @@
-import { registrarPagoPorDni, previewPagoPorDni } from "../services/pagos_service.js";
+import { registrarPagoPorDni, previewPagoPorDni } from "../../services/gym/pagos_service.js";
 
 function esNumeroPositivo(n) {
   const x = Number(n);

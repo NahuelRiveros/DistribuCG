@@ -1,11 +1,11 @@
 ﻿import { QueryTypes, Op } from "sequelize";
-import { sequelize } from "../database/sequelize.js";
+import { sequelize } from "../../database/sequelize.js";
 import {
   Persona,
   Alumno,
   Membresia,
   PlanTipo,
-} from "../models/index.js";
+} from "../../models/index.js";
 
 // import { agregarALaCola } from "./offline_queue_service.js";
 

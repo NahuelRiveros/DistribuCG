@@ -1,12 +1,12 @@
 ﻿import { QueryTypes } from "sequelize";
-import { sequelize } from "../database/sequelize.js";
+import { sequelize } from "../../database/sequelize.js";
 import {
   Persona,
   Alumno,
   Membresia,
   PlanTipo,
   AlumnoEstado,
-} from "../models/index.js";
+} from "../../models/index.js";
 
 const ESTADO_HABILITADO  = 1;
 const ESTADO_RESTRINGIDO = 2;

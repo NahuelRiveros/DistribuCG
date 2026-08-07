@@ -1,11 +1,11 @@
-﻿import { sequelize } from "../database/sequelize.js";
+﻿import { sequelize } from "../../database/sequelize.js";
 import { QueryTypes } from "sequelize";
 import {
   Persona,
   Alumno,
   Membresia,
   PlanTipo,
-} from "../models/index.js";
+} from "../../models/index.js";
 
 const ESTADO_HABILITADO = 1;
 const TZ_BA = "America/Argentina/Buenos_Aires";

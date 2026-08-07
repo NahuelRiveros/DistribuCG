@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
+import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
 import {
   ActualizarEstadosAutomatico,
   buscarPlanVigenteAlumno,
   actualizarPlanVigenteAlumno,
   actualizarPersonaAlumno,
-} from "../controllers/admin_alumnos_controller.js";
+} from "../../controllers/gym/admin_alumnos_controller.js";
 
 export const adminAlumnosRouter = Router();
 
