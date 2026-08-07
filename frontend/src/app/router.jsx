@@ -12,8 +12,8 @@ import RecaudacionCalendarioDia from "../pages/estadisticas/recaudacion_diaria_p
 import AlumnosNuevosPage from "../pages/estadisticas/alumnos_nuevos.jsx";
 import VencimientosPage from "../pages/estadisticas/vencimientos_proximos.jsx";
 import HeatmapAsistenciasPage from "../pages/estadisticas/heatmap_asistencias.jsx"
-import ListaAlumnosPage from "../pages/estadisticas/lista_alumnos.jsx";
-import DetalleAlumnoPage from "../pages/estadisticas/detalle_alumno.jsx";
+import ListaAlumnosPage from "../pages/alumnos/lista_alumnos.jsx";
+import DetalleAlumnoPage from "../pages/alumnos/detalle_alumno.jsx";
 import RegistrarPagoPage from "../pages/registrar_pago.jsx";
 import PlanesPage from "../pages/admin/planes_page.jsx";
 import StaffPage from "../pages/admin/staff_page.jsx";
