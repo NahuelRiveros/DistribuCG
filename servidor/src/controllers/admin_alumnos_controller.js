@@ -1,4 +1,4 @@
-import { actualizarEstadosAlumnosAutomatico } from "../services/estado_alumno_auto_service.js";
+import { actualizarEstadosAlumnosAutomatico } from "../services/admin_alumnos_service.js";
 import {
   obtenerPlanVigentePorDni,
   actualizarPlanVigentePorDni,

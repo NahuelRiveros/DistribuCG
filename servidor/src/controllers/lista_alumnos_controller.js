@@ -1,7 +1,7 @@
 // src/controllers/lista_alumnos_controller.js
 import { listarAlumnos } from "../services/lista_alumnos_service.js";
 import { obtenerDetalleAlumno } from "../services/alumno_detalle_service.js";
-import { obtenerAlumnosCumples } from "../services/alumno_cumples.js";
+import { obtenerAlumnosCumples } from "../services/alumno_cumples_service.js";
 import { listarProfesoresGym, asignarProfesorAlumno } from "../services/asignacion_profesional_service.js";
 
 function toInt(v, def) {

@@ -7,7 +7,7 @@ import {
   cambiarEstadoStaffController,
   cambiarRolStaffController,
   eliminarStaffController,
-} from "../controllers/admin_staff_controllers.js";
+} from "../controllers/admin_staff_controller.js";
 
 import { requireAuth, requireRole } from "../middleware/auth_middleware.js";
 

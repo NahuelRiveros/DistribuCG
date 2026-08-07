@@ -15,20 +15,20 @@ import { TipoDocumento }   from "./persona/tipo_documento.js";
 import { TipoPersona }     from "./persona/tipo_persona.js";
 
 // ── usuarios/ — login y RBAC ──────────────────────────────────────────────────
-import { Usuario }         from "./usuarios/usuario.js";
-import { UsuarioRol }      from "./usuarios/usuario_rol.js";
-import { Rol }             from "./usuarios/rol.js";
-import { RolPermiso }      from "./usuarios/rol_permiso.js";
-import { Permiso }         from "./usuarios/permiso.js";
-import { Modulo }          from "./usuarios/modulo.js";
+import { Usuario }         from "./usuario/usuario.js";
+import { UsuarioRol }      from "./usuario/usuario_rol.js";
+import { Rol }             from "./usuario/rol.js";
+import { RolPermiso }      from "./usuario/rol_permiso.js";
+import { Permiso }         from "./usuario/permiso.js";
+import { Modulo }          from "./usuario/modulo.js";
 
 // ── alumnos/ — membresías de gimnasio ────────────────────────────────────────
-import { Alumno }          from "./alumnos/alumno.js";
-import { AlumnoEstado }    from "./alumnos/alumno_estado.js";
-import { AlumnoEstadoLog } from "./alumnos/alumno_estado_log.js";
-import { Membresia }       from "./alumnos/membresia.js";
-import { Ingreso }         from "./alumnos/ingreso.js";
-import { PlanTipo }        from "./alumnos/plan_tipo.js";
+import { Alumno }          from "./alumno/alumno.js";
+import { AlumnoEstado }    from "./alumno/alumno_estado.js";
+import { AlumnoEstadoLog } from "./alumno/alumno_estado_log.js";
+import { Membresia }       from "./alumno/membresia.js";
+import { Ingreso }         from "./alumno/ingreso.js";
+import { PlanTipo }        from "./alumno/plan_tipo.js";
 
 // ── kinesiologia/ — pacientes y patologías ───────────────────────────────────
 import { PacienteKinesiologia } from "./kinesiologia/paciente_kinesiologia.js";

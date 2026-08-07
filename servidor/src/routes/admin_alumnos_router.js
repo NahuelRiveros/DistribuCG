@@ -6,7 +6,7 @@ import {
   buscarPlanVigenteAlumno,
   actualizarPlanVigenteAlumno,
   actualizarPersonaAlumno,
-} from "../controllers/estado_alumno_auto_controller.js";
+} from "../controllers/admin_alumnos_controller.js";
 
 export const adminAlumnosRouter = Router();
 

@@ -5,7 +5,7 @@ import {
   crearPlanController,
   actualizarPlanController,
   cambiarEstadoPlanController,
-} from "../controllers/planes_controllers.js";
+} from "../controllers/planes_controller.js";
 import { requireAuth , requireRole } from "../middleware/auth_middleware.js";
 import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
 
