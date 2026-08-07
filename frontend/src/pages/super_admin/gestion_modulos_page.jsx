@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Shield, RefreshCw, AlertTriangle, CheckCircle, Dumbbell, HeartPulse } from "lucide-react";
+import { Shield, RefreshCw, AlertTriangle, CheckCircle, Dumbbell, HeartPulse, ShoppingCart } from "lucide-react";
 import { getModulosNegocio, actualizarModuloNegocio } from "../../api/modulos_api.js";
 
-const ICONOS = { gym: Dumbbell, kinesiologia: HeartPulse };
+// Módulo sin ícono acá (código nuevo todavía no agregado) → usa Shield, el
+// mismo ícono genérico del header de esta página (ver ICONOS[...] ?? Shield).
+const ICONOS = { gym: Dumbbell, kinesiologia: HeartPulse, stock: ShoppingCart };
 
 export default function GestionModulosPage() {
   const [items, setItems] = useState([]);

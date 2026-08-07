@@ -153,6 +153,7 @@ async function seed_catalogos() {
   const modulosNegocio = [
     { codigo: "gym",          descripcion: "Gestión de gimnasio", habilitado: true },
     { codigo: "kinesiologia", descripcion: "Kinesiología",        habilitado: true },
+    { codigo: "stock",        descripcion: "Kiosco y stock",      habilitado: true },
   ];
   for (const modulo of modulosNegocio) {
     await ModuloNegocio.findOrCreate({ where: { codigo: modulo.codigo }, defaults: modulo });

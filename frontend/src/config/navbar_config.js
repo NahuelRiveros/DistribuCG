@@ -129,7 +129,7 @@ export const navbar_config = {
           roles: ["admin", "staff", "kinesiologo"],
           children: [
             { label: "Planes",               to: "/admin/planesViews",         requiereAuth: true, roles: ["admin"], modulo: "gym", icon: Layers },
-            { label: "Ventas",                to: "/admin/ventas",              requiereAuth: true, roles: ["admin", "staff", "kinesiologo"], modulo: "gym", icon: ShoppingCart },
+            { label: "Ventas",                to: "/admin/ventas",              requiereAuth: true, roles: ["admin", "staff", "kinesiologo"], modulo: "stock", icon: ShoppingCart },
             { label: "Personal",              to: "/admin/staffManager",        requiereAuth: true, roles: ["admin"], icon: Users },
             { label: "Promociones",           to: "/admin/promociones",         requiereAuth: true, roles: ["admin"], modulo: "gym", icon: Megaphone },
             { label: "Editar plan de alumno", to: "/admin/alumnos/editar-plan", requiereAuth: true, roles: ["admin"], modulo: "gym", icon: FileEdit },

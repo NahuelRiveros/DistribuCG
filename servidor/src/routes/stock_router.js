@@ -18,7 +18,7 @@ import { requireModuloHabilitado } from "../middleware/modulo_middleware.js";
 
 export const stockRouter = Router();
 
-stockRouter.use(requireAuth, requireModuloHabilitado("gym"));
+stockRouter.use(requireAuth, requireModuloHabilitado("stock"));
 
 // Estadísticas: solo admin (igual que /recaudacion)
 stockRouter.get("/estadisticas/mensual",                requireRole("admin"), recaudacionMensualStockController);
