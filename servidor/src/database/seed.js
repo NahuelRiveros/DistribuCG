@@ -7,7 +7,6 @@ import {
   CategoriaProducto, Patologia,
   Persona, Usuario, UsuarioRol, ModuloNegocio,
   HomeTexto, HomePilar, HomeContacto,
-  RegistroSesionKinesiologia, SesionKinesiologica, SesionKinesiologicaEjercicio,
 } from "../models/index.js";
 import { setupTablas, crearSuscripcionInicial } from "../services/sistema/software_suscripcion_service.js";
 
@@ -23,71 +22,7 @@ export async function seed_database() {
   await seed_home_contenido();
   await seed_super_admin();
   await seed_suscripcion();
-  await migrar_sesiones_kinesiologia_legacy();
   console.log("✅ Seed finalizado");
-}
-
-/**
- * Migración única e idempotente: registro_sesion_kinesiologia (1 fila = 1
- * ejercicio + checklist duplicado) → sesion_kinesiologica (1 fila = 1
- * visita) + sesion_kinesiologica_ejercicio (N filas, 1 por ejercicio).
- *
- * No toca ni borra registro_sesion_kinesiologia — queda como histórico ya
- * volcado. Corre en cada boot; migrado_desde_id evita duplicar sesiones ya
- * migradas, así que cubre también las sesiones cargadas por el código viejo
- * mientras el deploy nuevo todavía no está activo.
- */
-async function migrar_sesiones_kinesiologia_legacy() {
-  const legacy = await RegistroSesionKinesiologia.findAll();
-  if (!legacy.length) return;
-
-  const yaMigradas = await SesionKinesiologica.findAll({
-    attributes: ["migrado_desde_id"],
-    where: { migrado_desde_id: legacy.map((r) => r.id) },
-  });
-  const idsYaMigrados = new Set(yaMigradas.map((s) => s.migrado_desde_id));
-  const pendientes = legacy.filter((r) => !idsYaMigrados.has(r.id));
-  if (!pendientes.length) return;
-
-  let migradas = 0;
-  for (const registro of pendientes) {
-    await sequelize.transaction(async (t) => {
-      const sesion = await SesionKinesiologica.create({
-        ficha_id: registro.ficha_id,
-        registrado_por_id: registro.registrado_por_id,
-        fecha: registro.fecha,
-        dolor_durante: registro.dolor_durante,
-        dolor_24h: registro.dolor_24h,
-        calidad_movimiento: registro.calidad_movimiento,
-        tolerancia_carga: registro.tolerancia_carga,
-        confianza_paciente: registro.confianza_paciente,
-        cumplimiento_programa: registro.cumplimiento_programa,
-        tecnica_correcta: registro.tecnica_correcta,
-        sin_compensaciones: registro.sin_compensaciones,
-        buena_recuperacion: registro.buena_recuperacion,
-        apto_para_subir_carga: registro.apto_para_subir_carga,
-        observaciones: registro.observaciones,
-        migrado_desde_id: registro.id,
-        creado_en: registro.creado_en,
-        actualizado_en: registro.actualizado_en,
-      }, { transaction: t });
-
-      if (registro.ejercicio_id || registro.peso || registro.series || registro.repeticiones || registro.rir != null) {
-        await SesionKinesiologicaEjercicio.create({
-          sesion_id: sesion.id,
-          ejercicio_id: registro.ejercicio_id,
-          peso: registro.peso,
-          series: registro.series,
-          repeticiones: registro.repeticiones,
-          rir: registro.rir,
-          orden: 0,
-        }, { transaction: t });
-      }
-    });
-    migradas++;
-  }
-
-  console.log(`✅ Migradas ${migradas} sesiones legacy de kinesiología`);
 }
 
 async function seed_suscripcion() {

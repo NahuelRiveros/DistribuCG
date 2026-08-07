@@ -1,47 +1,38 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { HeartPulse, ArrowLeft, Plus, ClipboardList, Dumbbell, Activity, CalendarDays } from "lucide-react";
-import { getDetallePacienteKinesiologia, guardarRutinaKinesiologia, eliminarSesionKinesiologia } from "../../../api/kinesiologia_api.js";
-import { formatearFechaAR } from "../../../components/form/formatear_fecha";
-import { useCatalogos } from "../../../hooks/use_catalogos.js";
-import RutinaMatriz from "./components/rutina_matriz.jsx";
-import RutinaKinesiologiaModal from "../../../components/modal/rutina_kinesiologia_modal.jsx";
+import { useParams, useNavigate } from "react-router-dom";
+import { HeartPulse, ArrowLeft, ClipboardList } from "lucide-react";
+import {
+  getDetallePacienteKinesiologia,
+  registrarSesionKinesiologia,
+  eliminarSesionKinesiologia,
+  agregarRecordatorioKinesiologia,
+  eliminarRecordatorioKinesiologia,
+} from "../../../api/kinesiologia_api.js";
+import SesionesFicha from "./components/sesiones_ficha.jsx";
 
-function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRutinaGuardada }) {
-  const nav = useNavigate();
+function FichaCard({ patologia, onCambio }) {
   const ficha = patologia.ficha;
-  const [rutinaModalAbierto, setRutinaModalAbierto] = useState(false);
-  const [guardandoRutina, setGuardandoRutina] = useState(false);
 
-  function editarSesion(sesion) {
-    nav(`/admin/kinesiologia/${pacienteKinesiologiaId}/sesion?ficha=${ficha.id}`, {
-      state: { sesionEditar: sesion },
-    });
+  async function crearSesion(payload) {
+    const r = await registrarSesionKinesiologia(ficha.id, payload);
+    if (r.ok) await onCambio?.();
+    return r;
   }
 
-  async function eliminarSesion(sesion) {
-    if (!window.confirm(`¿Eliminar la sesión del ${formatearFechaAR(sesion.fecha)}? Esta acción no se puede deshacer.`)) return;
-    const r = await eliminarSesionKinesiologia(sesion.id);
-    if (r.ok) await onRutinaGuardada?.();
+  async function eliminarSesion(id) {
+    const r = await eliminarSesionKinesiologia(id);
+    if (r.ok) await onCambio?.();
   }
 
-  function registrarEjercicio(ejercicio) {
-    nav(`/admin/kinesiologia/${pacienteKinesiologiaId}/sesion?ficha=${ficha.id}`, {
-      state: { ejercicioPrecargado: ejercicio },
-    });
+  async function agregarRecordatorio(sesionId, payload) {
+    const r = await agregarRecordatorioKinesiologia(sesionId, payload);
+    if (r.ok) await onCambio?.();
+    return r;
   }
 
-  async function guardarRutina(items) {
-    setGuardandoRutina(true);
-    try {
-      const r = await guardarRutinaKinesiologia(ficha.id, items);
-      if (r.ok) {
-        setRutinaModalAbierto(false);
-        await onRutinaGuardada?.();
-      }
-    } finally {
-      setGuardandoRutina(false);
-    }
+  async function eliminarRecordatorio(id) {
+    const r = await eliminarRecordatorioKinesiologia(id);
+    if (r.ok) await onCambio?.();
   }
 
   return (
@@ -65,83 +56,19 @@ function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRu
       {!ficha ? (
         <p className="text-sm text-slate-400">Esta patología todavía no tiene ficha de seguimiento.</p>
       ) : (
-        <>
-          {/* Evaluación inicial */}
-          {(ficha.tests_funcionales?.length > 0 || ficha.tests_fuerza?.length > 0) && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {ficha.tests_funcionales?.length > 0 && (
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                  <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
-                    <Activity size={13} /> Test funcional
-                  </div>
-                  <ul className="space-y-1.5 text-sm">
-                    {ficha.tests_funcionales.map((t) => (
-                      <li key={t.id} className="flex items-center justify-between gap-2">
-                        <span className="text-slate-700">{t.ejercicio?.nombre}</span>
-                        <span className="font-bold text-slate-900">{t.calidad_movimiento}/5</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {ficha.tests_fuerza?.length > 0 && (
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                  <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
-                    <Dumbbell size={13} /> Test de fuerza
-                  </div>
-                  <ul className="space-y-1.5 text-sm">
-                    {ficha.tests_fuerza.map((t) => (
-                      <li key={t.id} className="flex items-center justify-between gap-2">
-                        <span className="text-slate-700">{t.ejercicio?.nombre}</span>
-                        <span className="font-bold text-slate-900">{t.peso}kg × {t.repeticiones}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Matriz de cumplimiento */}
-          <div>
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
-                <ClipboardList size={13} /> Seguimiento
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setRutinaModalAbierto(true)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-(--kt-teal-700)/25 bg-(--kt-teal-700)/10 px-2.5 py-1 text-[11px] font-bold text-(--kt-teal-700) hover:bg-(--kt-teal-700)/15"
-                >
-                  <CalendarDays size={12} /> Configurar rutina
-                </button>
-                <Link
-                  to={`/admin/kinesiologia/${pacienteKinesiologiaId}/sesion?ficha=${ficha.id}`}
-                  className="inline-flex items-center gap-1 rounded-lg bg-(--kt-teal-700) px-2.5 py-1 text-[11px] font-bold text-white hover:opacity-90"
-                >
-                  <Plus size={12} /> Registrar sesión
-                </Link>
-              </div>
-            </div>
-
-            {!ficha.sesiones?.length && !ficha.rutina?.length ? (
-              <p className="text-sm text-slate-400">Todavía no hay rutina ni sesiones registradas.</p>
-            ) : (
-              <RutinaMatriz ficha={ficha} onEditarSesion={editarSesion} onRegistrarEjercicio={registrarEjercicio} onEliminarSesion={eliminarSesion} />
-            )}
+        <div>
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+            <ClipboardList size={13} /> Sesiones
           </div>
-        </>
+          <SesionesFicha
+            sesiones={ficha.sesiones || []}
+            onCrearSesion={crearSesion}
+            onEliminarSesion={eliminarSesion}
+            onAgregarRecordatorio={agregarRecordatorio}
+            onEliminarRecordatorio={eliminarRecordatorio}
+          />
+        </div>
       )}
-
-      <RutinaKinesiologiaModal
-        abierto={rutinaModalAbierto}
-        onClose={() => setRutinaModalAbierto(false)}
-        onGuardar={guardarRutina}
-        rutinaActual={ficha?.rutina || []}
-        ejerciciosCatalogo={ejerciciosCatalogo}
-        cargando={guardandoRutina}
-      />
     </div>
   );
 }
@@ -149,7 +76,6 @@ function FichaCard({ patologia, pacienteKinesiologiaId, ejerciciosCatalogo, onRu
 export default function FichaPacientePage() {
   const { id } = useParams();
   const nav = useNavigate();
-  const { data: catalogos } = useCatalogos();
 
   const [data, setData] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -219,9 +145,7 @@ export default function FichaPacientePage() {
               <FichaCard
                 key={p.id}
                 patologia={p}
-                pacienteKinesiologiaId={data.paciente_kinesiologia_id}
-                ejerciciosCatalogo={catalogos?.ejerciciosKinesiologia || []}
-                onRutinaGuardada={cargar}
+                onCambio={cargar}
               />
             ))}
           </div>

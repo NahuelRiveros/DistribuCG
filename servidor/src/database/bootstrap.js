@@ -1,3 +1,4 @@
+import { QueryTypes } from "sequelize";
 import { sequelize, DB_SCHEMA } from "./sequelize.js";
 import {
   Sexo, TipoDocumento, TipoPersona, AlumnoEstado, PlanTipo, Rol, Modulo,
@@ -6,8 +7,7 @@ import {
   RolPermiso, Alumno, Usuario, PacienteKinesiologia,
   UsuarioRol, Membresia, MovimientoStock, AsignacionProfesional,
   RegistroEjercicio, PacientePatologia, AlumnoEstadoLog,
-  FichaKinesiologica, TestFuncional, TestFuerza, RegistroSesionKinesiologia,
-  SesionKinesiologica, SesionKinesiologicaEjercicio, RutinaEjercicio,
+  FichaKinesiologica, SesionKinesiologia, RecordatorioKinesiologia,
   Ingreso, ModuloNegocio, HomeTexto, HomePilar, HomeContacto,
 } from "../models/index.js";
 
@@ -43,6 +43,41 @@ async function aplicar_ajustes_puntuales() {
   await sequelize.query(
     `DROP INDEX IF EXISTS "${DB_SCHEMA}".asignacion_profesional_persona_activa_unq`
   );
+
+  // Kinesiología: se reemplazó todo el sistema de rutina de ejercicios +
+  // sesiones con escalas de dolor/RIR por sesion_kinesiologia (visita) +
+  // recordatorio_kinesiologia (días + observación colgando de la visita) —
+  // estas tablas ya no se sincronizan y se eliminan (confirmado con el
+  // cliente, sin datos que preservar). IF EXISTS + CASCADE hace la
+  // operación idempotente.
+  for (const tabla of [
+    "sesion_kinesiologica_ejercicio",
+    "sesion_kinesiologica",
+    "rutina_ejercicio",
+    "test_funcional",
+    "test_fuerza",
+    "registro_sesion_kinesiologia",
+  ]) {
+    await sequelize.query(`DROP TABLE IF EXISTS "${DB_SCHEMA}".${tabla} CASCADE`);
+  }
+
+  // recordatorio_kinesiologia cambió de esquema durante el desarrollo: la
+  // primera versión colgaba directo de ficha_id, la definitiva cuelga de
+  // sesion_id (ver sesion_kinesiologia.js). sync({alter:true}) no dropea
+  // columnas viejas por sí solo, así que si la tabla todavía tiene el
+  // esquema anterior (sin sesion_id) se dropea UNA sola vez para que el
+  // sync de abajo la recree bien — no hay datos reales cargados todavía
+  // con el esquema viejo. Una vez migrada, esta condición no vuelve a
+  // cumplirse, así que no borra datos futuros.
+  const [{ existe }] = await sequelize.query(`
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'recordatorio_kinesiologia' AND column_name = 'sesion_id'
+    ) AS existe
+  `, { type: QueryTypes.SELECT });
+  if (!existe) {
+    await sequelize.query(`DROP TABLE IF EXISTS "${DB_SCHEMA}".recordatorio_kinesiologia CASCADE`);
+  }
 }
 
 async function sincronizar_modelos() {
@@ -79,14 +114,10 @@ async function sincronizar_modelos() {
     FichaKinesiologica,  // ficha_kinesiologica → paciente_patologia, usuario
 
     // ── Nivel 5 — depende de ficha_kinesiologica ─────────────────────────────
-    TestFuncional,              // test_funcional → ficha_kinesiologica, ejercicio, usuario
-    TestFuerza,                 // test_fuerza → ficha_kinesiologica, ejercicio, usuario
-    RegistroSesionKinesiologia, // registro_sesion_kinesiologia → ficha_kinesiologica, ejercicio, usuario — histórico, congelada, no se le quita el sync para no perder la tabla
-    SesionKinesiologica,        // sesion_kinesiologica → ficha_kinesiologica, usuario
-    RutinaEjercicio,            // rutina_ejercicio → ficha_kinesiologica, ejercicio
+    SesionKinesiologia, // sesion_kinesiologia → ficha_kinesiologica, usuario
 
-    // ── Nivel 6 — depende de sesion_kinesiologica ────────────────────────────
-    SesionKinesiologicaEjercicio, // sesion_kinesiologica_ejercicio → sesion_kinesiologica, ejercicio
+    // ── Nivel 6 — depende de sesion_kinesiologia ─────────────────────────────
+    RecordatorioKinesiologia, // recordatorio_kinesiologia → sesion_kinesiologia
   ];
 
   for (const modelo of modelos_en_orden) {

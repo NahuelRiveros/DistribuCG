@@ -30,23 +30,8 @@ export async function cambiarEstadoPacienteKinesiologia(pacienteKinesiologiaId, 
   return r.data;
 }
 
-export async function registrarTestFuncional(fichaId, payload) {
-  const r = await http.post(`/kinesiologia/fichas/${fichaId}/test-funcional`, payload);
-  return r.data;
-}
-
-export async function registrarTestFuerza(fichaId, payload) {
-  const r = await http.post(`/kinesiologia/fichas/${fichaId}/test-fuerza`, payload);
-  return r.data;
-}
-
 export async function registrarSesionKinesiologia(fichaId, payload) {
   const r = await http.post(`/kinesiologia/fichas/${fichaId}/sesiones`, payload);
-  return r.data;
-}
-
-export async function actualizarSesionKinesiologia(sesionId, payload) {
-  const r = await http.put(`/kinesiologia/sesiones/${sesionId}`, payload);
   return r.data;
 }
 
@@ -55,8 +40,13 @@ export async function eliminarSesionKinesiologia(sesionId) {
   return r.data;
 }
 
-export async function guardarRutinaKinesiologia(fichaId, items) {
-  const r = await http.put(`/kinesiologia/fichas/${fichaId}/rutina`, { items });
+export async function agregarRecordatorioKinesiologia(sesionId, payload) {
+  const r = await http.post(`/kinesiologia/sesiones/${sesionId}/recordatorios`, payload);
+  return r.data;
+}
+
+export async function eliminarRecordatorioKinesiologia(recordatorioId) {
+  const r = await http.delete(`/kinesiologia/recordatorios/${recordatorioId}`);
   return r.data;
 }
 

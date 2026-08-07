@@ -31,7 +31,6 @@ import VentasPage from "../pages/ventas/ventas_page.jsx";
 import HomeConfigPage from "../pages/admin/home_config_page.jsx";
 import ListaPacientesKinesiologiaPage from "../pages/admin/kinesiologia/lista_pacientes_page.jsx";
 import FichaPacientePage from "../pages/admin/kinesiologia/ficha_paciente_page.jsx";
-import RegistrarSesionKinesiologiaPage from "../pages/admin/kinesiologia/registrar_sesion_page.jsx";
 import PatologiasPage from "../pages/admin/kinesiologia/patologias_page.jsx";
 
 export const router = createBrowserRouter([
@@ -305,16 +304,6 @@ export const router = createBrowserRouter([
     <AppLayout>
       <ProtectedRoute roles={["admin", "kinesiologo"]}>
         <FichaPacientePage />
-      </ProtectedRoute>
-    </AppLayout>
-  ),
-},
-{
-  path: "/admin/kinesiologia/:id/sesion",
-  element: (
-    <AppLayout>
-      <ProtectedRoute roles={["admin", "kinesiologo"]}>
-        <RegistrarSesionKinesiologiaPage />
       </ProtectedRoute>
     </AppLayout>
   ),

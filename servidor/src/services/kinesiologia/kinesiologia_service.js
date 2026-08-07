@@ -2,8 +2,7 @@ import { sequelize } from "../../database/sequelize.js";
 import { QueryTypes } from "sequelize";
 import {
   Persona, Alumno, PacienteKinesiologia, PacientePatologia,
-  FichaKinesiologica, TestFuncional, TestFuerza,
-  SesionKinesiologica, SesionKinesiologicaEjercicio, RutinaEjercicio,
+  FichaKinesiologica, SesionKinesiologia, RecordatorioKinesiologia,
 } from "../../models/index.js";
 import { normalizarDocumento } from "../usuarios/persona_service.js";
 
@@ -280,7 +279,20 @@ export async function listarPacientesKinesiologia({
   };
 }
 
-/** Detalle completo de un paciente: patologías, cada una con su ficha, evaluación inicial e historial de sesiones. */
+const INCLUDE_SESIONES_FICHA = [{
+  model: SesionKinesiologia,
+  as: "sesiones",
+  separate: true,
+  order: [["fecha", "DESC"], ["id", "DESC"]],
+  include: [{
+    model: RecordatorioKinesiologia,
+    as: "recordatorios",
+    separate: true,
+    order: [["id", "ASC"]],
+  }],
+}];
+
+/** Detalle completo de un paciente: patologías, cada una con su ficha e historial de sesiones (con sus recordatorios). */
 export async function obtenerDetallePaciente({ paciente_kinesiologia_id }) {
   const pacienteKinesiologia = await PacienteKinesiologia.findByPk(paciente_kinesiologia_id, {
     include: [{ association: "persona" }],
@@ -296,29 +308,7 @@ export async function obtenerDetallePaciente({ paciente_kinesiologia_id }) {
       {
         model: FichaKinesiologica,
         as: "ficha",
-        include: [
-          { model: TestFuncional, as: "tests_funcionales", include: [{ association: "ejercicio" }] },
-          { model: TestFuerza, as: "tests_fuerza", include: [{ association: "ejercicio" }] },
-          {
-            model: SesionKinesiologica,
-            as: "sesiones",
-            separate: true,
-            order: [["fecha", "ASC"]],
-            include: [{
-              association: "ejercicios",
-              separate: true,
-              order: [["orden", "ASC"]],
-              include: [{ association: "ejercicio" }],
-            }],
-          },
-          {
-            model: RutinaEjercicio,
-            as: "rutina",
-            separate: true,
-            order: [["orden", "ASC"]],
-            include: [{ association: "ejercicio", include: [{ association: "grupo_muscular" }] }],
-          },
-        ],
+        include: INCLUDE_SESIONES_FICHA,
       },
     ],
     order: [["id", "DESC"]],
@@ -353,116 +343,72 @@ export async function cambiarEstadoPacienteKinesiologia(paciente_kinesiologia_id
   return { ok: true, mensaje: "Estado actualizado correctamente", estado: pacienteKinesiologia.estado };
 }
 
-export async function registrarTestFuncional({ ficha_id, ejercicio_id, calidad_movimiento, observaciones, fecha, registrado_por_id }) {
-  const registro = await TestFuncional.create({ ficha_id, ejercicio_id, calidad_movimiento, observaciones, fecha, registrado_por_id });
-  return { ok: true, test_funcional: registro };
+const DIAS_VALIDOS = new Set(["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"]);
+
+function limpiarRecordatorio(item) {
+  const dias = [...new Set((item?.dias ?? []).filter((d) => DIAS_VALIDOS.has(d)))];
+  const observacion = item?.observacion?.trim() ?? "";
+  if (!dias.length || !observacion) return null;
+  return { dias, observacion };
 }
 
-export async function registrarTestFuerza({ ficha_id, ejercicio_id, repeticiones, peso, fecha, registrado_por_id }) {
-  const registro = await TestFuerza.create({ ficha_id, ejercicio_id, repeticiones, peso, fecha, registrado_por_id });
-  return { ok: true, test_fuerza: registro };
-}
+const INCLUDE_RECORDATORIOS_SESION = [{ association: "recordatorios", separate: true, order: [["id", "ASC"]] }];
 
-const INCLUDE_EJERCICIOS_SESION = [{
-  association: "ejercicios",
-  separate: true,
-  order: [["orden", "ASC"]],
-  include: [{ association: "ejercicio" }],
-}];
+/**
+ * Registra una sesión (visita) con uno o varios recordatorios (días +
+ * observación) cargados en el momento — reemplaza a "configurar rutina" +
+ * "registrar sesión" por un solo paso.
+ */
+export async function registrarSesion({ ficha_id, fecha, recordatorios, registrado_por_id }) {
+  const ficha = await FichaKinesiologica.findByPk(ficha_id);
+  if (!ficha) return { ok: false, codigo: "NO_EXISTE", mensaje: "La ficha no existe" };
 
-/** Crea una sesión (checklist) con N ejercicios asociados (puede ser ninguno). */
-export async function registrarSesionKinesiologia({ ejercicios, ...checklist }) {
+  const limpios = (recordatorios ?? []).map(limpiarRecordatorio).filter(Boolean);
+  if (!limpios.length) {
+    return { ok: false, codigo: "VALIDACION", mensaje: "Cargá al menos un recordatorio (días + observación)" };
+  }
+
   const sesion = await sequelize.transaction(async (t) => {
-    const nueva = await SesionKinesiologica.create(checklist, { transaction: t });
-
-    if (ejercicios?.length) {
-      await SesionKinesiologicaEjercicio.bulkCreate(
-        ejercicios.map((ej, i) => ({ ...ej, sesion_id: nueva.id, orden: i })),
-        { transaction: t }
-      );
-    }
-
+    const nueva = await SesionKinesiologia.create({ ficha_id, fecha: fecha || undefined, registrado_por_id }, { transaction: t });
+    await RecordatorioKinesiologia.bulkCreate(
+      limpios.map((r) => ({ ...r, sesion_id: nueva.id })),
+      { transaction: t }
+    );
     return nueva;
   });
 
-  await sesion.reload({ include: INCLUDE_EJERCICIOS_SESION });
-  return { ok: true, sesion };
+  await sesion.reload({ include: INCLUDE_RECORDATORIOS_SESION });
+  return { ok: true, mensaje: "Sesión registrada correctamente", sesion };
 }
 
-/**
- * Edita una sesión ya guardada — sin restricción de ventana de tiempo.
- * La lista de ejercicios se reemplaza por completo (no hay diff incremental).
- */
-export async function actualizarSesionKinesiologia(id, { ejercicios, ...checklist }) {
-  const sesion = await SesionKinesiologica.findByPk(id);
+/** Agrega un recordatorio más a una sesión ya creada. */
+export async function agregarRecordatorioASesion({ sesion_id, dias, observacion }) {
+  const sesion = await SesionKinesiologia.findByPk(sesion_id);
   if (!sesion) return { ok: false, codigo: "NO_EXISTE", mensaje: "La sesión no existe" };
 
-  await sequelize.transaction(async (t) => {
-    await sesion.update({ ...checklist, actualizado_en: new Date() }, { transaction: t });
+  const limpio = limpiarRecordatorio({ dias, observacion });
+  if (!limpio) {
+    return { ok: false, codigo: "VALIDACION", mensaje: "Elegí al menos un día de la semana y cargá una observación" };
+  }
 
-    if (ejercicios) {
-      await SesionKinesiologicaEjercicio.destroy({ where: { sesion_id: id }, transaction: t });
-      if (ejercicios.length) {
-        await SesionKinesiologicaEjercicio.bulkCreate(
-          ejercicios.map((ej, i) => ({ ...ej, sesion_id: id, orden: i })),
-          { transaction: t }
-        );
-      }
-    }
-  });
-
-  await sesion.reload({ include: INCLUDE_EJERCICIOS_SESION });
-  return { ok: true, mensaje: "Sesión actualizada correctamente", sesion };
+  const recordatorio = await RecordatorioKinesiologia.create({ ...limpio, sesion_id });
+  return { ok: true, mensaje: "Recordatorio agregado correctamente", recordatorio };
 }
 
-/** Elimina una sesión ya guardada — sus ejercicios (SesionKinesiologicaEjercicio) caen en cascada. */
-export async function eliminarSesionKinesiologia(id) {
-  const sesion = await SesionKinesiologica.findByPk(id);
+/** Elimina una sesión completa — sus recordatorios caen en cascada. */
+export async function eliminarSesion(id) {
+  const sesion = await SesionKinesiologia.findByPk(id);
   if (!sesion) return { ok: false, codigo: "NO_EXISTE", mensaje: "La sesión no existe" };
 
   await sesion.destroy();
   return { ok: true, mensaje: "Sesión eliminada correctamente" };
 }
 
-const DIAS_VALIDOS = new Set(["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"]);
+/** Elimina un recordatorio puntual dentro de una sesión. */
+export async function eliminarRecordatorio(id) {
+  const recordatorio = await RecordatorioKinesiologia.findByPk(id);
+  if (!recordatorio) return { ok: false, codigo: "NO_EXISTE", mensaje: "El recordatorio no existe" };
 
-/**
- * Reemplaza por completo la rutina (lista de ejercicios trackeados, con los
- * días de la semana que le corresponden a cada uno) de una ficha — no hay
- * historial que preservar acá, "guardar la rutina" es destruir todo lo
- * anterior y volver a insertar la lista nueva.
- */
-export async function guardarRutinaFicha(ficha_id, items) {
-  const ficha = await FichaKinesiologica.findByPk(ficha_id);
-  if (!ficha) return { ok: false, codigo: "NO_EXISTE", mensaje: "La ficha no existe" };
-
-  const vistos = new Set();
-  const limpios = [];
-  for (const item of items ?? []) {
-    if (!item?.ejercicio_id || vistos.has(item.ejercicio_id)) continue;
-    const dias = [...new Set((item.dias ?? []).filter((d) => DIAS_VALIDOS.has(d)))];
-    if (!dias.length) continue;
-    vistos.add(item.ejercicio_id);
-    limpios.push({
-      ficha_id,
-      ejercicio_id: item.ejercicio_id,
-      dias,
-      orden: limpios.length,
-    });
-  }
-
-  await sequelize.transaction(async (t) => {
-    await RutinaEjercicio.destroy({ where: { ficha_id }, transaction: t });
-    if (limpios.length) {
-      await RutinaEjercicio.bulkCreate(limpios, { transaction: t });
-    }
-  });
-
-  const rutina = await RutinaEjercicio.findAll({
-    where: { ficha_id },
-    order: [["orden", "ASC"]],
-    include: [{ association: "ejercicio" }],
-  });
-
-  return { ok: true, mensaje: "Rutina actualizada correctamente", rutina };
+  await recordatorio.destroy();
+  return { ok: true, mensaje: "Recordatorio eliminado correctamente" };
 }

@@ -8,12 +8,10 @@ import {
   listaPacientes,
   cambiarEstadoPaciente,
   detallePaciente,
-  crearTestFuncional,
-  crearTestFuerza,
   crearSesion,
-  actualizarSesion,
-  eliminarSesion,
-  guardarRutina,
+  eliminarSesionController,
+  crearRecordatorio,
+  eliminarRecordatorioController,
   listaPatologias,
   crearPatologiaController,
   actualizarPatologiaController,
@@ -33,12 +31,10 @@ kinesiologiaRouter.get("/pacientes", listaPacientes);
 kinesiologiaRouter.patch("/pacientes/:id/estado", cambiarEstadoPaciente);
 kinesiologiaRouter.get("/pacientes/:id/ficha", detallePaciente);
 
-kinesiologiaRouter.post("/fichas/:id/test-funcional", crearTestFuncional);
-kinesiologiaRouter.post("/fichas/:id/test-fuerza", crearTestFuerza);
 kinesiologiaRouter.post("/fichas/:id/sesiones", crearSesion);
-kinesiologiaRouter.put("/sesiones/:id", actualizarSesion);
-kinesiologiaRouter.delete("/sesiones/:id", eliminarSesion);
-kinesiologiaRouter.put("/fichas/:id/rutina", guardarRutina);
+kinesiologiaRouter.delete("/sesiones/:id", eliminarSesionController);
+kinesiologiaRouter.post("/sesiones/:id/recordatorios", crearRecordatorio);
+kinesiologiaRouter.delete("/recordatorios/:id", eliminarRecordatorioController);
 
 kinesiologiaRouter.get("/patologias", listaPatologias);
 kinesiologiaRouter.post("/patologias", crearPatologiaController);

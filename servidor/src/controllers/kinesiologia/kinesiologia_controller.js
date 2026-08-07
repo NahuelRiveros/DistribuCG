@@ -4,12 +4,10 @@ import {
   agregarPacienteKinesiologia,
   listarPacientesKinesiologia,
   obtenerDetallePaciente,
-  registrarTestFuncional,
-  registrarTestFuerza,
-  registrarSesionKinesiologia,
-  actualizarSesionKinesiologia,
-  eliminarSesionKinesiologia,
-  guardarRutinaFicha,
+  registrarSesion,
+  agregarRecordatorioASesion,
+  eliminarSesion,
+  eliminarRecordatorio,
   cambiarEstadoPacienteKinesiologia,
 } from "../../services/kinesiologia/kinesiologia_service.js";
 import {
@@ -120,114 +118,65 @@ export async function detallePaciente(req, res, next) {
   }
 }
 
-export async function crearTestFuncional(req, res, next) {
-  try {
-    const ficha_id = toInt(req.params.id, null);
-    const { ejercicio_id, calidad_movimiento, observaciones, fecha } = req.body;
-    const r = await registrarTestFuncional({
-      ficha_id,
-      ejercicio_id: toInt(ejercicio_id, null),
-      calidad_movimiento: toInt(calidad_movimiento, null),
-      observaciones: observaciones ?? null,
-      fecha: fecha || undefined,
-      registrado_por_id: req.user.usuario_id,
-    });
-    return res.json(r);
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function crearTestFuerza(req, res, next) {
-  try {
-    const ficha_id = toInt(req.params.id, null);
-    const { ejercicio_id, repeticiones, peso, fecha } = req.body;
-    const r = await registrarTestFuerza({
-      ficha_id,
-      ejercicio_id: toInt(ejercicio_id, null),
-      repeticiones: toInt(repeticiones, null),
-      peso,
-      fecha: fecha || undefined,
-      registrado_por_id: req.user.usuario_id,
-    });
-    return res.json(r);
-  } catch (err) {
-    next(err);
-  }
-}
-
-function parseEjercicioSesion(item) {
-  const { ejercicio_id, peso, series, repeticiones, rir } = item ?? {};
+function parseRecordatorio(item) {
+  const { dias, observacion } = item ?? {};
   return {
-    ejercicio_id: ejercicio_id != null ? toInt(ejercicio_id, null) : null,
-    peso: peso ?? null,
-    series: series != null ? toInt(series, null) : null,
-    repeticiones: repeticiones != null ? toInt(repeticiones, null) : null,
-    rir: rir != null ? toInt(rir, null) : null,
-  };
-}
-
-function parseSesionBody(body) {
-  const {
-    dolor_durante, dolor_24h,
-    calidad_movimiento, tolerancia_carga, confianza_paciente, cumplimiento_programa,
-    tecnica_correcta, sin_compensaciones, buena_recuperacion, apto_para_subir_carga,
-    observaciones, fecha, ejercicios,
-  } = body;
-
-  return {
-    dolor_durante: toInt(dolor_durante, null),
-    dolor_24h: dolor_24h != null ? toInt(dolor_24h, null) : null,
-    calidad_movimiento: toInt(calidad_movimiento, null),
-    tolerancia_carga: toInt(tolerancia_carga, null),
-    confianza_paciente: toInt(confianza_paciente, null),
-    cumplimiento_programa: toInt(cumplimiento_programa, null),
-    tecnica_correcta: !!tecnica_correcta,
-    sin_compensaciones: !!sin_compensaciones,
-    buena_recuperacion: !!buena_recuperacion,
-    apto_para_subir_carga: !!apto_para_subir_carga,
-    observaciones: observaciones ?? null,
-    fecha: fecha || undefined,
-    ejercicios: Array.isArray(ejercicios) ? ejercicios.map(parseEjercicioSesion) : [],
+    dias: Array.isArray(dias) ? dias.map(String) : [],
+    observacion: observacion ?? "",
   };
 }
 
 export async function crearSesion(req, res, next) {
   try {
     const ficha_id = toInt(req.params.id, null);
-    const r = await registrarSesionKinesiologia({
+    const { fecha, recordatorios } = req.body ?? {};
+    const r = await registrarSesion({
       ficha_id,
-      ...parseSesionBody(req.body),
+      fecha: fecha || undefined,
+      recordatorios: Array.isArray(recordatorios) ? recordatorios.map(parseRecordatorio) : [],
       registrado_por_id: req.user.usuario_id,
     });
+    if (!r.ok) return res.status(r.codigo === "NO_EXISTE" ? 404 : 400).json(r);
     return res.json(r);
   } catch (err) {
     next(err);
   }
 }
 
-export async function actualizarSesion(req, res, next) {
+export async function eliminarSesionController(req, res, next) {
   try {
-    const sesion_id = toInt(req.params.id, null);
-    if (!sesion_id) {
+    const id = toInt(req.params.id, null);
+    if (!id) {
       return res.status(400).json({ ok: false, codigo: "VALIDACION", mensaje: "id inválido" });
     }
-    const r = await actualizarSesionKinesiologia(sesion_id, parseSesionBody(req.body));
-    if (!r.ok && r.codigo === "NO_EXISTE") return res.status(404).json(r);
+    const r = await eliminarSesion(id);
+    if (!r.ok) return res.status(404).json(r);
     return res.json(r);
   } catch (err) {
     next(err);
   }
 }
 
-export async function eliminarSesion(req, res, next) {
+export async function crearRecordatorio(req, res, next) {
   try {
     const sesion_id = toInt(req.params.id, null);
-    if (!sesion_id) {
+    const { dias, observacion } = parseRecordatorio(req.body);
+    const r = await agregarRecordatorioASesion({ sesion_id, dias, observacion });
+    if (!r.ok) return res.status(r.codigo === "NO_EXISTE" ? 404 : 400).json(r);
+    return res.json(r);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function eliminarRecordatorioController(req, res, next) {
+  try {
+    const id = toInt(req.params.id, null);
+    if (!id) {
       return res.status(400).json({ ok: false, codigo: "VALIDACION", mensaje: "id inválido" });
     }
-    const r = await eliminarSesionKinesiologia(sesion_id);
-    if (!r.ok && r.codigo === "NO_EXISTE") return res.status(404).json(r);
+    const r = await eliminarRecordatorio(id);
+    if (!r.ok) return res.status(404).json(r);
     return res.json(r);
   } catch (err) {
     next(err);
@@ -279,17 +228,3 @@ export async function cambiarEstadoPatologiaController(req, res, next) {
   }
 }
 
-export async function guardarRutina(req, res, next) {
-  try {
-    const ficha_id = toInt(req.params.id, null);
-    const items = Array.isArray(req.body?.items) ? req.body.items : [];
-    const r = await guardarRutinaFicha(ficha_id, items.map((it) => ({
-      ejercicio_id: toInt(it?.ejercicio_id, null),
-      dias: Array.isArray(it?.dias) ? it.dias.map(String) : [],
-    })));
-    if (!r.ok) return res.status(404).json(r);
-    return res.json(r);
-  } catch (err) {
-    next(err);
-  }
-}
