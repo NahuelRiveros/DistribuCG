@@ -91,7 +91,7 @@ export const UI_NAVBAR = {
   // ════════════════════════════════════════════════════════════════
 
   desktop_contenedor:                                      // ← scroll horizontal si no entran todos los menús (evita que se encimen con logo/userbox)
-    "hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+    "hidden min-w-0 flex-1 items-center gap-1.5 overflow-x-auto lg:flex [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 
   desktop_link:
     "inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200",
@@ -120,10 +120,13 @@ export const UI_NAVBAR = {
   dropdown_chevron_abierto:
     "rotate-180",
 
+  // Posición (fixed + top/left/right) se calcula en JS y se aplica inline —
+  // el panel se porta a document.body para no quedar recortado por el
+  // overflow-x-auto de desktop_contenedor (ver navbar_dropdown.jsx).
   dropdown_panel:
-    "absolute top-full z-[var(--z-modal)] mt-2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 left-0 w-72",
+    "fixed z-[var(--z-modal)] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 w-72",
   dropdown_panel_ancho:
-    "absolute top-full z-[var(--z-modal)] mt-2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 right-0 min-w-150",
+    "fixed z-[var(--z-modal)] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 min-w-150",
 
   dropdown_cabecera:
     `flex items-center gap-2.5 border-b border-slate-100 bg-linear-to-r ${C.grad_header} px-4 py-2.5`,

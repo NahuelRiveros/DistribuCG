@@ -35,23 +35,19 @@ export default function NavbarDesktop({ config }) {
 
   return (
     <div ref={navRef} className={S.desktop_contenedor}>
-      {config.links?.map((link) => {
-        const Icon = link.icon;
-        return (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.exact}
-            onClick={closeDropdown}
-            className={({ isActive }) =>
-              [S.desktop_link, isActive ? S.desktop_link_activo : S.desktop_link_inactivo].join(" ")
-            }
-          >
-            {Icon && <Icon size={16} className="shrink-0" />}
-            <span className="truncate">{link.label}</span>
-          </NavLink>
-        );
-      })}
+      {config.links?.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          end={link.exact}
+          onClick={closeDropdown}
+          className={({ isActive }) =>
+            [S.desktop_link, isActive ? S.desktop_link_activo : S.desktop_link_inactivo].join(" ")
+          }
+        >
+          <span className="truncate">{link.label}</span>
+        </NavLink>
+      ))}
 
       {config.dropdowns?.map((dropdown) => (
         <NavbarDropdown

@@ -1,25 +1,55 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { NavLink } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { UI_NAVBAR as S } from "./navbar_style.js";
 
 export default function NavbarDropdown({ dropdown, open = false, onToggle, onClose }) {
   const Icon = dropdown.icon;
-  const wrapperRef = useRef(null);
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+  const [coords, setCoords] = useState(null);
+
+  // El panel se porta a document.body (ver return más abajo) porque vive
+  // dentro de un contenedor con overflow-x-auto (desktop_contenedor) — al
+  // fijar un eje con auto/scroll, el navegador también recorta el otro eje,
+  // así que el panel quedaba invisible por debajo de la barra. Al portarlo
+  // afuera, la posición ya no la resuelve el flujo normal del documento:
+  // hay que calcularla a mano a partir del botón que lo abre.
+  useEffect(() => {
+    if (!open) return;
+    function actualizarCoords() {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setCoords(
+        dropdown.wide
+          ? { top: rect.bottom + 8, right: Math.max(8, window.innerWidth - rect.right) }
+          : { top: rect.bottom + 8, left: rect.left }
+      );
+    }
+    actualizarCoords();
+    window.addEventListener("resize", onClose);
+    window.addEventListener("scroll", onClose, true);
+    return () => {
+      window.removeEventListener("resize", onClose);
+      window.removeEventListener("scroll", onClose, true);
+    };
+  }, [open, dropdown.wide, onClose]);
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-        onClose();
-      }
+      if (triggerRef.current?.contains(e.target)) return;
+      if (panelRef.current?.contains(e.target)) return;
+      onClose();
     }
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open, onClose]);
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={onToggle}
         aria-expanded={open}
@@ -29,7 +59,6 @@ export default function NavbarDropdown({ dropdown, open = false, onToggle, onClo
           open ? S.dropdown_trigger_abierto : S.dropdown_trigger_cerrado,
         ].join(" ")}
       >
-        {Icon && <Icon size={16} className="shrink-0" />}
         <span className="truncate">{dropdown.label}</span>
         <ChevronDown
           size={14}
@@ -37,8 +66,8 @@ export default function NavbarDropdown({ dropdown, open = false, onToggle, onClo
         />
       </button>
 
-      {open && (
-        <div className={dropdown.wide ? S.dropdown_panel_ancho : S.dropdown_panel}>
+      {open && coords && createPortal(
+        <div ref={panelRef} style={coords} className={dropdown.wide ? S.dropdown_panel_ancho : S.dropdown_panel}>
           <div className={S.dropdown_cabecera}>
             {Icon && <span className={S.dropdown_cabecera_icono}><Icon size={13} /></span>}
             <span className={S.dropdown_cabecera_label}>{dropdown.label}</span>
@@ -138,7 +167,8 @@ export default function NavbarDropdown({ dropdown, open = false, onToggle, onClo
               })}
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
