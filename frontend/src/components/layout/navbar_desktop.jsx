@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import NavbarDropdown from "./navbar_dropdown.jsx";
 import { UI_NAVBAR as S } from "./navbar_style.js";
 
 export default function NavbarDesktop({ config }) {
   const [openDropdownId, setOpenDropdownId] = useState(null);
-  const navRef = useRef(null);
 
   function toggleDropdown(id) {
     setOpenDropdownId((prev) => (prev === id ? null : id));
@@ -15,15 +14,11 @@ export default function NavbarDesktop({ config }) {
     setOpenDropdownId(null);
   }
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (navRef.current && !navRef.current.contains(e.target)) {
-        closeDropdown();
-      }
-    }
-    if (openDropdownId) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openDropdownId]);
+  // El click-afuera ya lo maneja cada NavbarDropdown (conoce su trigger y su
+  // panel, aunque el panel esté portado a document.body). Un handler acá
+  // duplicaba esa lógica pero sin saber del portal: al clickear un link del
+  // panel, mousedown caía "afuera" de navRef y cerraba el dropdown antes de
+  // que el click llegara a dispararse, así que el NavLink nunca navegaba.
 
   useEffect(() => {
     function onKey(e) {
@@ -34,7 +29,7 @@ export default function NavbarDesktop({ config }) {
   }, []);
 
   return (
-    <div ref={navRef} className={S.desktop_contenedor}>
+    <div className={S.desktop_contenedor}>
       {config.links?.map((link) => (
         <NavLink
           key={link.to}
