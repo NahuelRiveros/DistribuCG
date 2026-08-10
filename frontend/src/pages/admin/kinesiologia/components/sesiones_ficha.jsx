@@ -1,11 +1,26 @@
 import { useState } from "react";
-import { Bell, CalendarPlus, Plus, Trash2, X } from "lucide-react";
+import { Bell, CalendarPlus, MessageCircle, Plus, Trash2, X } from "lucide-react";
 import { ORDEN_DIAS, DIA_LABEL } from "../../../../utils/dias_semana.js";
 import { formatearFechaAR } from "../../../../components/form/formatear_fecha.js";
 
 function fechaHoyLocal() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Arma el link de WhatsApp para un recordatorio, o null si la persona no tiene celular cargado. */
+function linkWhatsappRecordatorio(persona, recordatorio) {
+  const digitos = String(persona?.celular || "").replace(/\D/g, "");
+  if (!digitos) return null;
+  const numero = digitos.startsWith("54") ? digitos : `54${digitos}`;
+
+  const dias = recordatorio.dias.map((d) => DIA_LABEL[d]).join(", ");
+  const nombre = persona?.nombre ? ` ${persona.nombre}` : "";
+  const mensaje =
+    `Hola${nombre}! 👋 Te dejamos un recordatorio de kinesiología:\n\n` +
+    `📅 ${dias}\n📝 ${recordatorio.observacion}`;
+
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
 }
 
 function SelectorDias({ dias, onToggle }) {
@@ -145,7 +160,9 @@ function NuevaSesionForm({ onCrear }) {
   );
 }
 
-function RecordatorioItem({ recordatorio, onEliminar }) {
+function RecordatorioItem({ recordatorio, persona, onEliminar }) {
+  const waLink = linkWhatsappRecordatorio(persona, recordatorio);
+
   return (
     <li className="flex items-start gap-2.5 rounded-lg bg-slate-50 p-2.5">
       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-(--kt-teal-700)/10 text-(--kt-teal-700)">
@@ -161,6 +178,17 @@ function RecordatorioItem({ recordatorio, onEliminar }) {
         </div>
         <p className="mt-1 text-sm text-slate-700">{recordatorio.observacion}</p>
       </div>
+      {waLink && (
+        <a
+          href={waLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Enviar por WhatsApp"
+          className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
+        >
+          <MessageCircle size={13} />
+        </a>
+      )}
       <button type="button" onClick={() => onEliminar(recordatorio.id)} className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600">
         <Trash2 size={13} />
       </button>
@@ -223,7 +251,7 @@ function AgregarRecordatorioInline({ onAgregar }) {
   );
 }
 
-function SesionCard({ sesion, onAgregarRecordatorio, onEliminarRecordatorio, onEliminarSesion }) {
+function SesionCard({ sesion, persona, onAgregarRecordatorio, onEliminarRecordatorio, onEliminarSesion }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2.5">
       <div className="flex items-center justify-between gap-2">
@@ -236,7 +264,7 @@ function SesionCard({ sesion, onAgregarRecordatorio, onEliminarRecordatorio, onE
       {sesion.recordatorios?.length > 0 && (
         <ul className="space-y-1.5">
           {sesion.recordatorios.map((r) => (
-            <RecordatorioItem key={r.id} recordatorio={r} onEliminar={onEliminarRecordatorio} />
+            <RecordatorioItem key={r.id} recordatorio={r} persona={persona} onEliminar={onEliminarRecordatorio} />
           ))}
         </ul>
       )}
@@ -251,7 +279,7 @@ function SesionCard({ sesion, onAgregarRecordatorio, onEliminarRecordatorio, onE
  * puede tener uno o varios recordatorios (días + observación) colgando.
  * Reemplaza a la rutina de ejercicios + matriz de sesiones con escalas.
  */
-export default function SesionesFicha({ sesiones = [], onCrearSesion, onEliminarSesion, onAgregarRecordatorio, onEliminarRecordatorio }) {
+export default function SesionesFicha({ sesiones = [], persona, onCrearSesion, onEliminarSesion, onAgregarRecordatorio, onEliminarRecordatorio }) {
   return (
     <div className="space-y-3">
       <NuevaSesionForm onCrear={onCrearSesion} />
@@ -264,6 +292,7 @@ export default function SesionesFicha({ sesiones = [], onCrearSesion, onEliminar
             <SesionCard
               key={s.id}
               sesion={s}
+              persona={persona}
               onAgregarRecordatorio={onAgregarRecordatorio}
               onEliminarRecordatorio={onEliminarRecordatorio}
               onEliminarSesion={onEliminarSesion}

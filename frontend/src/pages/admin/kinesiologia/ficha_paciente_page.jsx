@@ -10,7 +10,7 @@ import {
 } from "../../../api/kinesiologia_api.js";
 import SesionesFicha from "./components/sesiones_ficha.jsx";
 
-function FichaCard({ patologia, onCambio }) {
+function FichaCard({ patologia, persona, onCambio }) {
   const ficha = patologia.ficha;
 
   async function crearSesion(payload) {
@@ -62,6 +62,7 @@ function FichaCard({ patologia, onCambio }) {
           </div>
           <SesionesFicha
             sesiones={ficha.sesiones || []}
+            persona={persona}
             onCrearSesion={crearSesion}
             onEliminarSesion={eliminarSesion}
             onAgregarRecordatorio={agregarRecordatorio}
@@ -145,6 +146,7 @@ export default function FichaPacientePage() {
               <FichaCard
                 key={p.id}
                 patologia={p}
+                persona={persona}
                 onCambio={cargar}
               />
             ))}
