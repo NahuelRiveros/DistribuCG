@@ -10,7 +10,7 @@ export const authConfig = {
   loginCampos: {
     emailLabel: "Email",
     passwordLabel: "Contraseña",
-    botonLabel: "Login",
+    botonLabel: "Ingresar",
   },
 
 };

@@ -20,7 +20,7 @@ export default function AppLayout({ children }) {
       <Navbar />
       <SuscripcionBanner />
       <GymAudioScheduler />
-      <main>{children}</main>
+      <main>{children}</main> 
       <Footer />
     </div>
   );
