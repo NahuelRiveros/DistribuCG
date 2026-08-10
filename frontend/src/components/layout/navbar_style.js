@@ -187,8 +187,8 @@ export const UI_NAVBAR = {
   // MENÚ MOBILE (navbar_mobile.jsx)
   // ════════════════════════════════════════════════════════════════
 
-  mobile_overlay:                                          // ← fondo oscurecido detrás del drawer
-    "fixed inset-0 z-[var(--z-modal)] bg-slate-900/45 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden",
+  mobile_overlay:                                          // ← fondo oscurecido detrás del drawer (por debajo del header, que es z-modal)
+    "fixed inset-0 z-40 bg-slate-900/45 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden",
   mobile_overlay_abierto:
     "opacity-100",
   mobile_overlay_cerrado:
