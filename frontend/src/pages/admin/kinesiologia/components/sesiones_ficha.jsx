@@ -8,6 +8,10 @@ function fechaHoyLocal() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// Texto base para que el kinesiólogo lo edite en vez de arrancar de cero.
+const OBSERVACION_BASE =
+  "Realizar los ejercicios indicados en la sesión. Elongar antes y después. Aplicar frío/calor según corresponda.";
+
 /** Arma el link de WhatsApp para un recordatorio, o null si la persona no tiene celular cargado. */
 function linkWhatsappRecordatorio(persona, recordatorio) {
   const digitos = String(persona?.celular || "").replace(/\D/g, "");
@@ -46,7 +50,7 @@ function SelectorDias({ dias, onToggle }) {
 }
 
 function bloqueVacio() {
-  return { key: crypto.randomUUID(), dias: [], observacion: "" };
+  return { key: crypto.randomUUID(), dias: [], observacion: OBSERVACION_BASE };
 }
 
 /** Form para crear una sesión nueva: fecha + uno o varios recordatorios (días + observación). */
@@ -199,7 +203,7 @@ function RecordatorioItem({ recordatorio, persona, onEliminar }) {
 function AgregarRecordatorioInline({ onAgregar }) {
   const [abierto, setAbierto] = useState(false);
   const [dias, setDias] = useState([]);
-  const [observacion, setObservacion] = useState("");
+  const [observacion, setObservacion] = useState(OBSERVACION_BASE);
   const [error, setError] = useState(null);
   const [guardando, setGuardando] = useState(false);
 
@@ -214,7 +218,7 @@ function AgregarRecordatorioInline({ onAgregar }) {
     try {
       const r = await onAgregar({ dias, observacion: observacion.trim() });
       if (!r?.ok) { setError(r?.mensaje || "No se pudo agregar"); return; }
-      setDias([]); setObservacion(""); setAbierto(false);
+      setDias([]); setObservacion(OBSERVACION_BASE); setAbierto(false);
     } finally {
       setGuardando(false);
     }
