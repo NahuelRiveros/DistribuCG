@@ -94,8 +94,13 @@ export default function NavbarUserBox({ mobile = false, onLogout }) {
         />
       </button>
 
-      {open && (
-        <div className={S.userbox_desktop_panel}>
+      <div
+        aria-hidden={!open}
+        className={[
+          S.userbox_desktop_panel,
+          open ? S.panel_flotante_abierto : S.panel_flotante_cerrado,
+        ].join(" ")}
+      >
           <div className={S.userbox_desktop_panel_header}>
             <div className={S.userbox_avatar_lg}>
               {initials || <User size={20} />}
@@ -142,8 +147,7 @@ export default function NavbarUserBox({ mobile = false, onLogout }) {
               Cerrar sesión
             </button>
           </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

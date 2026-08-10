@@ -84,7 +84,7 @@ export const UI_NAVBAR = {
     `inline-flex items-center gap-2 rounded-xl ${C.activo_bg} px-4 py-2 text-sm font-bold ${C.activo_texto} shadow-sm ${C.activo_sombra} transition-all ${C.btn_hover}`,
 
   btn_hamburguesa:
-    "inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100",
+    `inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 ${C.foco_ring} focus-visible:ring-offset-2`,
 
   // ════════════════════════════════════════════════════════════════
   // NAVEGACIÓN DESKTOP (navbar_desktop.jsx)
@@ -107,7 +107,7 @@ export const UI_NAVBAR = {
   // ════════════════════════════════════════════════════════════════
 
   dropdown_trigger:
-    "inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200 focus:outline-none",
+    `inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 ${C.foco_ring} focus-visible:ring-offset-2`,
 
   dropdown_trigger_abierto:
     `${C.suave_bg} ${C.suave_texto}`,
@@ -127,6 +127,11 @@ export const UI_NAVBAR = {
     "fixed z-[var(--z-modal)] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 w-72",
   dropdown_panel_ancho:
     "fixed z-[var(--z-modal)] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 min-w-150",
+  // Estados compartidos de entrada/salida para paneles flotantes (userbox)
+  panel_flotante_abierto:
+    "scale-100 opacity-100",
+  panel_flotante_cerrado:
+    "pointer-events-none scale-95 opacity-0",
 
   dropdown_cabecera:
     `flex items-center gap-2.5 border-b border-slate-100 bg-linear-to-r ${C.grad_header} px-4 py-2.5`,
@@ -304,7 +309,7 @@ export const UI_NAVBAR = {
     "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-600",
 
   userbox_desktop_trigger:
-    "flex items-center gap-2 rounded-2xl px-2 py-1.5 ring-1 transition-all duration-200",
+    "flex items-center gap-2 rounded-2xl px-2 py-1.5 ring-1 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--kt-teal-700)",
   userbox_desktop_trigger_abierto:
     "bg-slate-50 shadow-sm ring-slate-200",
   userbox_desktop_trigger_cerrado:
@@ -317,7 +322,7 @@ export const UI_NAVBAR = {
     "shrink-0 text-slate-500 transition-transform duration-200",
 
   userbox_desktop_panel:
-    "absolute right-0 top-full z-[var(--z-modal)] mt-2 w-60 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/12 ring-1 ring-black/5",
+    "absolute right-0 top-full z-[var(--z-modal)] mt-2 w-60 origin-top-right overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/12 ring-1 ring-black/5 transition duration-150 ease-out",
   userbox_desktop_panel_header:
     "flex items-center gap-3 border-b border-slate-100 p-4",
   userbox_desktop_links_area:
