@@ -42,6 +42,26 @@ function ImagenSpinaS({ className = "" }) {
 }
 
 /**
+ * Isotipo solo (la S-columna, sin el texto "MOOV") — para espacios chicos
+ * donde no entra o no hace falta el wordmark completo (ej. header del
+ * drawer mobile).
+ */
+export function LogoMoovsIcon({ className = "" }) {
+  const logo = brandConfig.logo ?? {};
+  if (logo.tipo !== "moovs-spine") return null;
+  const sizing = SIZE.sm;
+
+  return (
+    <span
+      aria-label={logo.ariaLabel || brandConfig.nombre}
+      className={`inline-flex leading-none ${sizing.text} ${className}`}
+    >
+      <ImagenSpinaS className={`${sizing.spine} ${sizing.spineBox}`} />
+    </span>
+  );
+}
+
+/**
  * Wordmark de marca — "moov" + la S-columna. `variant="light"` es para
  * fondos oscuros (footer, CTA final del home); `animated` prende el mismo
  * shimmer que ya existía para el nombre viejo (solo pensado para el hero,

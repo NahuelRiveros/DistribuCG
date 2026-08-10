@@ -78,18 +78,18 @@ export default function NavbarUserBox({ mobile = false, onLogout }) {
         ].join(" ")}
       >
         <div className={S.userbox_avatar_sm}>
-          {initials || <User size={14} />}
+          {initials || <User size={11} />}
         </div>
         <div className="min-w-0 text-left leading-tight">
           <p className={S.userbox_desktop_nombre}>{nombre}</p>
           <p className={S.userbox_desktop_rol}>{rol}</p>
         </div>
-        <span className={S.userbox_online_md}>
-          <span className={S.userbox_online_md_ping} />
-          <span className={S.userbox_online_md_solido} />
+        <span className={S.userbox_online_sm}>
+          <span className={S.userbox_online_sm_ping} />
+          <span className={S.userbox_online_sm_solido} />
         </span>
         <ChevronDown
-          size={14}
+          size={12}
           className={[S.userbox_desktop_chevron, open ? "rotate-180" : ""].join(" ")}
         />
       </button>

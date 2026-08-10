@@ -203,8 +203,6 @@ export const UI_NAVBAR = {
 
   mobile_drawer_header:
     "flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-4",
-  mobile_drawer_marca:
-    "kt-display text-sm font-black tracking-tight text-slate-900",
   mobile_drawer_cerrar:
     `inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 ${C.foco_ring} focus-visible:ring-offset-2`,
 
@@ -284,11 +282,11 @@ export const UI_NAVBAR = {
   // ════════════════════════════════════════════════════════════════
 
   userbox_avatar_xl:
-    "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-sm font-black text-white shadow-md shadow-[var(--kt-turquoise)]/30 ring-2 ring-white ring-offset-1",
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-xs font-black text-white shadow-md shadow-[var(--kt-turquoise)]/30 ring-2 ring-white ring-offset-1",
   userbox_avatar_lg:
     "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-sm font-black text-white shadow-md shadow-[var(--kt-turquoise)]/30 ring-2 ring-white ring-offset-1",
   userbox_avatar_sm:
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-xs font-black text-white shadow-sm shadow-[var(--kt-turquoise)]/30",
+    "flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-(--kt-teal-700) to-[var(--kt-petrol)] text-[10px] font-black text-white shadow-sm shadow-[var(--kt-turquoise)]/30",
 
   userbox_online_sm:
     "relative flex h-1.5 w-1.5 shrink-0",
@@ -296,39 +294,32 @@ export const UI_NAVBAR = {
     "absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75",
   userbox_online_sm_solido:
     "relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500",
-  userbox_online_md:
-    "relative flex h-2 w-2 shrink-0",
-  userbox_online_md_ping:
-    "absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60",
-  userbox_online_md_solido:
-    "relative inline-flex h-2 w-2 rounded-full bg-emerald-500",
-
   userbox_nombre:
     "truncate text-sm font-black text-slate-900",
   userbox_rol:
     "truncate text-xs font-semibold text-slate-500",
 
   userbox_mobile_tarjeta:
-    "overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm",
+    "overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm",
   userbox_mobile_header:
-    "flex items-center gap-3 p-4",
+    "flex items-center gap-2.5 p-2.5",
   userbox_mobile_logout_area:
-    "border-t border-slate-100 p-2",
+    "border-t border-slate-100 p-1.5",
   userbox_mobile_logout_btn:
-    "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50",
+    "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50",
   userbox_logout_icono:
     "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-600",
 
   userbox_desktop_trigger:
-    "flex items-center gap-2 rounded-2xl px-2 py-1.5 ring-1 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--kt-teal-700)",
+    "flex items-center gap-1.5 rounded-xl px-1.5 py-1 ring-1 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--kt-teal-700)",
   userbox_desktop_trigger_abierto:
     "bg-slate-50 shadow-sm ring-slate-200",
   userbox_desktop_trigger_cerrado:
     "bg-white ring-slate-200/80 hover:bg-slate-50 hover:shadow-sm",
   userbox_desktop_nombre:
-    "max-w-28 truncate text-xs font-black text-slate-900",
+    "max-w-20 truncate text-[11px] font-black text-slate-900",
   userbox_desktop_rol:
-    "max-w-28 truncate text-[10px] font-semibold uppercase tracking-wide text-(--kt-ink-mute)",
+    "max-w-20 truncate text-[9px] font-semibold uppercase tracking-wide text-(--kt-ink-mute)",
   userbox_desktop_chevron:
     "shrink-0 text-slate-500 transition-transform duration-200",
 
