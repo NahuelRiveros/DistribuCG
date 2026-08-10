@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,14 +46,11 @@ function SectionHeader({ number, label, icon: Icon }) {
 
 export default function RegisterAlumnoPage() {
   const nav = useNavigate();
-  const [searchParams] = useSearchParams();
   const [error, setError]       = useState(null);
   const [mostrarOk, setMostrarOk] = useState(false);
   const [dataOk, setDataOk]     = useState(null);
 
   const { data: catalogos, loading: loadingCatalogos, error: errorCatalogos } = useCatalogos();
-
-  const [crearAlumno, setCrearAlumno] = useState(searchParams.get("alumno") !== "0");
 
   const {
     register,
@@ -90,7 +87,6 @@ export default function RegisterAlumnoPage() {
         email:              values.email || null,
         celular:            values.celular || null,
         celular_emergencia: values.celular_emergencia || null,
-        crear_alumno:       crearAlumno,
       });
 
       if (!r?.ok) { setError(r?.mensaje || "No se pudo registrar"); return; }
@@ -302,23 +298,6 @@ export default function RegisterAlumnoPage() {
 
               {/* ── ERROR + SUBMIT ── */}
               <div className="space-y-4 pt-2">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
-                  <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={crearAlumno}
-                      onChange={(e) => setCrearAlumno(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-sky-500 focus:ring-sky-400"
-                    />
-                    Dar de alta como alumno del gimnasio
-                  </label>
-                  <p className="mt-1.5 pl-6 text-xs leading-relaxed text-slate-500">
-                    {crearAlumno
-                      ? "Va a poder tener un plan, pagar cuota y registrar ingresos por DNI en el gimnasio."
-                      : "Se registra solo la persona, sin cuota de gimnasio. Usalo si viene únicamente por kinesiología — después la sumás como paciente kinesiológico desde el panel de Kinesiología."}
-                  </p>
-                </div>
-
                 <FormError message={error} />
 
                 <button
@@ -327,7 +306,7 @@ export default function RegisterAlumnoPage() {
                   className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 py-3.5 text-sm font-bold uppercase tracking-wider text-white shadow-md shadow-sky-500/25 hover:bg-sky-400 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <UserPlus size={16} />
-                  {isSubmitting ? "Registrando…" : crearAlumno ? "Registrar alumno" : "Registrar persona"}
+                  {isSubmitting ? "Registrando…" : "Registrar alumno"}
                 </button>
               </div>
 
