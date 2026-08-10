@@ -57,9 +57,6 @@ export const UI_NAVBAR = {
   barra_nav_container:
     "mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8",
 
-  barra_backdrop_mobile:
-    "fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[2px] lg:hidden",
-
   // ════════════════════════════════════════════════════════════════
   // BRAND / LOGO
   // ════════════════════════════════════════════════════════════════
@@ -190,15 +187,29 @@ export const UI_NAVBAR = {
   // MENÚ MOBILE (navbar_mobile.jsx)
   // ════════════════════════════════════════════════════════════════
 
-  mobile_panel:                                            // ← bg panel desplegable mobile
-    "overflow-hidden border-t border-slate-100 bg-slate-200/80 transition-all duration-300 ease-in-out lg:hidden",
-  mobile_panel_abierto:
-    "max-h-[calc(100vh-4rem)] opacity-100",
-  mobile_panel_cerrado:
-    "max-h-0 opacity-0",
+  mobile_overlay:                                          // ← fondo oscurecido detrás del drawer
+    "fixed inset-0 z-[var(--z-modal)] bg-slate-900/45 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden",
+  mobile_overlay_abierto:
+    "opacity-100",
+  mobile_overlay_cerrado:
+    "pointer-events-none opacity-0",
+
+  mobile_drawer:                                           // ← panel lateral fijo (drawer)
+    "fixed inset-y-0 right-0 z-[var(--z-modal-nested)] flex w-[86%] max-w-xs flex-col bg-(--kt-bg) shadow-2xl shadow-slate-900/25 transition-transform duration-300 ease-out lg:hidden",
+  mobile_drawer_abierto:
+    "translate-x-0",
+  mobile_drawer_cerrado:
+    "translate-x-full",
+
+  mobile_drawer_header:
+    "flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-4",
+  mobile_drawer_marca:
+    "kt-display text-sm font-black tracking-tight text-slate-900",
+  mobile_drawer_cerrar:
+    `inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 ${C.foco_ring} focus-visible:ring-offset-2`,
 
   mobile_scroll:
-    "max-h-[calc(100vh-5rem)] overflow-y-auto px-4 pb-6 pt-3",
+    "flex-1 overflow-y-auto px-4 pb-4 pt-4",
 
   mobile_links_lista:
     "mb-3 space-y-0.5",
@@ -263,7 +274,7 @@ export const UI_NAVBAR = {
     "flex h-5 w-5 items-center justify-center rounded-md bg-slate-100 text-slate-500",
 
   mobile_pie_usuario:
-    "mt-4 border-t border-slate-200/60 pt-4",
+    "shrink-0 border-t border-slate-200/60 p-4",
 
   mobile_btn_login:
     `flex items-center justify-center gap-2 rounded-2xl ${C.activo_bg} px-4 py-3 text-sm font-black ${C.activo_texto} shadow-md ${C.activo_sombra} transition-opacity ${C.btn_hover}`,

@@ -101,13 +101,22 @@ export default function Navbar() {
             </button>
           </div>
         </nav>
-
-        <NavbarMobile config={navbarFiltrado} open={mobileOpen} onNavigate={cerrarMobile} />
       </header>
 
-      {mobileOpen && (
-        <div className={S.barra_backdrop_mobile} onClick={cerrarMobile} aria-hidden="true" />
-      )}
+      <div
+        aria-hidden={!mobileOpen}
+        onClick={cerrarMobile}
+        className={[
+          S.mobile_overlay,
+          mobileOpen ? S.mobile_overlay_abierto : S.mobile_overlay_cerrado,
+        ].join(" ")}
+      />
+      <NavbarMobile
+        config={navbarFiltrado}
+        open={mobileOpen}
+        onNavigate={cerrarMobile}
+        onClose={cerrarMobile}
+      />
     </>
   );
 }

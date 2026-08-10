@@ -1,5 +1,5 @@
 import {
-  Home, ClipboardList, ScanLine, LogIn, UserPlus, CreditCard,
+  Home, ClipboardList, ScanLine, UserPlus, CreditCard,
   BarChart2, LayoutDashboard, Shield, Wallet, CalendarClock, Clock, Users,
   Briefcase, Settings, HeartPulse, Stethoscope, Layers, ShoppingCart,
   Megaphone, FileEdit, Volume2, LayoutTemplate, Receipt, KeyRound, ToggleLeft,
@@ -27,7 +27,6 @@ export const navbar_config = {
     { label: "Home",         to: "/", icon: Home },
     { label: "Mi Plan",      to: "/consulta-plan",      ocultarSiAuth: true, icon: ClipboardList },
     { label: "Ingreso",      to: "/kiosk",               requiereAuth: true, roles: ["admin", "staff", "kinesiologo"], modulo: "gym", icon: ScanLine },
-    { label: "Login",        to: "/login",               ocultarSiAuth: true, icon: LogIn },
     // Sin `modulo`: registra personas en general (alumno y/o paciente de kinesiología).
     { label: "Registro",     to: "/register",            requiereAuth: true, roles: ["admin", "staff", "kinesiologo"], icon: UserPlus },
     {

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { useAuth } from "../../auth/auth_context.jsx";
+import { navbar_config } from "../../config/navbar_config.js";
 import NavbarUserBox from "./navbar_userbox.jsx";
 import { UI_NAVBAR as S } from "./navbar_style.js";
 
-export default function NavbarMobile({ config, open, onNavigate }) {
+export default function NavbarMobile({ config, open, onNavigate, onClose }) {
   const [openGroups, setOpenGroups] = useState({});
   const { usuario } = useAuth();
 
@@ -19,12 +20,25 @@ export default function NavbarMobile({ config, open, onNavigate }) {
   }
 
   return (
-    <div
+    <aside
+      aria-hidden={!open}
       className={[
-        S.mobile_panel,
-        open ? S.mobile_panel_abierto : S.mobile_panel_cerrado,
+        S.mobile_drawer,
+        open ? S.mobile_drawer_abierto : S.mobile_drawer_cerrado,
       ].join(" ")}
     >
+      <div className={S.mobile_drawer_header}>
+        <span className={S.mobile_drawer_marca}>{navbar_config.brand.titulo}</span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar menú"
+          className={S.mobile_drawer_cerrar}
+        >
+          <X size={18} />
+        </button>
+      </div>
+
       <div className={S.mobile_scroll}>
         {(config.links?.length ?? 0) > 0 && (
           <div className={S.mobile_links_lista}>
@@ -141,17 +155,17 @@ export default function NavbarMobile({ config, open, onNavigate }) {
             })}
           </div>
         )}
-
-        <div className={S.mobile_pie_usuario}>
-          {usuario ? (
-            <NavbarUserBox mobile onLogout={handleNavigate} />
-          ) : (
-            <NavLink to="/login" onClick={handleNavigate} className={S.mobile_btn_login}>
-              Iniciar sesión
-            </NavLink>
-          )}
-        </div>
       </div>
-    </div>
+
+      <div className={S.mobile_pie_usuario}>
+        {usuario ? (
+          <NavbarUserBox mobile onLogout={handleNavigate} />
+        ) : (
+          <NavLink to="/login" onClick={handleNavigate} className={S.mobile_btn_login}>
+            Iniciar sesión
+          </NavLink>
+        )}
+      </div>
+    </aside>
   );
 }
