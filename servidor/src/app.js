@@ -19,7 +19,12 @@ const rutaFrontend = path.resolve(__dirname, "../../frontend/dist");
 // ── CORS ────────────────────────────────────────────────────────────────────
 // Orígenes permitidos explícitos. En local (sin CORS_ORIGIN) se permiten
 // solo los orígenes de desarrollo conocidos.
-const CORS_DEV = ["http://localhost:5173", "http://localhost:3001", "http://localhost:4000"];
+// Vite toma el siguiente puerto libre (5173, 5174, 5175...) si el anterior
+// ya está ocupado por otra instancia del dev server — se listan varios.
+const CORS_DEV = [
+  "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
+  "http://localhost:3001", "http://localhost:4000",
+];
 
 const corsOrigin = env.CORS_ORIGIN
   ? env.CORS_ORIGIN.split(",").map((s) => s.trim())
