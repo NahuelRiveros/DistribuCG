@@ -1,4 +1,4 @@
-﻿import {
+import {
   TipoDocumento,
   Sexo,
   TipoPersona,
@@ -6,50 +6,24 @@
   CategoriaProducto,
   Patologia,
 } from "../../models/index.js";
+import { listarOpciones } from "../common/select_options.js";
 
 export async function obtenerCatalogos() {
   const [tiposDocumento, sexos, tiposPersona, tiposPlan, categoriasProducto, patologias] = await Promise.all([
-    TipoDocumento.findAll({
-      attributes: ["id", "descripcion"],
-      order: [["descripcion", "ASC"]],
-    }),
-    Sexo.findAll({
-      attributes: ["id", "descripcion"],
-      order: [["descripcion", "ASC"]],
-    }),
-    TipoPersona.findAll({
-      attributes: ["id", "descripcion"],
-      order: [["descripcion", "ASC"]],
-    }),
-    PlanTipo.findAll({
-      attributes: ["id", "descripcion", "dias_totales", "ingresos", "precio"],
-      where: { activo: true },
-      order: [["descripcion", "ASC"]],
-    }),
-    CategoriaProducto.findAll({
-      attributes: ["id", "descripcion"],
-      where: { activo: true },
-      order: [["descripcion", "ASC"]],
-    }),
-    Patologia.findAll({
-      attributes: ["id", "descripcion"],
-      where: { activo: true },
-      order: [["descripcion", "ASC"]],
-    }),
+    listarOpciones(TipoDocumento),
+    listarOpciones(Sexo),
+    listarOpciones(TipoPersona),
+    listarOpciones(PlanTipo, { where: { activo: true }, extra: ["dias_totales", "ingresos", "precio"] }),
+    listarOpciones(CategoriaProducto, { where: { activo: true } }),
+    listarOpciones(Patologia, { where: { activo: true } }),
   ]);
 
   return {
-    tiposDocumento: tiposDocumento.map((x) => ({ value: x.id, label: x.descripcion })),
-    sexos:          sexos.map((x) => ({ value: x.id, label: x.descripcion })),
-    tiposPersona:   tiposPersona.map((x) => ({ value: x.id, label: x.descripcion })),
-    tiposPlan:      tiposPlan.map((x) => ({
-      value:       x.id,
-      label:       x.descripcion,
-      dias_totales: x.dias_totales,
-      ingresos:    x.ingresos,
-      precio:      Number(x.precio),
-    })),
-    categoriasProducto: categoriasProducto.map((x) => ({ value: x.id, label: x.descripcion })),
-    patologias:      patologias.map((x) => ({ value: x.id, label: x.descripcion })),
+    tiposDocumento,
+    sexos,
+    tiposPersona,
+    tiposPlan: tiposPlan.map((x) => ({ ...x, precio: Number(x.precio) })),
+    categoriasProducto,
+    patologias,
   };
 }

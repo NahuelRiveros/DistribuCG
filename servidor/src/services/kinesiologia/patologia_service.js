@@ -1,8 +1,12 @@
 import { Patologia } from "../../models/index.js";
+import { crearCrudService } from "../common/crud_service.js";
+
+const patologiasCrud = crearCrudService(Patologia, {
+  defaultOrder: [["descripcion", "ASC"]],
+});
 
 export async function listarPatologias() {
-  const items = await Patologia.findAll({ order: [["descripcion", "ASC"]] });
-  return { ok: true, items };
+  return patologiasCrud.listar();
 }
 
 export async function crearPatologia({ descripcion }) {
@@ -20,7 +24,7 @@ export async function actualizarPatologia(id, { descripcion }) {
   const desc = String(descripcion ?? "").trim();
   if (!desc) return { ok: false, codigo: "VALIDACION", mensaje: "descripcion es obligatoria" };
 
-  const patologia = await Patologia.findByPk(id);
+  const patologia = await patologiasCrud.obtenerPorId(id);
   if (!patologia) return { ok: false, codigo: "NO_EXISTE", mensaje: "La patología no existe" };
 
   const otra = await Patologia.findOne({ where: { descripcion: desc } });
@@ -32,10 +36,9 @@ export async function actualizarPatologia(id, { descripcion }) {
 }
 
 export async function cambiarEstadoPatologia(id, activo) {
-  const patologia = await Patologia.findByPk(id);
+  const patologia = await patologiasCrud.cambiarEstado(id, activo);
   if (!patologia) return { ok: false, codigo: "NO_EXISTE", mensaje: "La patología no existe" };
 
-  await patologia.update({ activo: !!activo });
   return {
     ok: true,
     mensaje: activo ? "Patología activada correctamente" : "Patología desactivada correctamente",
