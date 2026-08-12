@@ -1,21 +1,23 @@
 import { sequelize } from "../../database/sequelize.js";
 import { Producto, MovimientoStock, CategoriaProducto, Usuario, Persona } from "../../models/index.js";
+import { crearCrudService } from "../common/crud_service.js";
 
 const includeCategoria = [{ model: CategoriaProducto, as: "categoria", attributes: ["id", "descripcion"] }];
 
-export async function listarProductos({ incluirInactivos = true } = {}) {
-  const where = {};
-  if (!incluirInactivos) where.activo = true;
+const productosCrud = crearCrudService(Producto, {
+  defaultOrder: [["nombre", "ASC"]],
+  include: includeCategoria,
+});
 
-  return Producto.findAll({
-    where,
-    include: includeCategoria,
-    order: [["nombre", "ASC"]],
+export async function listarProductos({ incluirInactivos = true } = {}) {
+  const { items } = await productosCrud.listar({
+    where: incluirInactivos ? undefined : { activo: true },
   });
+  return items;
 }
 
 export async function obtenerProductoPorId(id) {
-  return Producto.findByPk(id, { include: includeCategoria });
+  return productosCrud.obtenerPorId(id);
 }
 
 export async function crearProducto(data) {
@@ -43,10 +45,7 @@ export async function actualizarProducto(id, data) {
 }
 
 export async function cambiarEstadoProducto(id, activo) {
-  const producto = await Producto.findByPk(id);
-  if (!producto) return null;
-  await producto.update({ activo });
-  return producto;
+  return productosCrud.cambiarEstado(id, activo);
 }
 
 async function registrarMovimiento({ producto_id, tipo, cantidad, usuario_id, motivo = null, metodoPago = null }) {
