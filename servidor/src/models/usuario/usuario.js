@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Credenciales de acceso al sistema (admins y staff).
  * Relación 1:1 con persona — persona_id es UNIQUE.
  * No toda persona tiene usuario; solo quienes operan el sistema.
  */
-export const Usuario = sequelize.define("Usuario", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const Usuario = defineModel("Usuario", {
   persona_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -27,9 +25,7 @@ export const Usuario = sequelize.define("Usuario", {
   // eliminado_en no null: baja definitiva — no puede iniciar sesión ni reactivarse
   eliminado_en:  { type: DataTypes.DATE, allowNull: true },
 }, {
-  tableName:  "usuario",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "usuario",
   indexes: [
     { fields: ["persona_id"] },
   ],

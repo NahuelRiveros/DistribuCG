@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Avance registrado para un ejercicio puntual de una persona (alumno o
  * paciente de kinesiología), en una fecha dada.
  * Inmutable: no se actualiza ni elimina una vez registrado.
  */
-export const RegistroEjercicio = sequelize.define("RegistroEjercicio", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const RegistroEjercicio = defineModel("RegistroEjercicio", {
   persona_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -33,9 +31,7 @@ export const RegistroEjercicio = sequelize.define("RegistroEjercicio", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "registro_ejercicio",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "registro_ejercicio",
   indexes: [
     { fields: ["persona_id"] },
     { fields: ["ejercicio_id"] },

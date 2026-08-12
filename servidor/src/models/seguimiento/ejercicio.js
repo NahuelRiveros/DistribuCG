@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Catálogo de ejercicios disponibles para registrar avances.
  * Compartido entre entrenamiento personalizado y kinesiología —
  * tipo_ejercicio_id distingue el contexto de uso.
  */
-export const Ejercicio = sequelize.define("Ejercicio", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const Ejercicio = defineModel("Ejercicio", {
   nombre: { type: DataTypes.STRING(120), allowNull: false, unique: true },
 
   tipo_ejercicio_id: {
@@ -25,9 +23,7 @@ export const Ejercicio = sequelize.define("Ejercicio", {
   activo:    { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "ejercicio",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "ejercicio",
   indexes: [
     { fields: ["tipo_ejercicio_id"] },
     { fields: ["grupo_muscular_id"] },

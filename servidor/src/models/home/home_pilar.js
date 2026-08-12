@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Reemplaza el array PILARES hardcodeado de home_page.jsx — "nuestro fuerte",
@@ -7,8 +7,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  * un mapa fijo (ver ICONOS_HOME en home_service.js) — nunca se guarda ni
  * ejecuta código arbitrario del panel admin.
  */
-export const HomePilar = sequelize.define("HomePilar", {
-  id:     { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+export const HomePilar = defineModel("HomePilar", {
   icono:  { type: DataTypes.STRING(40), allowNull: false },
   titulo: { type: DataTypes.STRING(120), allowNull: false },
   texto:  { type: DataTypes.TEXT, allowNull: false },
@@ -17,9 +16,7 @@ export const HomePilar = sequelize.define("HomePilar", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "home_pilar",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "home_pilar",
   indexes: [
     { fields: ["activo"] },
     { fields: ["orden"] },

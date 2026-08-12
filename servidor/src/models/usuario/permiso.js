@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Permiso atómico del sistema.
@@ -12,9 +12,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  *
  * Nunca eliminar un permiso si está asignado — usar ON DELETE CASCADE en rol_permiso.
  */
-export const Permiso = sequelize.define("Permiso", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const Permiso = defineModel("Permiso", {
   modulo_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -29,9 +27,7 @@ export const Permiso = sequelize.define("Permiso", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "permiso",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "permiso",
   indexes: [
     { fields: ["modulo_id"] },
     { fields: ["codigo"] },

@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Asignación de un profesor (entrenamiento personalizado) o kinesiólogo
@@ -10,9 +10,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  * y un kinesiólogo (tipo=kinesiologia) activos, sin pisarse entre sí.
  * Al asignar uno nuevo del mismo tipo, el anterior debe cerrarse (activo=false, fecha_fin=hoy).
  */
-export const AsignacionProfesional = sequelize.define("AsignacionProfesional", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const AsignacionProfesional = defineModel("AsignacionProfesional", {
   persona_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -31,9 +29,7 @@ export const AsignacionProfesional = sequelize.define("AsignacionProfesional", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "asignacion_profesional",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "asignacion_profesional",
   indexes: [
     { name: "asignacion_profesional_persona_tipo_activa_unq", unique: true, fields: ["persona_id", "tipo"], where: { activo: true } },
     { name: "asignacion_profesional_profesor_id_idx", fields: ["profesor_id"] },

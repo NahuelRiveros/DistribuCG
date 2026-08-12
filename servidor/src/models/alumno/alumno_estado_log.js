@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Historial de cambios de estado de alumnos.
@@ -7,9 +7,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  * fuente: 'cron' | 'pago' | 'manual'
  * modificado_por: NULL si el cambio fue automático (cron).
  */
-export const AlumnoEstadoLog = sequelize.define("AlumnoEstadoLog", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const AlumnoEstadoLog = defineModel("AlumnoEstadoLog", {
   alumno_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -36,9 +34,7 @@ export const AlumnoEstadoLog = sequelize.define("AlumnoEstadoLog", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "alumno_estado_log",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "alumno_estado_log",
   indexes: [
     { fields: ["alumno_id"] },
   ],

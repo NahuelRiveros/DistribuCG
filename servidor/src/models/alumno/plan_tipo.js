@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Planes de entrenamiento disponibles para la venta.
  * dias_totales y ingresos determinan la vigencia y límite de accesos.
  * Un plan inactivo no aparece en el formulario de registro de pago.
  */
-export const PlanTipo = sequelize.define("PlanTipo", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const PlanTipo = defineModel("PlanTipo", {
   descripcion:  { type: DataTypes.STRING(100), allowNull: false, unique: true },
   // Duración del plan desde la fecha de inicio
   dias_totales: {
@@ -32,7 +30,5 @@ export const PlanTipo = sequelize.define("PlanTipo", {
   creado_en:     { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   actualizado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "plan_tipo",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "plan_tipo",
 });

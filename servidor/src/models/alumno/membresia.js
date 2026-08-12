@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Registro de pago y período de vigencia de un alumno.
@@ -9,9 +9,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  * ingresos_disponibles se decrementa con cada ingreso registrado.
  * cobrado_por_id es obligatorio para auditoría de caja.
  */
-export const Membresia = sequelize.define("Membresia", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const Membresia = defineModel("Membresia", {
   alumno_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -43,9 +41,7 @@ export const Membresia = sequelize.define("Membresia", {
   creado_en:     { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   actualizado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "membresia",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "membresia",
   indexes: [
     { fields: ["alumno_id"] },
     { fields: ["plan_tipo_id"] },

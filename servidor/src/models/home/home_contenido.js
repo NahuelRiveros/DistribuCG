@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Bloque de contenido (imagen o video) del home, configurable sin tocar código.
@@ -8,9 +8,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  * cloudinary_public_id se guarda para poder borrar/reemplazar el archivo en
  * Cloudinary cuando se elimina o actualiza el registro.
  */
-export const HomeContenido = sequelize.define("HomeContenido", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const HomeContenido = defineModel("HomeContenido", {
   area_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -30,9 +28,7 @@ export const HomeContenido = sequelize.define("HomeContenido", {
   creado_en:      { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   actualizado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "home_contenido",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "home_contenido",
   indexes: [
     { fields: ["area_id"] },
     { fields: ["activo"] },

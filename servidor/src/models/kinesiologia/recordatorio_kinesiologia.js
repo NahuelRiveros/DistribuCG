@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Recordatorio dentro de una sesión (visita) — qué días de la semana
  * corresponden y una observación en texto libre. Una sesión puede tener
  * varios (ej: uno para tren superior y otro para tren inferior).
  */
-export const RecordatorioKinesiologia = sequelize.define("RecordatorioKinesiologia", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const RecordatorioKinesiologia = defineModel("RecordatorioKinesiologia", {
   sesion_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -23,9 +21,7 @@ export const RecordatorioKinesiologia = sequelize.define("RecordatorioKinesiolog
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "recordatorio_kinesiologia",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "recordatorio_kinesiologia",
   indexes: [
     { fields: ["sesion_id"] },
   ],

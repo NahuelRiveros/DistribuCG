@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Tabla de unión N:N entre usuario y rol.
  * UNIQUE(usuario_id, rol_id) previene duplicados a nivel DB.
  * ON DELETE CASCADE: si se elimina el usuario, se limpian sus roles.
  */
-export const UsuarioRol = sequelize.define("UsuarioRol", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const UsuarioRol = defineModel("UsuarioRol", {
   usuario_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -23,9 +21,7 @@ export const UsuarioRol = sequelize.define("UsuarioRol", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "usuario_rol",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "usuario_rol",
   indexes: [
     { unique: true, fields: ["usuario_id", "rol_id"] },
     { fields: ["usuario_id"] },

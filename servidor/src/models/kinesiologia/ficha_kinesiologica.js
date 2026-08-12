@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Ficha de seguimiento de un episodio de tratamiento (1:1 con paciente_patologia):
@@ -7,9 +7,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  * El kinesiólogo a cargo no se guarda acá: sale de asignacion_profesional
  * (persona_id → profesor_id, tipo='kinesiologia') para no duplicar/desincronizar.
  */
-export const FichaKinesiologica = sequelize.define("FichaKinesiologica", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const FichaKinesiologica = defineModel("FichaKinesiologica", {
   paciente_patologia_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -29,9 +27,7 @@ export const FichaKinesiologica = sequelize.define("FichaKinesiologica", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "ficha_kinesiologica",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "ficha_kinesiologica",
   indexes: [
     { fields: ["paciente_patologia_id"] },
     { fields: ["estado"] },

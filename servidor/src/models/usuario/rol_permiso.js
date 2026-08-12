@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Asignación de permisos a roles (N:N).
@@ -11,9 +11,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  *   JOIN usuario_rol ur ON ur.rol_id = rp.rol_id
  *   WHERE ur.usuario_id = :uid AND rp.permiso_id = (SELECT id FROM permiso WHERE codigo = :codigo)
  */
-export const RolPermiso = sequelize.define("RolPermiso", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const RolPermiso = defineModel("RolPermiso", {
   rol_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -29,9 +27,7 @@ export const RolPermiso = sequelize.define("RolPermiso", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "rol_permiso",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "rol_permiso",
   indexes: [
     { unique: true, fields: ["rol_id", "permiso_id"] },
     { fields: ["rol_id"] },

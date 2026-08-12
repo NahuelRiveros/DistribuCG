@@ -1,13 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Textos editables del home (hero, títulos de sección, CTA final, etc.) —
  * un valor por `clave`, no es una lista. `seccion` agrupa el formulario del
  * panel admin (hero, pilares, galeria, contacto, footer_cta).
  */
-export const HomeTexto = sequelize.define("HomeTexto", {
-  id:        { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+export const HomeTexto = defineModel("HomeTexto", {
   clave:     { type: DataTypes.STRING(60), allowNull: false, unique: true },
   etiqueta:  { type: DataTypes.STRING(150), allowNull: false },
   seccion:   { type: DataTypes.STRING(30), allowNull: false },
@@ -16,9 +15,7 @@ export const HomeTexto = sequelize.define("HomeTexto", {
 
   actualizado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "home_texto",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "home_texto",
   indexes: [
     { fields: ["seccion"] },
   ],

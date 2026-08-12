@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Tabla puente N:N entre paciente_kinesiologia y patologia.
  * Un paciente puede tener varias patologías simultáneas o a lo largo del tiempo.
  * activo=false = patología resuelta/dada de baja, se conserva para historial.
  */
-export const PacientePatologia = sequelize.define("PacientePatologia", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const PacientePatologia = defineModel("PacientePatologia", {
   paciente_kinesiologia_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -28,9 +26,7 @@ export const PacientePatologia = sequelize.define("PacientePatologia", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "paciente_patologia",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "paciente_patologia",
   indexes: [
     { unique: true, fields: ["paciente_kinesiologia_id", "patologia_id"], where: { activo: true } },
     { fields: ["paciente_kinesiologia_id"] },

@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Catálogo de productos de venta en el local (agua, bebidas, suplementos, etc.).
  * stock_actual se mantiene como contador, actualizado en la misma transacción
  * que cada movimiento_stock — ver stock_service.js.
  */
-export const Producto = sequelize.define("Producto", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const Producto = defineModel("Producto", {
   nombre:       { type: DataTypes.STRING(120), allowNull: false },
   categoria_id: {
     type: DataTypes.INTEGER,
@@ -22,9 +20,7 @@ export const Producto = sequelize.define("Producto", {
   creado_en:      { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   actualizado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "producto",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "producto",
   indexes: [
     { fields: ["activo"] },
   ],

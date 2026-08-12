@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Datos personales de cualquier individuo del sistema.
  * Una persona puede tener un alumno asociado, un usuario asociado, o ambos.
  * La búsqueda por documento es la operación más frecuente (kiosco de ingresos).
  */
-export const Persona = sequelize.define("Persona", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const Persona = defineModel("Persona", {
   tipo_documento_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -39,9 +37,7 @@ export const Persona = sequelize.define("Persona", {
   // Todas las queries deben filtrar: WHERE eliminado_en IS NULL
   eliminado_en:  { type: DataTypes.DATE, allowNull: true },
 }, {
-  tableName:  "persona",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "persona",
   indexes: [
     { fields: ["documento"] },
     { fields: ["email"] },

@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Extiende persona con datos específicos del rol alumno.
@@ -9,9 +9,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  * El plan activo se obtiene desde la membresía vigente (membresia.plan_tipo_id).
  * Almacenarlo aquí era redundante y podía desincronizarse.
  */
-export const Alumno = sequelize.define("Alumno", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const Alumno = defineModel("Alumno", {
   persona_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -33,9 +31,7 @@ export const Alumno = sequelize.define("Alumno", {
   // Fecha = baja definitiva del gym (distinto a Inactivo, que puede volver)
   eliminado_en:  { type: DataTypes.DATE, allowNull: true },
 }, {
-  tableName:  "alumno",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "alumno",
   indexes: [
     { fields: ["persona_id"] },
     { fields: ["estado_id"] },

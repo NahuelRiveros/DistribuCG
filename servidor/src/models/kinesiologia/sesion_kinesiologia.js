@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Visita de seguimiento kinesiológico — solo la fecha. El contenido de la
@@ -7,9 +7,7 @@ import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
  * RecordatorioKinesiologia (1 sesión : N recordatorios), no acá, para no
  * repetir el error de la tabla vieja de mezclar todo en una sola fila.
  */
-export const SesionKinesiologia = sequelize.define("SesionKinesiologia", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const SesionKinesiologia = defineModel("SesionKinesiologia", {
   ficha_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -26,9 +24,7 @@ export const SesionKinesiologia = sequelize.define("SesionKinesiologia", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "sesion_kinesiologia",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "sesion_kinesiologia",
   indexes: [
     { fields: ["ficha_id"] },
     { fields: ["fecha"] },

@@ -1,14 +1,12 @@
 import { DataTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { defineModel } from "../common/define_model.js";
 
 /**
  * Historial auditable de movimientos de stock de un producto.
  * tipo: "entrada" (reposición), "venta" o "baja" (rotura, vencimiento, etc.).
  * Inmutable: no se actualiza ni elimina una vez registrado.
  */
-export const MovimientoStock = sequelize.define("MovimientoStock", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
+export const MovimientoStock = defineModel("MovimientoStock", {
   producto_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -29,9 +27,7 @@ export const MovimientoStock = sequelize.define("MovimientoStock", {
 
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
-  tableName:  "movimiento_stock",
-  schema:     DB_SCHEMA,
-  timestamps: false,
+  tableName: "movimiento_stock",
   indexes: [
     { fields: ["producto_id"] },
     { fields: ["tipo"] },
