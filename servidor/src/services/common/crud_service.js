@@ -76,5 +76,12 @@ export function crearCrudService(Model, config = {}) {
     return item;
   }
 
-  return { listar, obtenerPorId, cambiarEstado };
+  async function eliminar(id) {
+    const item = await Model.findByPk(id);
+    if (!item) return null;
+    await item.destroy();
+    return true;
+  }
+
+  return { listar, obtenerPorId, cambiarEstado, eliminar };
 }

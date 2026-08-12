@@ -1,6 +1,17 @@
 import { Readable } from "stream";
 import { cloudinary } from "../../configuracion_servidor/cloudinary.js";
 import { HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto } from "../../models/index.js";
+import { crearCrudService } from "../common/crud_service.js";
+
+// cambiarEstadoContenido/eliminarContenido quedan manuales a propósito:
+// el primero pisa "actualizado_en" (columna que Pilar/Contacto no tienen) y
+// el segundo borra el archivo en Cloudinary antes de la fila — no son genéricos.
+const contenidoCrud = crearCrudService(HomeContenido, {
+  defaultOrder: [["area_id", "ASC"], ["orden", "ASC"]],
+  include: [{ model: HomeArea, as: "area", attributes: ["id", "descripcion"] }],
+});
+const pilaresCrud   = crearCrudService(HomePilar,   { defaultOrder: [["orden", "ASC"]] });
+const contactosCrud = crearCrudService(HomeContacto, { defaultOrder: [["orden", "ASC"]] });
 
 function subirBufferACloudinary(buffer, { resourceType, area }) {
   return new Promise((resolve, reject) => {
@@ -36,12 +47,8 @@ export async function obtenerContenidoPublico() {
 }
 
 export async function listarContenidoAdmin({ area_id } = {}) {
-  const where = area_id ? { area_id } : {};
-  return HomeContenido.findAll({
-    where,
-    include: [{ model: HomeArea, as: "area", attributes: ["id", "descripcion"] }],
-    order: [["area_id", "ASC"], ["orden", "ASC"]],
-  });
+  const { items } = await contenidoCrud.listar({ where: area_id ? { area_id } : undefined });
+  return items;
 }
 
 export async function crearContenido({ area_id, titulo, descripcion, orden, buffer, mimetype }) {
@@ -145,7 +152,8 @@ export async function actualizarTextos(cambios) {
 }
 
 export async function listarPilaresAdmin() {
-  return HomePilar.findAll({ order: [["orden", "ASC"]] });
+  const { items } = await pilaresCrud.listar();
+  return items;
 }
 
 export async function crearPilar({ icono, titulo, texto, orden }) {
@@ -174,21 +182,20 @@ export async function actualizarPilar(id, { icono, titulo, texto, orden }) {
 }
 
 export async function cambiarEstadoPilar(id, activo) {
-  const pilar = await HomePilar.findByPk(id);
+  const pilar = await pilaresCrud.cambiarEstado(id, activo);
   if (!pilar) return { ok: false, codigo: "NO_EXISTE", mensaje: "El pilar no existe" };
-  await pilar.update({ activo: !!activo });
   return { ok: true, mensaje: activo ? "Pilar activado correctamente" : "Pilar desactivado correctamente", pilar };
 }
 
 export async function eliminarPilar(id) {
-  const pilar = await HomePilar.findByPk(id);
-  if (!pilar) return { ok: false, codigo: "NO_EXISTE", mensaje: "El pilar no existe" };
-  await pilar.destroy();
+  const eliminado = await pilaresCrud.eliminar(id);
+  if (!eliminado) return { ok: false, codigo: "NO_EXISTE", mensaje: "El pilar no existe" };
   return { ok: true, mensaje: "Pilar eliminado correctamente" };
 }
 
 export async function listarContactosAdmin() {
-  return HomeContacto.findAll({ order: [["orden", "ASC"]] });
+  const { items } = await contactosCrud.listar();
+  return items;
 }
 
 export async function crearContacto({ icono, label, valor, href, orden }) {
@@ -218,16 +225,14 @@ export async function actualizarContacto(id, { icono, label, valor, href, orden 
 }
 
 export async function cambiarEstadoContacto(id, activo) {
-  const contacto = await HomeContacto.findByPk(id);
+  const contacto = await contactosCrud.cambiarEstado(id, activo);
   if (!contacto) return { ok: false, codigo: "NO_EXISTE", mensaje: "El contacto no existe" };
-  await contacto.update({ activo: !!activo });
   return { ok: true, mensaje: activo ? "Contacto activado correctamente" : "Contacto desactivado correctamente", contacto };
 }
 
 export async function eliminarContacto(id) {
-  const contacto = await HomeContacto.findByPk(id);
-  if (!contacto) return { ok: false, codigo: "NO_EXISTE", mensaje: "El contacto no existe" };
-  await contacto.destroy();
+  const eliminado = await contactosCrud.eliminar(id);
+  if (!eliminado) return { ok: false, codigo: "NO_EXISTE", mensaje: "El contacto no existe" };
   return { ok: true, mensaje: "Contacto eliminado correctamente" };
 }
 
