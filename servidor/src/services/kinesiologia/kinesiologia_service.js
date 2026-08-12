@@ -5,6 +5,10 @@ import {
   FichaKinesiologica, SesionKinesiologia, RecordatorioKinesiologia,
 } from "../../models/index.js";
 import { normalizarDocumento } from "../usuarios/persona_service.js";
+import { crearCrudService } from "../common/crud_service.js";
+
+const sesionesCrud = crearCrudService(SesionKinesiologia);
+const recordatoriosCrud = crearCrudService(RecordatorioKinesiologia);
 
 /**
  * Busca una persona ya registrada por DNI para el flujo "agregar paciente de
@@ -397,18 +401,14 @@ export async function agregarRecordatorioASesion({ sesion_id, dias, observacion 
 
 /** Elimina una sesión completa — sus recordatorios caen en cascada. */
 export async function eliminarSesion(id) {
-  const sesion = await SesionKinesiologia.findByPk(id);
-  if (!sesion) return { ok: false, codigo: "NO_EXISTE", mensaje: "La sesión no existe" };
-
-  await sesion.destroy();
+  const eliminado = await sesionesCrud.eliminar(id);
+  if (!eliminado) return { ok: false, codigo: "NO_EXISTE", mensaje: "La sesión no existe" };
   return { ok: true, mensaje: "Sesión eliminada correctamente" };
 }
 
 /** Elimina un recordatorio puntual dentro de una sesión. */
 export async function eliminarRecordatorio(id) {
-  const recordatorio = await RecordatorioKinesiologia.findByPk(id);
-  if (!recordatorio) return { ok: false, codigo: "NO_EXISTE", mensaje: "El recordatorio no existe" };
-
-  await recordatorio.destroy();
+  const eliminado = await recordatoriosCrud.eliminar(id);
+  if (!eliminado) return { ok: false, codigo: "NO_EXISTE", mensaje: "El recordatorio no existe" };
   return { ok: true, mensaje: "Recordatorio eliminado correctamente" };
 }

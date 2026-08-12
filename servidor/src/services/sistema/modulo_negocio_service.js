@@ -1,4 +1,9 @@
 import { ModuloNegocio } from "../../models/index.js";
+import { crearCrudService } from "../common/crud_service.js";
+
+// actualizarModuloNegocio busca por "codigo", no por "id" — no encaja con
+// cambiarEstado(id, activo) del helper, así que queda manual.
+const modulosCrud = crearCrudService(ModuloNegocio, { defaultOrder: [["codigo", "ASC"]] });
 
 /** { gym: true, kinesiologia: false, ... } — usado por el frontend (nav/footer) y por el middleware. */
 export async function obtenerEstadoModulos() {
@@ -14,8 +19,7 @@ export async function moduloNegocioHabilitado(codigo) {
 }
 
 export async function listarModulosNegocio() {
-  const items = await ModuloNegocio.findAll({ order: [["codigo", "ASC"]] });
-  return { ok: true, items };
+  return modulosCrud.listar();
 }
 
 export async function actualizarModuloNegocio(codigo, habilitado) {

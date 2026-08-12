@@ -1,16 +1,18 @@
 ﻿import { PlanTipo, Membresia } from "../../models/index.js";
 import { Op } from "sequelize";
 import { sequelize } from "../../database/sequelize.js";
+import { crearCrudService } from "../common/crud_service.js";
+
+const planesCrud = crearCrudService(PlanTipo, {
+  defaultOrder: [["descripcion", "ASC"]],
+  defaultAttributes: ["id", "descripcion", "dias_totales", "ingresos", "precio", "activo", "actualizado_en"],
+});
 
 export async function listarPlanes({ incluirInactivos = true } = {}) {
-  const where = {};
-  if (!incluirInactivos) where.activo = true;
-
-  return PlanTipo.findAll({
-    where,
-    attributes: ["id", "descripcion", "dias_totales", "ingresos", "precio", "activo", "actualizado_en"],
-    order: [["descripcion", "ASC"]],
+  const { items } = await planesCrud.listar({
+    where: incluirInactivos ? undefined : { activo: true },
   });
+  return items;
 }
 
 export async function obtenerPlanPorId(id) {
@@ -60,8 +62,5 @@ export async function planEstaUsado(id) {
 }
 
 export async function cambiarEstadoPlan(id, activo) {
-  const plan = await PlanTipo.findByPk(id);
-  if (!plan) return null;
-  await plan.update({ activo });
-  return plan;
+  return planesCrud.cambiarEstado(id, activo);
 }
