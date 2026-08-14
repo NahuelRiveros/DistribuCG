@@ -57,6 +57,7 @@ import {
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
   Inbox,
 } from "lucide-react";
+import InputField from "../form/input_field.jsx";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -248,16 +249,18 @@ export default function DataGrid({
             </div>
           )}
           {searchable && (
-            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition sm:w-64">
-              <Search size={13} className="shrink-0 text-slate-400" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => handleSearch(e.target.value)}
-                placeholder={searchPlaceholder}
-                className="w-full bg-transparent text-xs text-slate-800 placeholder:text-slate-400 outline-none"
-              />
-            </div>
+            <InputField
+              hideLabel
+              hideMessage
+              fullWidth={false}
+              wrapperClassName="sm:w-64"
+              type="text"
+              icon={Search}
+              value={query}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder={searchPlaceholder}
+              className="text-xs"
+            />
           )}
         </div>
       )}
