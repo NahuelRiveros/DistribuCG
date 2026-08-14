@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, HeartPulse, Plus, Edit2, ShieldCheck, ShieldOff } from "lucide-react";
 import DataGrid from "../../../components/table/data_grid.jsx";
 import PatologiaFormModal from "../../../components/modal/patologia_form_modal.jsx";
+import { useCrudPage } from "../../../hooks/use_crud_page.js";
 import {
   getPatologias, crearPatologia, actualizarPatologia, cambiarEstadoPatologia,
 } from "../../../api/kinesiologia_api.js";
@@ -10,60 +10,23 @@ import {
 export default function PatologiasPage() {
   const nav = useNavigate();
 
-  const [items, setItems] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState("");
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [seleccionada, setSeleccionada] = useState(null);
-  const [guardando, setGuardando] = useState(false);
+  const {
+    items, cargando, error,
+    modalAbierto, seleccionado, guardando,
+    abrirNuevo, abrirEditar, cerrarModal, guardar, ejecutarAccion,
+  } = useCrudPage({
+    fetchFn: getPatologias,
+    createFn: crearPatologia,
+    updateFn: actualizarPatologia,
+  });
 
-  async function cargar() {
-    setCargando(true);
-    setError("");
-    try {
-      const r = await getPatologias();
-      if (!r?.ok) { setError(r?.mensaje || "No se pudo cargar el listado"); return; }
-      setItems(r.items || []);
-    } catch (e) {
-      setError(e?.response?.data?.mensaje || "Error inesperado");
-    } finally {
-      setCargando(false);
-    }
-  }
-
-  useEffect(() => { cargar(); }, []);
-
-  function abrirNueva() { setSeleccionada(null); setModalAbierto(true); }
-  function abrirEditar(row) { setSeleccionada(row); setModalAbierto(true); }
-  function cerrarModal() { setModalAbierto(false); setSeleccionada(null); }
-
-  async function guardar(data) {
-    setGuardando(true);
-    try {
-      const r = seleccionada
-        ? await actualizarPatologia(seleccionada.id, data)
-        : await crearPatologia(data);
-      if (!r?.ok) { setError(r?.mensaje || "No se pudo guardar"); return; }
-      cerrarModal();
-      await cargar();
-    } catch (e) {
-      setError(e?.response?.data?.mensaje || "No se pudo guardar");
-    } finally {
-      setGuardando(false);
-    }
-  }
-
-  async function toggleEstado(row) {
+  function toggleEstado(row) {
     const nuevoEstado = !row.activo;
     const accion = nuevoEstado ? "activar" : "desactivar";
-    if (!window.confirm(`¿Seguro que querés ${accion} "${row.descripcion}"?`)) return;
-    try {
-      const r = await cambiarEstadoPatologia(row.id, nuevoEstado);
-      if (!r?.ok) { setError(r?.mensaje || `No se pudo ${accion}`); return; }
-      await cargar();
-    } catch (e) {
-      setError(e?.response?.data?.mensaje || `No se pudo ${accion}`);
-    }
+    ejecutarAccion(() => cambiarEstadoPatologia(row.id, nuevoEstado), {
+      confirmMessage: `¿Seguro que querés ${accion} "${row.descripcion}"?`,
+      mensajeError: `No se pudo ${accion}`,
+    });
   }
 
   const columns = [
@@ -111,7 +74,7 @@ export default function PatologiasPage() {
             </div>
             <button
               type="button"
-              onClick={abrirNueva}
+              onClick={abrirNuevo}
               className="inline-flex items-center gap-1.5 rounded-xl bg-(--kt-teal-700) px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:opacity-90 self-start sm:self-auto"
             >
               <Plus size={15} /> Nueva patología
@@ -142,7 +105,7 @@ export default function PatologiasPage() {
         abierto={modalAbierto}
         onClose={cerrarModal}
         onGuardar={guardar}
-        patologiaEditar={seleccionada}
+        patologiaEditar={seleccionado}
         cargando={guardando}
       />
     </div>

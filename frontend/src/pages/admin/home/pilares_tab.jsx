@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, Edit2, ShieldCheck, ShieldOff, Trash2, GripVertical } from "lucide-react";
 import {
@@ -8,6 +8,7 @@ import {
 import { iconoHome } from "../../../config/home_iconos.js";
 import IconoPicker from "../../../components/form/icono_picker.jsx";
 import InputField from "../../../components/form/input_field.jsx";
+import { useCrudPage } from "../../../hooks/use_crud_page.js";
 
 function PilarFormModal({ abierto, onClose, onGuardar, pilar, guardando }) {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
@@ -67,62 +68,28 @@ function PilarFormModal({ abierto, onClose, onGuardar, pilar, guardando }) {
 }
 
 export default function PilaresTab() {
-  const [items, setItems] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState("");
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [seleccionado, setSeleccionado] = useState(null);
-  const [guardando, setGuardando] = useState(false);
+  const {
+    items, cargando, error,
+    modalAbierto, seleccionado, guardando,
+    abrirNuevo, abrirEditar, cerrarModal, guardar, ejecutarAccion,
+  } = useCrudPage({
+    fetchFn: listarPilaresHome,
+    createFn: crearPilarHome,
+    updateFn: actualizarPilarHome,
+    mensajeErrorCarga: "No se pudo cargar los pilares",
+  });
 
-  async function cargar() {
-    try {
-      setCargando(true);
-      setError("");
-      const r = await listarPilaresHome();
-      setItems(r?.data || []);
-    } catch (err) {
-      setError(err?.response?.data?.mensaje || "No se pudo cargar los pilares");
-    } finally {
-      setCargando(false);
-    }
+  function toggleEstado(item) {
+    ejecutarAccion(() => cambiarEstadoPilarHome(item.id, !item.activo), {
+      mensajeError: "No se pudo cambiar el estado",
+    });
   }
 
-  useEffect(() => { cargar(); }, []);
-
-  function abrirNuevo() { setSeleccionado(null); setModalAbierto(true); }
-  function abrirEditar(item) { setSeleccionado(item); setModalAbierto(true); }
-
-  async function guardar(data) {
-    try {
-      setGuardando(true);
-      const r = seleccionado ? await actualizarPilarHome(seleccionado.id, data) : await crearPilarHome(data);
-      if (!r?.ok) { setError(r?.mensaje || "No se pudo guardar"); return; }
-      setModalAbierto(false);
-      await cargar();
-    } catch (err) {
-      setError(err?.response?.data?.mensaje || "No se pudo guardar");
-    } finally {
-      setGuardando(false);
-    }
-  }
-
-  async function toggleEstado(item) {
-    try {
-      await cambiarEstadoPilarHome(item.id, !item.activo);
-      await cargar();
-    } catch (err) {
-      setError(err?.response?.data?.mensaje || "No se pudo cambiar el estado");
-    }
-  }
-
-  async function eliminar(item) {
-    if (!window.confirm(`¿Borrar el pilar "${item.titulo}"?`)) return;
-    try {
-      await eliminarPilarHome(item.id);
-      await cargar();
-    } catch (err) {
-      setError(err?.response?.data?.mensaje || "No se pudo eliminar");
-    }
+  function eliminar(item) {
+    ejecutarAccion(() => eliminarPilarHome(item.id), {
+      confirmMessage: `¿Borrar el pilar "${item.titulo}"?`,
+      mensajeError: "No se pudo eliminar",
+    });
   }
 
   return (
@@ -173,7 +140,7 @@ export default function PilaresTab() {
 
       <PilarFormModal
         abierto={modalAbierto}
-        onClose={() => setModalAbierto(false)}
+        onClose={cerrarModal}
         onGuardar={guardar}
         pilar={seleccionado}
         guardando={guardando}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, Edit2, ShieldCheck, ShieldOff, Trash2, GripVertical } from "lucide-react";
 import {
@@ -8,6 +8,7 @@ import {
 import { iconoHome } from "../../../config/home_iconos.js";
 import IconoPicker from "../../../components/form/icono_picker.jsx";
 import InputField from "../../../components/form/input_field.jsx";
+import { useCrudPage } from "../../../hooks/use_crud_page.js";
 
 function ContactoFormModal({ abierto, onClose, onGuardar, contacto, guardando }) {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
@@ -87,62 +88,28 @@ function ContactoFormModal({ abierto, onClose, onGuardar, contacto, guardando })
 }
 
 export default function ContactoTab() {
-  const [items, setItems] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState("");
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [seleccionado, setSeleccionado] = useState(null);
-  const [guardando, setGuardando] = useState(false);
+  const {
+    items, cargando, error,
+    modalAbierto, seleccionado, guardando,
+    abrirNuevo, abrirEditar, cerrarModal, guardar, ejecutarAccion,
+  } = useCrudPage({
+    fetchFn: listarContactosHome,
+    createFn: crearContactoHome,
+    updateFn: actualizarContactoHome,
+    mensajeErrorCarga: "No se pudo cargar los contactos",
+  });
 
-  async function cargar() {
-    try {
-      setCargando(true);
-      setError("");
-      const r = await listarContactosHome();
-      setItems(r?.data || []);
-    } catch (err) {
-      setError(err?.response?.data?.mensaje || "No se pudo cargar los contactos");
-    } finally {
-      setCargando(false);
-    }
+  function toggleEstado(item) {
+    ejecutarAccion(() => cambiarEstadoContactoHome(item.id, !item.activo), {
+      mensajeError: "No se pudo cambiar el estado",
+    });
   }
 
-  useEffect(() => { cargar(); }, []);
-
-  function abrirNuevo() { setSeleccionado(null); setModalAbierto(true); }
-  function abrirEditar(item) { setSeleccionado(item); setModalAbierto(true); }
-
-  async function guardar(data) {
-    try {
-      setGuardando(true);
-      const r = seleccionado ? await actualizarContactoHome(seleccionado.id, data) : await crearContactoHome(data);
-      if (!r?.ok) { setError(r?.mensaje || "No se pudo guardar"); return; }
-      setModalAbierto(false);
-      await cargar();
-    } catch (err) {
-      setError(err?.response?.data?.mensaje || "No se pudo guardar");
-    } finally {
-      setGuardando(false);
-    }
-  }
-
-  async function toggleEstado(item) {
-    try {
-      await cambiarEstadoContactoHome(item.id, !item.activo);
-      await cargar();
-    } catch (err) {
-      setError(err?.response?.data?.mensaje || "No se pudo cambiar el estado");
-    }
-  }
-
-  async function eliminar(item) {
-    if (!window.confirm(`¿Borrar "${item.label}"?`)) return;
-    try {
-      await eliminarContactoHome(item.id);
-      await cargar();
-    } catch (err) {
-      setError(err?.response?.data?.mensaje || "No se pudo eliminar");
-    }
+  function eliminar(item) {
+    ejecutarAccion(() => eliminarContactoHome(item.id), {
+      confirmMessage: `¿Borrar "${item.label}"?`,
+      mensajeError: "No se pudo eliminar",
+    });
   }
 
   return (
@@ -193,7 +160,7 @@ export default function ContactoTab() {
 
       <ContactoFormModal
         abierto={modalAbierto}
-        onClose={() => setModalAbierto(false)}
+        onClose={cerrarModal}
         onGuardar={guardar}
         contacto={seleccionado}
         guardando={guardando}
