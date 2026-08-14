@@ -8,6 +8,7 @@ import {
   eliminarContenidoHome,
   actualizarLayoutAreaHome,
 } from "../../../api/home_content_api.js";
+import InputField from "../../../components/form/input_field.jsx";
 
 const TAMANO_MAX_BYTES = 25 * 1024 * 1024; // 25MB — mismo límite que el backend
 
@@ -148,27 +149,23 @@ export default function GaleriaTab() {
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1">Orden</label>
-            <input
-              type="number"
-              value={orden}
-              onChange={(e) => setOrden(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-(--kt-teal-700) focus:outline-none"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-500 mb-1">Título</label>
-          <input
-            type="text"
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            placeholder="Ej: Sala de musculación"
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-(--kt-teal-700) focus:outline-none"
+          <InputField
+            label="Orden"
+            type="number"
+            value={orden}
+            onChange={(e) => setOrden(e.target.value)}
+            hideMessage
           />
         </div>
+
+        <InputField
+          label="Título"
+          type="text"
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+          placeholder="Ej: Sala de musculación"
+          hideMessage
+        />
 
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1">Descripción</label>

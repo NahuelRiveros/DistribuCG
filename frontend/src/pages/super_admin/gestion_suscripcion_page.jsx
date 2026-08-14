@@ -8,6 +8,7 @@ import {
   superExtenderSuscripcion,
   superFijarFechaSuscripcion,
 } from "../../api/suscripcion_api.js";
+import InputField from "../../components/form/input_field.jsx";
 
 const OPCIONES_DIAS = [
   { label: "30 días", dias: 30 },
@@ -284,19 +285,18 @@ export default function GestionSuscripcionPage() {
                   {/* Custom días */}
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-semibold text-slate-600 shrink-0">Otro:</label>
-                    <input
+                    <InputField
+                      hideLabel
+                      hideMessage
+                      fullWidth={false}
+                      wrapperClassName="w-28"
                       type="number"
                       min={1}
                       max={3650}
                       placeholder="ej. 45"
                       value={diasCustom}
                       onChange={(e) => setDiasCustom(e.target.value)}
-                      className={[
-                        "w-28 rounded-xl border px-3 py-2 text-sm font-semibold text-slate-800 outline-none transition",
-                        diasCustom !== ""
-                          ? "border-violet-400 ring-2 ring-violet-100"
-                          : "border-slate-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100",
-                      ].join(" ")}
+                      className="text-sm font-semibold text-slate-800"
                     />
                     <span className="text-sm text-slate-400">días</span>
                   </div>
@@ -334,18 +334,14 @@ export default function GestionSuscripcionPage() {
                     Fijá exactamente el día que vence la suscripción, sin redondeo.
                   </p>
 
-                  <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-700">
-                      Fecha de vencimiento
-                    </label>
-                    <input
-                      type="date"
-                      min={hoyISO()}
-                      value={fechaFijar}
-                      onChange={(e) => setFechaFijar(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-                    />
-                  </div>
+                  <InputField
+                    label="Fecha de vencimiento"
+                    hideMessage
+                    type="date"
+                    min={hoyISO()}
+                    value={fechaFijar}
+                    onChange={(e) => setFechaFijar(e.target.value)}
+                  />
 
                   {fechaFijar && (
                     <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs text-slate-500">

@@ -7,6 +7,7 @@ import {
 } from "../../../api/home_content_api.js";
 import { iconoHome } from "../../../config/home_iconos.js";
 import IconoPicker from "../../../components/form/icono_picker.jsx";
+import InputField from "../../../components/form/input_field.jsx";
 
 function ContactoFormModal({ abierto, onClose, onGuardar, contacto, guardando }) {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
@@ -45,21 +46,29 @@ function ContactoFormModal({ abierto, onClose, onGuardar, contacto, guardando })
             <label className="block text-xs font-semibold text-slate-500 mb-1.5">Ícono</label>
             <IconoPicker value={watch("icono")} onChange={(v) => setValue("icono", v)} />
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1">Nombre (ej: Ubicación, Instagram, WhatsApp)</label>
-            <input {...register("label", { required: true })} placeholder="Ej: Ubicación"
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-(--kt-teal-700) focus:outline-none" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1">Texto que se muestra</label>
-            <input {...register("valor", { required: true })} placeholder="Ej: Av. Siempre Viva 742"
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-(--kt-teal-700) focus:outline-none" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1">Link (opcional)</label>
-            <input {...register("href")} placeholder="https://instagram.com/moovs"
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-(--kt-teal-700) focus:outline-none" />
-          </div>
+          <InputField
+            label="Nombre (ej: Ubicación, Instagram, WhatsApp)"
+            name="label"
+            register={register}
+            required
+            hideMessage
+            placeholder="Ej: Ubicación"
+          />
+          <InputField
+            label="Texto que se muestra"
+            name="valor"
+            register={register}
+            required
+            hideMessage
+            placeholder="Ej: Av. Siempre Viva 742"
+          />
+          <InputField
+            label="Link (opcional)"
+            name="href"
+            register={register}
+            hideMessage
+            placeholder="https://instagram.com/moovs"
+          />
           {(errors.label || errors.valor) && <p className="text-sm text-red-600">Completá el nombre y el valor</p>}
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} disabled={guardando}

@@ -7,6 +7,7 @@ import {
 } from "../../../api/home_content_api.js";
 import { iconoHome } from "../../../config/home_iconos.js";
 import IconoPicker from "../../../components/form/icono_picker.jsx";
+import InputField from "../../../components/form/input_field.jsx";
 
 function PilarFormModal({ abierto, onClose, onGuardar, pilar, guardando }) {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
@@ -35,11 +36,14 @@ function PilarFormModal({ abierto, onClose, onGuardar, pilar, guardando }) {
             <label className="block text-xs font-semibold text-slate-500 mb-1.5">Ícono</label>
             <IconoPicker value={watch("icono")} onChange={(v) => setValue("icono", v)} />
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1">Título</label>
-            <input {...register("titulo", { required: true })} placeholder="Ej: Entrenamiento personalizado"
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-(--kt-teal-700) focus:outline-none" />
-          </div>
+          <InputField
+            label="Título"
+            name="titulo"
+            register={register}
+            required
+            hideMessage
+            placeholder="Ej: Entrenamiento personalizado"
+          />
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">Texto</label>
             <textarea {...register("texto", { required: true })} rows={3} placeholder="Descripción corta"

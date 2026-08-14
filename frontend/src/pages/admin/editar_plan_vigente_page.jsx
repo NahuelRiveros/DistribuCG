@@ -7,6 +7,7 @@ import {
 import { getCatalogos } from "../../api/catalogos_api";
 import ConfirmarActualizacionPlanModal from "../../components/modal/confirmar_plan_modal.jsx";
 import ConfirmDialog from "../../components/modal/confirm_dialog.jsx";
+import InputField from "../../components/form/input_field.jsx";
 import {
   hoyISO,
   fechaAR,
@@ -245,14 +246,15 @@ export default function EditarPlanVigentePage() {
             <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Buscar alumno por DNI</span>
           </div>
           <form onSubmit={handleBuscar} className="flex gap-3 p-4">
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+            <div className="flex-1">
+              <InputField
+                hideLabel
+                hideMessage
                 type="text"
+                icon={Search}
                 value={documento}
                 onChange={(e) => setDocumento(e.target.value)}
                 placeholder="Ej: 40123456"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-4 text-sm text-slate-800 outline-none focus:border-blue-400 focus:bg-white focus:ring-1 focus:ring-blue-400 transition"
               />
             </div>
             <button
@@ -359,17 +361,26 @@ export default function EditarPlanVigentePage() {
                       )}
                     </Field>
 
-                    <Field label="Ingresos disponibles">
-                      <input type="number" min="0" name="ingresos_disponibles" value={formPlan.ingresos_disponibles} onChange={handleChangePlan} className={inputCls} />
-                    </Field>
+                    <InputField
+                      label="Ingresos disponibles"
+                      hideMessage
+                      type="number" min="0" name="ingresos_disponibles"
+                      value={formPlan.ingresos_disponibles} onChange={handleChangePlan}
+                    />
 
-                    <Field label="Fecha inicio">
-                      <input type="date" name="fecha_inicio" value={formPlan.fecha_inicio} onChange={handleChangePlan} className={inputCls} />
-                    </Field>
+                    <InputField
+                      label="Fecha inicio"
+                      hideMessage
+                      type="date" name="fecha_inicio"
+                      value={formPlan.fecha_inicio} onChange={handleChangePlan}
+                    />
 
-                    <Field label="Fecha fin">
-                      <input type="date" name="fecha_fin" value={formPlan.fecha_fin} onChange={handleChangePlan} className={inputCls} />
-                    </Field>
+                    <InputField
+                      label="Fecha fin"
+                      hideMessage
+                      type="date" name="fecha_fin"
+                      value={formPlan.fecha_fin} onChange={handleChangePlan}
+                    />
                   </div>
 
                   <div className="mt-6 flex justify-end">
@@ -403,90 +414,68 @@ export default function EditarPlanVigentePage() {
             <form onSubmit={handleGuardarPersona} className="p-4">
               <div className="grid gap-4 sm:grid-cols-2">
 
-                <Field label="Nombre *">
-                  <div className="relative">
-                    <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text" name="nombre"
-                      value={formPersona.nombre} onChange={handleChangePersona}
-                      className={`${inputCls} pl-9`}
-                      placeholder="Nombre"
-                    />
-                  </div>
-                </Field>
+                <InputField
+                  label="Nombre *"
+                  hideMessage
+                  type="text" name="nombre"
+                  icon={User}
+                  value={formPersona.nombre} onChange={handleChangePersona}
+                  placeholder="Nombre"
+                />
 
-                <Field label="Apellido *">
-                  <div className="relative">
-                    <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text" name="apellido"
-                      value={formPersona.apellido} onChange={handleChangePersona}
-                      className={`${inputCls} pl-9`}
-                      placeholder="Apellido"
-                    />
-                  </div>
-                </Field>
+                <InputField
+                  label="Apellido *"
+                  hideMessage
+                  type="text" name="apellido"
+                  icon={User}
+                  value={formPersona.apellido} onChange={handleChangePersona}
+                  placeholder="Apellido"
+                />
 
-                <Field label="DNI *">
-                  <div className="relative">
-                    <IdCard size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text" name="documento"
-                      value={formPersona.documento} onChange={handleChangePersona}
-                      className={`${inputCls} pl-9 ${dniCambia ? "border-amber-300 focus:border-amber-400 focus:ring-amber-300" : ""}`}
-                      placeholder="Número de documento"
-                    />
-                  </div>
-                  {dniCambia && (
-                    <p className="mt-1 text-[11px] text-amber-600">
-                      DNI actual: {alumno.documento} → nuevo: {formPersona.documento}
-                    </p>
-                  )}
-                </Field>
+                <InputField
+                  label="DNI *"
+                  type="text" name="documento"
+                  icon={IdCard}
+                  value={formPersona.documento} onChange={handleChangePersona}
+                  placeholder="Número de documento"
+                  warning={dniCambia ? `DNI actual: ${alumno.documento} → nuevo: ${formPersona.documento}` : undefined}
+                />
 
-                <Field label="Fecha de nacimiento">
-                  <input
-                    type="date" name="fecha_nacimiento"
-                    value={formPersona.fecha_nacimiento} onChange={handleChangePersona}
-                    className={inputCls}
+                <InputField
+                  label="Fecha de nacimiento"
+                  hideMessage
+                  type="date" name="fecha_nacimiento"
+                  value={formPersona.fecha_nacimiento} onChange={handleChangePersona}
+                />
+
+                <InputField
+                  label="Celular"
+                  hideMessage
+                  type="text" name="celular"
+                  icon={Phone}
+                  value={formPersona.celular} onChange={handleChangePersona}
+                  placeholder="Ej: 3705001122"
+                />
+
+                <InputField
+                  label="Celular de emergencia"
+                  hideMessage
+                  type="text" name="celular_emergencia"
+                  icon={Phone}
+                  value={formPersona.celular_emergencia} onChange={handleChangePersona}
+                  placeholder="Contacto de emergencia"
+                />
+
+                <div className="sm:col-span-2">
+                  <InputField
+                    label="Email"
+                    hideMessage
+                    type="email" name="email"
+                    icon={Mail}
+                    value={formPersona.email} onChange={handleChangePersona}
+                    placeholder="correo@ejemplo.com"
                   />
-                </Field>
-
-                <Field label="Celular">
-                  <div className="relative">
-                    <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text" name="celular"
-                      value={formPersona.celular} onChange={handleChangePersona}
-                      className={`${inputCls} pl-9`}
-                      placeholder="Ej: 3705001122"
-                    />
-                  </div>
-                </Field>
-
-                <Field label="Celular de emergencia">
-                  <div className="relative">
-                    <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text" name="celular_emergencia"
-                      value={formPersona.celular_emergencia} onChange={handleChangePersona}
-                      className={`${inputCls} pl-9`}
-                      placeholder="Contacto de emergencia"
-                    />
-                  </div>
-                </Field>
-
-                <Field label="Email">
-                  <div className="relative sm:col-span-2">
-                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="email" name="email"
-                      value={formPersona.email} onChange={handleChangePersona}
-                      className={`${inputCls} pl-9`}
-                      placeholder="correo@ejemplo.com"
-                    />
-                  </div>
-                </Field>
+                </div>
 
               </div>
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import InputField from "../form/input_field.jsx";
 
 const estadoInicial = {
   descripcion: "",
@@ -91,63 +92,47 @@ export default function PlanFormModal({
         </div>
 
         <form onSubmit={submit} className="space-y-4 px-6 py-5">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Descripción
-            </label>
-            <input
-              type="text"
-              name="descripcion"
-              value={form.descripcion}
-              onChange={manejarCambio}
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
-              placeholder="Ej: Mensual 3 días por semana"
-            />
-          </div>
+          <InputField
+            label="Descripción"
+            name="descripcion"
+            type="text"
+            value={form.descripcion}
+            onChange={manejarCambio}
+            hideMessage
+            placeholder="Ej: Mensual 3 días por semana"
+          />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Días totales
-              </label>
-              <input
-                type="number"
-                name="dias_totales"
-                value={form.dias_totales}
-                onChange={manejarCambio}
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
-                min="0"
-              />
-            </div>
+            <InputField
+              label="Días totales"
+              name="dias_totales"
+              type="number"
+              value={form.dias_totales}
+              onChange={manejarCambio}
+              hideMessage
+              min="0"
+            />
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Ingresos
-              </label>
-              <input
-                type="number"
-                name="ingresos"
-                value={form.ingresos}
-                onChange={manejarCambio}
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
-                min="0"
-              />
-            </div>
+            <InputField
+              label="Ingresos"
+              name="ingresos"
+              type="number"
+              value={form.ingresos}
+              onChange={manejarCambio}
+              hideMessage
+              min="0"
+            />
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Precio
-              </label>
-              <input
-                type="number"
-                name="precio"
-                value={form.precio}
-                onChange={manejarCambio}
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
-                min="0"
-                step="0.01"
-              />
-            </div>
+            <InputField
+              label="Precio"
+              name="precio"
+              type="number"
+              value={form.precio}
+              onChange={manejarCambio}
+              hideMessage
+              min="0"
+              step="0.01"
+            />
           </div>
 
           {errores.length > 0 && (

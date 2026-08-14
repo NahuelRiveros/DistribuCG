@@ -16,6 +16,7 @@ import {
   getNumerosWhatsApp,
   enviarPromocion,
 } from "../../api/promociones_api";
+import InputField from "../../components/form/input_field.jsx";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -251,20 +252,16 @@ export default function PromocionesPage() {
           </div>
 
           {/* Asunto */}
-          <div>
-            <label className="text-xs font-semibold text-slate-500 mb-1.5 block">
-              Asunto del email
-            </label>
-            <input
-              value={subject}
-              onChange={(e) => {
-                setSubject(e.target.value);
-                setResultado(null);
-              }}
-              placeholder="Ej: 🎯 Oferta especial para vos"
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
-            />
-          </div>
+          <InputField
+            label="Asunto del email"
+            hideMessage
+            value={subject}
+            onChange={(e) => {
+              setSubject(e.target.value);
+              setResultado(null);
+            }}
+            placeholder="Ej: 🎯 Oferta especial para vos"
+          />
 
           {/* Título */}
           <div>
@@ -274,14 +271,15 @@ export default function PromocionesPage() {
                 (opcional — aparece en negrita arriba del mensaje)
               </span>
             </label>
-            <input
+            <InputField
+              hideLabel
+              hideMessage
               value={titulo}
               onChange={(e) => {
                 setTitulo(e.target.value);
                 setResultado(null);
               }}
               placeholder="Ej: ¡Promoción de mayo!"
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
             />
           </div>
 

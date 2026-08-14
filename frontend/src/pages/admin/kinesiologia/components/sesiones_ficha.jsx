@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bell, CalendarPlus, MessageCircle, Plus, Trash2, X } from "lucide-react";
 import { ORDEN_DIAS, DIA_LABEL } from "../../../../utils/dias_semana.js";
 import { formatearFechaAR } from "../../../../components/form/formatear_fecha.js";
+import InputField from "../../../../components/form/input_field.jsx";
 
 function fechaHoyLocal() {
   const d = new Date();
@@ -107,17 +108,16 @@ function NuevaSesionForm({ onCrear }) {
         <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Nueva sesión</p>
       </div>
 
-      <div>
-        <label className="text-[11px] font-bold uppercase tracking-wide text-slate-400" htmlFor="fecha-nueva-sesion">Fecha</label>
-        <input
-          id="fecha-nueva-sesion"
-          type="date"
-          value={fecha}
-          max={fechaHoyLocal()}
-          onChange={(e) => setFecha(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-(--kt-teal-700)"
-        />
-      </div>
+      <InputField
+        id="fecha-nueva-sesion"
+        label="Fecha"
+        labelClassName="text-[11px] font-bold uppercase tracking-wide text-slate-400"
+        hideMessage
+        type="date"
+        value={fecha}
+        max={fechaHoyLocal()}
+        onChange={(e) => setFecha(e.target.value)}
+      />
 
       <div className="space-y-2.5">
         {bloques.map((b, i) => (

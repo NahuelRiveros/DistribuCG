@@ -12,6 +12,7 @@ import {
   setAvisoConfig,
   getSonidoSrc,
 } from "../../config/audio_config";
+import InputField from "../../components/form/input_field.jsx";
 
 const TAMANO_MAX_BYTES = 3 * 1024 * 1024; // 3 MB: límite prudente para no saturar localStorage
 
@@ -174,13 +175,17 @@ export default function AudioConfigPage() {
             Cada cuántos minutos suena el aviso mientras el gym está abierto.
           </p>
           <div className="flex items-center gap-2">
-            <input
+            <InputField
+              hideLabel
+              hideMessage
+              fullWidth={false}
+              wrapperClassName="w-24"
               type="number"
               min={INTERVALO_MINIMO_MIN}
               max={INTERVALO_MAXIMO_MIN}
               value={config.intervaloMinutos}
               onChange={onIntervaloChange}
-              className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 focus:border-blue-400 focus:outline-none"
+              className="text-sm font-bold text-slate-700"
             />
             <span className="text-sm text-slate-500">minutos</span>
           </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Save, RefreshCw, Eye } from "lucide-react";
 import { listarTextosHome, actualizarTextosHome } from "../../../api/home_content_api.js";
+import InputField from "../../../components/form/input_field.jsx";
 
 const SECCIONES = [
   { id: "hero",       titulo: "Hero (arriba de todo)" },
@@ -106,20 +107,23 @@ export default function TextosTab() {
             <h2 className="text-sm font-bold text-slate-700">{seccion.titulo}</h2>
             {items.map((t) => (
               <div key={t.clave}>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">{t.etiqueta}</label>
                 {(valores[t.clave]?.length || 0) > 60 ? (
-                  <textarea
-                    value={valores[t.clave] ?? ""}
-                    onChange={(e) => cambiar(t.clave, e.target.value)}
-                    rows={2}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-(--kt-teal-700) focus:outline-none resize-none"
-                  />
+                  <>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1">{t.etiqueta}</label>
+                    <textarea
+                      value={valores[t.clave] ?? ""}
+                      onChange={(e) => cambiar(t.clave, e.target.value)}
+                      rows={2}
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-(--kt-teal-700) focus:outline-none resize-none"
+                    />
+                  </>
                 ) : (
-                  <input
+                  <InputField
+                    label={t.etiqueta}
                     type="text"
                     value={valores[t.clave] ?? ""}
                     onChange={(e) => cambiar(t.clave, e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-(--kt-teal-700) focus:outline-none"
+                    hideMessage
                   />
                 )}
               </div>

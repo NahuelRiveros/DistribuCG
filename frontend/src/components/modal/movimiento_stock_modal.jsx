@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import InputField from "../form/input_field.jsx";
 
 const METODOS_PAGO = [
   { value: "EFECTIVO", label: "Efectivo" },
@@ -72,18 +73,14 @@ export default function MovimientoStockModal({
         </div>
 
         <form onSubmit={submit} className="space-y-4 px-6 py-5">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Cantidad {tipo !== "entrada" && `(disponible: ${producto.stock_actual})`}
-            </label>
-            <input
-              type="number"
-              value={cantidad}
-              onChange={(e) => setCantidad(e.target.value)}
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
-              min="1"
-            />
-          </div>
+          <InputField
+            label={`Cantidad ${tipo !== "entrada" ? `(disponible: ${producto.stock_actual})` : ""}`}
+            type="number"
+            value={cantidad}
+            onChange={(e) => setCantidad(e.target.value)}
+            hideMessage
+            min="1"
+          />
 
           {tipo === "venta" && (
             <div>
@@ -103,18 +100,14 @@ export default function MovimientoStockModal({
           )}
 
           {tipo === "baja" && (
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Motivo
-              </label>
-              <input
-                type="text"
-                value={motivo}
-                onChange={(e) => setMotivo(e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
-                placeholder="Ej: Rotura, vencimiento, consumo interno..."
-              />
-            </div>
+            <InputField
+              label="Motivo"
+              type="text"
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              hideMessage
+              placeholder="Ej: Rotura, vencimiento, consumo interno..."
+            />
           )}
 
           {error && (

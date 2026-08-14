@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import InputField from "../form/input_field.jsx";
 
 const estadoInicial = {
   nombre: "",
@@ -83,19 +84,15 @@ export default function ProductoFormModal({
         </div>
 
         <form onSubmit={submit} className="space-y-4 px-6 py-5">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Nombre
-            </label>
-            <input
-              type="text"
-              name="nombre"
-              value={form.nombre}
-              onChange={manejarCambio}
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
-              placeholder="Ej: Agua mineral 500ml"
-            />
-          </div>
+          <InputField
+            label="Nombre"
+            name="nombre"
+            type="text"
+            value={form.nombre}
+            onChange={manejarCambio}
+            hideMessage
+            placeholder="Ej: Agua mineral 500ml"
+          />
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -115,34 +112,26 @@ export default function ProductoFormModal({
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Precio de venta
-              </label>
-              <input
-                type="number"
-                name="precio_venta"
-                value={form.precio_venta}
-                onChange={manejarCambio}
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
-                min="0"
-                step="0.01"
-              />
-            </div>
+            <InputField
+              label="Precio de venta"
+              name="precio_venta"
+              type="number"
+              value={form.precio_venta}
+              onChange={manejarCambio}
+              hideMessage
+              min="0"
+              step="0.01"
+            />
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Stock mínimo (alerta)
-              </label>
-              <input
-                type="number"
-                name="stock_minimo"
-                value={form.stock_minimo}
-                onChange={manejarCambio}
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
-                min="0"
-              />
-            </div>
+            <InputField
+              label="Stock mínimo (alerta)"
+              name="stock_minimo"
+              type="number"
+              value={form.stock_minimo}
+              onChange={manejarCambio}
+              hideMessage
+              min="0"
+            />
           </div>
 
           {errores.length > 0 && (
