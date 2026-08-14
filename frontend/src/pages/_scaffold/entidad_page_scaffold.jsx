@@ -21,6 +21,7 @@ import { useState } from "react";
 import { Edit2, Plus, ShieldCheck, ShieldOff } from "lucide-react";
 import DataGrid from "../../components/ui/data_grid.jsx";
 import InputField from "../../components/ui/input_field.jsx";
+import ErrorBanner from "../../components/ui/error_banner.jsx";
 import { useCrudPage } from "../../hooks/use_crud_page.js";
 // TODO: reemplazar por las funciones reales del recurso (api/mi_entidad_api.js)
 import {
@@ -144,9 +145,7 @@ export default function EntidadPageScaffold() {
         </div>
 
         {/* ── ERROR ── */}
-        {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
-        )}
+        <ErrorBanner message={error} />
 
         {/* ── TABLA ── */}
         <DataGrid

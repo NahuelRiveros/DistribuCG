@@ -9,6 +9,7 @@ import { iconoHome } from "../../../config/home_iconos.js";
 import IconoPicker from "../../../components/ui/icono_picker.jsx";
 import InputField from "../../../components/ui/input_field.jsx";
 import { useCrudPage } from "../../../hooks/use_crud_page.js";
+import ErrorBanner from "../../../components/ui/error_banner.jsx";
 
 function ContactoFormModal({ abierto, onClose, onGuardar, contacto, guardando }) {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
@@ -122,7 +123,7 @@ export default function ContactoTab() {
         </button>
       </div>
 
-      {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      <ErrorBanner message={error} />
 
       {cargando ? (
         <div className="rounded-2xl border border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-400">Cargando…</div>

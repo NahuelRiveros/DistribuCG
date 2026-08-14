@@ -3,6 +3,7 @@ import { ArrowLeft, HeartPulse, Plus, Edit2, ShieldCheck, ShieldOff } from "luci
 import DataGrid from "../../../components/ui/data_grid.jsx";
 import PatologiaFormModal from "../../../components/kinesiologia/patologia_form_modal.jsx";
 import { useCrudPage } from "../../../hooks/use_crud_page.js";
+import ErrorBanner from "../../../components/ui/error_banner.jsx";
 import {
   getPatologias, crearPatologia, actualizarPatologia, cambiarEstadoPatologia,
 } from "../../../api/kinesiologia_api.js";
@@ -82,9 +83,7 @@ export default function PatologiasPage() {
           </div>
         </div>
 
-        {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
-        )}
+        <ErrorBanner message={error} />
 
         <DataGrid
           rows={items}

@@ -4,6 +4,7 @@ import Navbar from "./navbar/navbar.jsx";
 import Footer from "./footer.jsx";
 import GymAudioScheduler from "../sistema/gym_audio_scheduler.jsx";
 import SuscripcionBanner from "../suscripcion/suscripcion_banner.jsx";
+import ErrorBoundary from "../ui/error_boundary.jsx";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -14,13 +15,16 @@ function ScrollToTop() {
 }
 
 export default function AppLayout({ children }) {
+  const { pathname } = useLocation();
   return (
     <div className="min-h-screen bg-gray-50">
       <ScrollToTop />
       <Navbar />
       <SuscripcionBanner />
       <GymAudioScheduler />
-      <main>{children}</main> 
+      <main>
+        <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
+      </main>
       <Footer />
     </div>
   );
