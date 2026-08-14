@@ -8,7 +8,7 @@ import {
   superExtenderSuscripcion,
   superFijarFechaSuscripcion,
 } from "../../api/suscripcion_api.js";
-import InputField from "../../components/form/input_field.jsx";
+import InputField from "../../components/ui/input_field.jsx";
 
 const OPCIONES_DIAS = [
   { label: "30 días", dias: 30 },

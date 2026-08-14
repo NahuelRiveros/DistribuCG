@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { getAlumnosListado, actualizarEstadosAlumnos, getProfesoresGym } from "../../api/alumnos_api";
 import { useAuth } from "../../auth/auth_context.jsx";
 import { Users, RefreshCw, ChevronRight } from "lucide-react";
-import { formatearFechaAR } from "../../components/form/formatear_fecha";
-import DataGrid from "../../components/table/data_grid";
+import { formatearFechaAR } from "../../utils/formatear_fecha";
+import DataGrid from "../../components/ui/data_grid";
 
 /* ── badges ─────────────────────────────────────────────────────────────── */
 

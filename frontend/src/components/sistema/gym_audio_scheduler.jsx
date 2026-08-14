@@ -5,7 +5,7 @@ import {
   AVISO_CONFIG_STORAGE_KEY,
   getAvisoConfig,
   getSonidoSrc,
-} from "../config/audio_config";
+} from "../../config/audio_config";
 
 const HORA_APERTURA = 9;
 const HORA_CIERRE = 22;

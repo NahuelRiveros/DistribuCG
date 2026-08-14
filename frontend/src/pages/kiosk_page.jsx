@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { kioskIngreso } from "../api/kiosk_api.js";
 import { getAlumnosCumples } from "../api/alumnos_api.js";
-import KioskResultModal from "../components/modal/kiosk_result_modal.jsx";
-import KioskErrorModal from "../components/modal/kiosk_error_modal.jsx";
-import KioskLogModal, { guardarLogKiosk } from "../components/modal/kiosk_log_modal.jsx";
+import KioskResultModal from "../components/kiosk/kiosk_result_modal.jsx";
+import KioskErrorModal from "../components/kiosk/kiosk_error_modal.jsx";
+import KioskLogModal, { guardarLogKiosk } from "../components/kiosk/kiosk_log_modal.jsx";
 import AlertasDropdown from "../components/alertas/alertas_dropdown.jsx";
 import { Dumbbell } from "lucide-react";
 

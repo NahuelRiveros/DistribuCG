@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { CreditCard, Search, UserCheck, Dumbbell, CheckCircle2, CalendarDays, Ticket, Banknote } from "lucide-react";
-import PagoSuccessModal from "../components/modal/pago_success_modal.jsx";
+import PagoSuccessModal from "../components/pagos/pago_success_modal.jsx";
 import { obtenerPlanes } from "../api/planes_api";
 import { registrarPago, previewPago } from "../api/pagos_api";
 
-import FormError from "../components/form/form_error";
-import InputField from "../components/form/input_field";
-import SelectField from "../components/form/select_field";
-import { formatearFechaAR } from "../components/form/formatear_fecha.js";
+import FormError from "../components/ui/form_error";
+import InputField from "../components/ui/input_field";
+import SelectField from "../components/ui/select_field";
+import { formatearFechaAR } from "../utils/formatear_fecha.js";
 import {
   normalizarDocumento,
   calcularNuevoPlanDesdeHoy,

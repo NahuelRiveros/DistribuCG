@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Bell, CalendarPlus, MessageCircle, Plus, Trash2, X } from "lucide-react";
 import { ORDEN_DIAS, DIA_LABEL } from "../../../../utils/dias_semana.js";
-import { formatearFechaAR } from "../../../../components/form/formatear_fecha.js";
-import InputField from "../../../../components/form/input_field.jsx";
+import { formatearFechaAR } from "../../../../utils/formatear_fecha.js";
+import InputField from "../../../../components/ui/input_field.jsx";
 
 function fechaHoyLocal() {
   const d = new Date();

@@ -12,7 +12,7 @@ import {
   setAvisoConfig,
   getSonidoSrc,
 } from "../../config/audio_config";
-import InputField from "../../components/form/input_field.jsx";
+import InputField from "../../components/ui/input_field.jsx";
 
 const TAMANO_MAX_BYTES = 3 * 1024 * 1024; // 3 MB: límite prudente para no saturar localStorage
 

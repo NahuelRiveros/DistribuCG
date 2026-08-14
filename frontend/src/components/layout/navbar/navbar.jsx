@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { useAuth } from "../../auth/auth_context.jsx";
+import { useAuth } from "../../../auth/auth_context.jsx";
 import { filtrarNavbarPorRol } from "./navbar_permissions.js";
-import { navbar_config } from "../../config/navbar_config.js";
+import { navbar_config } from "../../../config/navbar_config.js";
 import NavbarDesktop from "./navbar_desktop.jsx";
 import NavbarMobile from "./navbar_mobile.jsx";
 import NavbarUserBox from "./navbar_userbox.jsx";
 import { UI_NAVBAR as S } from "./navbar_style.js";
-import LogoMoovs from "../brand/logo_moovs.jsx";
+import LogoMoovs from "../../brand/logo_moovs.jsx";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);

@@ -1,4 +1,4 @@
-import { moduloHabilitado } from "../../config/modulos_config.js";
+import { moduloHabilitado } from "../../../config/modulos_config.js";
 
 function normalizarRol(valor) {
   return String(valor || "").trim().toLowerCase();

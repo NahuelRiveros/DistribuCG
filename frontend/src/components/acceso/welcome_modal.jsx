@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import SubmitButton from "../form/submit_button";
+import SubmitButton from "../ui/submit_button";
 import { CheckCircle } from "lucide-react";
 
 export default function WelcomeModal({

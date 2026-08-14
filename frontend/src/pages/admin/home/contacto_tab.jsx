@@ -6,8 +6,8 @@ import {
   cambiarEstadoContactoHome, eliminarContactoHome,
 } from "../../../api/home_content_api.js";
 import { iconoHome } from "../../../config/home_iconos.js";
-import IconoPicker from "../../../components/form/icono_picker.jsx";
-import InputField from "../../../components/form/input_field.jsx";
+import IconoPicker from "../../../components/ui/icono_picker.jsx";
+import InputField from "../../../components/ui/input_field.jsx";
 import { useCrudPage } from "../../../hooks/use_crud_page.js";
 
 function ContactoFormModal({ abierto, onClose, onGuardar, contacto, guardando }) {

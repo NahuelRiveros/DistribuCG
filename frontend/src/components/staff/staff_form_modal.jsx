@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import InputField from "../form/input_field.jsx";
-import SelectField from "../form/select_field.jsx";
+import InputField from "../ui/input_field.jsx";
+import SelectField from "../ui/select_field.jsx";
 import { useAuth } from "../../auth/auth_context.jsx";
 
 const ROLES_PERSONAL = [

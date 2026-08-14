@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CheckCircle, IdCard, Banknote, Ticket, CalendarDays, CreditCard } from "lucide-react";
-import { formatearFechaAR } from "../form/formatear_fecha";
+import { formatearFechaAR } from "../../utils/formatear_fecha";
 
 export default function PagoSuccessModal({ open, alumno, plan, pago, delayMs = 6000, onFinish }) {
   const totalSeg = Math.round(delayMs / 1000);

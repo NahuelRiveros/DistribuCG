@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, ServerCrash, RefreshCw } from "lucide-react";
-import { verificarServidor } from "../api/health.js"; // 👈 ajustá ruta
+import { verificarServidor } from "../../api/health.js"; // 👈 ajustá ruta
 
 export default function ServerStatusBanner() {
   const [caido, setCaido] = useState(false);

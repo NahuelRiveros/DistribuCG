@@ -12,7 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { consultarPlanPorDni } from "../api/alumnos_api";
-import { formatearFechaAR } from "../components/form/formatear_fecha";
+import { formatearFechaAR } from "../utils/formatear_fecha";
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 

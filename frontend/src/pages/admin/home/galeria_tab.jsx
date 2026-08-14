@@ -8,7 +8,7 @@ import {
   eliminarContenidoHome,
   actualizarLayoutAreaHome,
 } from "../../../api/home_content_api.js";
-import InputField from "../../../components/form/input_field.jsx";
+import InputField from "../../../components/ui/input_field.jsx";
 
 const TAMANO_MAX_BYTES = 25 * 1024 * 1024; // 25MB — mismo límite que el backend
 

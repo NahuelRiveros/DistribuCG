@@ -16,7 +16,7 @@ import {
   getNumerosWhatsApp,
   enviarPromocion,
 } from "../../api/promociones_api";
-import InputField from "../../components/form/input_field.jsx";
+import InputField from "../../components/ui/input_field.jsx";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 

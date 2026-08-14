@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../auth/auth_context.jsx";
+import { useAuth } from "../../auth/auth_context.jsx";
 
 /**
  * Protege rutas según autenticación y roles.

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import InputField from "../form/input_field.jsx";
+import InputField from "../ui/input_field.jsx";
 
 const estadoInicial = {
   nombre: "",

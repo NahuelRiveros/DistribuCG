@@ -4,11 +4,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserPlus, IdCard, Phone, Mail, Dumbbell, CheckCircle2 } from "lucide-react";
-import RegisterSuccessModal from "../components/modal/register_success_modal.jsx";
+import RegisterSuccessModal from "../components/acceso/register_success_modal.jsx";
 
-import InputField from "../components/form/input_field.jsx";
-import SelectField from "../components/form/select_field.jsx";
-import FormError from "../components/form/form_error.jsx";
+import InputField from "../components/ui/input_field.jsx";
+import SelectField from "../components/ui/select_field.jsx";
+import FormError from "../components/ui/form_error.jsx";
 
 import { useCatalogos } from "../hooks/use_catalogos.js";
 import { registrarAlumno } from "../api/alumnos_api.js";

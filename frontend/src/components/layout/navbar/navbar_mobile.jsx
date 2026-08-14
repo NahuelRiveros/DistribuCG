@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronDown, X } from "lucide-react";
-import { useAuth } from "../../auth/auth_context.jsx";
+import { useAuth } from "../../../auth/auth_context.jsx";
 import NavbarUserBox from "./navbar_userbox.jsx";
-import { LogoMoovsIcon } from "../brand/logo_moovs.jsx";
+import { LogoMoovsIcon } from "../../brand/logo_moovs.jsx";
 import { UI_NAVBAR as S } from "./navbar_style.js";
 
 export default function NavbarMobile({ config, open, onNavigate, onClose }) {

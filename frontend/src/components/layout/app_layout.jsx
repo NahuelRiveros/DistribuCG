@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import Navbar from "./navbar.jsx";
+import Navbar from "./navbar/navbar.jsx";
 import Footer from "./footer.jsx";
-import GymAudioScheduler from "../gym_audio_scheduler.jsx";
-import SuscripcionBanner from "../suscripcion_banner.jsx";
+import GymAudioScheduler from "../sistema/gym_audio_scheduler.jsx";
+import SuscripcionBanner from "../suscripcion/suscripcion_banner.jsx";
 
 function ScrollToTop() {
   const { pathname } = useLocation();

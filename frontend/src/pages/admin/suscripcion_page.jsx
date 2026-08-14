@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { getEstadoSuscripcion } from "../../api/suscripcion_api";
-import { formatearFechaAR } from "../../components/form/formatear_fecha";
+import { formatearFechaAR } from "../../utils/formatear_fecha";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 

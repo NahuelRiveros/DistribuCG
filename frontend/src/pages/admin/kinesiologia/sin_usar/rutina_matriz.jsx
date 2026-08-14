@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, Plus } from "lucide-react";
-import { formatearFechaAR } from "../../../../components/form/formatear_fecha.js";
+import { formatearFechaAR } from "../../../../utils/formatear_fecha.js";
 import { ORDEN_DIAS, DIA_LABEL, diaSemanaDeFecha } from "../../../../utils/dias_semana.js";
 
 // Secciones: una por cada día de la semana que tenga algo para mostrar.

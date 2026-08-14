@@ -57,7 +57,7 @@ import {
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
   Inbox,
 } from "lucide-react";
-import InputField from "../form/input_field.jsx";
+import InputField from "./input_field.jsx";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 

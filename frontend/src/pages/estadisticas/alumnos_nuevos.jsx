@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAlumnosNuevos } from "../../api/estadisticas_api";
 import { Calendar, RefreshCw, Users, TrendingUp } from "lucide-react";
-import DataGrid from "../../components/table/data_grid";
-import { formatearFechaAR } from "../../components/form/formatear_fecha";
+import DataGrid from "../../components/ui/data_grid";
+import { formatearFechaAR } from "../../utils/formatear_fecha";
 
 function primerDiaMesISO() {
   const d = new Date();

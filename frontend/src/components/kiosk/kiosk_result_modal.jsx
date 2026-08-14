@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CheckCircle, IdCard, Clock, Calendar, Ticket } from "lucide-react";
-import { formatearFechaAR } from "../form/formatear_fecha";
+import { formatearFechaAR } from "../../utils/formatear_fecha";
 
 export default function KioskResultModal({ resp, onClose, autoCloseMs = 8000 }) {
   if (!resp) return null;

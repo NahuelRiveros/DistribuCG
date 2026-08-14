@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Save, RefreshCw, Eye } from "lucide-react";
 import { listarTextosHome, actualizarTextosHome } from "../../../api/home_content_api.js";
-import InputField from "../../../components/form/input_field.jsx";
+import InputField from "../../../components/ui/input_field.jsx";
 
 const SECCIONES = [
   { id: "hero",       titulo: "Hero (arriba de todo)" },

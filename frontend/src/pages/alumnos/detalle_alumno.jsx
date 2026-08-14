@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAlumnoDetalle, getProfesoresGym, asignarProfesorAlumno } from "../../api/alumnos_api";
 import { ArrowLeft, BadgeCheck, Ban, RefreshCw, CreditCard, TrendingUp, Zap, Clock, UserCog } from "lucide-react";
-import { formatearFechaAR } from "../../components/form/formatear_fecha";
-import DataGrid from "../../components/table/data_grid";
+import { formatearFechaAR } from "../../utils/formatear_fecha";
+import DataGrid from "../../components/ui/data_grid";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 

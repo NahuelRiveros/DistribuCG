@@ -9,18 +9,18 @@
  *   2. Creá en `api/` las 4 funciones que pide `useCrudPage` (getX, crearX, actualizarX, cambiarEstadoX)
  *      siguiendo el mismo contrato que ya usa el resto (`{ ok, data|items, mensaje }`).
  *   3. Reemplazá cada bloque marcado `// TODO:` — campos del modal, columnas del DataGrid, textos.
- *   4. Si el modal crece mucho, sacalo a `components/modal/mi_entidad_form_modal.jsx`
- *      (mirá producto_form_modal.jsx / plan_form_modal.jsx como ejemplo).
+ *   4. Si el modal crece mucho, sacalo a `components/<dominio>/mi_entidad_form_modal.jsx`
+ *      (mirá components/stock/producto_form_modal.jsx / components/planes/plan_form_modal.jsx).
  *
  * Ver también: hooks/use_crud_page.js (el estado y los handlers que arma esta página),
- * components/table/data_grid.jsx (tabla con búsqueda/orden/paginación) y
- * components/form/input_field.jsx (inputs de texto/número/fecha).
+ * components/ui/data_grid.jsx (tabla con búsqueda/orden/paginación) y
+ * components/ui/input_field.jsx (inputs de texto/número/fecha).
  */
 
 import { useState } from "react";
 import { Edit2, Plus, ShieldCheck, ShieldOff } from "lucide-react";
-import DataGrid from "../../components/table/data_grid.jsx";
-import InputField from "../../components/form/input_field.jsx";
+import DataGrid from "../../components/ui/data_grid.jsx";
+import InputField from "../../components/ui/input_field.jsx";
 import { useCrudPage } from "../../hooks/use_crud_page.js";
 // TODO: reemplazar por las funciones reales del recurso (api/mi_entidad_api.js)
 import {

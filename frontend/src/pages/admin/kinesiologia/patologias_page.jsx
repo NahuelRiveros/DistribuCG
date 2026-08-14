@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, HeartPulse, Plus, Edit2, ShieldCheck, ShieldOff } from "lucide-react";
-import DataGrid from "../../../components/table/data_grid.jsx";
-import PatologiaFormModal from "../../../components/modal/patologia_form_modal.jsx";
+import DataGrid from "../../../components/ui/data_grid.jsx";
+import PatologiaFormModal from "../../../components/kinesiologia/patologia_form_modal.jsx";
 import { useCrudPage } from "../../../hooks/use_crud_page.js";
 import {
   getPatologias, crearPatologia, actualizarPatologia, cambiarEstadoPatologia,

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { X, UserPlus, HeartPulse, CheckCircle2, ArrowLeft, Check } from "lucide-react";
-import InputField from "../../../components/form/input_field.jsx";
-import DataGrid from "../../../components/table/data_grid.jsx";
+import InputField from "../../../components/ui/input_field.jsx";
+import DataGrid from "../../../components/ui/data_grid.jsx";
 import { getPersonasRegistradas, agregarPacienteKinesiologia } from "../../../api/kinesiologia_api.js";
 import { useCatalogos } from "../../../hooks/use_catalogos.js";
 

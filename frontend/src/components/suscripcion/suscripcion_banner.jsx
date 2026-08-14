@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, CreditCard, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/auth_context";
-import { getEstadoSuscripcion } from "../api/suscripcion_api";
+import { useAuth } from "../../auth/auth_context";
+import { getEstadoSuscripcion } from "../../api/suscripcion_api";
 
 const DURACION_MS = 5000;
 

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { LogOut, User, Settings, UserCircle, ChevronDown } from "lucide-react";
 import { useNavigate, NavLink } from "react-router-dom";
-import { useAuth } from "../../auth/auth_context.jsx";
+import { useAuth } from "../../../auth/auth_context.jsx";
 import { UI_NAVBAR as S } from "./navbar_style.js";
 
 export default function NavbarUserBox({ mobile = false, onLogout }) {

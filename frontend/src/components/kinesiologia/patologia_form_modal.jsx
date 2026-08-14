@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import InputField from "../form/input_field.jsx";
+import InputField from "../ui/input_field.jsx";
 
 export default function PatologiaFormModal({ abierto, onClose, onGuardar, patologiaEditar = null, cargando = false }) {
   const esEdicion = Boolean(patologiaEditar);

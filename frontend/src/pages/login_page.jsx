@@ -5,9 +5,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Users, Wallet, HeartPulse } from "lucide-react";
 
-import InputField from "../components/form/input_field.jsx";
-import FormError from "../components/form/form_error.jsx";
-import WelcomeModal from "../components/modal/welcome_modal.jsx";
+import InputField from "../components/ui/input_field.jsx";
+import FormError from "../components/ui/form_error.jsx";
+import WelcomeModal from "../components/acceso/welcome_modal.jsx";
 import LogoMoovs from "../components/brand/logo_moovs.jsx";
 
 import { useAuth } from "../auth/auth_context.jsx";
