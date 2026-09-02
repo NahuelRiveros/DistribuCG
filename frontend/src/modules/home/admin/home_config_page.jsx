@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Image, Type, Layers, Contact } from "lucide-react";
-import GaleriaTab from "./home/galeria_tab.jsx";
-import TextosTab from "./home/textos_tab.jsx";
-import PilaresTab from "./home/pilares_tab.jsx";
-import ContactoTab from "./home/contacto_tab.jsx";
+import GaleriaTab from "./tabs/galeria_tab.jsx";
+import TextosTab from "./tabs/textos_tab.jsx";
+import PilaresTab from "./tabs/pilares_tab.jsx";
+import ContactoTab from "./tabs/contacto_tab.jsx";
 
 const TABS = [
   { id: "galeria",  label: "Galería",  icon: Image,   Componente: GaleriaTab },

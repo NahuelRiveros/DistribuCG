@@ -5,8 +5,8 @@ import {
   MessageCircle, Copy, Check,
 } from "lucide-react";
 import { useState } from "react";
-import { getEstadoSuscripcion } from "../../api/suscripcion_api";
-import { formatearFechaAR } from "../../utils/formatear_fecha";
+import { getEstadoSuscripcion } from "../../../api/suscripcion_api";
+import { formatearFechaAR } from "../../../utils/formatear_fecha";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 

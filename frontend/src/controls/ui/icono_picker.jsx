@@ -1,4 +1,4 @@
-import { ICONOS_HOME, ICONOS_HOME_NOMBRES } from "../../config/home_iconos.js";
+import { ICONOS_HOME, ICONOS_HOME_NOMBRES } from "../config/home_iconos.js";
 
 /** Selector visual de ícono (no un <select> de texto) — usado por Pilares y Contacto del home. */
 export default function IconoPicker({ value, onChange }) {

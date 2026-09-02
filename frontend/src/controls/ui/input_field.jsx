@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Info } from "lucide-react";
 
 const PRESET_RULES = {
   numeric:      { pattern: { value: /^[0-9]+$/, message: "Solo se permiten números" } },
@@ -46,6 +46,7 @@ export default function InputField({
   warning,
   success,
   helperText,
+  tooltip,
   type = "text",
   placeholder = "",
   value,
@@ -85,6 +86,13 @@ export default function InputField({
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
+  const validationRules = useMemo(() => ({
+    ...buildRules({ type, required, requiredMessage, minLength, maxLength, pattern, validate, watch, matchField, matchFieldMessage }),
+    ...(validationPreset ? PRESET_RULES[validationPreset] ?? {} : {}),
+    ...(rules ?? {}),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [type, required, requiredMessage, minLength, maxLength, pattern, validate, validationPreset, rules]);
+
   if (hidden) return null;
 
   const inputId = id ?? name;
@@ -92,13 +100,6 @@ export default function InputField({
   const finalType = isPassword && showPassword ? "text" : type;
   const isControlled = value !== undefined || onChange !== undefined;
   const isDisabled = disabled || disabledVisual;
-
-  const validationRules = useMemo(() => ({
-    ...buildRules({ type, required, requiredMessage, minLength, maxLength, pattern, validate, watch, matchField, matchFieldMessage }),
-    ...(validationPreset ? PRESET_RULES[validationPreset] ?? {} : {}),
-    ...(rules ?? {}),
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [type, required, requiredMessage, minLength, maxLength, pattern, validate, validationPreset, rules]);
 
   const registeredProps = !isControlled && register && name ? register(name, validationRules) : {};
 
@@ -128,10 +129,21 @@ export default function InputField({
       {label && !hideLabel && (
         <label
           htmlFor={inputId}
-          className={["block text-sm font-semibold text-gray-700", labelClassName].join(" ")}
+          className={["flex items-center gap-1 text-sm font-semibold text-gray-700", labelClassName].join(" ")}
         >
           {label}
-          {required && <span className="ml-1 text-red-500">*</span>}
+          {required && <span className="text-red-500">*</span>}
+          {tooltip && (
+            <span className="group/tooltip relative inline-flex">
+              <Info className="h-3.5 w-3.5 cursor-help text-gray-400 hover:text-gray-600" />
+              <span
+                role="tooltip"
+                className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 w-max max-w-56 -translate-x-1/2 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover/tooltip:opacity-100 group-focus-within/tooltip:opacity-100"
+              >
+                {tooltip}
+              </span>
+            </span>
+          )}
         </label>
       )}
 

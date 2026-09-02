@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Shield, RefreshCw, AlertTriangle, CheckCircle, Dumbbell, HeartPulse, ShoppingCart } from "lucide-react";
-import { getModulosNegocio, actualizarModuloNegocio } from "../../api/modulos_api.js";
+import { getModulosNegocio, actualizarModuloNegocio } from "../../../api/modulos_api.js";
 
 // Módulo sin ícono acá (código nuevo todavía no agregado) → usa Shield, el
 // mismo ícono genérico del header de esta página (ver ICONOS[...] ?? Shield).
@@ -119,10 +119,10 @@ export default function GestionModulosPage() {
                     aria-checked={modulo.habilitado}
                     onClick={() => toggle(modulo)}
                     disabled={actualizando === modulo.codigo}
-                    className={`relative h-7 w-13 shrink-0 rounded-full transition-colors disabled:opacity-50 ${modulo.habilitado ? "bg-violet-600" : "bg-slate-300"}`}
+                    className={`relative h-7 w-13 shrink-0 rounded-full transition-colors disabled:opacity-50 ${modulo.habilitado ? "bg-emerald-500" : "bg-rose-400"}`}
                   >
                     <span
-                      className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${modulo.habilitado ? "translate-x-7" : "translate-x-1"}`}
+                      className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${modulo.habilitado ? "translate-x-6" : "translate-x-0"}`}
                     />
                   </button>
                 </div>

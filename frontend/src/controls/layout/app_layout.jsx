@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "./navbar/navbar.jsx";
 import Footer from "./footer.jsx";
-import GymAudioScheduler from "../sistema/gym_audio_scheduler.jsx";
 import SuscripcionBanner from "../suscripcion/suscripcion_banner.jsx";
 import ErrorBoundary from "../ui/error_boundary.jsx";
 
@@ -21,7 +20,6 @@ export default function AppLayout({ children }) {
       <ScrollToTop />
       <Navbar />
       <SuscripcionBanner />
-      <GymAudioScheduler />
       <main>
         <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
       </main>

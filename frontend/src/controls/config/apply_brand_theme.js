@@ -1,4 +1,4 @@
-import { brandConfig } from "./brand_config.js";
+import { brandConfig } from "../../config/brand_config.js";
 
 const CSS_VARS = {
   accent: ["--kt-turquoise", "--color-accent"],

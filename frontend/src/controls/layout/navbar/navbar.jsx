@@ -3,7 +3,7 @@ import { Menu, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../../auth/auth_context.jsx";
 import { filtrarNavbarPorRol } from "./navbar_permissions.js";
-import { navbar_config } from "../../../config/navbar_config.js";
+import { navbar_config } from "../../../config/navbar_config/main.js";
 import NavbarDesktop from "./navbar_desktop.jsx";
 import NavbarMobile from "./navbar_mobile.jsx";
 import NavbarUserBox from "./navbar_userbox.jsx";
@@ -79,7 +79,8 @@ export default function Navbar() {
 
           <NavbarDesktop config={navbarFiltrado} />
 
-          <div className="hidden shrink-0 lg:block">
+          <div className="hidden shrink-0 items-center gap-1 lg:flex">
+            {navbar_config.extras?.map((Extra, i) => <Extra key={i} />)}
             {usuario ? (
               <NavbarUserBox />
             ) : (

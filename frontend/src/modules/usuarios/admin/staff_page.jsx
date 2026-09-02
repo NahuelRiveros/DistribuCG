@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import StaffFormModal from "../../components/staff/staff_form_modal";
-import StaffPasswordModal from "../../components/staff/staff_password_modal";
-import DataGrid from "../../components/ui/data_grid";
+import StaffFormModal from "../../../controls/modales/staff_form_modal";
+import StaffPasswordModal from "../../../controls/modales/staff_password_modal";
+import DataGrid from "../../../controls/ui/data_grid";
 import {
   obtenerStaff,
   crearStaff,
@@ -10,7 +10,7 @@ import {
   cambiarEstadoStaff,
   cambiarRolStaff,
   eliminarStaff,
-} from "../../api/staff_api";
+} from "../../../api/staff_api";
 import { Users, UserPlus, Edit2, KeyRound, ShieldCheck, ShieldOff, RefreshCw, Trash2 } from "lucide-react";
 
 function formatearFecha(fecha) {
@@ -144,8 +144,7 @@ export default function StaffPage() {
       label: "Rol",
       render: (row) => (
         <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
-          row.rol_codigo === "kinesiologo" ? "bg-(--kt-teal-700)/10 text-(--kt-teal-700) border-(--kt-teal-700)/25"
-          : row.rol_codigo === "admin" ? "bg-amber-50 text-amber-700 border-amber-200"
+          row.rol_codigo === "admin" ? "bg-amber-50 text-amber-700 border-amber-200"
           : "bg-slate-50 text-slate-600 border-slate-200"
         }`}>
           {row.rol_descripcion || "—"}
@@ -241,7 +240,7 @@ export default function StaffPage() {
               </span>
               <h1 className="mt-2 text-2xl font-extrabold text-slate-900">Personal</h1>
               <p className="mt-0.5 text-sm text-slate-500">
-                Administrá al personal (staff, kinesiólogos y admins), sus datos, contraseña y estado.
+                Administrá al personal (staff y admins), sus datos, contraseña y estado.
               </p>
             </div>
             <div className="flex items-center gap-2">

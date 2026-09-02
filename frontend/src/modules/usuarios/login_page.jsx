@@ -3,38 +3,24 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Users, Wallet, HeartPulse } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
-import InputField from "../components/ui/input_field.jsx";
-import FormError from "../components/ui/form_error.jsx";
-import WelcomeModal from "../components/acceso/welcome_modal.jsx";
-import LogoMoovs from "../components/brand/logo_moovs.jsx";
+import InputField from "../../controls/ui/input_field.jsx";
+import FormError from "../../controls/ui/form_error.jsx";
+import WelcomeModal from "../../controls/modales/welcome_modal.jsx";
+import LogoMoovs from "../../controls/brand/logo_moovs.jsx";
 
-import { useAuth } from "../auth/auth_context.jsx";
-import { authConfig } from "../config/auth_config.js";
-import { brandConfig } from "../config/brand_config.js";
+import { useAuth } from "../../auth/auth_context.jsx";
+import { authConfig } from "../../config/auth_config.js";
+import { brandConfig } from "../../config/brand_config.js";
 
-const FEATURES = [
-  // {
-  //   icon: Users,
-  //   titulo: "Alumnos y planes",
-  //   detalle: "Altas, vencimientos y seguimiento de cada plan.",
-  // },
-  // {
-  //   icon: Wallet,
-  //   titulo: "Pagos y accesos",
-  //   detalle: "Cobros y control de ingreso por DNI en el gimnasio.",
-  // },
-  // {
-  //   icon: HeartPulse,
-  //   titulo: "Kinesiología",
-  //   detalle: "Pacientes, patologías y sesiones en un mismo lugar.",
-  // },
-];
+// Features destacadas del panel — opcional, placeholder por cliente.
+// Formato: { icon, titulo, detalle }
+const FEATURES = [];
 
 export default function LoginPage() {
   const nav = useNavigate();
-  const { login, user } = useAuth();
+  const { login, usuario } = useAuth();
 
   const [error, setError] = useState(null);
   const [mostrarWelcome, setMostrarWelcome] = useState(false);
@@ -107,14 +93,13 @@ export default function LoginPage() {
             </div>
 
             <h1 className="kt-display mt-6 text-4xl font-extrabold leading-[1.12] text-slate-900 xl:text-5xl">
-              Gestioná Moovs
+              Gestioná {brandConfig.nombre}
               <br />
               desde un solo panel.
             </h1>
 
             <p className="mt-4 max-w-md text-base leading-7 text-(--kt-ink-soft)">
-              Turnos, planes, pagos y seguimiento kinesiológico — todo
-              centralizado para vos y el resto del equipo.
+              Todo centralizado para vos y el resto del equipo.
             </p>
 
             <div className="mt-9 space-y-3">
@@ -209,8 +194,8 @@ export default function LoginPage() {
 
       {mostrarWelcome && (
         <WelcomeModal
-          nombre={user?.nombre}
-          apellido={user?.apellido}
+          nombre={usuario?.nombre}
+          apellido={usuario?.apellido}
           onFinish={() => {
             setMostrarWelcome(false);
             nav("/");

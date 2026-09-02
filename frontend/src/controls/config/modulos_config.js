@@ -1,16 +1,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// MÓDULOS DE NEGOCIO — Gym y Kinesiología se venden y habilitan por separado.
+// MÓDULOS DE NEGOCIO — cada instalación puede tener módulos de negocio que se
+// venden y habilitan por separado (ej. "gym", "kinesiologia" en el proyecto
+// original Moovs; en un cliente nuevo, los que correspondan).
 //
-// El estado real (¿está habilitado "gym"/"kinesiologia" para esta instalación?)
-// ya no vive acá — se togglea en vivo desde /super-admin/modulos y se guarda en
-// la tabla modulo_negocio (servidor/src/models/sistema/modulo_negocio.js), con
-// el mismo gate aplicado también en el backend (requireModuloHabilitado) para
-// que apagar un módulo sea real y no solo cosmético.
+// El estado real (¿está habilitado el módulo "X" para esta instalación?) no
+// vive acá — se togglea en vivo desde /super-admin/modulos y se guarda en el
+// backend (tabla modulo_negocio), con el mismo gate aplicado también server-side
+// para que apagar un módulo sea real y no solo cosmético.
 //
 // AuthContext lo trae una vez con GET /modulos/estado y lo expone como
 // `modulosHabilitados`; este archivo solo define cómo interpretarlo. Todo lo
-// que pertenece a un módulo se etiqueta con `modulo: "gym" | "kinesiologia"`
-// en footer_config.jsx / navbar_config.jsx y se filtra con moduloHabilitado().
+// que pertenece a un módulo se etiqueta con `modulo: "<codigo>"` en
+// footer_config.js / navbar_config/*.js y se filtra con moduloHabilitado().
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**

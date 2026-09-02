@@ -4,12 +4,12 @@ import { Plus, Edit2, ShieldCheck, ShieldOff, Trash2, GripVertical } from "lucid
 import {
   listarContactosHome, crearContactoHome, actualizarContactoHome,
   cambiarEstadoContactoHome, eliminarContactoHome,
-} from "../../../api/home_content_api.js";
-import { iconoHome } from "../../../config/home_iconos.js";
-import IconoPicker from "../../../components/ui/icono_picker.jsx";
-import InputField from "../../../components/ui/input_field.jsx";
-import { useCrudPage } from "../../../hooks/use_crud_page.js";
-import ErrorBanner from "../../../components/ui/error_banner.jsx";
+} from "../../../../api/home_content_api.js";
+import { iconoHome } from "../../../../controls/config/home_iconos.js";
+import IconoPicker from "../../../../controls/ui/icono_picker.jsx";
+import InputField from "../../../../controls/ui/input_field.jsx";
+import { useCrudPage } from "../../../../hooks/use_crud_page.js";
+import ErrorBanner from "../../../../controls/ui/error_banner.jsx";
 
 function ContactoFormModal({ abierto, onClose, onGuardar, contacto, guardando }) {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({

@@ -29,14 +29,17 @@ export default function NavbarMobile({ config, open, onNavigate, onClose }) {
     >
       <div className={S.mobile_drawer_header}>
         <LogoMoovsIcon />
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar menú"
-          className={S.mobile_drawer_cerrar}
-        >
-          <X size={18} />
-        </button>
+        <div className="flex items-center gap-1">
+          {config.extras?.map((Extra, i) => <Extra key={i} />)}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar menú"
+            className={S.mobile_drawer_cerrar}
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       <div className={S.mobile_scroll}>

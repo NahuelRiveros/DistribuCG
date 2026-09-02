@@ -3,11 +3,11 @@ import {
 } from "lucide-react";
 import { useHomeContent } from "../../hooks/use_home_content.js";
 import { useHomeConfig } from "../../hooks/use_home_config.js";
-import { iconoHome } from "../../config/home_iconos.js";
+import { iconoHome } from "../../controls/config/home_iconos.js";
 import { brandConfig } from "../../config/brand_config.js";
 import { HOME_TEXTOS_DEFAULT, HOME_VALOR } from "../../config/home_config.js";
 import HomeCarousel from "./home_carousel.jsx";
-import LogoMoovs from "../brand/logo_moovs.jsx";
+import LogoMoovs from "../../controls/brand/logo_moovs.jsx";
 
 function contenidoASlide(c) {
   return {
