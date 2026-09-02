@@ -1,5 +1,5 @@
-import GestionSuscripcionPage from "../../pages/super_admin/gestion_suscripcion_page.jsx";
-import GestionModulosPage from "../../pages/super_admin/gestion_modulos_page.jsx";
+import GestionSuscripcionPage from "../../modules/usuarios/super_admin/gestion_suscripcion_page.jsx";
+import GestionModulosPage from "../../modules/usuarios/super_admin/gestion_modulos_page.jsx";
 import { protegida } from "./route_helpers.jsx";
 
 export const superAdminRoutes = [

@@ -6,9 +6,9 @@
  */
 export const clientes = {
   moovs: {
-    nombre: "Moovs",
-    rubro: "Gimnasio & Kinesiología",
-    tagline: "Move mejor. Vivi mejor.",
+    nombre: "NOMBRE INC",
+    rubro: "RUBRO FUTURO",
+    tagline: "TAGLINE.",
     clienteActivo: true,
 
     logo: {

@@ -20,3 +20,8 @@ export async function authLogout() {
     localStorage.removeItem(authConfig.storageKey);
   }
 }
+
+export async function authRegister(data) {
+  const r = await http.post(authConfig.endpoints.register, data);
+  return r.data;
+}

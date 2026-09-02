@@ -1,4 +1,4 @@
-import ProtectedRoute from "../../components/acceso/protected_route.jsx";
+import ProtectedRoute from "../../controls/acceso/protected_route.jsx";
 
 export function protegida(element, roles) {
   return roles ? (
