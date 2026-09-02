@@ -8,7 +8,7 @@ const normalizarDocumento = (v) => String(v ?? "").replace(/[.\s]/g, "").trim();
 
 // Roles que se pueden asignar desde "Personal". "admin" solo lo puede asignar
 // un super_admin (se valida en crearStaff) — super_admin nunca se asigna acá.
-const ROLES_PERSONAL = ["staff", "kinesiologo", "admin"];
+const ROLES_PERSONAL = ["staff", "profesional", "vendedor", "admin"];
 
 const ahoraArgentina = () =>
   sequelize.literal(`TIMEZONE('America/Argentina/Cordoba', CURRENT_TIMESTAMP)`);

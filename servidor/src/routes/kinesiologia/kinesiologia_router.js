@@ -20,8 +20,8 @@ import {
 
 export const kinesiologiaRouter = Router();
 // Gate de licencia primero (bloquea incluso a admin si el módulo está apagado),
-// después el rol — solo admin (dueño/superusuario) y kinesiologo, staff genérico no entra acá.
-kinesiologiaRouter.use(requireAuth, requireModuloHabilitado("kinesiologia"), requireRole("admin", "kinesiologo"));
+// después el rol — solo admin (dueño/superusuario) y profesional, staff genérico no entra acá.
+kinesiologiaRouter.use(requireAuth, requireModuloHabilitado("kinesiologia"), requireRole("admin", "profesional"));
 
 kinesiologiaRouter.get("/personas/buscar", buscarPersona);
 kinesiologiaRouter.get("/personas", listaPersonasRegistradas);

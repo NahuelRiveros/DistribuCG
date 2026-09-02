@@ -13,8 +13,8 @@ export const planesRouter = Router();
 planesRouter.use(requireModuloHabilitado("gym"));
 
 // Lectura: admin y staff
-planesRouter.get("/",    requireAuth, requireRole("admin", "staff", "kinesiologo"), listarPlanesController);
-planesRouter.get("/:id", requireAuth, requireRole("admin", "staff", "kinesiologo"), obtenerPlanPorIdController);
+planesRouter.get("/",    requireAuth, requireRole("admin", "staff", "profesional"), listarPlanesController);
+planesRouter.get("/:id", requireAuth, requireRole("admin", "staff", "profesional"), obtenerPlanPorIdController);
 
 // Escritura: solo admin
 planesRouter.post("/",           requireAuth, requireRole("admin"), crearPlanController);

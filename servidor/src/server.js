@@ -1,7 +1,7 @@
 import { createApp } from "./app.js";
 import { sequelize } from "./database/sequelize.js";
 import { bootstrap_database } from "./database/bootstrap.js";
-import { seed_database } from "./database/seed.js";
+import { seed_database } from "./database/seed/index.js";
 import { iniciarCronEstadoAlumnos } from "./cron/estado_alumno_cron.js";
 // import { iniciarSyncQueueCron } from "./cron/sync_queue_cron.js";
 import "./models/index.js";

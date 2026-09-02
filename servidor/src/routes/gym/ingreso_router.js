@@ -5,7 +5,7 @@ import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js";
 
 export const ingresoRouter = Router();
 
-ingresoRouter.use(requireAuth, requireModuloHabilitado("gym"), requireRole("staff", "admin", "kinesiologo"));
+ingresoRouter.use(requireAuth, requireModuloHabilitado("gym"), requireRole("staff", "admin", "profesional"));
 
 // Registrar ingreso por DNI (soporta modo offline automáticamente)
 ingresoRouter.post("/registrar", registrarIngreso);

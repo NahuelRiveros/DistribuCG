@@ -1,4 +1,4 @@
-﻿import { login, obtenerPerfil, resetearPassword } from "../../services/usuarios/auth_service.js";
+﻿import { login, registrarCliente, obtenerPerfil, resetearPassword } from "../../services/usuarios/auth_service.js";
 
 export async function loginController(req, res) {
   try {
@@ -8,6 +8,17 @@ export async function loginController(req, res) {
   } catch (error) {
     console.error("loginController:", error);
     return res.status(500).json({ ok: false, codigo: "ERROR_LOGIN", mensaje: "No se pudo hacer login" });
+  }
+}
+
+export async function registerController(req, res) {
+  try {
+    const { nombre, apellido, email, password } = req.body ?? {};
+    const result = await registrarCliente({ nombre, apellido, email, password });
+    return result.ok ? res.status(201).json(result) : res.status(400).json(result);
+  } catch (error) {
+    console.error("registerController:", error);
+    return res.status(500).json({ ok: false, codigo: "ERROR_REGISTRO", mensaje: "No se pudo completar el registro" });
   }
 }
 

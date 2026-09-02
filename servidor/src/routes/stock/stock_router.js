@@ -26,8 +26,8 @@ stockRouter.get("/estadisticas/productos-mas-vendidos",  requireRole("admin"), p
 stockRouter.get("/estadisticas/mermas",                  requireRole("admin"), mermasDeStockController);
 
 // Lectura: admin y staff
-stockRouter.get("/",    requireRole("admin", "staff", "kinesiologo"), listarProductosController);
-stockRouter.get("/:id", requireRole("admin", "staff", "kinesiologo"), obtenerProductoController);
+stockRouter.get("/",    requireRole("admin", "staff", "profesional"), listarProductosController);
+stockRouter.get("/:id", requireRole("admin", "staff", "profesional"), obtenerProductoController);
 
 // Historial de movimientos (auditoría: fecha/hora y usuario): solo admin
 stockRouter.get("/:id/movimientos", requireRole("admin"), listarMovimientosController);
@@ -38,6 +38,6 @@ stockRouter.put("/:id",          requireRole("admin"), actualizarProductoControl
 stockRouter.patch("/:id/estado", requireRole("admin"), cambiarEstadoProductoController);
 
 // Reponer y vender: admin y staff. Dar de baja: solo admin.
-stockRouter.post("/:id/entrada", requireRole("admin", "staff", "kinesiologo"), registrarEntradaController);
-stockRouter.post("/:id/venta",   requireRole("admin", "staff", "kinesiologo"), registrarVentaController);
+stockRouter.post("/:id/entrada", requireRole("admin", "staff", "profesional"), registrarEntradaController);
+stockRouter.post("/:id/venta",   requireRole("admin", "staff", "profesional"), registrarVentaController);
 stockRouter.post("/:id/baja",    requireRole("admin"), registrarBajaController);
