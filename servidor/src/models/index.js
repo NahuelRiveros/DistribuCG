@@ -62,6 +62,34 @@ import { HomeContacto }     from "./home/home_contacto.js";
 // ── sistema/ — licenciamiento por módulo de negocio (gym / kinesiología) ────
 import { ModuloNegocio }    from "./sistema/modulo_negocio.js";
 
+// ── productos/ — catálogo de la tienda online (módulo eccomerce_indumentaria) ─
+// "ProductoTienda" (tabla producto_tienda), no "Producto" — ya existe ese
+// nombre para el kiosco del gym (models/kiosco/producto.js), dominio distinto.
+import { Categoria }        from "./productos/categoria.js";
+import { Marca }             from "./productos/marca.js";
+import { Talle }             from "./productos/talle.js";
+import { Color }             from "./productos/color.js";
+import { ProductoTienda }    from "./productos/producto.js";
+import { Stock }             from "./productos/stock.js";
+import { EnvioOpcion }       from "./productos/envio_opcion.js";
+import { CondicionIva }      from "./productos/condicion_iva.js";
+
+// ── carrito/ — carrito de compras (módulo eccomerce_indumentaria) ────────────
+import { Carrito }           from "./carrito/carrito.js";
+import { CarritoItem }       from "./carrito/carrito_item.js";
+
+// ── distribuidora/ — catálogo tipo supermercado + nota de pedido (módulo
+// eccomerce_distribuidora). Tablas propias, sin relación con productos/ ni
+// carrito/ (indumentaria) — dos verticales de e-commerce separadas a propósito.
+import { CategoriaDistribuidora }   from "./distribuidora/categoria_distribuidora.js";
+import { ProductoDistribuidora }    from "./distribuidora/producto_distribuidora.js";
+import { VariedadDistribuidora }    from "./distribuidora/variedad_distribuidora.js";
+import { CarritoDistribuidora }     from "./distribuidora/carrito_distribuidora.js";
+import { CarritoDistribuidoraItem } from "./distribuidora/carrito_distribuidora_item.js";
+import { NotaPedido }               from "./distribuidora/nota_pedido.js";
+import { NotaPedidoItem }           from "./distribuidora/nota_pedido_item.js";
+import { PerfilClienteDistribuidora } from "./distribuidora/perfil_cliente_distribuidora.js";
+
 // Cada entrada es una asociación explícita y unidireccional — igual que antes,
 // solo que ahora es un array de datos en vez de llamadas sueltas. aplicarRelaciones
 // valida cada una (modelo importado, alias no duplicado, belongsToMany con
@@ -185,6 +213,68 @@ aplicarRelaciones([
   { tipo: "belongsTo", from: SesionKinesiologia,       to: Usuario,                   foreignKey: "registrado_por_id", as: "registrado_por" },
   { tipo: "hasMany",   from: SesionKinesiologia,       to: RecordatorioKinesiologia,  foreignKey: "sesion_id",         as: "recordatorios" },
   { tipo: "belongsTo", from: RecordatorioKinesiologia, to: SesionKinesiologia,        foreignKey: "sesion_id",         as: "sesion" },
+
+  // ─── Categoria ↔ Categoria (jerárquica, padre/subcategorías) ────────────
+  { tipo: "belongsTo", from: Categoria, to: Categoria, foreignKey: "padre_id", as: "padre" },
+  { tipo: "hasMany",   from: Categoria, to: Categoria, foreignKey: "padre_id", as: "subcategorias" },
+
+  // ─── ProductoTienda ↔ Categoria / Marca ──────────────────────────────────
+  { tipo: "belongsTo", from: ProductoTienda, to: Categoria, foreignKey: "categoria_id", as: "categoria" },
+  { tipo: "hasMany",   from: Categoria,      to: ProductoTienda, foreignKey: "categoria_id", as: "productos" },
+  { tipo: "belongsTo", from: ProductoTienda, to: Marca,     foreignKey: "marca_id",     as: "marca" },
+  { tipo: "hasMany",   from: Marca,          to: ProductoTienda, foreignKey: "marca_id", as: "productos" },
+
+  // ─── Stock ↔ ProductoTienda / Talle / Color (una fila = una variante) ───
+  { tipo: "belongsTo", from: Stock,          to: ProductoTienda, foreignKey: "producto_id", as: "producto" },
+  { tipo: "hasMany",   from: ProductoTienda, to: Stock,          foreignKey: "producto_id", as: "variantes" },
+  { tipo: "belongsTo", from: Stock, to: Talle, foreignKey: "talle_id", as: "talle" },
+  { tipo: "belongsTo", from: Stock, to: Color, foreignKey: "color_id", as: "color" },
+
+  // ─── Carrito ↔ Usuario (1:1) ─────────────────────────────────────────────
+  { tipo: "belongsTo", from: Carrito, to: Usuario, foreignKey: "usuario_id", as: "usuario" },
+  { tipo: "hasOne",    from: Usuario, to: Carrito, foreignKey: "usuario_id", as: "carrito" },
+
+  // ─── CarritoItem ↔ Carrito / ProductoTienda / Stock ─────────────────────
+  { tipo: "belongsTo", from: CarritoItem, to: Carrito,       foreignKey: "carrito_id",  as: "carrito" },
+  { tipo: "hasMany",   from: Carrito,     to: CarritoItem,   foreignKey: "carrito_id",  as: "items" },
+  { tipo: "belongsTo", from: CarritoItem, to: ProductoTienda, foreignKey: "producto_id", as: "producto" },
+  { tipo: "belongsTo", from: CarritoItem, to: Stock,          foreignKey: "stock_id",    as: "variante" },
+
+  // ─── CategoriaDistribuidora ↔ CategoriaDistribuidora (jerárquica) ───────
+  { tipo: "belongsTo", from: CategoriaDistribuidora, to: CategoriaDistribuidora, foreignKey: "padre_id", as: "padre" },
+  { tipo: "hasMany",   from: CategoriaDistribuidora, to: CategoriaDistribuidora, foreignKey: "padre_id", as: "subcategorias" },
+
+  // ─── ProductoDistribuidora ↔ CategoriaDistribuidora ─────────────────────
+  { tipo: "belongsTo", from: ProductoDistribuidora,  to: CategoriaDistribuidora, foreignKey: "categoria_id", as: "categoria" },
+  { tipo: "hasMany",   from: CategoriaDistribuidora, to: ProductoDistribuidora,  foreignKey: "categoria_id", as: "productos" },
+
+  // ─── VariedadDistribuidora ↔ ProductoDistribuidora (una fila = una variedad) ──
+  { tipo: "belongsTo", from: VariedadDistribuidora, to: ProductoDistribuidora, foreignKey: "producto_id", as: "producto" },
+  { tipo: "hasMany",   from: ProductoDistribuidora, to: VariedadDistribuidora, foreignKey: "producto_id", as: "variedades" },
+
+  // ─── CarritoDistribuidora ↔ Usuario (1:1) ────────────────────────────────
+  { tipo: "belongsTo", from: CarritoDistribuidora, to: Usuario, foreignKey: "usuario_id", as: "usuario" },
+  { tipo: "hasOne",    from: Usuario, to: CarritoDistribuidora, foreignKey: "usuario_id", as: "carrito_distribuidora" },
+
+  // ─── CarritoDistribuidoraItem ↔ CarritoDistribuidora / ProductoDistribuidora / VariedadDistribuidora ──
+  { tipo: "belongsTo", from: CarritoDistribuidoraItem, to: CarritoDistribuidora, foreignKey: "carrito_id",  as: "carrito" },
+  { tipo: "hasMany",   from: CarritoDistribuidora,     to: CarritoDistribuidoraItem, foreignKey: "carrito_id", as: "items" },
+  { tipo: "belongsTo", from: CarritoDistribuidoraItem, to: ProductoDistribuidora, foreignKey: "producto_id", as: "producto" },
+  { tipo: "belongsTo", from: CarritoDistribuidoraItem, to: VariedadDistribuidora, foreignKey: "variedad_id", as: "variedad" },
+
+  // ─── NotaPedido ↔ Usuario (1:N) ──────────────────────────────────────────
+  { tipo: "belongsTo", from: NotaPedido, to: Usuario,    foreignKey: "usuario_id", as: "usuario" },
+  { tipo: "hasMany",   from: Usuario,    to: NotaPedido, foreignKey: "usuario_id", as: "notas_pedido" },
+
+  // ─── NotaPedidoItem ↔ NotaPedido / ProductoDistribuidora / VariedadDistribuidora ──
+  { tipo: "belongsTo", from: NotaPedidoItem, to: NotaPedido, foreignKey: "nota_pedido_id", as: "nota_pedido" },
+  { tipo: "hasMany",   from: NotaPedido,     to: NotaPedidoItem, foreignKey: "nota_pedido_id", as: "items" },
+  { tipo: "belongsTo", from: NotaPedidoItem, to: ProductoDistribuidora, foreignKey: "producto_id", as: "producto" },
+  { tipo: "belongsTo", from: NotaPedidoItem, to: VariedadDistribuidora, foreignKey: "variedad_id", as: "variedad" },
+
+  // ─── PerfilClienteDistribuidora ↔ Usuario (1:1) ──────────────────────────
+  { tipo: "belongsTo", from: PerfilClienteDistribuidora, to: Usuario, foreignKey: "usuario_id", as: "usuario" },
+  { tipo: "hasOne",    from: Usuario, to: PerfilClienteDistribuidora, foreignKey: "usuario_id", as: "perfil_distribuidora" },
 ]);
 
 export {
@@ -199,4 +289,9 @@ export {
   FichaKinesiologica, SesionKinesiologia, RecordatorioKinesiologia,
   HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto,
   ModuloNegocio,
+  Categoria, Marca, Talle, Color, ProductoTienda, Stock, EnvioOpcion, CondicionIva,
+  Carrito, CarritoItem,
+  CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora,
+  CarritoDistribuidora, CarritoDistribuidoraItem, NotaPedido, NotaPedidoItem,
+  PerfilClienteDistribuidora,
 };

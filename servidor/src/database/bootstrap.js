@@ -9,6 +9,11 @@ import {
   RegistroEjercicio, PacientePatologia, AlumnoEstadoLog,
   FichaKinesiologica, SesionKinesiologia, RecordatorioKinesiologia,
   Ingreso, ModuloNegocio, HomeTexto, HomePilar, HomeContacto,
+  Categoria, Marca, Talle, Color, ProductoTienda, Stock, EnvioOpcion, CondicionIva,
+  Carrito, CarritoItem,
+  CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora,
+  CarritoDistribuidora, CarritoDistribuidoraItem, NotaPedido, NotaPedidoItem,
+  PerfilClienteDistribuidora,
 } from "../models/index.js";
 
 /**
@@ -118,6 +123,29 @@ async function sincronizar_modelos() {
 
     // ── Nivel 6 — depende de sesion_kinesiologia ─────────────────────────────
     RecordatorioKinesiologia, // recordatorio_kinesiologia → sesion_kinesiologia
+
+    // ── productos/ — catálogo de tienda online (módulo eccomerce_indumentaria) ─
+    // Catálogos sin dependencias externas (Categoria es auto-referenciada,
+    // sync({alter:true}) la resuelve sola con la FK ya declarada en el modelo)
+    Categoria, Marca, Talle, Color, EnvioOpcion, CondicionIva,
+    ProductoTienda, // producto_tienda → categoria, marca
+    Stock,          // stock → producto_tienda, talle, color
+
+    // ── carrito/ — depende de usuario (ya sincronizado arriba) y producto_tienda ──
+    Carrito,     // carrito → usuario
+    CarritoItem, // carrito_item → carrito, producto_tienda, stock
+
+    // ── distribuidora/ — catálogo tipo supermercado + nota de pedido (módulo
+    // eccomerce_distribuidora). Tablas propias, sin depender de productos/ ni
+    // carrito/ (indumentaria).
+    CategoriaDistribuidora, // categoria_distribuidora (auto-referenciada)
+    ProductoDistribuidora,  // producto_distribuidora → categoria_distribuidora
+    VariedadDistribuidora,  // variedad_distribuidora → producto_distribuidora
+    CarritoDistribuidora,     // carrito_distribuidora → usuario
+    CarritoDistribuidoraItem, // carrito_distribuidora_item → carrito_distribuidora, producto_distribuidora, variedad_distribuidora
+    NotaPedido,     // nota_pedido → usuario
+    NotaPedidoItem, // nota_pedido_item → nota_pedido, producto_distribuidora, variedad_distribuidora
+    PerfilClienteDistribuidora, // perfil_cliente_distribuidora → usuario
   ];
 
   for (const modelo of modelos_en_orden) {

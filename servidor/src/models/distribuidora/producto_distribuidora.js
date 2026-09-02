@@ -1,0 +1,36 @@
+import { DataTypes } from "sequelize";
+import { defineModel } from "../common/define_model.js";
+
+/**
+ * "Familia" de producto (ej. "Galletitas Oreo") — SIN precio acá, a
+ * diferencia de ProductoTienda (indumentaria): acá el precio vive en cada
+ * VariedadDistribuidora, porque distintas variedades del mismo producto
+ * pueden costar distinto (ej. paquete chico vs. familiar). Todo producto
+ * necesita ≥1 fila de VariedadDistribuidora para ser comprable.
+ */
+export const ProductoDistribuidora = defineModel("ProductoDistribuidora", {
+  categoria_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: { model: "categoria_distribuidora", key: "id" },
+  },
+
+  nombre:      { type: DataTypes.STRING(150), allowNull: false },
+  descripcion: { type: DataTypes.TEXT, allowNull: true },
+  // string simple a propósito — no se pidió gestión de marcas como catálogo
+  // propio (a diferencia de Marca en indumentaria); se puede promover después.
+  marca: { type: DataTypes.STRING(80), allowNull: true },
+
+  imagen_url: { type: DataTypes.STRING(500), allowNull: true },
+
+  activo: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+
+  fecha_alta: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW },
+  fecha_baja: { type: DataTypes.DATEONLY, allowNull: true },
+}, {
+  tableName: "producto_distribuidora",
+  indexes: [
+    { fields: ["categoria_id"] },
+    { fields: ["activo"] },
+  ],
+});

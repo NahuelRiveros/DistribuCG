@@ -22,6 +22,26 @@ import { kinesiologiaRouter } from "./kinesiologia/kinesiologia_router.js";
 import { modulosRouter } from "./sistema/modulos_router.js";
 import { verificarSuscripcion } from "../middleware/suscripcion_middleware.js";
 
+// Módulo eccomerce_indumentaria (fase 1: catálogo, productos, carrito, upload
+// — ver modules/eccomerce_indumentaria/CHANGELOG.md en el frontend). catalogosRouter tiene
+// alias porque ya existe uno propio en ./sistema/catalogos_router.js
+// (catálogos genéricos tipo_documento/sexo) — ambos cuelgan de /catalogos
+// pero en subrutas distintas, no chocan.
+import { catalogosRouter as catalogosProductosRouter } from "./productos/catalogos_router.js";
+import { productoRouter } from "./productos/producto_router.js";
+import { carritoRouter } from "./carrito/carrito_router.js";
+import { uploadRouter } from "./upload_router.js";
+
+// Módulo eccomerce_distribuidora — catálogo tipo supermercado + nota de
+// pedido. Todo montado bajo /distribuidora/* para no compartir espacio de
+// rutas con /catalogos, /productos, /carrito de eccomerce_indumentaria
+// (son verticales separadas a propósito, ver frontend CHANGELOG del módulo).
+import { catalogosDistribuidoraRouter } from "./distribuidora/catalogos_distribuidora_router.js";
+import { productoDistribuidoraRouter } from "./distribuidora/producto_distribuidora_router.js";
+import { carritoDistribuidoraRouter } from "./distribuidora/carrito_distribuidora_router.js";
+import { notaPedidoRouter } from "./distribuidora/nota_pedido_router.js";
+import { perfilClienteRouter } from "./distribuidora/perfil_cliente_router.js";
+
 const router = Router();
 
 /**
@@ -69,5 +89,18 @@ router.use("/stock", stockRouter);                   // ← productos y movimien
 router.use("/home",  homeRouter);                     // ← contenido configurable del home (GET público)
 router.use("/kinesiologia", kinesiologiaRouter);      // ← pacientes de kinesiología
 router.use("/modulos", modulosRouter);                // ← gestión de módulos de negocio habilitados
+
+// ── eccomerce_indumentaria (fase 1) ───────────────────────────────────────
+router.use("/catalogos", catalogosProductosRouter);   // ← categorías/marcas/talles/colores/envío/IVA
+router.use("/productos", productoRouter);              // ← catálogo de productos + stock bajo + CSV
+router.use("/carrito",   carritoRouter);                // ← carrito de compras
+router.use("/upload",    uploadRouter);                 // ← subida genérica de imágenes (Cloudinary)
+
+// ── eccomerce_distribuidora ────────────────────────────────────────────────
+router.use("/distribuidora/catalogos",    catalogosDistribuidoraRouter); // ← /categorias (jerárquicas)
+router.use("/distribuidora/productos",    productoDistribuidoraRouter);  // ← productos + variedades (precio/stock propio)
+router.use("/distribuidora/carrito",      carritoDistribuidoraRouter);   // ← "nota de pedido" en construcción
+router.use("/distribuidora/notas-pedido", notaPedidoRouter);             // ← pedidos ya enviados (inmutables)
+router.use("/distribuidora/mi-perfil",    perfilClienteRouter);           // ← CUIT/dirección — se pide recién al enviar el primer pedido
 
 export default router;
