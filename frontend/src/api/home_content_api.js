@@ -46,72 +46,16 @@ export async function eliminarContenidoHome(id) {
   return r.data;
 }
 
-// PÚBLICO — textos + pilares + contactos + layout de áreas, para la landing page
+// PÚBLICO — textos + pilares + contactos + layout de áreas, para la landing
+// page. Los CRUD de admin para textos/pilares/contactos se sacaron de acá:
+// esa información ahora se edita directo en config/home_config.js y
+// config/footer_config.js, no hay panel que la sobreescriba (ver
+// modules/home/admin/home_config_page.jsx). El endpoint público se queda
+// porque useHomeConfig() todavía lo consulta como red de seguridad — si
+// algún día se vuelve a cargar algo ahí, tiene prioridad; si no, siempre
+// devuelve vacío y el home usa el archivo de config.
 export async function obtenerConfigHomePublico() {
   const r = await http.get("/home/config");
-  return r.data;
-}
-
-// ADMIN — textos
-export async function listarTextosHome() {
-  const r = await http.get("/home/textos");
-  return r.data;
-}
-
-export async function actualizarTextosHome(cambios) {
-  const r = await http.put("/home/textos", cambios);
-  return r.data;
-}
-
-// ADMIN — pilares
-export async function listarPilaresHome() {
-  const r = await http.get("/home/pilares");
-  return r.data;
-}
-
-export async function crearPilarHome(payload) {
-  const r = await http.post("/home/pilares", payload);
-  return r.data;
-}
-
-export async function actualizarPilarHome(id, payload) {
-  const r = await http.put(`/home/pilares/${id}`, payload);
-  return r.data;
-}
-
-export async function cambiarEstadoPilarHome(id, activo) {
-  const r = await http.patch(`/home/pilares/${id}/estado`, { activo });
-  return r.data;
-}
-
-export async function eliminarPilarHome(id) {
-  const r = await http.delete(`/home/pilares/${id}`);
-  return r.data;
-}
-
-// ADMIN — contactos
-export async function listarContactosHome() {
-  const r = await http.get("/home/contactos");
-  return r.data;
-}
-
-export async function crearContactoHome(payload) {
-  const r = await http.post("/home/contactos", payload);
-  return r.data;
-}
-
-export async function actualizarContactoHome(id, payload) {
-  const r = await http.put(`/home/contactos/${id}`, payload);
-  return r.data;
-}
-
-export async function cambiarEstadoContactoHome(id, activo) {
-  const r = await http.patch(`/home/contactos/${id}/estado`, { activo });
-  return r.data;
-}
-
-export async function eliminarContactoHome(id) {
-  const r = await http.delete(`/home/contactos/${id}`);
   return r.data;
 }
 

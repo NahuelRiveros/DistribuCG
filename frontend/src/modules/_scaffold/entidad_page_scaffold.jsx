@@ -36,7 +36,7 @@ import {
 
 function EntidadFormModal({ abierto, onClose, onGuardar, entidadEditar, guardando }) {
   // TODO: reemplazar por los campos reales. Ejemplo con estado controlado simple
-  // (si preferís react-hook-form, mirá pilares_tab.jsx / contacto_tab.jsx).
+  // (si preferís react-hook-form, mirá staff_form_modal.jsx u otro form del proyecto).
   const [nombre, setNombre] = useState(entidadEditar?.nombre ?? "");
 
   if (!abierto) return null;
