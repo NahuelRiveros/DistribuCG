@@ -5,7 +5,7 @@ import { HomeTexto, HomePilar, HomeContacto } from "../../models/index.js";
 // /admin/home-config. findOrCreate: no pisa ediciones ya hechas por el cliente.
 export async function seed_home() {
   const textos = [
-    { clave: "hero_kicker",              etiqueta: "Texto de la pastilla superior",     seccion: "hero",       valor: "Centro de Entrenamiento y Kinesiología" },
+    { clave: "hero_kicker",              etiqueta: "Texto de la pastilla superior",     seccion: "hero",       valor: "Centro de Distribución" },
     { clave: "hero_subtitulo",           etiqueta: "Subtítulo del hero",                seccion: "hero",       valor: "Entrenamiento 100 % personalizado con seguimiento real de cada ejercicio, y kinesiología para acompañar tu recuperación." },
     { clave: "hero_cta_primario",        etiqueta: "Texto del botón principal",         seccion: "hero",       valor: "Conocenos" },
     { clave: "hero_cta_secundario",      etiqueta: "Texto del botón secundario",        seccion: "hero",       valor: "Contacto" },
