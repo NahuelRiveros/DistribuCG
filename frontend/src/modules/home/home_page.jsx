@@ -5,7 +5,7 @@ import { useHomeContent } from "../../hooks/use_home_content.js";
 import { useHomeConfig } from "../../hooks/use_home_config.js";
 import { iconoHome } from "../../controls/config/home_iconos.js";
 import { brandConfig } from "../../config/brand_config.js";
-import { HOME_TEXTOS_DEFAULT, HOME_VALOR } from "../../config/home_config.js";
+import { HOME_TEXTOS_DEFAULT, HOME_VALOR, HOME_PILARES, HOME_CONTACTOS } from "../../config/home_config.js";
 import HomeCarousel from "./home_carousel.jsx";
 import LogoMoovs from "../../controls/brand/logo_moovs.jsx";
 
@@ -21,6 +21,12 @@ function contenidoASlide(c) {
 export default function HomePage() {
   const { areas, loading, contenidosDeArea } = useHomeContent();
   const { texto, pilares, contactos, layoutDeArea } = useHomeConfig();
+  // Si no hay nada cargado desde /admin/home-config (caso normal: se vació
+  // la base a propósito para que home_config.js sea la única fuente), se
+  // usan los pilares/contactos fijos del config — igual forma, mismo mapeo
+  // de íconos, así el home nunca se queda sin esta sección.
+  const pilaresAMostrar = pilares.length > 0 ? pilares : HOME_PILARES;
+  const contactosAMostrar = contactos.length > 0 ? contactos : HOME_CONTACTOS;
 
   const areasConContenido = areas
     .map((a) => ({ ...a, slides: contenidosDeArea(a.descripcion).map(contenidoASlide) }))
@@ -103,7 +109,7 @@ export default function HomePage() {
           </h2>
 
           <div className="mt-14 grid gap-6 md:grid-cols-2">
-            {pilares.map(({ id, icono, titulo, texto: cuerpo }) => {
+            {pilaresAMostrar.map(({ id, icono, titulo, texto: cuerpo }) => {
               const Icon = iconoHome(icono);
               return (
                 <div
@@ -169,7 +175,7 @@ export default function HomePage() {
           </h2>
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2">
-            {contactos.map(({ id, icono, label, valor, href }) => {
+            {contactosAMostrar.map(({ id, icono, label, valor, href }) => {
               const Icon = iconoHome(icono);
               return (
                 <a

@@ -1,401 +1,280 @@
-import { useEffect, useState } from "react";
-import { Edit2, Plus, ShieldCheck, ShieldOff, Layers, Trash2, X, Percent } from "lucide-react";
-import DataGrid from "../../../controls/ui/data_grid.jsx";
-import InputField from "../../../controls/ui/input_field.jsx";
-import SelectField from "../../../controls/ui/select_field.jsx";
+import { useMemo, useRef, useState } from "react";
+import { Edit2, Plus, FolderPlus, ShieldCheck, ShieldOff, Layers, Trash2, DollarSign } from "lucide-react";
+import TreeView from "../../../controls/ui/tree_view.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import { useCrudPage } from "../../../hooks/use_crud_page.js";
-import { getCategorias } from "../api/categoria_distribuidora_api.js";
+import { getCategorias, crearCategoria, actualizarCategoria, eliminarCategoria } from "../api/categoria_distribuidora_api.js";
 import {
-  getProductos, crearProducto, actualizarProducto, cambiarEstadoProducto,
-  crearVariedad, actualizarVariedad, eliminarVariedad, ajustarPreciosMasivo,
+  getProductos, crearProducto, actualizarProducto, cambiarEstadoProducto, eliminarProducto,
 } from "../api/producto_distribuidora_api.js";
+import { construirOpcionesCategoria } from "../utils/categoria_jerarquia.js";
+import CategoriaFormModal from "./categoria_form_modal.jsx";
+import ProductoFormModal from "./producto_form_modal.jsx";
+import VariedadesModal from "./variedades_modal.jsx";
+import AjustePreciosModal from "./ajuste_precios_modal.jsx";
 
-/* ── modal: alta/edición del producto (sin variedades) ─────────────────── */
-
-function ProductoFormModal({ abierto, onClose, onGuardar, productoEditar, guardando, categorias }) {
-  const [categoriaId, setCategoriaId] = useState(productoEditar?.categoria_id ?? "");
-  const [nombre, setNombre] = useState(productoEditar?.nombre ?? "");
-  const [descripcion, setDescripcion] = useState(productoEditar?.descripcion ?? "");
-  const [marca, setMarca] = useState(productoEditar?.marca ?? "");
-  const [imagenUrl, setImagenUrl] = useState(productoEditar?.imagen_url ?? "");
-
-  if (!abierto) return null;
-
-  function submit(e) {
-    e.preventDefault();
-    onGuardar({
-      categoria_id: Number(categoriaId),
-      nombre: nombre.trim(),
-      descripcion: descripcion.trim() || null,
-      marca: marca.trim() || null,
-      imagen_url: imagenUrl.trim() || null,
-    });
-  }
-
-  return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
-        <div className="border-b border-slate-100 px-6 py-4">
-          <h2 className="text-xl font-bold text-gray-900">
-            {productoEditar ? "Editar producto" : "Nuevo producto"}
-          </h2>
-        </div>
-        <form onSubmit={submit} className="space-y-4 px-6 py-5">
-          <SelectField
-            label="Categoría"
-            options={categorias.map((c) => ({ value: c.id, label: c.nombre }))}
-            value={categoriaId}
-            onChange={(e) => setCategoriaId(e.target.value)}
-          />
-          <InputField label="Nombre" type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} hideMessage placeholder="Ej: Galletitas Oreo" />
-          <InputField label="Marca (opcional)" type="text" value={marca} onChange={(e) => setMarca(e.target.value)} hideMessage placeholder="Ej: Terrabusi" />
-          <InputField label="Descripción (opcional)" type="text" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} hideMessage />
-          <InputField label="URL de imagen (opcional)" type="text" value={imagenUrl} onChange={(e) => setImagenUrl(e.target.value)} hideMessage placeholder="https://…" />
-
-          {!productoEditar && (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-              Después de crear el producto, agregale al menos una variedad (con precio) para que sea comprable.
-            </p>
-          )}
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} disabled={guardando}
-              className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
-              Cancelar
-            </button>
-            <button type="submit" disabled={guardando || !categoriaId}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
-              {guardando ? "Guardando..." : "Guardar"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-/* ── modal: variedades de un producto (precio/stock propios) ──────────── */
-
-function ControlStock({ controlaStock, setControlaStock, cantidad, setCantidad }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <label className="flex items-center gap-1 text-xs text-slate-500">
-        <input type="checkbox" checked={controlaStock} onChange={(e) => setControlaStock(e.target.checked)} />
-        Stock
-      </label>
-      {controlaStock && (
-        <input type="number" value={cantidad} onChange={(e) => setCantidad(e.target.value)}
-          className="w-16 rounded-lg border border-gray-300 px-1.5 py-1.5 text-sm" placeholder="Cant." />
-      )}
-    </div>
-  );
-}
-
-function VariedadRow({ variedad, onGuardar, onEliminar }) {
-  const [editando, setEditando] = useState(false);
-  const [nombre, setNombre] = useState(variedad.nombre ?? "");
-  const [precio, setPrecio] = useState(variedad.precio);
-  const [controlaStock, setControlaStock] = useState(variedad.controla_stock ?? false);
-  const [cantidad, setCantidad] = useState(variedad.cantidad ?? 0);
-
-  if (editando) {
-    return (
-      <div className="grid grid-cols-[1fr_90px_130px_auto] items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/50 p-2">
-        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Original 118g"
-          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm" />
-        <input type="number" step="0.01" value={precio} onChange={(e) => setPrecio(e.target.value)}
-          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="Precio" />
-        <ControlStock controlaStock={controlaStock} setControlaStock={setControlaStock} cantidad={cantidad} setCantidad={setCantidad} />
-        <div className="flex gap-1">
-          <button
-            type="button"
-            onClick={() => {
-              onGuardar(variedad.id, { nombre: nombre.trim() || null, precio: Number(precio), controla_stock: controlaStock, cantidad: controlaStock ? Number(cantidad) : 0 });
-              setEditando(false);
-            }}
-            className="rounded-lg bg-blue-600 px-2 py-1.5 text-xs font-bold text-white hover:bg-blue-500">Guardar</button>
-          <button type="button" onClick={() => setEditando(false)}
-            className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50">Cancelar</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-[1fr_90px_130px_auto] items-center gap-2 rounded-xl border border-slate-200 p-2 text-sm">
-      <span className="font-medium text-slate-800">{variedad.nombre ?? "(sin nombre — variante única)"}</span>
-      <span className="text-slate-600">${Number(variedad.precio).toLocaleString("es-AR")}</span>
-      <span className="text-xs text-slate-500">
-        {variedad.controla_stock ? `${variedad.cantidad} u.` : <span className="italic text-slate-400">Sin control</span>}
-      </span>
-      <div className="flex gap-1">
-        <button type="button" onClick={() => setEditando(true)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50"><Edit2 size={13} /></button>
-        <button type="button" onClick={() => onEliminar(variedad.id)} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"><Trash2 size={13} /></button>
-      </div>
-    </div>
-  );
-}
-
-function VariedadesModal({ producto, onClose, onCambio }) {
-  const [variedades, setVariedades] = useState(producto?.variedades ?? []);
-  const [agregando, setAgregando] = useState(false);
-  const [nuevoNombre, setNuevoNombre] = useState("");
-  const [nuevoPrecio, setNuevoPrecio] = useState("");
-  const [nuevoControlaStock, setNuevoControlaStock] = useState(false);
-  const [nuevoStock, setNuevoStock] = useState("0");
-  const [error, setError] = useState("");
-
-  useEffect(() => { setVariedades(producto?.variedades ?? []); }, [producto]);
-
-  if (!producto) return null;
-
-  async function agregar() {
-    if (!nuevoPrecio) { setError("El precio es requerido"); return; }
-    setError("");
-    const r = await crearVariedad(producto.id, {
-      nombre: nuevoNombre.trim() || null, precio: Number(nuevoPrecio),
-      controla_stock: nuevoControlaStock, cantidad: nuevoControlaStock ? (Number(nuevoStock) || 0) : 0,
-    });
-    if (r?.ok === false) { setError(r.mensaje); return; }
-    setVariedades((prev) => [...prev, r.data]);
-    setNuevoNombre(""); setNuevoPrecio(""); setNuevoControlaStock(false); setNuevoStock("0"); setAgregando(false);
-    onCambio();
-  }
-
-  async function guardarVariedad(id, payload) {
-    const r = await actualizarVariedad(id, payload);
-    if (r?.ok === false) { setError(r.mensaje); return; }
-    setVariedades((prev) => prev.map((v) => (v.id === id ? r.data : v)));
-    onCambio();
-  }
-
-  async function eliminarVariedadRow(id) {
-    if (!window.confirm("¿Eliminar esta variedad?")) return;
-    const r = await eliminarVariedad(id);
-    if (r?.ok === false) { setError(r.mensaje); return; }
-    setVariedades((prev) => prev.filter((v) => v.id !== id));
-    onCambio();
-  }
-
-  return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-xl rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Variedades de "{producto.nombre}"</h2>
-            <p className="text-xs text-slate-500">Cada variedad tiene su propio precio. El stock es opcional — tildá "Stock" solo si querés controlarlo acá.</p>
-          </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"><X size={18} /></button>
-        </div>
-
-        <div className="max-h-[60vh] space-y-2 overflow-y-auto px-6 py-4">
-          <ErrorBanner message={error} />
-
-          {variedades.length === 0 && !agregando && (
-            <p className="rounded-xl border border-dashed border-slate-300 p-4 text-center text-sm text-slate-400">
-              Sin variedades todavía — el producto no aparece comprable hasta que agregues al menos una.
-            </p>
-          )}
-
-          {variedades.map((v) => (
-            <VariedadRow key={v.id} variedad={v} onGuardar={guardarVariedad} onEliminar={eliminarVariedadRow} />
-          ))}
-
-          {agregando ? (
-            <div className="grid grid-cols-[1fr_90px_130px_auto] items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/50 p-2">
-              <input value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} placeholder="Ej: Familiar 300g (opcional)"
-                className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm" />
-              <input type="number" step="0.01" value={nuevoPrecio} onChange={(e) => setNuevoPrecio(e.target.value)} placeholder="Precio"
-                className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm" />
-              <ControlStock controlaStock={nuevoControlaStock} setControlaStock={setNuevoControlaStock} cantidad={nuevoStock} setCantidad={setNuevoStock} />
-              <div className="flex gap-1">
-                <button type="button" onClick={agregar} className="rounded-lg bg-emerald-600 px-2 py-1.5 text-xs font-bold text-white hover:bg-emerald-500">Sumar</button>
-                <button type="button" onClick={() => setAgregando(false)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50">X</button>
-              </div>
-            </div>
-          ) : (
-            <button type="button" onClick={() => setAgregando(true)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 py-2.5 text-sm font-semibold text-slate-500 hover:border-blue-400 hover:text-blue-600">
-              <Plus size={14} /> Agregar variedad
-            </button>
-          )}
-        </div>
-
-        <div className="flex justify-end border-t border-slate-100 px-6 py-4">
-          <button type="button" onClick={onClose} className="rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">
-            Listo
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── modal: ajuste de precios (individual por producto, o masivo por
-   categoría/todo el catálogo) — mismo endpoint, distinto alcance ────────── */
-
-function AjustePreciosModal({ productoFijo, categorias, onClose, onAplicado }) {
-  const [alcance, setAlcance] = useState(productoFijo ? "producto" : "categoria");
-  const [categoriaId, setCategoriaId] = useState("");
-  const [porcentaje, setPorcentaje] = useState("");
-  const [confirmarTodo, setConfirmarTodo] = useState(false);
-  const [aplicando, setAplicando] = useState(false);
-  const [error, setError] = useState("");
-  const [resultado, setResultado] = useState(null);
-
-  const titulo = productoFijo ? `Ajustar precio de "${productoFijo.nombre}"` : "Ajuste masivo de precios";
-
-  async function aplicar() {
-    const pct = Number(porcentaje);
-    if (!porcentaje || Number.isNaN(pct) || pct === 0) { setError("Ingresá un porcentaje distinto de 0 (ej: 10 o -5)"); return; }
-    if (alcance === "categoria" && !categoriaId) { setError("Elegí una categoría"); return; }
-    if (alcance === "todo" && !confirmarTodo) { setError("Tildá la confirmación para aplicar a todo el catálogo"); return; }
-
-    setError("");
-    setAplicando(true);
-    try {
-      const payload = { porcentaje: pct };
-      if (productoFijo) payload.producto_id = productoFijo.id;
-      else if (alcance === "categoria") payload.categoria_id = Number(categoriaId);
-      else payload.confirmarTodoElCatalogo = true;
-
-      const r = await ajustarPreciosMasivo(payload);
-      if (r?.ok === false) { setError(r.mensaje); return; }
-      setResultado(r.data.cantidad);
-      onAplicado();
-    } catch (e) {
-      setError(e?.response?.data?.mensaje || "No se pudo aplicar el ajuste");
-    } finally {
-      setAplicando(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-xl font-bold text-gray-900">{titulo}</h2>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"><X size={18} /></button>
-        </div>
-
-        <div className="space-y-4 px-6 py-5">
-          <ErrorBanner message={error} />
-
-          {resultado !== null ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              Listo — se actualizaron {resultado} variedad(es).
-            </div>
-          ) : (
-            <>
-              {!productoFijo && (
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => setAlcance("categoria")}
-                    className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold ${alcance === "categoria" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-300 text-slate-500"}`}>
-                    Por categoría
-                  </button>
-                  <button type="button" onClick={() => setAlcance("todo")}
-                    className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold ${alcance === "todo" ? "border-rose-600 bg-rose-50 text-rose-700" : "border-slate-300 text-slate-500"}`}>
-                    Todo el catálogo
-                  </button>
-                </div>
-              )}
-
-              {!productoFijo && alcance === "categoria" && (
-                <SelectField
-                  label="Categoría"
-                  options={categorias.map((c) => ({ value: c.id, label: c.nombre }))}
-                  value={categoriaId}
-                  onChange={(e) => setCategoriaId(e.target.value)}
-                />
-              )}
-
-              <InputField
-                label="Porcentaje (positivo sube, negativo baja)"
-                type="number" step="0.1"
-                value={porcentaje}
-                onChange={(e) => setPorcentaje(e.target.value)}
-                hideMessage placeholder="Ej: 10 o -5"
-              />
-
-              {!productoFijo && alcance === "todo" && (
-                <label className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs font-medium text-rose-700">
-                  <input type="checkbox" checked={confirmarTodo} onChange={(e) => setConfirmarTodo(e.target.checked)} className="mt-0.5" />
-                  Sí, quiero aplicar este ajuste a TODOS los productos del catálogo.
-                </label>
-              )}
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={onClose} disabled={aplicando}
-                  className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
-                  Cancelar
-                </button>
-                <button type="button" onClick={aplicar} disabled={aplicando}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
-                  <Percent size={14} /> {aplicando ? "Aplicando..." : "Aplicar"}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── página ──────────────────────────────────────────────────────────────── */
-
+/**
+ * ── página: catálogo unificado — categorías y productos en un solo árbol ──
+ *
+ * Los productos se cargan de a una categoría por vez, recién cuando esa
+ * categoría se expande (no hay un "traer todos los productos" al entrar a
+ * la página) — pensado para catálogos de miles de productos, donde traer
+ * todo de una sería lento y la mayoría ni se llega a ver. Las categorías sí
+ * son siempre eager (son pocas, no pesan). `cantidad_productos` viaja con
+ * cada categoría (lo agrega el backend) así el árbol sabe qué nodos son
+ * expandibles y cuáles están realmente vacíos SIN tener que cargar nada.
+ */
 export default function ProductosDistribuidoraPage() {
-  const [categorias, setCategorias] = useState([]);
   const [productoVariedades, setProductoVariedades] = useState(null);
   const [ajustePrecios, setAjustePrecios] = useState(null); // null | { producto } | { masivo: true }
 
+  // ── categorías: eager, vía useCrudPage (listado chico, CRUD normal) ──────
   const {
-    items, cargando, error,
-    modalAbierto, seleccionado, guardando,
-    abrirNuevo, abrirEditar, cerrarModal, guardar, ejecutarAccion, cargar,
+    items: categorias, cargando: cargandoCategorias, error: errorCategorias,
+    modalAbierto: modalCategoriaAbierto, seleccionado: categoriaEditar, guardando: guardandoCategoria,
+    abrirNuevo: abrirNuevaCategoriaBase, abrirEditar: abrirEditarCategoria, cerrarModal: cerrarModalCategoriaBase,
+    guardar: guardarCategoria, ejecutarAccion: ejecutarAccionCategoria, cargar: cargarCategorias,
   } = useCrudPage({
-    fetchFn: () => getProductos({ por_pagina: 100 }),
-    createFn: crearProducto,
-    updateFn: actualizarProducto,
-    mensajeErrorCarga: "No se pudo cargar el listado de productos",
+    fetchFn: getCategorias,
+    createFn: crearCategoria,
+    updateFn: actualizarCategoria,
+    extractItems: (r) => r ?? [],
+    mensajeErrorCarga: "No se pudo cargar el listado de categorías",
   });
 
-  useEffect(() => { getCategorias().then(setCategorias).catch(() => {}); }, []);
+  // ── productos: perezoso, uno por categoría ────────────────────────────────
+  // { [categoria_id]: producto[] } — solo tiene entradas para categorías que
+  // ya se expandieron alguna vez (o que aparecieron en una búsqueda).
+  const [productosPorCategoria, setProductosPorCategoria] = useState({});
+  // Qué categorías ya se pidieron al servidor (loading o listo) — evita
+  // repetir el fetch cada vez que se vuelve a expandir la misma categoría.
+  const cargadasRef = useRef(new Set());
+  const [errorProducto, setErrorProducto] = useState("");
+
+  async function cargarProductosDeCategoria(categoriaId, { forzar = false } = {}) {
+    if (!forzar && cargadasRef.current.has(categoriaId)) return;
+    cargadasRef.current.add(categoriaId);
+    try {
+      // incluirDescendientes:false — acá queremos SOLO lo propio de esta
+      // categoría puntual; las subcategorías ya están en el árbol aparte,
+      // si además tuviéramos los descendientes se duplicaría/mezclaría todo
+      // bajo el nodo equivocado.
+      const r = await getProductos({ categoria: categoriaId, incluirDescendientes: false, por_pagina: 1000 });
+      setProductosPorCategoria((prev) => ({ ...prev, [categoriaId]: r.data ?? [] }));
+    } catch {
+      cargadasRef.current.delete(categoriaId); // permite reintentar si falló
+      setErrorProducto("No se pudieron cargar los productos de esa categoría");
+    }
+  }
+
+  function refrescarCategoria(categoriaId) {
+    return cargarProductosDeCategoria(categoriaId, { forzar: true });
+  }
+
+  // Solo pedimos productos al expandir si la categoría tiene algo propio
+  // cargado (cantidad_productos > 0) — si es puramente organizativa (todo
+  // su contenido son subcategorías), expandirla no debería pegarle al
+  // servidor para nada, sus hijas ya están en el árbol eager.
+  function onExpandirNodo(nodo) {
+    if (nodo.tipo !== "categoria") return undefined;
+    const cat = categorias.find((c) => c.id === nodo.id);
+    if (!cat || (cat.cantidad_productos ?? 0) === 0) return undefined;
+    return cargarProductosDeCategoria(nodo.id);
+  }
+
+  // Buscador del árbol — además del filtro local (ya lo hace TreeView), le
+  // pega al servidor sin restricción de categoría para encontrar productos
+  // en categorías todavía no expandidas, y los suma al cache por categoría.
+  const busquedaTimeoutRef = useRef(null);
+  function onQueryChange(texto) {
+    clearTimeout(busquedaTimeoutRef.current);
+    const q = texto.trim();
+    if (!q) return;
+    busquedaTimeoutRef.current = setTimeout(async () => {
+      try {
+        const r = await getProductos({ q, por_pagina: 100 });
+        const porCategoria = {};
+        for (const p of r.data ?? []) (porCategoria[p.categoria_id] ??= []).push(p);
+        setProductosPorCategoria((prev) => {
+          const next = { ...prev };
+          for (const [catId, prods] of Object.entries(porCategoria)) {
+            const existentes = next[catId] ?? [];
+            const idsExistentes = new Set(existentes.map((x) => x.id));
+            next[catId] = [...existentes, ...prods.filter((p) => !idsExistentes.has(p.id))];
+          }
+          return next;
+        });
+      } catch { /* búsqueda falló silenciosamente, no rompe el árbol */ }
+    }, 350);
+  }
+
+  const opcionesCategoria = useMemo(() => construirOpcionesCategoria(categorias), [categorias]);
+
+  // ── modal de producto (alta/edición) — manejo propio, no useCrudPage,
+  // porque acá no hay un único "items" para refrescar: hay que refrescar la
+  // categoría destino (y la de origen, si se cambió de categoría al editar).
+  const [modalProductoAbierto, setModalProductoAbierto] = useState(false);
+  const [productoEditar, setProductoEditar] = useState(null);
+  const [guardandoProducto, setGuardandoProducto] = useState(false);
+  const [categoriaPreseleccionada, setCategoriaPreseleccionada] = useState(null);
+  const [padrePreseleccionado, setPadrePreseleccionado] = useState(null);
+
+  function abrirNuevoProducto() {
+    setProductoEditar(null);
+    setModalProductoAbierto(true);
+  }
+
+  function abrirNuevoEnCategoria(categoriaId) {
+    setCategoriaPreseleccionada(categoriaId);
+    abrirNuevoProducto();
+  }
+
+  function abrirEditarProducto(row) {
+    setProductoEditar(row);
+    setModalProductoAbierto(true);
+  }
+
+  function cerrarModalProducto() {
+    setModalProductoAbierto(false);
+    setProductoEditar(null);
+    setCategoriaPreseleccionada(null);
+  }
+
+  async function guardarProducto(payload) {
+    setGuardandoProducto(true);
+    setErrorProducto("");
+    try {
+      const categoriaAnterior = productoEditar?.categoria_id;
+      const r = productoEditar
+        ? await actualizarProducto(productoEditar.id, payload)
+        : await crearProducto(payload);
+      if (r?.ok === false) { setErrorProducto(r.mensaje); return; }
+      cerrarModalProducto();
+      await refrescarCategoria(payload.categoria_id);
+      if (categoriaAnterior && categoriaAnterior !== payload.categoria_id) await refrescarCategoria(categoriaAnterior);
+      await cargarCategorias(); // los conteos (cantidad_productos) pueden haber cambiado
+    } catch (e) {
+      setErrorProducto(e?.response?.data?.mensaje || "No se pudo guardar el producto");
+    } finally {
+      setGuardandoProducto(false);
+    }
+  }
+
+  async function ejecutarAccionProducto(row, fn, { confirmMessage, mensajeError, refrescarConteos = false }) {
+    if (confirmMessage && !window.confirm(confirmMessage)) return;
+    try {
+      const r = await fn();
+      if (r?.ok === false) { setErrorProducto(r.mensaje || mensajeError); return; }
+      await refrescarCategoria(row.categoria_id);
+      if (refrescarConteos) await cargarCategorias();
+    } catch (e) {
+      setErrorProducto(e?.response?.data?.mensaje || mensajeError);
+    }
+  }
 
   function toggleEstado(row) {
     const nuevoEstado = !row.activo;
-    ejecutarAccion(() => cambiarEstadoProducto(row.id, nuevoEstado), {
+    ejecutarAccionProducto(row, () => cambiarEstadoProducto(row.id, nuevoEstado), {
       confirmMessage: `¿Seguro que querés ${nuevoEstado ? "activar" : "desactivar"} "${row.nombre}"?`,
       mensajeError: "No se pudo cambiar el estado",
     });
   }
 
-  const columns = [
-    { key: "nombre", label: "Nombre", sortable: true, searchable: true, className: "font-semibold text-slate-800" },
-    { key: "marca", label: "Marca", render: (row) => row.marca ?? "—" },
-    { key: "categoria", label: "Categoría", render: (row) => row.categoria?.nombre ?? "—" },
-    {
-      key: "variedades", label: "Variedades",
-      render: (row) => `${row.variedades?.length ?? 0}`,
-    },
-    {
-      key: "activo", label: "Estado",
-      render: (row) => (
-        <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${row.activo ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
-          {row.activo ? <ShieldCheck size={10} /> : <ShieldOff size={10} />}
-          {row.activo ? "Activo" : "Inactivo"}
-        </span>
-      ),
-    },
-  ];
+  function eliminarProductoNodo(row) {
+    ejecutarAccionProducto(row, () => eliminarProducto(row.id), {
+      confirmMessage: `¿Eliminar el producto "${row.nombre}"? Esto también elimina sus variedades. No se puede deshacer desde acá.`,
+      mensajeError: "No se pudo eliminar el producto",
+      refrescarConteos: true,
+    });
+  }
 
+  // ── categorías: alta de subcategoría / raíz ───────────────────────────────
+  function abrirNuevaSubcategoria(padreId) {
+    setPadrePreseleccionado(padreId);
+    abrirNuevaCategoriaBase();
+  }
+
+  function abrirNuevaCategoriaRaiz() {
+    setPadrePreseleccionado(null);
+    abrirNuevaCategoriaBase();
+  }
+
+  function cerrarModalCategoria() {
+    cerrarModalCategoriaBase();
+    setPadrePreseleccionado(null);
+  }
+
+  function tieneSubcategorias(nodo) {
+    return categorias.some((c) => c.padre_id === nodo.id);
+  }
+
+  // Solo se puede borrar una categoría vacía (sin subcategorías ni
+  // productos) — evita perder productos/subcategorías "escondidos" abajo
+  // sin querer al limpiar una categoría creada de más por error.
+  function categoriaEsHoja(nodo) {
+    const cat = categorias.find((c) => c.id === nodo.id);
+    return !tieneSubcategorias(nodo) && (cat?.cantidad_productos ?? 0) === 0;
+  }
+
+  function eliminarCategoriaNodo(nodo) {
+    ejecutarAccionCategoria(() => eliminarCategoria(nodo.id), {
+      confirmMessage: `¿Eliminar la categoría "${nodo.nombre}"? Está vacía, no tiene productos ni subcategorías.`,
+      mensajeError: "No se pudo eliminar la categoría",
+    });
+  }
+
+  // El árbol combina dos entidades: categorías (todas, eager) y productos
+  // (solo los de las categorías ya expandidas/buscadas). Prefijamos los ids
+  // para que no choquen entre sí.
+  const treeItems = useMemo(() => {
+    const productosFlat = Object.values(productosPorCategoria).flat();
+    return [
+      ...categorias.map((c) => ({
+        ...c, tipo: "categoria",
+        treeId: `cat-${c.id}`, treeParentId: c.padre_id != null ? `cat-${c.padre_id}` : null,
+        // le dice a TreeView "esto capaz tiene hijos que todavía no llegaron"
+        // (productos propios sin cargar) aunque `children` esté vacío por ahora.
+        siempreExpandible: (c.cantidad_productos ?? 0) > 0,
+      })),
+      ...productosFlat.map((p) => ({
+        ...p, tipo: "producto",
+        treeId: `prod-${p.id}`, treeParentId: `cat-${p.categoria_id}`,
+      })),
+    ];
+  }, [categorias, productosPorCategoria]);
+
+  function renderLabel(nodo) {
+    if (nodo.tipo === "categoria") {
+      return <span className="font-semibold text-slate-800">{nodo.nombre}</span>;
+    }
+    return (
+      <span className="flex flex-wrap items-center gap-2">
+        <span className="font-medium text-slate-700">{nodo.nombre}</span>
+        {nodo.marca && <span className="text-xs text-slate-400">({nodo.marca})</span>}
+        <span className="text-xs text-slate-400">{nodo.variedades?.length ?? 0} var.</span>
+        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${nodo.activo ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
+          {nodo.activo ? <ShieldCheck size={9} /> : <ShieldOff size={9} />}
+          {nodo.activo ? "Activo" : "Inactivo"}
+        </span>
+      </span>
+    );
+  }
+
+  const esProducto = (n) => n.tipo === "producto";
+  const esCategoria = (n) => n.tipo === "categoria";
   const actions = [
-    { key: "variedades", label: "Variedades", icon: <Layers size={12} />, variant: "primary", onClick: (row) => setProductoVariedades(row) },
-    { key: "ajustar", label: "Ajustar %", icon: <Percent size={12} />, variant: "primary", onClick: (row) => setAjustePrecios({ producto: row }) },
-    { key: "editar", label: "Editar", icon: <Edit2 size={12} />, variant: "primary", onClick: abrirEditar },
-    { key: "desactivar", label: "Desactivar", icon: <ShieldOff size={12} />, variant: "danger", onClick: toggleEstado, show: (row) => row.activo },
-    { key: "activar", label: "Activar", icon: <ShieldCheck size={12} />, variant: "success", onClick: toggleEstado, show: (row) => !row.activo },
+    { key: "agregar-subcategoria", label: "Nueva subcategoría acá", icon: <FolderPlus size={12} />, variant: "primary", onClick: (nodo) => abrirNuevaSubcategoria(nodo.id), show: esCategoria },
+    // Agregar producto solo en el último nivel — una categoría con
+    // subcategorías es "de organización", el producto va en la hoja.
+    { key: "agregar-producto", label: "Agregar producto acá", icon: <Plus size={12} />, variant: "success", onClick: (nodo) => abrirNuevoEnCategoria(nodo.id), show: (n) => esCategoria(n) && !tieneSubcategorias(n) },
+    { key: "editar-categoria", label: "Editar categoría", icon: <Edit2 size={12} />, variant: "primary", onClick: abrirEditarCategoria, show: esCategoria },
+    { key: "eliminar-categoria", label: "Eliminar categoría vacía", icon: <Trash2 size={12} />, variant: "danger", onClick: eliminarCategoriaNodo, show: (n) => esCategoria(n) && categoriaEsHoja(n) },
+    { key: "variedades", label: "Variedades", icon: <Layers size={12} />, variant: "primary", onClick: (row) => setProductoVariedades(row), show: esProducto },
+    { key: "ajustar", label: "Ajustar", icon: <DollarSign size={12} />, variant: "primary", onClick: (row) => setAjustePrecios({ producto: row }), show: esProducto },
+    { key: "editar", label: "Editar", icon: <Edit2 size={12} />, variant: "primary", onClick: abrirEditarProducto, show: esProducto },
+    { key: "desactivar", label: "Desactivar", icon: <ShieldOff size={12} />, variant: "danger", onClick: toggleEstado, show: (n) => esProducto(n) && n.activo },
+    { key: "activar", label: "Activar", icon: <ShieldCheck size={12} />, variant: "success", onClick: toggleEstado, show: (n) => esProducto(n) && !n.activo },
+    { key: "eliminar-producto", label: "Eliminar producto", icon: <Trash2 size={12} />, variant: "danger", onClick: eliminarProductoNodo, show: esProducto },
   ];
 
   return (
@@ -404,18 +283,24 @@ export default function ProductosDistribuidoraPage() {
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900">Productos</h1>
-            <p className="mt-0.5 text-sm text-slate-500">Catálogo de distribuidora — cada producto necesita al menos una variedad con precio.</p>
+            <h1 className="text-2xl font-extrabold text-slate-900">Catálogo</h1>
+            <p className="mt-0.5 text-sm text-slate-500">Categorías y productos en un solo lugar — cada producto necesita al menos una variedad con precio.</p>
           </div>
-          <div className="flex gap-2 self-start sm:self-auto">
+          <div className="flex flex-wrap gap-2 self-start sm:self-auto">
+            <button
+              type="button" onClick={abrirNuevaCategoriaRaiz}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 transition"
+            >
+              <FolderPlus size={14} /> Nueva categoría
+            </button>
             <button
               type="button" onClick={() => setAjustePrecios({ masivo: true })}
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 transition"
             >
-              <Percent size={14} /> Ajuste masivo
+              <DollarSign size={14} /> Ajuste masivo
             </button>
             <button
-              type="button" onClick={abrirNuevo}
+              type="button" onClick={abrirNuevoProducto}
               className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-sm shadow-blue-500/20 hover:bg-blue-500 transition"
             >
               <Plus size={14} /> Nuevo producto
@@ -423,46 +308,61 @@ export default function ProductosDistribuidoraPage() {
           </div>
         </div>
 
-        <ErrorBanner message={error} />
+        <ErrorBanner message={errorCategorias || errorProducto} />
 
-        <DataGrid
-          rows={items}
-          columns={columns}
-          keyField="id"
-          loading={cargando}
+        <TreeView
+          items={treeItems}
+          keyField="treeId"
+          parentField="treeParentId"
+          renderLabel={renderLabel}
+          searchIn={(n) => n.nombre ?? ""}
+          onQueryChange={onQueryChange}
+          onExpandir={onExpandirNodo}
+          loading={cargandoCategorias}
           searchable
           searchPlaceholder="Buscar producto…"
-          emptyMessage="No hay productos cargados."
+          emptyMessage="No hay categorías cargadas todavía."
           actions={actions}
-          pageSize={20}
-          pageSizeOptions={[10, 20, 50]}
         />
 
       </div>
 
       <ProductoFormModal
-        abierto={modalAbierto}
-        onClose={cerrarModal}
-        onGuardar={guardar}
-        productoEditar={seleccionado}
-        guardando={guardando}
+        key={productoEditar?.id ?? `nuevo-${categoriaPreseleccionada ?? "sin-categoria"}`}
+        abierto={modalProductoAbierto}
+        onClose={cerrarModalProducto}
+        onGuardar={guardarProducto}
+        productoEditar={productoEditar}
+        guardando={guardandoProducto}
+        opcionesCategoria={opcionesCategoria}
+        categoriaInicial={categoriaPreseleccionada}
+      />
+
+      <CategoriaFormModal
+        key={categoriaEditar?.id ?? `nueva-cat-${padrePreseleccionado ?? "raiz"}`}
+        abierto={modalCategoriaAbierto}
+        onClose={cerrarModalCategoria}
+        onGuardar={guardarCategoria}
+        categoriaEditar={categoriaEditar}
+        guardando={guardandoCategoria}
         categorias={categorias}
+        padreInicial={padrePreseleccionado}
       />
 
       {productoVariedades && (
         <VariedadesModal
           producto={productoVariedades}
-          onClose={() => { setProductoVariedades(null); cargar(); }}
-          onCambio={cargar}
+          onClose={() => { setProductoVariedades(null); refrescarCategoria(productoVariedades.categoria_id); }}
+          onCambio={() => refrescarCategoria(productoVariedades.categoria_id)}
         />
       )}
 
       {ajustePrecios && (
         <AjustePreciosModal
           productoFijo={ajustePrecios.producto}
-          categorias={categorias}
-          onClose={() => { setAjustePrecios(null); cargar(); }}
-          onAplicado={cargar}
+          opcionesCategoria={opcionesCategoria}
+          onClose={() => setAjustePrecios(null)}
+          onAplicado={() => {}}
         />
       )}
     </div>

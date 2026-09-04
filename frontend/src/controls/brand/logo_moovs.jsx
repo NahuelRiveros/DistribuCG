@@ -48,8 +48,19 @@ function ImagenSpinaS({ className = "" }) {
  */
 export function LogoMoovsIcon({ className = "" }) {
   const logo = brandConfig.logo ?? {};
-  if (logo.tipo !== "moovs-spine") return null;
   const sizing = SIZE.sm;
+
+  if (logo.tipo !== "moovs-spine") {
+    return (
+      <span
+        aria-label={logo.ariaLabel || brandConfig.nombre}
+        className={`inline-flex leading-none ${sizing.text} ${className}`}
+        style={WORDMARK_STYLE}
+      >
+        {logo.texto || brandConfig.nombre}
+      </span>
+    );
+  }
 
   return (
     <span

@@ -160,6 +160,15 @@
 .kt-flow-path { animation: kt-flow 3.5s linear infinite; }
 .kt-pulse-dot  { animation: kt-pulse-dot 1.8s ease-in-out infinite; }
 
+/* Reveal chico para listas dinámicas (ej. filas de un carrito con muchos
+   ítems) — mismo lenguaje de movimiento que kt-fade-up, pero más sutil y
+   corto para no sentirse pesado en listas largas. */
+@keyframes kt-fade-up-sm {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.kt-item-in { animation: kt-fade-up-sm .35s cubic-bezier(.22,1,.36,1) both; }
+
 .kt-shimmer-text {
   background: linear-gradient(90deg, var(--kt-ink) 0%, var(--kt-teal-500) 40%, var(--kt-ink) 60%, var(--kt-teal-500) 100%);
   background-size: 200% auto;

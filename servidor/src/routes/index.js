@@ -41,6 +41,7 @@ import { productoDistribuidoraRouter } from "./distribuidora/producto_distribuid
 import { carritoDistribuidoraRouter } from "./distribuidora/carrito_distribuidora_router.js";
 import { notaPedidoRouter } from "./distribuidora/nota_pedido_router.js";
 import { perfilClienteRouter } from "./distribuidora/perfil_cliente_router.js";
+import { importacionDistribuidoraRouter } from "./distribuidora/importacion_distribuidora_router.js";
 
 const router = Router();
 
@@ -102,5 +103,6 @@ router.use("/distribuidora/productos",    productoDistribuidoraRouter);  // ← 
 router.use("/distribuidora/carrito",      carritoDistribuidoraRouter);   // ← "nota de pedido" en construcción
 router.use("/distribuidora/notas-pedido", notaPedidoRouter);             // ← pedidos ya enviados (inmutables)
 router.use("/distribuidora/mi-perfil",    perfilClienteRouter);           // ← CUIT/dirección — se pide recién al enviar el primer pedido
+router.use("/distribuidora/importacion",  importacionDistribuidoraRouter); // ← carga masiva de productos desde Excel/CSV
 
 export default router;

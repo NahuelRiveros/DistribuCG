@@ -5,11 +5,11 @@
  * Usa el SDK oficial v2+ (@mercadopago/sdk-node).
  *
  * Variables de entorno necesarias:
- *   MP_ACCESS_TOKEN  — token de acceso (test o producción)
- *   APP_URL          — URL del backend (para el webhook)
- *   FRONTEND_URL     — URL del frontend (para redireccionamiento post-pago)
- *   SOFTWARE_PRECIO  — precio mensual en ARS
- *   SOFTWARE_CLIENTE — nombre del gimnasio
+ *   MP_ACCESS_TOKEN      — token de acceso (test o producción)
+ *   RENDER_APP_URL       — URL del backend en Render (para el webhook)
+ *   VERCEL_FRONTEND_URL  — URL del frontend en Vercel (para redireccionamiento post-pago)
+ *   SOFTWARE_PRECIO      — precio mensual en ARS
+ *   SOFTWARE_CLIENTE     — nombre del gimnasio
  */
 
 import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
@@ -40,8 +40,8 @@ export async function crearPreferencia({ suscripcionId, monto, clienteNombre }) 
     );
   }
 
-  const backBase = env.FRONTEND_URL || "http://localhost:5173";
-  const apiBase  = env.APP_URL      ? `${env.APP_URL}/api` : null;
+  const backBase = env.VERCEL_FRONTEND_URL || "http://localhost:5173";
+  const apiBase  = env.RENDER_APP_URL      ? `${env.RENDER_APP_URL}/api` : null;
 
   const body = {
     items: [

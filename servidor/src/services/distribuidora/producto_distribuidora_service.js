@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 import { sequelize } from "../../database/sequelize.js";
 import { ProductoDistribuidora, CategoriaDistribuidora, VariedadDistribuidora } from "../../models/index.js";
 import { normalizarPaginacion, armarPaginacion } from "../common/pagination.js";
+import { capitalizar } from "../common/query_helpers.js";
 
 const ATTR_LISTADO = ["id", "categoria_id", "nombre", "descripcion", "marca", "imagen_url", "activo"];
 
@@ -9,20 +10,60 @@ const INCLUDE_LISTADO = [
   { model: CategoriaDistribuidora, as: "categoria", attributes: ["id", "nombre", "slug"] },
   {
     model: VariedadDistribuidora, as: "variedades", where: { fecha_baja: null }, required: false,
-    attributes: ["id", "nombre", "precio", "precio_anterior", "controla_stock", "cantidad", "cod_ref"],
+    attributes: ["id", "nombre", "precio", "precio_anterior", "iva_porcentaje", "controla_stock", "cantidad", "cod_ref"],
   },
 ];
 
-function construirWhere({ categoria, q } = {}) {
-  const where = { activo: true, fecha_baja: null };
-  if (categoria) where.categoria_id = categoria;
+// Una categoría "padre" (ej. Comestibles) normalmente no tiene productos
+// cargados directo — están en sus subcategorías (Galletitas, Fideos, etc.).
+// Filtrar por categoria_id exacto dejaba la categoría padre siempre vacía.
+// Acá resolvemos la categoría elegida + TODOS sus descendientes (recursivo,
+// cualquier profundidad) para que filtrar por el padre traiga todo lo de
+// abajo también.
+async function idsConDescendientes(categoriaId) {
+  const todas = await CategoriaDistribuidora.findAll({
+    where: { fecha_baja: null }, attributes: ["id", "padre_id"],
+  });
+  const hijosPorPadre = new Map();
+  for (const c of todas) {
+    if (!hijosPorPadre.has(c.padre_id)) hijosPorPadre.set(c.padre_id, []);
+    hijosPorPadre.get(c.padre_id).push(c.id);
+  }
+  const ids = [categoriaId];
+  const pendientes = [categoriaId];
+  while (pendientes.length > 0) {
+    const actual = pendientes.pop();
+    for (const hijoId of hijosPorPadre.get(actual) ?? []) {
+      ids.push(hijoId);
+      pendientes.push(hijoId);
+    }
+  }
+  return ids;
+}
+
+async function construirWhere({ categoria, incluirDescendientes = true, q, soloActivos = true } = {}) {
+  const where = { fecha_baja: null };
+  if (soloActivos) where.activo = true;
+  if (categoria) {
+    where.categoria_id = incluirDescendientes ? { [Op.in]: await idsConDescendientes(categoria) } : categoria;
+  }
   if (q) where.nombre = { [Op.iLike]: `%${q}%` };
   return where;
 }
 
-export async function listarProductos({ categoria, q, pagina, por_pagina } = {}) {
-  const where = construirWhere({ categoria, q });
-  const { page, limit, offset } = normalizarPaginacion({ page: pagina, limit: por_pagina, defaultLimit: 24 });
+// `soloActivos` en false = ve también los productos desactivados (admin/staff
+// gestionando el catálogo); en true = solo lo que ve un cliente en el catálogo público.
+// `maxLimit` sube a 1000 solo para el admin (carga perezosa por categoría del
+// árbol: una categoría entera se trae de una — el catálogo público se queda
+// con el tope de 100 de siempre, no tiene sentido pedirle más de una página).
+// `incluirDescendientes` en false = SOLO los productos con esa categoria_id
+// exacta (sin bajar a subcategorías) — lo usa el árbol del admin al expandir
+// un nivel puntual, para no traerse de golpe todo el subárbol y mezclarlo
+// bajo el nodo equivocado.
+export async function listarProductos({ categoria, incluirDescendientes = true, q, pagina, por_pagina, soloActivos = true } = {}) {
+  const where = await construirWhere({ categoria, incluirDescendientes, q, soloActivos });
+  const maxLimit = soloActivos ? 100 : 1000;
+  const { page, limit, offset } = normalizarPaginacion({ page: pagina, limit: por_pagina, defaultLimit: 24, maxLimit });
 
   const { rows, count } = await ProductoDistribuidora.findAndCountAll({
     where,
@@ -37,9 +78,11 @@ export async function listarProductos({ categoria, q, pagina, por_pagina } = {})
   return { productos: rows, pagination: armarPaginacion({ page, limit, total: count }) };
 }
 
-export async function obtenerProductoPorId(id) {
+export async function obtenerProductoPorId(id, { soloActivos = true } = {}) {
+  const where = { id, fecha_baja: null };
+  if (soloActivos) where.activo = true;
   return ProductoDistribuidora.findOne({
-    where: { id, fecha_baja: null },
+    where,
     attributes: ATTR_LISTADO,
     include: INCLUDE_LISTADO,
   });
@@ -48,7 +91,7 @@ export async function obtenerProductoPorId(id) {
 export async function crearProducto(payload) {
   return ProductoDistribuidora.create({
     categoria_id: payload.categoria_id,
-    nombre: payload.nombre,
+    nombre: capitalizar(payload.nombre),
     descripcion: payload.descripcion ?? null,
     marca: payload.marca ?? null,
     imagen_url: payload.imagen_url ?? null,
@@ -62,7 +105,7 @@ export async function actualizarProducto(id, payload) {
   if (!producto) return null;
   await producto.update({
     categoria_id: payload.categoria_id,
-    nombre: payload.nombre,
+    nombre: capitalizar(payload.nombre),
     descripcion: payload.descripcion ?? null,
     marca: payload.marca ?? null,
     imagen_url: payload.imagen_url ?? producto.imagen_url,
@@ -87,17 +130,17 @@ export async function eliminarProducto(id) {
 
 // ── Variedades — un producto necesita ≥1 para ser comprable ────────────────
 
-export async function crearVariedad(producto_id, { nombre = null, precio, precio_anterior = null, controla_stock = false, cantidad = 0, cod_ref = null }) {
+export async function crearVariedad(producto_id, { nombre = null, precio, precio_anterior = null, iva_porcentaje = 21, controla_stock = false, cantidad = 0, cod_ref = null }) {
   return VariedadDistribuidora.create({
-    producto_id, nombre, precio, precio_anterior, controla_stock, cantidad, cod_ref,
+    producto_id, nombre, precio, precio_anterior, iva_porcentaje, controla_stock, cantidad, cod_ref,
     fecha_alta: new Date(),
   });
 }
 
-export async function actualizarVariedad(id, { nombre, precio, precio_anterior = null, controla_stock = false, cantidad, cod_ref = null }) {
+export async function actualizarVariedad(id, { nombre, precio, precio_anterior = null, iva_porcentaje = 21, controla_stock = false, cantidad, cod_ref = null }) {
   const variedad = await VariedadDistribuidora.findByPk(id);
   if (!variedad) return null;
-  await variedad.update({ nombre, precio, precio_anterior, controla_stock, cantidad, cod_ref });
+  await variedad.update({ nombre, precio, precio_anterior, iva_porcentaje, controla_stock, cantidad, cod_ref });
   return variedad;
 }
 
@@ -124,7 +167,7 @@ export async function ajustarPreciosMasivo({ porcentaje, producto_id = null, cat
     where.producto_id = producto_id;
   } else if (categoria_id) {
     const productos = await ProductoDistribuidora.findAll({
-      where: { categoria_id, fecha_baja: null },
+      where: { categoria_id: { [Op.in]: await idsConDescendientes(categoria_id) }, fecha_baja: null },
       attributes: ["id"],
     });
     if (productos.length === 0) return 0;

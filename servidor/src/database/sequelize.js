@@ -48,8 +48,8 @@ const baseConfig = {
   },
 };
 
-export const sequelize = env.DATABASE_URL
-  ? new Sequelize(env.DATABASE_URL, baseConfig)
+export const sequelize = env.NEON_DATABASE_URL
+  ? new Sequelize(env.NEON_DATABASE_URL, baseConfig)
   : new Sequelize(env.DB_NAME, env.DB_USER, env.DB_PASS, {
       ...baseConfig,
       host: env.DB_HOST,

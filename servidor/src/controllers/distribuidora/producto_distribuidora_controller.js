@@ -3,9 +3,22 @@ import {
   crearVariedad, actualizarVariedad, eliminarVariedad, ajustarPreciosMasivo,
 } from "../../services/distribuidora/producto_distribuidora_service.js";
 
+// admin/staff gestionan el catálogo y necesitan seguir viendo los productos
+// desactivados (para poder reactivarlos); cualquier otro rol ve solo lo activo.
+function puedeVerInactivos(req) {
+  const roles = req.user?.roles ?? [];
+  return roles.includes("admin") || roles.includes("staff");
+}
+
 export async function listarProductosController(req, res) {
   try {
-    const { productos, pagination } = await listarProductos(req.query);
+    // req.query siempre trae strings — "false" es truthy en JS, hay que
+    // convertirlo a booleano posta antes de pasarlo al service.
+    const { productos, pagination } = await listarProductos({
+      ...req.query,
+      incluirDescendientes: req.query.incluirDescendientes !== "false",
+      soloActivos: !puedeVerInactivos(req),
+    });
     return res.json({ ok: true, data: productos, total: pagination.total, pagina: pagination.page, total_paginas: pagination.totalPages });
   } catch (error) {
     console.error("Error al listar productos:", error);
@@ -15,7 +28,7 @@ export async function listarProductosController(req, res) {
 
 export async function obtenerProductoController(req, res) {
   try {
-    const producto = await obtenerProductoPorId(req.params.id);
+    const producto = await obtenerProductoPorId(req.params.id, { soloActivos: !puedeVerInactivos(req) });
     if (!producto) return res.status(404).json({ ok: false, mensaje: "Producto no encontrado" });
     return res.json({ ok: true, data: producto });
   } catch (error) {
@@ -33,6 +46,9 @@ export async function crearProductoController(req, res) {
     const producto = await crearProducto(req.body);
     return res.status(201).json({ ok: true, mensaje: "Producto creado correctamente", data: producto });
   } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).json({ ok: false, mensaje: "Ya existe un producto con ese nombre en esta categoría" });
+    }
     console.error("Error al crear producto:", error);
     return res.status(500).json({ ok: false, mensaje: "Error interno al crear el producto" });
   }
@@ -44,6 +60,9 @@ export async function actualizarProductoController(req, res) {
     if (!producto) return res.status(404).json({ ok: false, mensaje: "Producto no encontrado" });
     return res.json({ ok: true, mensaje: "Producto actualizado correctamente", data: producto });
   } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).json({ ok: false, mensaje: "Ya existe un producto con ese nombre en esta categoría" });
+    }
     console.error("Error al actualizar producto:", error);
     return res.status(500).json({ ok: false, mensaje: "Error interno al actualizar el producto" });
   }

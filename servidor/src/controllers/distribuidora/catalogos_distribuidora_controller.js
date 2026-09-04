@@ -23,6 +23,9 @@ export async function crearCategoriaController(req, res) {
     const categoria = await crearCategoria({ nombre: nombre.trim(), slug: slug.trim(), padre_id: padre_id ?? null });
     return res.status(201).json({ ok: true, mensaje: "Categoría creada correctamente", data: categoria });
   } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).json({ ok: false, mensaje: "Ya existe una categoría con ese nombre en este nivel" });
+    }
     console.error("Error al crear categoría:", error);
     return res.status(500).json({ ok: false, mensaje: "Error interno al crear la categoría" });
   }
@@ -42,6 +45,9 @@ export async function actualizarCategoriaController(req, res) {
     if (!categoria) return res.status(404).json({ ok: false, mensaje: "Categoría no encontrada" });
     return res.json({ ok: true, mensaje: "Categoría actualizada correctamente", data: categoria });
   } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).json({ ok: false, mensaje: "Ya existe una categoría con ese nombre en este nivel" });
+    }
     console.error("Error al actualizar categoría:", error);
     return res.status(500).json({ ok: false, mensaje: "Error interno al actualizar la categoría" });
   }

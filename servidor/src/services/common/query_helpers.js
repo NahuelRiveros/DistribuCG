@@ -18,3 +18,10 @@ export function armarBusquedaTexto(campos = [], q) {
     [Op.or]: campos.map((campo) => ({ [campo]: { [Op.iLike]: `%${texto}%` } })),
   };
 }
+
+/** Primer carácter en mayúscula, el resto tal cual (no toca acentos/ñ). */
+export function capitalizar(texto) {
+  const limpio = String(texto ?? "").trim();
+  if (!limpio) return limpio;
+  return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+}

@@ -1,4 +1,4 @@
-import { ShoppingBag, LayoutGrid, Package, ClipboardList, FolderTree } from "lucide-react";
+import { ShoppingBag, LayoutGrid, Package, ClipboardList, Upload } from "lucide-react";
 
 // Dropdown de primer nivel — igual forma que gymDropdown/kinesiologiaDropdown
 // en sus archivos hermanos. El gate maestro (projectModules.eccomerce_distribuidora,
@@ -43,8 +43,8 @@ export const eccomerceDistribuidoraDropdown = {
       requiereAuth: true,
       roles: ["admin", "staff", "vendedor"],
       children: [
-        { label: "Categorías", to: "/distribuidora/admin/categorias", requiereAuth: true, modulo: "eccomerce_distribuidora", roles: ["admin", "staff"], icon: FolderTree },
-        { label: "Productos",  to: "/distribuidora/admin/productos",  requiereAuth: true, modulo: "eccomerce_distribuidora", roles: ["admin", "staff"], icon: Package },
+        { label: "Catálogo (categorías y productos)", to: "/distribuidora/admin/productos", requiereAuth: true, modulo: "eccomerce_distribuidora", roles: ["admin", "staff"], icon: Package },
+        { label: "Importar productos", to: "/distribuidora/admin/importar", requiereAuth: true, modulo: "eccomerce_distribuidora", roles: ["admin", "staff"], icon: Upload },
         { label: "Notas de pedido", to: "/distribuidora/admin/notas-pedido", requiereAuth: true, modulo: "eccomerce_distribuidora", roles: ["admin", "vendedor"], icon: ClipboardList },
       ],
     },

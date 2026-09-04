@@ -1,4 +1,4 @@
-import { Sparkles, ShieldCheck, LineChart, Trophy } from "lucide-react";
+import { Package, Truck, LineChart, ShieldCheck } from "lucide-react";
 import { brandConfig } from "./brand_config.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -10,16 +10,13 @@ import { brandConfig } from "./brand_config.js";
 // lugar: config/modulos_config.js — acá no se apaga nada a mano, footer.jsx
 // filtra según ese archivo. `habilitado: false` apaga un ítem puntual sin
 // tocar el módulo entero.
-//
-// El contenido de abajo es placeholder genérico — reemplazar por lo real de
-// cada cliente al iniciar un proyecto nuevo.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const footer_config = {
   marca: {
     tagline: brandConfig.tagline,
     estadoLabel: "Sistema activo",
-    selloLabel: "Gestión · Rendimiento · Control",
+    selloLabel: "Pedidos · Stock · Entregas",
   },
 
   // ── Nuestro enfoque ──────────────────────────────────────────────────────
@@ -29,19 +26,19 @@ export const footer_config = {
       codigo: "enfoque-1",
       modulo: null,
       habilitado: true,
-      icon: Sparkles,
+      icon: Package,
       code: "01",
-      titulo: "Enfoque 1",
-      texto: "Placeholder — reemplazar con el diferencial real del cliente.",
+      titulo: "Catálogo amplio",
+      texto: "Cientos de productos organizados por categoría, fáciles de encontrar y pedir.",
     },
     {
       codigo: "enfoque-2",
       modulo: null,
       habilitado: true,
-      icon: ShieldCheck,
+      icon: Truck,
       code: "02",
-      titulo: "Enfoque 2",
-      texto: "Placeholder — reemplazar con el diferencial real del cliente.",
+      titulo: "Entrega confiable",
+      texto: "Coordinamos cada pedido para que llegue completo y a tiempo.",
     },
   ],
 
@@ -51,21 +48,21 @@ export const footer_config = {
       modulo: null,
       habilitado: true,
       icon: LineChart,
-      titulo: "Seguimiento real",
-      texto: "Placeholder — reemplazar por copy real",
+      titulo: "Stock actualizado",
+      texto: "Precios y disponibilidad al día, sin sorpresas al momento de pedir.",
     },
     {
       modulo: null,
       habilitado: true,
-      icon: Trophy,
-      titulo: "Resultados",
-      texto: "Placeholder — reemplazar por copy real",
+      icon: ShieldCheck,
+      titulo: "Pedidos confiables",
+      texto: "Cada nota de pedido queda registrada y se procesa de forma prolija.",
     },
   ],
 
   callout: {
-    titulo: "Constancia > Motivación",
-    texto: "El progreso se construye día a día.",
+    titulo: "Constancia > Improvisación",
+    texto: "Cada pedido, la misma calidad de siempre.",
   },
 
   legal: {

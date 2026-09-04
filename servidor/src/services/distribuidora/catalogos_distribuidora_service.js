@@ -1,6 +1,8 @@
 import { Op } from "sequelize";
+import { sequelize } from "../../database/sequelize.js";
 import { CategoriaDistribuidora, ProductoDistribuidora } from "../../models/index.js";
 import { crearCrudService } from "../common/crud_service.js";
+import { capitalizar } from "../common/query_helpers.js";
 
 /**
  * Catálogo de categorías de distribuidora (jerárquicas). Mismo patrón que
@@ -14,9 +16,23 @@ const categoriasCrud = crearCrudService(CategoriaDistribuidora, {
   softDeleteField: "fecha_baja",
 });
 
+// `cantidad_productos` viaja con cada categoría para que el árbol del admin
+// pueda decidir "esto tiene contenido / es hoja / hace falta cargar sus
+// productos" SIN tener que traer los productos en sí — clave para que el
+// árbol cargue productos recién al expandir una categoría (carga perezosa,
+// pensado para catálogos de miles de productos).
 export async function listarCategorias() {
-  const { items } = await categoriasCrud.listar();
-  return items;
+  const [{ items }, conteos] = await Promise.all([
+    categoriasCrud.listar(),
+    ProductoDistribuidora.findAll({
+      attributes: ["categoria_id", [sequelize.fn("COUNT", sequelize.col("id")), "cantidad"]],
+      where: { fecha_baja: null },
+      group: ["categoria_id"],
+      raw: true,
+    }),
+  ]);
+  const mapaConteos = new Map(conteos.map((c) => [c.categoria_id, Number(c.cantidad)]));
+  return items.map((cat) => ({ ...cat.get({ plain: true }), cantidad_productos: mapaConteos.get(cat.id) ?? 0 }));
 }
 
 export async function existeCategoriaConSlug(slug, excluirId = null) {
@@ -26,13 +42,13 @@ export async function existeCategoriaConSlug(slug, excluirId = null) {
 }
 
 export async function crearCategoria({ nombre, slug, padre_id = null }) {
-  return CategoriaDistribuidora.create({ nombre, slug, padre_id, fecha_alta: new Date() });
+  return CategoriaDistribuidora.create({ nombre: capitalizar(nombre), slug, padre_id, fecha_alta: new Date() });
 }
 
 export async function actualizarCategoria(id, { nombre, slug, padre_id = null }) {
   const cat = await CategoriaDistribuidora.findByPk(id);
   if (!cat) return null;
-  await cat.update({ nombre, slug, padre_id });
+  await cat.update({ nombre: capitalizar(nombre), slug, padre_id });
   return cat;
 }
 

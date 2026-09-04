@@ -32,5 +32,9 @@ export const ProductoDistribuidora = defineModel("ProductoDistribuidora", {
   indexes: [
     { fields: ["categoria_id"] },
     { fields: ["activo"] },
+    // No puede haber dos productos con el mismo nombre EN LA MISMA categoría
+    // (categoria_id nunca es null acá, así que un solo índice alcanza — a
+    // diferencia de CategoriaDistribuidora, que sí necesita manejar la raíz).
+    { unique: true, fields: ["nombre", "categoria_id"], where: { fecha_baja: null }, name: "producto_distribuidora_nombre_categoria_unique" },
   ],
 });

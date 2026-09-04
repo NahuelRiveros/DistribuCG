@@ -25,10 +25,11 @@ export const env = {
   PORT:     process.env.PORT || 3001,
   NODE_ENV: process.env.NODE_ENV || "development",
 
-  // ── Base de datos ──────────────────────────────────────────────
-  // DATABASE_URL1: si está seteada, tiene prioridad (útil para migrar a Neon
-  // sin downtime — una vez verificado, renombrá a DATABASE_URL y borrá esta).
-  DATABASE_URL: process.env.DATABASE_URL1 || process.env.DATABASE_URL || "",
+  // ── Base de datos (Neon en producción, Postgres local en dev) ────
+  // NEON_DATABASE_URL_MIGRACION: si está seteada, tiene prioridad (útil para
+  // migrar a otra base de Neon sin downtime — una vez verificado, renombrá a
+  // NEON_DATABASE_URL y borrá esta).
+  NEON_DATABASE_URL: process.env.NEON_DATABASE_URL_MIGRACION || process.env.NEON_DATABASE_URL || "",
   DB_HOST:      process.env.DB_HOST      || "localhost",
   DB_PORT:      Number(process.env.DB_PORT || 5432),
   DB_NAME:      process.env.DB_NAME      || "dynamicgym",
@@ -53,14 +54,14 @@ export const env = {
   // Sandbox: usa el token de TEST para pruebas, PROD para producción.
   MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN || "",
 
-  // URL COMPLETA del backend (para que MP envíe el webhook).
+  // URL COMPLETA del backend en Render (para que MP envíe el webhook).
   // Ejemplo: "https://dynamic-gym.onrender.com"
   // En local: dejar vacío (el webhook no llegará, pero el flujo funciona).
-  APP_URL: process.env.APP_URL || "",
+  RENDER_APP_URL: process.env.RENDER_APP_URL || "",
 
-  // URL COMPLETA del frontend (para la redirección post-pago de MP).
+  // URL COMPLETA del frontend en Vercel (para la redirección post-pago de MP).
   // Ejemplo: "https://dynamic-gym.vercel.app"
-  FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
+  VERCEL_FRONTEND_URL: process.env.VERCEL_FRONTEND_URL || "http://localhost:5173",
 
   // ── Plan del software ──────────────────────────────────────────
   // Precio mensual en ARS (sin centavos). Ej: 10000 = $10.000
@@ -76,10 +77,15 @@ export const env = {
   SMTP_PASS:   process.env.SMTP_PASS   || "",
   SMTP_FROM:   process.env.SMTP_FROM   || "",
 
-  // ── Cloudinary (imágenes/videos del home) ───────────────────────
-  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || "",
-  CLOUDINARY_API_KEY:    process.env.CLOUDINARY_API_KEY    || "",
-  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || "",
+  // ── Cloudinary (subida de imágenes: home, marcas, fotos de producto) ─────
+  // Obligatorio en producción — a diferencia de MP/SMTP (que degradan sin
+  // romper nada visible), sin esto CUALQUIER subida de imagen falla en
+  // tiempo de ejecución con un error de auth de Cloudinary poco claro. Mejor
+  // que el server no arranque en Render si falta, a que falle recién cuando
+  // alguien intente subir una foto.
+  CLOUDINARY_CLOUD_NAME: requerirEnProd("CLOUDINARY_CLOUD_NAME"),
+  CLOUDINARY_API_KEY:    requerirEnProd("CLOUDINARY_API_KEY"),
+  CLOUDINARY_API_SECRET: requerirEnProd("CLOUDINARY_API_SECRET"),
 
   // ── Seed: usuario super admin ────────────────────────────────────
   SUPERADMIN_NOMBRE:   process.env.SUPERADMIN_NOMBRE   || "",

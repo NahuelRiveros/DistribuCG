@@ -1,6 +1,7 @@
 import {
   Dumbbell, HeartPulse, Target, UserCheck, LineChart, Activity, Trophy,
   MapPin, Instagram, Phone, Mail, MessageCircle, Clock, Users, ShieldCheck, Star,
+  Package, Truck,
 } from "lucide-react";
 
 // Mapa fijo de íconos permitidos para HomePilar/HomeContacto — el admin elige
@@ -9,6 +10,7 @@ import {
 export const ICONOS_HOME = {
   Dumbbell, HeartPulse, Target, UserCheck, LineChart, Activity, Trophy,
   MapPin, Instagram, Phone, Mail, MessageCircle, Clock, Users, ShieldCheck, Star,
+  Package, Truck,
 };
 
 export const ICONOS_HOME_NOMBRES = Object.keys(ICONOS_HOME);
