@@ -13,7 +13,7 @@ import {
   Categoria, Marca, Talle, Color, ProductoTienda, Stock, EnvioOpcion, CondicionIva,
   Carrito, CarritoItem,
   CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora,
-  CarritoDistribuidora, CarritoDistribuidoraItem, NotaPedido, NotaPedidoItem,
+  CarritoDistribuidora, CarritoDistribuidoraItem, NotaPedido, NotaPedidoItem, NotaPedidoPago,
   PerfilClienteDistribuidora,
 } from "../models/index.js";
 
@@ -28,6 +28,7 @@ export async function bootstrap_database() {
   await crear_schema();
   await aplicar_ajustes_puntuales();
   await sincronizar_modelos();
+  await backfill_pago_legado();
   console.log("✅ Bootstrap finalizado correctamente");
 }
 
@@ -175,6 +176,7 @@ async function sincronizar_modelos() {
     CarritoDistribuidoraItem, // carrito_distribuidora_item → carrito_distribuidora, producto_distribuidora, variedad_distribuidora
     NotaPedido,     // nota_pedido → usuario
     NotaPedidoItem, // nota_pedido_item → nota_pedido, producto_distribuidora, variedad_distribuidora
+    NotaPedidoPago, // nota_pedido_pago → nota_pedido, usuario
     PerfilClienteDistribuidora, // perfil_cliente_distribuidora → usuario
   ];
 
@@ -204,4 +206,31 @@ async function sincronizar_modelos() {
       throw error;
     }
   }
+}
+
+/**
+ * nota_pedido reemplazó el booleano `pagado` por estado_pago/monto_pagado
+ * (soporta pagos parciales, ver nota_pedido.js). Corre DESPUÉS de
+ * sincronizar_modelos() porque necesita que las columnas nuevas ya existan.
+ * Idempotente: solo migra filas que siguen en el default "pendiente/$0" que
+ * les puso el sync recién — una vez migrada una fila no vuelve a tocarla,
+ * así que no pisa pagos parciales cargados después con el sistema nuevo.
+ * No dropea la columna `pagado` vieja (evita DDL destructivo en un boot
+ * automático) — queda huérfana e inofensiva hasta que alguien la borre a mano.
+ */
+async function backfill_pago_legado() {
+  const [{ existe }] = await sequelize.query(`
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'nota_pedido' AND column_name = 'pagado'
+    ) AS existe
+  `, { type: QueryTypes.SELECT });
+  if (!existe) return;
+
+  await sequelize.query(`
+    UPDATE "${DB_SCHEMA}".nota_pedido
+    SET estado_pago = CASE WHEN pagado THEN 'pagado' ELSE 'pendiente' END,
+        monto_pagado = CASE WHEN pagado THEN total ELSE 0 END
+    WHERE estado_pago = 'pendiente' AND monto_pagado = 0
+  `);
 }

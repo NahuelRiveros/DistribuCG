@@ -41,7 +41,7 @@ export const eccomerceDistribuidoraDropdown = {
   icon: ShoppingBag,
   items: [
     {
-      label: "Mi pedido",
+      label: "Carrito",
       to: "/distribuidora/carrito",
       requiereAuth: true,
       modulo: "eccomerce_distribuidora",

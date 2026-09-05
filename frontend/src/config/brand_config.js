@@ -47,7 +47,7 @@ export const clientes = {
 
   gc: {
     nombre: "GC Distribuidora",
-    rubro: "Distribuidora mayorista",
+    rubro: "Distribuidora mayorista y minorista" ,
     tagline: "Tu pedido, directo al mostrador.",
 
     // Sin gráfico propio todavía — logo.tipo distinto de "moovs-spine" hace

@@ -86,7 +86,7 @@ export const adminDropdown = {
           icon: LayoutTemplate,
         },
         // {
-        //   label: "Suscripción",
+        //   label: "Mi suscripción",
         //   to: "/admin/suscripcion",
         //   requiereAuth: true,
         //   roles: ["admin"],

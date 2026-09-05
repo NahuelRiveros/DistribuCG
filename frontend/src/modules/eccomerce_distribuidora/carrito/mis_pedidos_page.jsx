@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Package, DollarSign } from "lucide-react";
+import { Package } from "lucide-react";
 import { getMisNotasPedido } from "../api/nota_pedido_api.js";
-
-const ESTADOS = {
-  pendiente: { label: "Pendiente", className: "bg-amber-50 text-amber-700 border-amber-200" },
-  en_curso:  { label: "En curso",  className: "bg-blue-50 text-blue-700 border-blue-200" },
-  entregado: { label: "Entregado", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  cancelada: { label: "Cancelada", className: "bg-rose-50 text-rose-700 border-rose-200" },
-};
+import { ESTADOS, ESTADOS_PAGO } from "../pedidos/estados_pedido.js";
 
 const fmt = (n) => `$ ${Number(n).toLocaleString("es-AR", { minimumFractionDigits: 0 })}`;
 
@@ -35,6 +29,8 @@ export default function MisPedidosPage() {
         ) : (
           notas.map((nota) => {
             const estado = ESTADOS[nota.estado] ?? ESTADOS.pendiente;
+            const estadoPago = ESTADOS_PAGO[nota.estado_pago] ?? ESTADOS_PAGO.pendiente;
+            const saldoPendiente = Number(nota.total) - Number(nota.monto_pagado);
             return (
               <div key={nota.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center justify-between">
@@ -47,14 +43,11 @@ export default function MisPedidosPage() {
                   </div>
                   <div className="text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      {nota.pagado && (
-                        <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                          <DollarSign size={9} /> Pagado
-                        </span>
-                      )}
+                      <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${estadoPago.className}`}>{estadoPago.label}</span>
                       <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${estado.className}`}>{estado.label}</span>
                     </div>
                     <p className="mt-1 text-sm font-bold text-slate-800">{fmt(nota.total)}</p>
+                    {saldoPendiente > 0 && <p className="text-[11px] text-slate-400">Saldo: {fmt(saldoPendiente)}</p>}
                   </div>
                 </div>
                 <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-xs text-slate-500">

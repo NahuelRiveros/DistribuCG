@@ -8,9 +8,14 @@ import { defineModel } from "../common/define_model.js";
  * string libre a propósito (sin tabla de catálogo, no se pidió workflow
  * configurable) — valores esperados: "pendiente" | "en_curso" | "entregado" | "cancelada".
  *
- * `pagado` es independiente del `estado` — el pago (transferencia, efectivo,
- * cuenta corriente) puede confirmarse antes, durante o después de la
- * entrega, no siempre en el mismo orden.
+ * `estado_pago`/`monto_pagado` son independientes del `estado` de
+ * cumplimiento, salvo por una regla: pasar a "en_curso" o "entregado"
+ * requiere `estado_pago !== "pendiente"` (al menos un pago parcial), ver
+ * ESTADOS_QUE_REQUIEREN_PAGO en nota_pedido_service.js. Reemplaza al viejo
+ * booleano `pagado` — soporta pagos parciales (cliente mayorista que deja
+ * una seña y paga el resto después). El detalle de cada pago vive en
+ * NotaPedidoPago (ledger con quién/cuándo/anulado); estos dos campos son un
+ * agregado denormalizado para no tener que sumar esa tabla en cada listado.
  *
  * cuit/razon_social/condicion_iva/direccion/provincia/localidad son un
  * SNAPSHOT de PerfilClienteDistribuidora al momento de crear el pedido — si
@@ -25,7 +30,12 @@ export const NotaPedido = defineModel("NotaPedido", {
   },
 
   estado: { type: DataTypes.STRING(20), allowNull: false, defaultValue: "pendiente" },
-  pagado: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+
+  // "pendiente" | "parcial" | "pagado" — derivado de la suma de pagos
+  // activos en NotaPedidoPago, nunca se escribe directo salvo al crear.
+  estado_pago:  { type: DataTypes.STRING(20), allowNull: false, defaultValue: "pendiente" },
+  monto_pagado: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+
   notas:  { type: DataTypes.TEXT, allowNull: true },
 
   cuit:          { type: DataTypes.STRING(20), allowNull: true },

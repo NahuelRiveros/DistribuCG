@@ -4,7 +4,7 @@ import ProductoDetalleDistribuidoraPage from "../../modules/eccomerce_distribuid
 import NotaPedidoPage from "../../modules/eccomerce_distribuidora/carrito/nota_pedido_page.jsx";
 import MisPedidosPage from "../../modules/eccomerce_distribuidora/carrito/mis_pedidos_page.jsx";
 import ProductosDistribuidoraPage from "../../modules/eccomerce_distribuidora/admin/productos_page.jsx";
-import NotasPedidoDistribuidoraPage from "../../modules/eccomerce_distribuidora/admin/notas_pedido_page.jsx";
+import NotasPedidoDistribuidoraPage from "../../modules/eccomerce_distribuidora/pedidos/notas_pedido_page.jsx";
 import ImportacionDistribuidoraPage from "../../modules/eccomerce_distribuidora/admin/importacion_page.jsx";
 import { protegida } from "./route_helpers.jsx";
 

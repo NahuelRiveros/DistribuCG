@@ -1,4 +1,8 @@
-import { crearNotaPedido, listarPropias, listarTodas, cambiarEstado, cambiarPago } from "../../services/distribuidora/nota_pedido_service.js";
+import ExcelJS from "exceljs";
+import {
+  crearNotaPedido, listarPropias, listarTodas, obtenerDetalle,
+  cambiarEstado, registrarPago, anularPago,
+} from "../../services/distribuidora/nota_pedido_service.js";
 
 export async function crearNotaPedidoController(req, res) {
   try {
@@ -44,21 +48,95 @@ export async function cambiarEstadoController(req, res) {
     return res.json({ ok: true, mensaje: "Estado actualizado", data: nota });
   } catch (error) {
     console.error("Error al cambiar estado de nota de pedido:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno al actualizar el pedido" });
+    return res.status(error.status ?? 500).json({
+      ok: false,
+      codigo: error.codigo,
+      mensaje: error.status ? error.message : "Error interno al actualizar el pedido",
+    });
   }
 }
 
-export async function cambiarPagoController(req, res) {
+export async function registrarPagoController(req, res) {
   try {
-    const { pagado } = req.body ?? {};
-    if (typeof pagado !== "boolean") {
-      return res.status(400).json({ ok: false, mensaje: "pagado debe ser true o false" });
-    }
-    const nota = await cambiarPago(req.params.id, pagado);
-    if (!nota) return res.status(404).json({ ok: false, mensaje: "Pedido no encontrado" });
-    return res.json({ ok: true, mensaje: pagado ? "Marcado como pagado" : "Marcado como no pagado", data: nota });
+    const { monto, nota } = req.body ?? {};
+    const notaPedido = await registrarPago(req.params.id, { monto, nota, usuario_id: req.user.usuario_id });
+    if (!notaPedido) return res.status(404).json({ ok: false, mensaje: "Pedido no encontrado" });
+    return res.status(201).json({ ok: true, mensaje: "Pago registrado", data: notaPedido });
   } catch (error) {
-    console.error("Error al cambiar pago de nota de pedido:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno al actualizar el pedido" });
+    console.error("Error al registrar pago de nota de pedido:", error);
+    return res.status(error.status ?? 500).json({
+      ok: false,
+      codigo: error.codigo,
+      mensaje: error.status ? error.message : "Error interno al registrar el pago",
+    });
+  }
+}
+
+export async function anularPagoController(req, res) {
+  try {
+    const pago = await anularPago(req.params.pagoId, req.user.usuario_id);
+    if (!pago) return res.status(404).json({ ok: false, mensaje: "Pago no encontrado" });
+    return res.json({ ok: true, mensaje: "Pago anulado", data: pago });
+  } catch (error) {
+    console.error("Error al anular pago de nota de pedido:", error);
+    return res.status(error.status ?? 500).json({
+      ok: false,
+      codigo: error.codigo,
+      mensaje: error.status ? error.message : "Error interno al anular el pago",
+    });
+  }
+}
+
+const fmtMoneda = (n) => `$ ${Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`;
+const ESTADO_PAGO_LABEL = { pendiente: "Pendiente", parcial: "Parcial", pagado: "Pagado" };
+const ESTADO_LABEL = { pendiente: "Pendiente", en_curso: "En curso", entregado: "Entregado", cancelada: "Cancelada" };
+
+export async function exportarNotaPedidoController(req, res) {
+  try {
+    const nota = await obtenerDetalle(req.params.id);
+    if (!nota) return res.status(404).json({ ok: false, mensaje: "Pedido no encontrado" });
+
+    const persona = nota.usuario?.persona;
+    const workbook = new ExcelJS.Workbook();
+    const hoja = workbook.addWorksheet(`Pedido ${nota.id}`);
+    hoja.columns = [{ width: 34 }, { width: 20 }, { width: 12 }, { width: 18 }, { width: 18 }];
+
+    hoja.addRow([`Pedido #${nota.id}`]).font = { bold: true, size: 14 };
+    hoja.addRow(["Cliente", persona ? `${persona.nombre} ${persona.apellido}` : "—"]);
+    hoja.addRow(["Email", persona?.email ?? "—"]);
+    hoja.addRow(["CUIT", nota.cuit ?? "—", nota.razon_social ?? ""]);
+    hoja.addRow(["Entrega", `${nota.direccion ?? ""}, ${nota.localidad ?? ""}, ${nota.provincia ?? ""}`]);
+    hoja.addRow(["Fecha", new Date(nota.fecha_alta).toLocaleString("es-AR")]);
+    hoja.addRow(["Estado", ESTADO_LABEL[nota.estado] ?? nota.estado]);
+    hoja.addRow(["Estado de pago", ESTADO_PAGO_LABEL[nota.estado_pago] ?? nota.estado_pago]);
+    if (nota.notas) hoja.addRow(["Notas", nota.notas]);
+    hoja.addRow([]);
+
+    const headerRow = hoja.addRow(["Producto", "Variedad", "Cantidad", "Precio unitario", "Subtotal"]);
+    headerRow.font = { bold: true };
+
+    for (const item of nota.items ?? []) {
+      hoja.addRow([
+        item.nombre_producto,
+        item.variedad_nombre ?? "",
+        item.cantidad,
+        fmtMoneda(item.precio_unitario),
+        fmtMoneda(item.subtotal),
+      ]);
+    }
+
+    const totalRow = hoja.addRow(["", "", "", "Total", fmtMoneda(nota.total)]);
+    totalRow.font = { bold: true };
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="pedido-${nota.id}.xlsx"`);
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Error al exportar nota de pedido:", error);
+    if (!res.headersSent) {
+      return res.status(500).json({ ok: false, mensaje: "Error interno al exportar el pedido" });
+    }
+    res.end();
   }
 }
