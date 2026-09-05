@@ -37,14 +37,19 @@ async function obtenerCategoriasCacheadas() {
 // cualquier profundidad) para que filtrar por el padre traiga todo lo de
 // abajo también.
 async function idsConDescendientes(categoriaId) {
+  // req.query siempre trae strings ("6", no 6) — sin este Number(), el Map de
+  // abajo (con claves numéricas de verdad, padre_id sale de Postgres como
+  // number) nunca encontraba a los hijos de la categoría elegida: filtrar por
+  // cualquier categoría que no fuera una hoja exacta devolvía "sin resultados".
+  const catId = Number(categoriaId);
   const todas = await obtenerCategoriasCacheadas();
   const hijosPorPadre = new Map();
   for (const c of todas) {
     if (!hijosPorPadre.has(c.padre_id)) hijosPorPadre.set(c.padre_id, []);
     hijosPorPadre.get(c.padre_id).push(c.id);
   }
-  const ids = [categoriaId];
-  const pendientes = [categoriaId];
+  const ids = [catId];
+  const pendientes = [catId];
   while (pendientes.length > 0) {
     const actual = pendientes.pop();
     for (const hijoId of hijosPorPadre.get(actual) ?? []) {

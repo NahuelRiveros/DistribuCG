@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { Search, X, SlidersHorizontal } from "lucide-react";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getProductos } from "../api/producto_distribuidora_api.js";
 import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
 import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
 import ProductoCard from "./producto_card.jsx";
+import CategoriasArbol from "./categorias_arbol.jsx";
 
 export default function CatalogoDistribuidoraPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,11 +23,13 @@ export default function CatalogoDistribuidoraPage() {
   const [busquedaAplicada, setBusquedaAplicada] = useState(busqueda);
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [filtroMobileAbierto, setFiltroMobileAbierto] = useState(false);
 
   useEffect(() => { getCategorias().then(setCategorias).catch(() => {}); }, []);
 
   function elegirCategoria(id) {
     setCategoriaId(id);
+    setFiltroMobileAbierto(false);
   }
 
   // Buscador con debounce — evita un pedido al servidor en cada tecla. La
@@ -57,11 +60,7 @@ export default function CatalogoDistribuidoraPage() {
       .finally(() => setCargando(false));
   }, [categoriaId, busquedaAplicada]);
 
-  const categoriasRaiz = useMemo(() => categorias.filter((c) => !c.padre_id), [categorias]);
-  const subcategorias = useMemo(
-    () => categorias.filter((c) => c.padre_id === categoriaId),
-    [categorias, categoriaId]
-  );
+  const categoriaActual = categorias.find((c) => c.id === categoriaId);
 
   return (
     <div className="kt-body min-h-screen bg-(--kt-bg-soft) p-4 sm:p-8">
@@ -96,64 +95,61 @@ export default function CatalogoDistribuidoraPage() {
           )}
         </div>
 
-        {/* ── Categorías (nivel top) ── */}
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button" onClick={() => elegirCategoria(null)}
-            className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
-              categoriaId === null
-                ? "border-(--kt-teal-700) bg-(--kt-teal-700) text-white"
-                : "border-(--kt-border) bg-white text-(--kt-ink-soft) hover:border-(--kt-turquoise)"
-            }`}
-          >
-            Todas
-          </button>
-          {categoriasRaiz.map((cat) => (
-            <button
-              key={cat.id} type="button" onClick={() => elegirCategoria(cat.id)}
-              className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
-                categoriaId === cat.id
-                  ? "border-(--kt-teal-700) bg-(--kt-teal-700) text-white"
-                  : "border-(--kt-border) bg-white text-(--kt-ink-soft) hover:border-(--kt-turquoise)"
-              }`}
-            >
-              {cat.nombre}
-            </button>
-          ))}
+        {/* ── Botón "Filtrar" solo en mobile — en desktop el árbol ya está siempre visible al costado ── */}
+        <button
+          type="button" onClick={() => setFiltroMobileAbierto(true)}
+          className="flex w-full items-center justify-between rounded-xl border border-(--kt-border) bg-white px-4 py-2.5 text-sm font-semibold text-(--kt-ink) lg:hidden"
+        >
+          <span className="flex items-center gap-2">
+            <SlidersHorizontal size={15} className="text-(--kt-ink-soft)" />
+            {categoriaActual ? categoriaActual.nombre : "Todas las categorías"}
+          </span>
+          <span className="text-xs text-(--kt-ink-soft)">Filtrar</span>
+        </button>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr] lg:items-start">
+
+          {/* ── Árbol de categorías — sidebar fijo en desktop ── */}
+          <aside className="hidden rounded-2xl border border-(--kt-border) bg-white p-3 shadow-sm lg:block lg:sticky lg:top-6">
+            <CategoriasArbol categorias={categorias} categoriaId={categoriaId} onSeleccionar={elegirCategoria} />
+          </aside>
+
+          {/* ── Grilla de productos ── */}
+          {cargando ? (
+            <div className="rounded-2xl border border-(--kt-border) bg-white shadow-sm">
+              <AdminSpinner />
+            </div>
+          ) : productos.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-(--kt-border) bg-white">
+              <AdminEmptyState
+                title={busquedaAplicada ? `Ningún producto coincide con "${busquedaAplicada}".` : "No hay productos en esta categoría todavía."}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+              {productos.map((p, i) => <ProductoCard key={p.id} producto={p} index={i} />)}
+            </div>
+          )}
+
         </div>
 
-        {/* ── Subcategorías (nivel 2) ── */}
-        {subcategorias.length > 0 && (
-          <div className="flex flex-wrap gap-2 border-t border-(--kt-border) pt-3">
-            {subcategorias.map((sub) => (
-              <button
-                key={sub.id} type="button" onClick={() => elegirCategoria(sub.id)}
-                className="rounded-full border border-(--kt-border) bg-white px-3 py-1 text-xs font-medium text-(--kt-ink-soft) hover:border-(--kt-turquoise) hover:text-(--kt-teal-700)"
-              >
-                {sub.nombre}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* ── Grilla de productos ── */}
-        {cargando ? (
-          <div className="rounded-2xl border border-(--kt-border) bg-white shadow-sm">
-            <AdminSpinner />
-          </div>
-        ) : productos.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-(--kt-border) bg-white">
-            <AdminEmptyState
-              title={busquedaAplicada ? `Ningún producto coincide con "${busquedaAplicada}".` : "No hay productos en esta categoría todavía."}
-            />
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {productos.map((p, i) => <ProductoCard key={p.id} producto={p} index={i} />)}
-          </div>
-        )}
-
       </div>
+
+      {/* ── Panel de categorías en mobile (drawer) ── */}
+      {filtroMobileAbierto && (
+        <div className="fixed inset-0 z-(--z-modal) lg:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setFiltroMobileAbierto(false)} aria-hidden="true" />
+          <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] overflow-y-auto bg-white p-4 shadow-xl">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-sm font-bold text-(--kt-ink)">Categorías</span>
+              <button type="button" onClick={() => setFiltroMobileAbierto(false)} aria-label="Cerrar">
+                <X size={18} className="text-(--kt-ink-soft)" />
+              </button>
+            </div>
+            <CategoriasArbol categorias={categorias} categoriaId={categoriaId} onSeleccionar={elegirCategoria} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

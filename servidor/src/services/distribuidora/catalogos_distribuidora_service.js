@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { sequelize } from "../../database/sequelize.js";
-import { CategoriaDistribuidora, ProductoDistribuidora } from "../../models/index.js";
+import { CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora, CarritoDistribuidoraItem } from "../../models/index.js";
 import { crearCrudService } from "../common/crud_service.js";
 import { capitalizar } from "../common/query_helpers.js";
 
@@ -52,18 +52,54 @@ export async function actualizarCategoria(id, { nombre, slug, padre_id = null })
   return cat;
 }
 
-// Eliminación definitiva — bloqueada si hay productos usándola, promueve
-// subcategorías a raíz en vez de arrastrarlas (igual criterio que Categoria).
+// Eliminación definitiva — bloqueada si hay productos ACTIVOS usándola,
+// promueve subcategorías a raíz en vez de arrastrarlas (igual criterio que
+// Categoria).
+//
+// Un producto ya eliminado (soft-delete, fecha_baja seteada) es invisible en
+// toda la app pero la fila sigue existiendo — y producto_distribuidora.categoria_id
+// no tiene ON DELETE CASCADE/SET NULL, así que esa fila igual bloquearía el
+// DELETE de la categoría con un error de foreign key si no se limpia. Como ya
+// está soft-deleted (el admin ya decidió borrarlo), se purga de verdad acá:
+// primero sus variedades y cualquier ítem de carrito que las referencie
+// (nota_pedido_item apunta a ambas con ON DELETE SET NULL, así que el
+// historial de pedidos ya entregados/pendientes no se toca), y por último el
+// producto. Todo en una transacción para no dejar un estado a medias si algo falla.
 export async function eliminarCategoria(id) {
   const cat = await CategoriaDistribuidora.findByPk(id);
   if (!cat) return { ok: false, motivo: "no_encontrada" };
 
-  const tieneProductos = await ProductoDistribuidora.count({ where: { categoria_id: id } });
-  if (tieneProductos > 0) {
-    return { ok: false, motivo: "en_uso", cantidad: tieneProductos };
+  const productosActivos = await ProductoDistribuidora.count({ where: { categoria_id: id, fecha_baja: null } });
+  if (productosActivos > 0) {
+    return { ok: false, motivo: "en_uso", cantidad: productosActivos };
   }
 
-  await CategoriaDistribuidora.update({ padre_id: null }, { where: { padre_id: id } });
-  await cat.destroy();
-  return { ok: true };
+  return sequelize.transaction(async (t) => {
+    const productosEliminados = await ProductoDistribuidora.findAll({
+      where: { categoria_id: id, fecha_baja: { [Op.ne]: null } },
+      attributes: ["id"],
+      transaction: t,
+    });
+
+    if (productosEliminados.length > 0) {
+      const idsProductos = productosEliminados.map((p) => p.id);
+      const variedades = await VariedadDistribuidora.findAll({
+        where: { producto_id: { [Op.in]: idsProductos } },
+        attributes: ["id"],
+        transaction: t,
+      });
+      const idsVariedades = variedades.map((v) => v.id);
+
+      if (idsVariedades.length > 0) {
+        await CarritoDistribuidoraItem.destroy({ where: { variedad_id: { [Op.in]: idsVariedades } }, transaction: t });
+        await VariedadDistribuidora.destroy({ where: { id: { [Op.in]: idsVariedades } }, transaction: t });
+      }
+      await CarritoDistribuidoraItem.destroy({ where: { producto_id: { [Op.in]: idsProductos } }, transaction: t });
+      await ProductoDistribuidora.destroy({ where: { id: { [Op.in]: idsProductos } }, transaction: t });
+    }
+
+    await CategoriaDistribuidora.update({ padre_id: null }, { where: { padre_id: id }, transaction: t });
+    await cat.destroy({ transaction: t });
+    return { ok: true };
+  });
 }
