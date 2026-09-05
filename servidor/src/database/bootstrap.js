@@ -28,6 +28,7 @@ export async function bootstrap_database() {
   await crear_schema();
   await aplicar_ajustes_puntuales();
   await sincronizar_modelos();
+  await crear_indice_busqueda_productos();
   await backfill_pago_legado();
   console.log("✅ Bootstrap finalizado correctamente");
 }
@@ -206,6 +207,33 @@ async function sincronizar_modelos() {
       throw error;
     }
   }
+}
+
+/**
+ * Índice de búsqueda de productos por nombre — el buscador del catálogo usa
+ * `ILIKE '%texto%'` (comodín adelante, ver producto_distribuidora_service.js)
+ * porque el usuario busca por cualquier parte del nombre, no solo el
+ * principio; un índice B-tree normal no sirve para eso. pg_trgm + GIN sí.
+ * No se declara en el array `indexes` del modelo porque esta versión de
+ * Sequelize no soporta la clase de operador `gin_trgm_ops` ahí (generaría
+ * el índice sin opclass y Postgres lo rechazaría) — se crea a mano acá.
+ * Corre DESPUÉS de sincronizar_modelos() porque necesita que la tabla ya
+ * exista (en un deploy con eccomerce_distribuidora apagado, no existe).
+ */
+async function crear_indice_busqueda_productos() {
+  const [{ existe }] = await sequelize.query(`
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.tables
+      WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'producto_distribuidora'
+    ) AS existe
+  `, { type: QueryTypes.SELECT });
+  if (!existe) return;
+
+  await sequelize.query("CREATE EXTENSION IF NOT EXISTS pg_trgm");
+  await sequelize.query(`
+    CREATE INDEX IF NOT EXISTS producto_distribuidora_nombre_trgm_idx
+    ON "${DB_SCHEMA}".producto_distribuidora USING gin (nombre gin_trgm_ops)
+  `);
 }
 
 /**

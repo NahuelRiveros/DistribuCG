@@ -14,6 +14,22 @@ const INCLUDE_LISTADO = [
   },
 ];
 
+// Cache en memoria del árbol de categorías (solo id/padre_id) — las
+// categorías cambian rarísima vez, pero antes se releía la tabla entera en
+// CADA búsqueda de productos con filtro de categoría. TTL corto en vez de
+// invalidación cruzada con catalogos_distribuidora_service.js: a los 60s se
+// autocorrige solo, no hace falta acoplar los dos archivos.
+let cacheArbolCategorias = { filas: null, expiraEn: 0 };
+async function obtenerCategoriasCacheadas() {
+  if (Date.now() > cacheArbolCategorias.expiraEn) {
+    const filas = await CategoriaDistribuidora.findAll({
+      where: { fecha_baja: null }, attributes: ["id", "padre_id"],
+    });
+    cacheArbolCategorias = { filas, expiraEn: Date.now() + 60_000 };
+  }
+  return cacheArbolCategorias.filas;
+}
+
 // Una categoría "padre" (ej. Comestibles) normalmente no tiene productos
 // cargados directo — están en sus subcategorías (Galletitas, Fideos, etc.).
 // Filtrar por categoria_id exacto dejaba la categoría padre siempre vacía.
@@ -21,9 +37,7 @@ const INCLUDE_LISTADO = [
 // cualquier profundidad) para que filtrar por el padre traiga todo lo de
 // abajo también.
 async function idsConDescendientes(categoriaId) {
-  const todas = await CategoriaDistribuidora.findAll({
-    where: { fecha_baja: null }, attributes: ["id", "padre_id"],
-  });
+  const todas = await obtenerCategoriasCacheadas();
   const hijosPorPadre = new Map();
   for (const c of todas) {
     if (!hijosPorPadre.has(c.padre_id)) hijosPorPadre.set(c.padre_id, []);
