@@ -1,9 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ShoppingBag, Package, ChevronRight, Minus, Plus } from "lucide-react";
+import { ShoppingBag, Package, ChevronRight, Minus, Plus, Check, AlertTriangle } from "lucide-react";
 import { getProducto } from "../api/producto_distribuidora_api.js";
 import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
 import { precioSinIva, formatearPrecio } from "../utils/precio_iva.js";
+
+// Estilos por resultado del click en "Agregar al pedido" — antes el mensaje
+// de error usaba el mismo verde que el de éxito (bug real, no solo estético).
+const ESTILO_BOTON = {
+  idle:      "bg-blue-600 hover:bg-blue-500",
+  agregando: "bg-blue-600",
+  ok:        "bg-emerald-600",
+  error:     "bg-rose-600 kt-shake",
+};
 
 export default function ProductoDetalleDistribuidoraPage() {
   const { id } = useParams();
@@ -12,8 +21,10 @@ export default function ProductoDetalleDistribuidoraPage() {
   const [cargando, setCargando] = useState(true);
   const [variedadId, setVariedadId] = useState(null);
   const [cantidad, setCantidad] = useState(1);
-  const [agregando, setAgregando] = useState(false);
-  const [mensaje, setMensaje] = useState("");
+  const [estado, setEstado] = useState("idle"); // idle | agregando | ok | error
+  const [errorTexto, setErrorTexto] = useState("");
+  const timeoutRef = useRef(null);
+  useEffect(() => () => clearTimeout(timeoutRef.current), []);
 
   useEffect(() => {
     setCargando(true);
@@ -52,18 +63,22 @@ export default function ProductoDetalleDistribuidoraPage() {
   const maxCantidad = variedad?.controla_stock ? variedad.cantidad : 99;
 
   async function agregar() {
-    if (!variedad) return;
-    setAgregando(true);
-    setMensaje("");
+    if (!variedad || estado === "agregando") return;
+    setEstado("agregando");
     try {
       await addItem({ producto_id: producto.id, variedad_id: variedad.id, cantidad });
-      setMensaje("Agregado al pedido ✓");
-    } catch {
-      setMensaje("No se pudo agregar");
+      setEstado("ok");
+    } catch (e) {
+      setErrorTexto(e?.response?.data?.mensaje || "No se pudo agregar, probá de nuevo");
+      setEstado("error");
     } finally {
-      setAgregando(false);
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setEstado("idle"), 2200);
     }
   }
+
+  const IconoBoton = estado === "ok" ? Check : estado === "error" ? AlertTriangle : ShoppingBag;
+  const textoBoton = { idle: "Agregar al pedido", agregando: "Agregando…", ok: "¡Agregado!", error: "No se pudo" }[estado];
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-8">
@@ -144,20 +159,23 @@ export default function ProductoDetalleDistribuidoraPage() {
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 rounded-xl border border-slate-200 px-1 py-1">
                       <button type="button" onClick={() => setCantidad((c) => Math.max(1, c - 1))}
-                        className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800"><Minus size={14} /></button>
+                        className="rounded-lg p-1.5 text-slate-500 transition active:scale-90 hover:bg-slate-100 hover:text-slate-800"><Minus size={14} /></button>
                       <span className="w-7 text-center text-sm font-semibold tabular-nums">{cantidad}</span>
                       <button type="button" onClick={() => setCantidad((c) => Math.min(c + 1, maxCantidad))}
-                        className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800"><Plus size={14} /></button>
+                        className="rounded-lg p-1.5 text-slate-500 transition active:scale-90 hover:bg-slate-100 hover:text-slate-800"><Plus size={14} /></button>
                     </div>
                     <button
-                      type="button" onClick={agregar} disabled={agregando || sinStock || !variedad}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-60"
+                      type="button" onClick={agregar} disabled={estado === "agregando" || sinStock || !variedad}
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm transition active:scale-95 disabled:opacity-60 ${ESTILO_BOTON[estado]}`}
                     >
-                      <ShoppingBag size={15} /> {agregando ? "Agregando…" : "Agregar al pedido"}
+                      <IconoBoton key={estado} size={15} className={estado === "ok" || estado === "error" ? "kt-pop" : ""} />
+                      {textoBoton}
                     </button>
                   </div>
                 </div>
-                {mensaje && <p className="mt-2 text-right text-xs font-semibold text-emerald-600">{mensaje}</p>}
+                {estado === "error" && (
+                  <p className="kt-item-in mt-2 text-right text-xs font-semibold text-rose-600">{errorTexto}</p>
+                )}
               </>
             )}
           </div>

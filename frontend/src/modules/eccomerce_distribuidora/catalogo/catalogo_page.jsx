@@ -1,14 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ShoppingBag, Package, Search, X } from "lucide-react";
+import { ShoppingBag, Package, Search, X, Check, AlertTriangle } from "lucide-react";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getProductos } from "../api/producto_distribuidora_api.js";
 import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
 import { precioSinIva, formatearPrecio } from "../utils/precio_iva.js";
 
-function ProductoCard({ producto }) {
+// Estados del botón de agregado rápido — el ícono/color/texto reflejan el
+// resultado real (antes un error quedaba silenciado: sin catch, sin aviso).
+const ESTILO_BOTON = {
+  idle:      "bg-blue-600 hover:bg-blue-500",
+  agregando: "bg-blue-600",
+  agregado:  "bg-emerald-600",
+  error:     "bg-rose-500 kt-shake",
+};
+
+function ProductoCard({ producto, index }) {
   const { addItem } = useCarritoDistribuidora();
-  const [agregando, setAgregando] = useState(false);
+  const [estado, setEstado] = useState("idle"); // idle | agregando | agregado | error
+  const timeoutRef = useRef(null);
+  useEffect(() => () => clearTimeout(timeoutRef.current), []);
+
   const variedades = producto.variedades ?? [];
   const variedadMin = variedades.length
     ? variedades.reduce((min, v) => (Number(v.precio) < Number(min.precio) ? v : min))
@@ -18,17 +30,31 @@ function ProductoCard({ producto }) {
   const sinStock = unaSolaVariedad && variedades[0].controla_stock && variedades[0].cantidad <= 0;
 
   async function agregarRapido() {
-    if (!unaSolaVariedad) return;
-    setAgregando(true);
+    if (!unaSolaVariedad || estado === "agregando") return;
+    setEstado("agregando");
+    let falló = false;
     try {
       await addItem({ producto_id: producto.id, variedad_id: variedades[0].id, cantidad: 1 });
+      setEstado("agregado");
+    } catch {
+      falló = true;
+      setEstado("error");
     } finally {
-      setAgregando(false);
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setEstado("idle"), falló ? 1600 : 1100);
     }
   }
 
+  const IconoBoton = estado === "agregado" ? Check : estado === "error" ? AlertTriangle : ShoppingBag;
+  const textoBoton = sinStock
+    ? "Sin stock"
+    : { idle: "Agregar", agregando: "Agregando…", agregado: "¡Listo!", error: "No se pudo" }[estado];
+
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <div
+      style={{ animationDelay: `${Math.min((index ?? 0) * 30, 300)}ms` }}
+      className="kt-item-in group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    >
       <Link to={`/distribuidora/catalogo/${producto.id}`} className="relative block aspect-square overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
         {producto.imagen_url ? (
           <img src={producto.imagen_url} alt={producto.nombre} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
@@ -70,10 +96,13 @@ function ProductoCard({ producto }) {
 
           {unaSolaVariedad ? (
             <button
-              type="button" onClick={agregarRapido} disabled={agregando || sinStock}
-              className="inline-flex w-full items-center justify-center gap-1 rounded-xl bg-blue-600 px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-blue-500 disabled:opacity-60"
+              type="button" onClick={agregarRapido} disabled={estado === "agregando" || sinStock}
+              className={`inline-flex w-full items-center justify-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold text-white shadow-sm transition active:scale-95 disabled:opacity-60 ${
+                sinStock ? "bg-slate-300" : ESTILO_BOTON[estado]
+              }`}
             >
-              <ShoppingBag size={13} /> {sinStock ? "Sin stock" : agregando ? "..." : "Agregar"}
+              <IconoBoton key={estado} size={13} className={estado === "agregado" || estado === "error" ? "kt-pop" : ""} />
+              {textoBoton}
             </button>
           ) : (
             <Link to={`/distribuidora/catalogo/${producto.id}`}
@@ -218,7 +247,7 @@ export default function CatalogoDistribuidoraPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {productos.map((p) => <ProductoCard key={p.id} producto={p} />)}
+            {productos.map((p, i) => <ProductoCard key={p.id} producto={p} index={i} />)}
           </div>
         )}
 
