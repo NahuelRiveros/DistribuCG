@@ -46,25 +46,45 @@ export default function ProductosDistribuidoraPage() {
   // { [categoria_id]: producto[] } — solo tiene entradas para categorías que
   // ya se expandieron alguna vez (o que aparecieron en una búsqueda).
   const [productosPorCategoria, setProductosPorCategoria] = useState({});
+  // { [categoria_id]: { pagina, totalPaginas } } — de cuántas hay cargadas
+  // hoy vs. cuántas existen en total, para poder ofrecer "Cargar más" en vez
+  // de truncar en silencio una categoría con más de 1000 productos.
+  const [paginacionPorCategoria, setPaginacionPorCategoria] = useState({});
   // Qué categorías ya se pidieron al servidor (loading o listo) — evita
   // repetir el fetch cada vez que se vuelve a expandir la misma categoría.
   const cargadasRef = useRef(new Set());
   const [errorProducto, setErrorProducto] = useState("");
 
-  async function cargarProductosDeCategoria(categoriaId, { forzar = false } = {}) {
-    if (!forzar && cargadasRef.current.has(categoriaId)) return;
-    cargadasRef.current.add(categoriaId);
+  async function cargarProductosDeCategoria(categoriaId, { forzar = false, pagina = 1 } = {}) {
+    // El guard de "ya cargada" solo aplica a la primera página — "Cargar más"
+    // (pagina > 1) siempre tiene que pegarle al servidor, nunca se saltea.
+    if (pagina === 1) {
+      if (!forzar && cargadasRef.current.has(categoriaId)) return;
+      cargadasRef.current.add(categoriaId);
+    }
     try {
       // incluirDescendientes:false — acá queremos SOLO lo propio de esta
       // categoría puntual; las subcategorías ya están en el árbol aparte,
       // si además tuviéramos los descendientes se duplicaría/mezclaría todo
-      // bajo el nodo equivocado.
-      const r = await getProductos({ categoria: categoriaId, incluirDescendientes: false, por_pagina: 1000 });
-      setProductosPorCategoria((prev) => ({ ...prev, [categoriaId]: r.data ?? [] }));
+      // bajo el nodo equivocado. por_pagina:1000 sigue siendo el tamaño de
+      // página (alcanza para casi cualquier categoría en un solo pedido) —
+      // lo que cambia es que ahora SE PUEDE pedir la página siguiente en vez
+      // de perder en silencio lo que sobra de la 1000.
+      const r = await getProductos({ categoria: categoriaId, incluirDescendientes: false, pagina, por_pagina: 1000 });
+      setProductosPorCategoria((prev) => ({
+        ...prev,
+        [categoriaId]: pagina === 1 ? (r.data ?? []) : [...(prev[categoriaId] ?? []), ...(r.data ?? [])],
+      }));
+      setPaginacionPorCategoria((prev) => ({ ...prev, [categoriaId]: { pagina: r.pagina, totalPaginas: r.total_paginas } }));
     } catch {
-      cargadasRef.current.delete(categoriaId); // permite reintentar si falló
+      if (pagina === 1) cargadasRef.current.delete(categoriaId); // permite reintentar si falló
       setErrorProducto("No se pudieron cargar los productos de esa categoría");
     }
+  }
+
+  function cargarMasDeCategoria(categoriaId) {
+    const siguiente = (paginacionPorCategoria[categoriaId]?.pagina ?? 1) + 1;
+    return cargarProductosDeCategoria(categoriaId, { pagina: siguiente });
   }
 
   function refrescarCategoria(categoriaId) {
@@ -86,13 +106,18 @@ export default function ProductosDistribuidoraPage() {
   // pega al servidor sin restricción de categoría para encontrar productos
   // en categorías todavía no expandidas, y los suma al cache por categoría.
   const busquedaTimeoutRef = useRef(null);
+  // Si la búsqueda global (sin filtro de categoría) tiene más de 100
+  // coincidencias, las que sobran no llegan — antes esto pasaba en silencio;
+  // ahora queda registrado para avisarle al admin que refine la búsqueda.
+  const [busquedaTotal, setBusquedaTotal] = useState(null);
   function onQueryChange(texto) {
     clearTimeout(busquedaTimeoutRef.current);
     const q = texto.trim();
-    if (!q) return;
+    if (!q) { setBusquedaTotal(null); return; }
     busquedaTimeoutRef.current = setTimeout(async () => {
       try {
         const r = await getProductos({ q, por_pagina: 100 });
+        setBusquedaTotal(r.total ?? null);
         const porCategoria = {};
         for (const p of r.data ?? []) (porCategoria[p.categoria_id] ??= []).push(p);
         setProductosPorCategoria((prev) => {
@@ -223,11 +248,19 @@ export default function ProductosDistribuidoraPage() {
     });
   }
 
-  // El árbol combina dos entidades: categorías (todas, eager) y productos
-  // (solo los de las categorías ya expandidas/buscadas). Prefijamos los ids
-  // para que no choquen entre sí.
+  // El árbol combina tres tipos de nodo: categorías (todas, eager), productos
+  // (solo los de las categorías ya expandidas/buscadas) y un pseudo-nodo
+  // "cargar más" por cada categoría que todavía tiene páginas sin traer (más
+  // de 1000 productos propios). Prefijamos los ids para que no choquen.
   const treeItems = useMemo(() => {
     const productosFlat = Object.values(productosPorCategoria).flat();
+    const cargarMasItems = Object.entries(paginacionPorCategoria)
+      .filter(([, info]) => info.pagina < info.totalPaginas)
+      .map(([catId, info]) => ({
+        tipo: "cargar_mas", categoriaId: Number(catId),
+        treeId: `cargar-mas-${catId}`, treeParentId: `cat-${catId}`,
+        restantes: info.totalPaginas - info.pagina,
+      }));
     return [
       ...categorias.map((c) => ({
         ...c, tipo: "categoria",
@@ -240,18 +273,35 @@ export default function ProductosDistribuidoraPage() {
         ...p, tipo: "producto",
         treeId: `prod-${p.id}`, treeParentId: `cat-${p.categoria_id}`,
       })),
+      ...cargarMasItems,
     ];
-  }, [categorias, productosPorCategoria]);
+  }, [categorias, productosPorCategoria, paginacionPorCategoria]);
 
   function renderLabel(nodo) {
     if (nodo.tipo === "categoria") {
       return <span className="font-semibold text-slate-800">{nodo.nombre}</span>;
+    }
+    if (nodo.tipo === "cargar_mas") {
+      return (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); cargarMasDeCategoria(nodo.categoriaId); }}
+          className="text-xs font-bold text-blue-600 hover:underline"
+        >
+          Cargar más productos… ({nodo.restantes} página{nodo.restantes === 1 ? "" : "s"} más)
+        </button>
+      );
     }
     return (
       <span className="flex flex-wrap items-center gap-2">
         <span className="font-medium text-slate-700">{nodo.nombre}</span>
         {nodo.marca && <span className="text-xs text-slate-400">({nodo.marca})</span>}
         <span className="text-xs text-slate-400">{nodo.variedades?.length ?? 0} var.</span>
+        {nodo.fecha_alta && (
+          <span className="text-[11px] text-slate-400" title="Fecha de alta">
+            Agregado {new Date(nodo.fecha_alta).toLocaleDateString("es-AR", { timeZone: "UTC" })}
+          </span>
+        )}
         <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${nodo.activo ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
           {nodo.activo ? <ShieldCheck size={9} /> : <ShieldOff size={9} />}
           {nodo.activo ? "Activo" : "Inactivo"}
@@ -309,6 +359,12 @@ export default function ProductosDistribuidoraPage() {
         </div>
 
         <ErrorBanner message={errorCategorias || errorProducto} />
+
+        {busquedaTotal > 100 && (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+            Se encontraron {busquedaTotal} resultados — mostrando los primeros 100. Refiná la búsqueda para ver el resto.
+          </p>
+        )}
 
         <TreeView
           items={treeItems}

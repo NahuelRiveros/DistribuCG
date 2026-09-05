@@ -1,9 +1,13 @@
 import { Navigate } from "react-router-dom";
-import CatalogoDistribuidoraPage from "../../modules/eccomerce_distribuidora/catalogo/catalogo_page.jsx";
-import ProductoDetalleDistribuidoraPage from "../../modules/eccomerce_distribuidora/catalogo/producto_detalle_page.jsx";
+import ProductosDistribuidoraPage from "../../modules/eccomerce_distribuidora/productos/productos_page.jsx";
+import ProductoDetalleDistribuidoraPage from "../../modules/eccomerce_distribuidora/productos/producto_detalle_page.jsx";
 import NotaPedidoPage from "../../modules/eccomerce_distribuidora/carrito/nota_pedido_page.jsx";
 import MisPedidosPage from "../../modules/eccomerce_distribuidora/carrito/mis_pedidos_page.jsx";
-import ProductosDistribuidoraPage from "../../modules/eccomerce_distribuidora/admin/productos_page.jsx";
+// Aliaseado para no chocar con ProductosDistribuidoraPage (arriba) — son dos
+// componentes con el mismo nombre por default export en archivos distintos
+// (catálogo del cliente vs. árbol de categorías/productos del admin), nada
+// raro, solo hace falta un alias acá donde conviven en el mismo import.
+import AdminProductosPage from "../../modules/eccomerce_distribuidora/admin/productos_page.jsx";
 import NotasPedidoDistribuidoraPage from "../../modules/eccomerce_distribuidora/pedidos/notas_pedido_page.jsx";
 import ImportacionDistribuidoraPage from "../../modules/eccomerce_distribuidora/admin/importacion_page.jsx";
 import { protegida } from "./route_helpers.jsx";
@@ -21,7 +25,7 @@ const ROLES_ADMIN = ["admin", "staff"];
 const ROLES_VENTAS = ["admin", "vendedor"];
 
 export const eccomerceDistribuidoraRoutes = [
-  { path: "/distribuidora/catalogo", element: protegida(<CatalogoDistribuidoraPage />, ROLES_CLIENTE) },
+  { path: "/distribuidora/catalogo", element: protegida(<ProductosDistribuidoraPage />, ROLES_CLIENTE) },
   { path: "/distribuidora/catalogo/:id", element: protegida(<ProductoDetalleDistribuidoraPage />, ROLES_CLIENTE) },
   { path: "/distribuidora/carrito", element: protegida(<NotaPedidoPage />, ROLES_CLIENTE) },
   { path: "/distribuidora/mis-pedidos", element: protegida(<MisPedidosPage />, ROLES_CLIENTE) },
@@ -30,7 +34,7 @@ export const eccomerceDistribuidoraRoutes = [
   // productos se gestionan desde un solo lugar) — se deja el redirect por si
   // alguien tiene el link viejo guardado.
   { path: "/distribuidora/admin/categorias", element: <Navigate to="/distribuidora/admin/productos" replace /> },
-  { path: "/distribuidora/admin/productos", element: protegida(<ProductosDistribuidoraPage />, ROLES_ADMIN) },
+  { path: "/distribuidora/admin/productos", element: protegida(<AdminProductosPage />, ROLES_ADMIN) },
   { path: "/distribuidora/admin/importar", element: protegida(<ImportacionDistribuidoraPage />, ROLES_ADMIN) },
   { path: "/distribuidora/admin/notas-pedido", element: protegida(<NotasPedidoDistribuidoraPage />, ROLES_VENTAS) },
 ];

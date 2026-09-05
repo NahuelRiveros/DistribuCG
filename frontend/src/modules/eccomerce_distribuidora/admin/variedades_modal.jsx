@@ -28,6 +28,35 @@ function VariedadRow({ variedad, onGuardar, onEliminar }) {
   const [ivaPorcentaje, setIvaPorcentaje] = useState(variedad.iva_porcentaje ?? 21);
   const [controlaStock, setControlaStock] = useState(variedad.controla_stock ?? false);
   const [cantidad, setCantidad] = useState(variedad.cantidad ?? 0);
+  const [guardando, setGuardando] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
+
+  async function guardar() {
+    if (guardando) return; // ya hay un guardado en curso — ignora clicks repetidos
+    setGuardando(true);
+    try {
+      // Solo sale de edición si el guardado realmente terminó bien — antes
+      // cerraba el modo edición al toque, así que un guardado que fallaba
+      // dejaba la fila mostrando el valor viejo como si nada hubiese pasado.
+      const ok = await onGuardar(variedad.id, {
+        nombre: nombre.trim() || null, precio: Number(precio), iva_porcentaje: Number(ivaPorcentaje),
+        controla_stock: controlaStock, cantidad: controlaStock ? Number(cantidad) : 0,
+      });
+      if (ok) setEditando(false);
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function eliminar() {
+    if (eliminando) return;
+    setEliminando(true);
+    try {
+      await onEliminar(variedad.id);
+    } finally {
+      setEliminando(false);
+    }
+  }
 
   if (editando) {
     return (
@@ -41,17 +70,10 @@ function VariedadRow({ variedad, onGuardar, onEliminar }) {
         <ControlStock controlaStock={controlaStock} setControlaStock={setControlaStock} cantidad={cantidad} setCantidad={setCantidad} />
         <div className="flex shrink-0 gap-1">
           <button
-            type="button" title="Guardar"
-            onClick={() => {
-              onGuardar(variedad.id, {
-                nombre: nombre.trim() || null, precio: Number(precio), iva_porcentaje: Number(ivaPorcentaje),
-                controla_stock: controlaStock, cantidad: controlaStock ? Number(cantidad) : 0,
-              });
-              setEditando(false);
-            }}
-            className="rounded-lg bg-blue-600 p-1.5 text-white hover:bg-blue-500"><Check size={13} /></button>
-          <button type="button" title="Cancelar" onClick={() => setEditando(false)}
-            className="rounded-lg border border-gray-300 p-1.5 text-gray-500 hover:bg-gray-50"><X size={13} /></button>
+            type="button" title="Guardar" onClick={guardar} disabled={guardando}
+            className="rounded-lg bg-blue-600 p-1.5 text-white hover:bg-blue-500 disabled:opacity-60"><Check size={13} /></button>
+          <button type="button" title="Cancelar" onClick={() => setEditando(false)} disabled={guardando}
+            className="rounded-lg border border-gray-300 p-1.5 text-gray-500 hover:bg-gray-50 disabled:opacity-60"><X size={13} /></button>
         </div>
       </div>
     );
@@ -69,8 +91,8 @@ function VariedadRow({ variedad, onGuardar, onEliminar }) {
         {variedad.controla_stock ? `${variedad.cantidad} u.` : <span className="italic text-slate-400">Sin control</span>}
       </span>
       <div className="flex gap-1">
-        <button type="button" onClick={() => setEditando(true)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50"><Edit2 size={13} /></button>
-        <button type="button" onClick={() => onEliminar(variedad.id)} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"><Trash2 size={13} /></button>
+        <button type="button" onClick={() => setEditando(true)} disabled={eliminando} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50 disabled:opacity-60"><Edit2 size={13} /></button>
+        <button type="button" onClick={eliminar} disabled={eliminando} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50 disabled:opacity-60"><Trash2 size={13} /></button>
       </div>
     </div>
   );
@@ -85,37 +107,62 @@ export default function VariedadesModal({ producto, onClose, onCambio }) {
   const [nuevoControlaStock, setNuevoControlaStock] = useState(false);
   const [nuevoStock, setNuevoStock] = useState("0");
   const [error, setError] = useState("");
+  // Guarda contra doble-submit: sin esto, un click repetido mientras la
+  // request todavía está en vuelo disparaba un POST por cada click y creaba
+  // variedades duplicadas — el bug reportado ("tarda en cargar y si clickeo
+  // rápido confirma muchas veces").
+  const [guardandoNuevo, setGuardandoNuevo] = useState(false);
 
   useEffect(() => { setVariedades(producto?.variedades ?? []); }, [producto]);
 
   if (!producto) return null;
 
   async function agregar() {
+    if (guardandoNuevo) return;
     if (!nuevoPrecio) { setError("El precio es requerido"); return; }
     setError("");
-    const r = await crearVariedad(producto.id, {
-      nombre: nuevoNombre.trim() || null, precio: Number(nuevoPrecio), iva_porcentaje: Number(nuevoIva) || 21,
-      controla_stock: nuevoControlaStock, cantidad: nuevoControlaStock ? (Number(nuevoStock) || 0) : 0,
-    });
-    if (r?.ok === false) { setError(r.mensaje); return; }
-    setVariedades((prev) => [...prev, r.data]);
-    setNuevoNombre(""); setNuevoPrecio(""); setNuevoIva("21"); setNuevoControlaStock(false); setNuevoStock("0"); setAgregando(false);
-    onCambio();
+    setGuardandoNuevo(true);
+    try {
+      const r = await crearVariedad(producto.id, {
+        nombre: nuevoNombre.trim() || null, precio: Number(nuevoPrecio), iva_porcentaje: Number(nuevoIva) || 21,
+        controla_stock: nuevoControlaStock, cantidad: nuevoControlaStock ? (Number(nuevoStock) || 0) : 0,
+      });
+      if (r?.ok === false) { setError(r.mensaje); return; }
+      setVariedades((prev) => [...prev, r.data]);
+      setNuevoNombre(""); setNuevoPrecio(""); setNuevoIva("21"); setNuevoControlaStock(false); setNuevoStock("0"); setAgregando(false);
+      onCambio();
+    } catch (e) {
+      setError(e?.response?.data?.mensaje || "No se pudo agregar la variedad");
+    } finally {
+      setGuardandoNuevo(false);
+    }
   }
 
+  // Devuelve true/false — VariedadRow solo sale de modo edición si el
+  // guardado terminó bien de verdad, no apenas se hizo el click.
   async function guardarVariedad(id, payload) {
-    const r = await actualizarVariedad(id, payload);
-    if (r?.ok === false) { setError(r.mensaje); return; }
-    setVariedades((prev) => prev.map((v) => (v.id === id ? r.data : v)));
-    onCambio();
+    try {
+      const r = await actualizarVariedad(id, payload);
+      if (r?.ok === false) { setError(r.mensaje); return false; }
+      setVariedades((prev) => prev.map((v) => (v.id === id ? r.data : v)));
+      onCambio();
+      return true;
+    } catch (e) {
+      setError(e?.response?.data?.mensaje || "No se pudo guardar la variedad");
+      return false;
+    }
   }
 
   async function eliminarVariedadRow(id) {
     if (!window.confirm("¿Eliminar esta variedad?")) return;
-    const r = await eliminarVariedad(id);
-    if (r?.ok === false) { setError(r.mensaje); return; }
-    setVariedades((prev) => prev.filter((v) => v.id !== id));
-    onCambio();
+    try {
+      const r = await eliminarVariedad(id);
+      if (r?.ok === false) { setError(r.mensaje); return; }
+      setVariedades((prev) => prev.filter((v) => v.id !== id));
+      onCambio();
+    } catch (e) {
+      setError(e?.response?.data?.mensaje || "No se pudo eliminar la variedad");
+    }
   }
 
   return (
@@ -152,8 +199,10 @@ export default function VariedadesModal({ producto, onClose, onCambio }) {
                 className="min-w-0 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" />
               <ControlStock controlaStock={nuevoControlaStock} setControlaStock={setNuevoControlaStock} cantidad={nuevoStock} setCantidad={setNuevoStock} />
               <div className="flex shrink-0 gap-1">
-                <button type="button" title="Sumar" onClick={agregar} className="rounded-lg bg-emerald-600 p-1.5 text-white hover:bg-emerald-500"><Check size={13} /></button>
-                <button type="button" title="Cancelar" onClick={() => setAgregando(false)} className="rounded-lg border border-gray-300 p-1.5 text-gray-500 hover:bg-gray-50"><X size={13} /></button>
+                <button type="button" title="Sumar" onClick={agregar} disabled={guardandoNuevo}
+                  className="rounded-lg bg-emerald-600 p-1.5 text-white hover:bg-emerald-500 disabled:opacity-60"><Check size={13} /></button>
+                <button type="button" title="Cancelar" onClick={() => setAgregando(false)} disabled={guardandoNuevo}
+                  className="rounded-lg border border-gray-300 p-1.5 text-gray-500 hover:bg-gray-50 disabled:opacity-60"><X size={13} /></button>
               </div>
             </div>
           ) : (

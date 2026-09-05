@@ -4,7 +4,10 @@ import { ProductoDistribuidora, CategoriaDistribuidora, VariedadDistribuidora } 
 import { normalizarPaginacion, armarPaginacion } from "../common/pagination.js";
 import { capitalizar } from "../common/query_helpers.js";
 
-const ATTR_LISTADO = ["id", "categoria_id", "nombre", "descripcion", "marca", "imagen_url", "activo"];
+// fecha_alta viaja acá para que el admin pueda auditar cuándo se cargó cada
+// producto (columna DATEONLY ya existente en el modelo, antes no se
+// seleccionaba nunca — invisible aunque siempre estuvo en la base).
+const ATTR_LISTADO = ["id", "categoria_id", "nombre", "descripcion", "marca", "imagen_url", "activo", "fecha_alta"];
 
 const INCLUDE_LISTADO = [
   { model: CategoriaDistribuidora, as: "categoria", attributes: ["id", "nombre", "slug"] },

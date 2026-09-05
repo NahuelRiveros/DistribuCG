@@ -8,7 +8,7 @@ import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
 import ProductoCard from "./producto_card.jsx";
 import CategoriasArbol from "./categorias_arbol.jsx";
 
-export default function CatalogoDistribuidoraPage() {
+export default function ProductosDistribuidoraPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoriaUrl = searchParams.get("categoria");
   const [categorias, setCategorias] = useState([]);
@@ -30,6 +30,13 @@ export default function CatalogoDistribuidoraPage() {
   function elegirCategoria(id) {
     setCategoriaId(id);
     setFiltroMobileAbierto(false);
+  }
+
+  const hayFiltrosActivos = categoriaId !== null || busquedaAplicada !== "";
+
+  function limpiarFiltros() {
+    setBusqueda("");
+    setCategoriaId(null);
   }
 
   // Buscador con debounce — evita un pedido al servidor en cada tecla. La
@@ -77,20 +84,32 @@ export default function CatalogoDistribuidoraPage() {
         </div>
 
         {/* ── Buscador ── */}
-        <div className="relative">
-          <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-(--kt-ink-soft)" />
-          <input
-            value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar productos…"
-            className="w-full rounded-2xl border border-(--kt-border) bg-white py-2.5 pl-10 pr-9 text-sm text-(--kt-ink) outline-none transition focus:border-(--kt-teal-700) focus:ring-2 focus:ring-(--kt-turquoise)/30"
-          />
-          {busqueda && (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1">
+            <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-(--kt-ink-soft)" />
+            <input
+              value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar productos…"
+              className="w-full rounded-2xl border border-(--kt-border) bg-white py-2.5 pl-10 pr-9 text-sm text-(--kt-ink) outline-none transition focus:border-(--kt-teal-700) focus:ring-2 focus:ring-(--kt-turquoise)/30"
+            />
+            {busqueda && (
+              <button
+                type="button" onClick={() => setBusqueda("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-(--kt-ink-soft) hover:text-(--kt-ink)"
+                title="Limpiar búsqueda"
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+
+          {/* Resetea búsqueda + categoría juntos — el X de arriba solo limpia el texto. */}
+          {hayFiltrosActivos && (
             <button
-              type="button" onClick={() => setBusqueda("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-(--kt-ink-soft) hover:text-(--kt-ink)"
-              title="Limpiar búsqueda"
+              type="button" onClick={limpiarFiltros}
+              className="shrink-0 rounded-2xl border border-(--kt-border) bg-white px-3.5 py-2.5 text-sm font-semibold text-(--kt-ink-soft) transition hover:border-(--kt-turquoise) hover:text-(--kt-teal-700)"
             >
-              <X size={15} />
+              Limpiar filtros
             </button>
           )}
         </div>
@@ -123,6 +142,14 @@ export default function CatalogoDistribuidoraPage() {
             <div className="rounded-2xl border border-dashed border-(--kt-border) bg-white">
               <AdminEmptyState
                 title={busquedaAplicada ? `Ningún producto coincide con "${busquedaAplicada}".` : "No hay productos en esta categoría todavía."}
+                action={hayFiltrosActivos && (
+                  <button
+                    type="button" onClick={limpiarFiltros}
+                    className="rounded-xl bg-(--kt-teal-700) px-4 py-2 text-sm font-bold text-white transition hover:bg-(--kt-petrol)"
+                  >
+                    Limpiar filtros
+                  </button>
+                )}
               />
             </div>
           ) : (
