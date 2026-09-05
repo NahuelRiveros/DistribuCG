@@ -2,6 +2,7 @@ import {
   Sexo, TipoDocumento, TipoPersona, AlumnoEstado, TipoEjercicio,
   GrupoMuscular, HomeArea, CategoriaProducto, Patologia,
 } from "../../models/index.js";
+import { projectModules } from "../../configuracion_servidor/gate_config.js";
 
 async function seedCatalogo(Modelo, valores) {
   for (const descripcion of valores) {
@@ -32,16 +33,25 @@ export async function seed_catalogos() {
   await seedCatalogo(Sexo, ["Masculino", "Femenino", "Otro"]);
   await seedCatalogo(TipoDocumento, ["DNI", "Pasaporte", "CUIL"]);
   await seedCatalogo(TipoPersona, ["Alumno", "Profesor", "Administrativo", "Paciente Kinesiología"]);
-  // Orden fijo: el cron y varios services asumen Activo=1, Inactivo=2, Suspendido=3
-  await seedCatalogo(AlumnoEstado, ["Activo", "Inactivo", "Suspendido"]);
+  // Estas tres tablas están gateadas en bootstrap.js (solo se crean si el
+  // módulo correspondiente está en true) — sembrarlas sin el mismo chequeo
+  // rompe en deploys donde ese módulo está apagado (la tabla no existe).
+  if (projectModules.gym) {
+    // Orden fijo: el cron y varios services asumen Activo=1, Inactivo=2, Suspendido=3
+    await seedCatalogo(AlumnoEstado, ["Activo", "Inactivo", "Suspendido"]);
+  }
   await seedCatalogo(TipoEjercicio, ["Fuerza", "Kinesiología", "Cardio"]);
   await seed_grupos_musculares();
   await seedCatalogo(HomeArea, ["Gym", "Kinesiología", "General"]);
-  await seedCatalogo(CategoriaProducto, ["Bebidas", "Suplementos", "Snacks", "Accesorios", "Indumentaria"]);
-  await seedCatalogo(Patologia, [
-    "Lumbalgia", "Cervicalgia", "Dorsalgia", "Ciática",
-    "Esguince de tobillo", "Tendinitis de hombro", "Hernia de disco",
-    "Escoliosis", "Fascitis plantar", "Síndrome del túnel carpiano",
-    "Artrosis de rodilla", "Contractura muscular", "Desgarro muscular", "Bursitis",
-  ]);
+  if (projectModules.stock) {
+    await seedCatalogo(CategoriaProducto, ["Bebidas", "Suplementos", "Snacks", "Accesorios", "Indumentaria"]);
+  }
+  if (projectModules.kinesiologia) {
+    await seedCatalogo(Patologia, [
+      "Lumbalgia", "Cervicalgia", "Dorsalgia", "Ciática",
+      "Esguince de tobillo", "Tendinitis de hombro", "Hernia de disco",
+      "Escoliosis", "Fascitis plantar", "Síndrome del túnel carpiano",
+      "Artrosis de rodilla", "Contractura muscular", "Desgarro muscular", "Bursitis",
+    ]);
+  }
 }

@@ -1,22 +1,45 @@
-import { ShoppingBag, LayoutGrid, Package, ClipboardList, Upload } from "lucide-react";
+import {
+  ShoppingBag,
+  LayoutGrid,
+  Package,
+  ClipboardList,
+  Upload,
+  Boxes,
+} from "lucide-react";
 
-// Dropdown de primer nivel — igual forma que gymDropdown/kinesiologiaDropdown
-// en sus archivos hermanos. El gate maestro (projectModules.eccomerce_distribuidora,
-// de gate_config.js) se aplica en main.js, no acá.
+// Un link de primer nivel + dos dropdowns para el mismo módulo — mismas
+// reglas que gymLinks/gymDropdown/adminDropdown en sus archivos hermanos,
+// todos dueños de su propio árbol acá adentro. El gate maestro
+// (projectModules.eccomerce_distribuidora, de gate_config.js) se aplica en
+// main.js, no acá.
+//
+// Separados por audiencia y función (antes vivían los tres juntos en un
+// solo dropdown "Tienda", más un grupo "Administrar" adentro):
+//   - eccomerceDistribuidoraCatalogoLink ("Productos"): link directo, un
+//     solo destino no amerita un dropdown de un ítem.
+//   - eccomerceDistribuidoraDropdown ("Pedidos"): el pedido en curso del
+//     cliente y su historial.
+//   - eccomerceDistribuidoraAdminDropdown ("Distribuidora · Gestión"):
+//     equipo gestionando catálogo y pedidos recibidos.
+
+// "Productos" — link directo al catálogo (mismo filtro roles/modulo que
+// un ítem de dropdown, ver navbar_permissions.js: aplica igual a `links`).
+export const eccomerceDistribuidoraCatalogoLink = {
+  label: "Productos",
+  to: "/distribuidora/catalogo",
+  requiereAuth: true,
+  modulo: "eccomerce_distribuidora",
+  roles: ["cliente", "admin", "staff"],
+  icon: LayoutGrid,
+};
+
+// "Pedidos" — el pedido en curso del cliente y su historial.
 export const eccomerceDistribuidoraDropdown = {
   id: "eccomerce_distribuidora",
-  labelNoAuth: "Distribuidora",
-  labelAuth: "Distribuidora",
+  labelNoAuth: "Pedidos",
+  labelAuth: "Pedidos",
   icon: ShoppingBag,
   items: [
-    {
-      label: "Catálogo",
-      to: "/distribuidora/catalogo",
-      requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
-      roles: ["cliente", "admin", "staff"],
-      icon: LayoutGrid,
-    },
     {
       label: "Mi pedido",
       to: "/distribuidora/carrito",
@@ -33,20 +56,42 @@ export const eccomerceDistribuidoraDropdown = {
       roles: ["cliente", "admin", "staff"],
       icon: ClipboardList,
     },
+  ],
+};
+
+// "Distribuidora · Gestión" — administración del catálogo (admin/staff) y
+// de los pedidos recibidos (admin/vendedor, rol acotado aparte). El roles
+// de acá arriba es la UNIÓN de ambos, para que el dropdown se muestre si el
+// usuario puede ver AL MENOS un ítem — cada ítem filtra el suyo.
+export const eccomerceDistribuidoraAdminDropdown = {
+  id: "eccomerce_distribuidora_admin",
+  labelNoAuth: "Distribuidora · Gestión",
+  labelAuth: "Distribuidora · Gestión",
+  icon: Boxes,
+  items: [
     {
-      // Grupo — administración del catálogo (admin/staff) y de los pedidos
-      // recibidos (admin/vendedor, rol acotado aparte). El roles de acá
-      // arriba es la UNIÓN de ambos, para que el grupo se muestre si el
-      // usuario puede ver AL MENOS un hijo — cada hijo filtra el suyo.
-      label: "Administrar",
-      icon: Package,
+      label: "Catálogo (categorías y productos)",
+      to: "/distribuidora/admin/productos",
       requiereAuth: true,
-      roles: ["admin", "staff", "vendedor"],
-      children: [
-        { label: "Catálogo (categorías y productos)", to: "/distribuidora/admin/productos", requiereAuth: true, modulo: "eccomerce_distribuidora", roles: ["admin", "staff"], icon: Package },
-        { label: "Importar productos", to: "/distribuidora/admin/importar", requiereAuth: true, modulo: "eccomerce_distribuidora", roles: ["admin", "staff"], icon: Upload },
-        { label: "Notas de pedido", to: "/distribuidora/admin/notas-pedido", requiereAuth: true, modulo: "eccomerce_distribuidora", roles: ["admin", "vendedor"], icon: ClipboardList },
-      ],
+      modulo: "eccomerce_distribuidora",
+      roles: ["admin", "staff"],
+      icon: Package,
+    },
+    {
+      label: "Importar productos",
+      to: "/distribuidora/admin/importar",
+      requiereAuth: true,
+      modulo: "eccomerce_distribuidora",
+      roles: ["admin", "staff"],
+      icon: Upload,
+    },
+    {
+      label: "Notas de pedido",
+      to: "/distribuidora/admin/notas-pedido",
+      requiereAuth: true,
+      modulo: "eccomerce_distribuidora",
+      roles: ["admin", "vendedor"],
+      icon: ClipboardList,
     },
   ],
 };

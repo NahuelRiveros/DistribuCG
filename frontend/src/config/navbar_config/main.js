@@ -10,7 +10,11 @@ import { kinesiologiaDropdown } from "./kinesiologia_dropdown.js";
 import { eccomerceIndumentariaDropdown } from "./eccomerce_indumentaria_dropdown.js";
 import { adminDropdown } from "./admin_dropdown.js";
 import { superAdminDropdown } from "./super_admin_dropdown.js";
-import { eccomerceDistribuidoraDropdown } from "./eccomerce_distribuidora_dropdown.js";
+import {
+  eccomerceDistribuidoraCatalogoLink,
+  eccomerceDistribuidoraDropdown,
+  eccomerceDistribuidoraAdminDropdown,
+} from "./eccomerce_distribuidora_dropdown.js";
 
 // Un archivo por dropdown (gym_dropdown.js, kinesiologia_dropdown.js,
 // eccomerce_indumentaria_dropdown.js, admin_dropdown.js,
@@ -59,15 +63,16 @@ export const navbar_config = {
   },
 
   links: [
-    { label: "Home", to: "/", icon: Home },
+    { label: "Inicio", to: "/", icon: Home },
     ...(projectModules.gym ? gymLinks : []),
+    ...(projectModules.eccomerce_distribuidora ? [eccomerceDistribuidoraCatalogoLink] : []),
   ],
 
   dropdowns: [
     ...(projectModules.gym ? [gymDropdown] : []),
     ...(projectModules.kinesiologia ? [kinesiologiaDropdown] : []),
     ...(catalogConfig.enabled ? [eccomerceIndumentariaDropdown] : []),
-    ...(projectModules.eccomerce_distribuidora ? [eccomerceDistribuidoraDropdown]: []),
+    ...(projectModules.eccomerce_distribuidora ? [eccomerceDistribuidoraDropdown, eccomerceDistribuidoraAdminDropdown] : []),
     adminDropdown,
     superAdminDropdown,
   ],

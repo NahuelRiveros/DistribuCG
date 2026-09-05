@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../../../auth/auth_context.jsx";
 import { projectModules } from "../../../config/gate_config.js";
 import {
@@ -20,6 +20,15 @@ export function CarritoDistribuidoraProvider({ children }) {
   const [items,   setItems]   = useState([]);
   const [loading, setLoading] = useState(false);
   const [alertas, setAlertas] = useState(alertasVacias());
+  // Debounce de la petición real por item_id — el +/- de cantidad actualiza
+  // la UI al instante (ver setCantidad) pero solo manda UNA petición al
+  // servidor con la cantidad final tras una pausa de clicks, en vez de una
+  // por click (evita ráfagas de requests y respuestas fuera de orden
+  // pisándose entre sí).
+  const timersRef = useRef({});
+  useEffect(() => () => {
+    Object.values(timersRef.current).forEach(clearTimeout);
+  }, []);
 
   const procesarCarrito = useCallback((data) => {
     const alertasDetectadas = detectarAlertas(data);
@@ -59,19 +68,50 @@ export function CarritoDistribuidoraProvider({ children }) {
 
   const removeItem = useCallback(async (item_id) => {
     if (!isAuth) return;
-    const updated = await removeCarritoItem(item_id);
-    procesarCarrito(updated);
+    // Cancela un cambio de cantidad pendiente sobre este mismo ítem — ya no
+    // tiene sentido mandarlo, se está borrando.
+    clearTimeout(timersRef.current[item_id]);
+    delete timersRef.current[item_id];
+
+    // Optimista: desaparece de la UI al instante; si el servidor rechaza el
+    // borrado, se reinserta.
+    let removido;
+    setItems((prev) => {
+      removido = prev.find((i) => i.item_id === item_id);
+      return prev.filter((i) => i.item_id !== item_id);
+    });
+    try {
+      const updated = await removeCarritoItem(item_id);
+      procesarCarrito(updated);
+    } catch {
+      if (removido) setItems((prev) => [...prev, removido]);
+    }
   }, [isAuth, procesarCarrito]);
 
-  const setCantidad = useCallback(async (item_id, cantidad) => {
+  const setCantidad = useCallback((item_id, cantidad) => {
     if (!isAuth) return;
     const cantidadValida = sanitizarCantidad(cantidad);
     if (cantidadValida <= 0) {
       removeItem(item_id);
       return;
     }
-    const updated = await updateCarritoItem(item_id, cantidadValida);
-    procesarCarrito(updated);
+
+    // Optimista: el número cambia ya mismo en pantalla, sin esperar al
+    // servidor — antes cada click de +/- quedaba "colgado" hasta que
+    // volvía la respuesta completa del backend.
+    setItems((prev) => prev.map((i) => (i.item_id === item_id ? { ...i, cantidad: cantidadValida } : i)));
+
+    clearTimeout(timersRef.current[item_id]);
+    timersRef.current[item_id] = setTimeout(async () => {
+      try {
+        const updated = await updateCarritoItem(item_id, cantidadValida);
+        procesarCarrito(updated);
+      } catch {
+        // Falló (ej. sin stock) — resincronizamos con la verdad del servidor
+        // en vez de dejar la UI mostrando una cantidad que no se guardó.
+        getCarrito().then(procesarCarrito).catch(() => {});
+      }
+    }, 400);
   }, [isAuth, removeItem, procesarCarrito]);
 
   const clearCart = useCallback(async () => {
