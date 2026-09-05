@@ -1,120 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { ShoppingBag, Package, Search, X, Check, AlertTriangle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Search, X } from "lucide-react";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getProductos } from "../api/producto_distribuidora_api.js";
-import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
-import { precioSinIva, formatearPrecio } from "../utils/precio_iva.js";
-
-// Estados del botón de agregado rápido — el ícono/color/texto reflejan el
-// resultado real (antes un error quedaba silenciado: sin catch, sin aviso).
-const ESTILO_BOTON = {
-  idle:      "bg-blue-600 hover:bg-blue-500",
-  agregando: "bg-blue-600",
-  agregado:  "bg-emerald-600",
-  error:     "bg-rose-500 kt-shake",
-};
-
-function ProductoCard({ producto, index }) {
-  const { addItem } = useCarritoDistribuidora();
-  const [estado, setEstado] = useState("idle"); // idle | agregando | agregado | error
-  const timeoutRef = useRef(null);
-  useEffect(() => () => clearTimeout(timeoutRef.current), []);
-
-  const variedades = producto.variedades ?? [];
-  const variedadMin = variedades.length
-    ? variedades.reduce((min, v) => (Number(v.precio) < Number(min.precio) ? v : min))
-    : null;
-
-  const unaSolaVariedad = variedades.length === 1;
-  const sinStock = unaSolaVariedad && variedades[0].controla_stock && variedades[0].cantidad <= 0;
-
-  async function agregarRapido() {
-    if (!unaSolaVariedad || estado === "agregando") return;
-    setEstado("agregando");
-    let falló = false;
-    try {
-      await addItem({ producto_id: producto.id, variedad_id: variedades[0].id, cantidad: 1 });
-      setEstado("agregado");
-    } catch {
-      falló = true;
-      setEstado("error");
-    } finally {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => setEstado("idle"), falló ? 1600 : 1100);
-    }
-  }
-
-  const IconoBoton = estado === "agregado" ? Check : estado === "error" ? AlertTriangle : ShoppingBag;
-  const textoBoton = sinStock
-    ? "Sin stock"
-    : { idle: "Agregar", agregando: "Agregando…", agregado: "¡Listo!", error: "No se pudo" }[estado];
-
-  return (
-    <div
-      style={{ animationDelay: `${Math.min((index ?? 0) * 30, 300)}ms` }}
-      className="kt-item-in group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-    >
-      <Link to={`/distribuidora/catalogo/${producto.id}`} className="relative block aspect-square overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
-        {producto.imagen_url ? (
-          <img src={producto.imagen_url} alt={producto.nombre} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <div className="rounded-full bg-white/70 p-4 text-slate-300 shadow-sm"><Package size={28} /></div>
-          </div>
-        )}
-        {sinStock && (
-          <span className="absolute left-2 top-2 rounded-full border border-slate-200 bg-white/95 px-2 py-0.5 text-[10px] font-bold text-slate-500">
-            Sin stock
-          </span>
-        )}
-      </Link>
-      <div className="flex flex-1 flex-col p-3.5">
-        {producto.marca && <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{producto.marca}</p>}
-        <Link to={`/distribuidora/catalogo/${producto.id}`} className="mt-0.5 line-clamp-2 text-sm font-bold text-slate-800 hover:text-blue-600">
-          {producto.nombre}
-        </Link>
-
-        {/* Precio y acción SIEMPRE apilados (no lado a lado) — con la grilla en
-            2 columnas en mobile la card queda angosta y "Desde $ X,XX" + un
-            botón en la misma fila se pisaban entre sí. */}
-        <div className="mt-auto space-y-2 pt-3">
-          <div className="min-w-0">
-            {variedadMin ? (
-              <>
-                <p className="font-extrabold text-slate-900">
-                  {variedades.length > 1 ? "Desde " : ""}{formatearPrecio(variedadMin.precio)}
-                </p>
-                <p className="truncate text-[11px] text-slate-400">
-                  Sin IVA: {formatearPrecio(precioSinIva(variedadMin.precio, variedadMin.iva_porcentaje))}
-                </p>
-              </>
-            ) : (
-              <p className="text-xs text-slate-400">Sin variedades</p>
-            )}
-          </div>
-
-          {unaSolaVariedad ? (
-            <button
-              type="button" onClick={agregarRapido} disabled={estado === "agregando" || sinStock}
-              className={`inline-flex w-full items-center justify-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold text-white shadow-sm transition active:scale-95 disabled:opacity-60 ${
-                sinStock ? "bg-slate-300" : ESTILO_BOTON[estado]
-              }`}
-            >
-              <IconoBoton key={estado} size={13} className={estado === "agregado" || estado === "error" ? "kt-pop" : ""} />
-              {textoBoton}
-            </button>
-          ) : (
-            <Link to={`/distribuidora/catalogo/${producto.id}`}
-              className="block w-full rounded-xl border border-slate-300 px-2.5 py-1.5 text-center text-xs font-semibold text-slate-600 transition hover:border-blue-300 hover:bg-slate-50">
-              Ver opciones
-            </Link>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
+import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
+import ProductoCard from "./producto_card.jsx";
 
 export default function CatalogoDistribuidoraPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -139,8 +30,10 @@ export default function CatalogoDistribuidoraPage() {
   }
 
   // Buscador con debounce — evita un pedido al servidor en cada tecla. La
-  // búsqueda se resuelve en el backend (listarProductos ya soporta `q`),
-  // no filtrando en el cliente, así también busca fuera de lo ya cargado.
+  // búsqueda se resuelve en el backend (listarProductos ya soporta `q`, con
+  // índice trigram para que ILIKE '%texto%' no escanee toda la tabla — ver
+  // servidor/src/database/bootstrap.js), no filtrando en el cliente, así
+  // también busca fuera de lo ya cargado.
   useEffect(() => {
     const t = setTimeout(() => setBusquedaAplicada(busqueda.trim()), 350);
     return () => clearTimeout(t);
@@ -171,26 +64,31 @@ export default function CatalogoDistribuidoraPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-8">
+    <div className="kt-body min-h-screen bg-(--kt-bg-soft) p-4 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-6">
 
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">Catálogo</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Buscá un producto o elegí una categoría.</p>
+          <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-(--kt-teal-700)">
+            Nuestra tienda
+          </span>
+          <h1 className="kt-display mt-1 text-3xl font-bold uppercase leading-none text-(--kt-ink) sm:text-4xl">
+            Productos
+          </h1>
+          <p className="mt-2 text-sm text-(--kt-ink-soft)">Buscá un producto o elegí una categoría.</p>
         </div>
 
         {/* ── Buscador ── */}
         <div className="relative">
-          <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-(--kt-ink-soft)" />
           <input
             value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar productos…"
-            className="w-full rounded-xl border border-gray-300 py-2.5 pl-10 pr-9 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25"
+            className="w-full rounded-2xl border border-(--kt-border) bg-white py-2.5 pl-10 pr-9 text-sm text-(--kt-ink) outline-none transition focus:border-(--kt-teal-700) focus:ring-2 focus:ring-(--kt-turquoise)/30"
           />
           {busqueda && (
             <button
               type="button" onClick={() => setBusqueda("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-(--kt-ink-soft) hover:text-(--kt-ink)"
               title="Limpiar búsqueda"
             >
               <X size={15} />
@@ -203,7 +101,9 @@ export default function CatalogoDistribuidoraPage() {
           <button
             type="button" onClick={() => elegirCategoria(null)}
             className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
-              categoriaId === null ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white text-slate-600 hover:border-blue-300"
+              categoriaId === null
+                ? "border-(--kt-teal-700) bg-(--kt-teal-700) text-white"
+                : "border-(--kt-border) bg-white text-(--kt-ink-soft) hover:border-(--kt-turquoise)"
             }`}
           >
             Todas
@@ -212,7 +112,9 @@ export default function CatalogoDistribuidoraPage() {
             <button
               key={cat.id} type="button" onClick={() => elegirCategoria(cat.id)}
               className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
-                categoriaId === cat.id ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white text-slate-600 hover:border-blue-300"
+                categoriaId === cat.id
+                  ? "border-(--kt-teal-700) bg-(--kt-teal-700) text-white"
+                  : "border-(--kt-border) bg-white text-(--kt-ink-soft) hover:border-(--kt-turquoise)"
               }`}
             >
               {cat.nombre}
@@ -222,11 +124,11 @@ export default function CatalogoDistribuidoraPage() {
 
         {/* ── Subcategorías (nivel 2) ── */}
         {subcategorias.length > 0 && (
-          <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-3">
+          <div className="flex flex-wrap gap-2 border-t border-(--kt-border) pt-3">
             {subcategorias.map((sub) => (
               <button
                 key={sub.id} type="button" onClick={() => elegirCategoria(sub.id)}
-                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 hover:border-blue-300 hover:text-blue-600"
+                className="rounded-full border border-(--kt-border) bg-white px-3 py-1 text-xs font-medium text-(--kt-ink-soft) hover:border-(--kt-turquoise) hover:text-(--kt-teal-700)"
               >
                 {sub.nombre}
               </button>
@@ -236,14 +138,14 @@ export default function CatalogoDistribuidoraPage() {
 
         {/* ── Grilla de productos ── */}
         {cargando ? (
-          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-16 text-center text-sm text-slate-400">
-            Cargando productos…
+          <div className="rounded-2xl border border-(--kt-border) bg-white shadow-sm">
+            <AdminSpinner />
           </div>
         ) : productos.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 px-5 py-16 text-center text-sm text-slate-400">
-            {busquedaAplicada
-              ? <>Ningún producto coincide con "{busquedaAplicada}".</>
-              : "No hay productos en esta categoría todavía."}
+          <div className="rounded-2xl border border-dashed border-(--kt-border) bg-white">
+            <AdminEmptyState
+              title={busquedaAplicada ? `Ningún producto coincide con "${busquedaAplicada}".` : "No hay productos en esta categoría todavía."}
+            />
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

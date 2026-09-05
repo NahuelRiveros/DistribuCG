@@ -4,7 +4,7 @@ import SelectField from "../../../controls/ui/select_field.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import { previsualizarImportacion, ejecutarImportacion } from "../api/importacion_distribuidora_api.js";
 
-// Campos que puede tener el catálogo del cliente — el admin elige qué
+// Campos que pueden tener los productos del cliente — el admin elige qué
 // columna del Excel/CSV corresponde a cada uno. Un renglón = una variedad
 // (precio/stock propios); si el producto no tiene variedades, se deja
 // "Variedad / presentación" sin mapear.
@@ -98,7 +98,7 @@ export default function ImportacionDistribuidoraPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900">Importar productos</h1>
           <p className="mt-0.5 text-sm text-slate-500">
-            Subí un Excel (.xlsx) o CSV con el catálogo — vos elegís qué columna es cada dato, no hace falta que venga en un formato fijo.
+            Subí un Excel (.xlsx) o CSV con los productos — vos elegís qué columna es cada dato, no hace falta que venga en un formato fijo.
           </p>
         </div>
 
@@ -107,7 +107,7 @@ export default function ImportacionDistribuidoraPage() {
         {paso === "subir" && (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
             <FileSpreadsheet size={40} className="mx-auto mb-3 text-slate-300" />
-            <p className="mb-4 text-sm text-slate-500">Seleccioná el archivo con el catálogo del cliente (.xlsx o .csv).</p>
+            <p className="mb-4 text-sm text-slate-500">Seleccioná el archivo con los productos del cliente (.xlsx o .csv).</p>
             <input ref={inputRef} type="file" accept=".xlsx,.csv" onChange={onArchivoSeleccionado} className="hidden" id="archivo-importacion" />
             <label
               htmlFor="archivo-importacion"

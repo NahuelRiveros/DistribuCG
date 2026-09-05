@@ -14,11 +14,11 @@ import VariedadesModal from "./variedades_modal.jsx";
 import AjustePreciosModal from "./ajuste_precios_modal.jsx";
 
 /**
- * ── página: catálogo unificado — categorías y productos en un solo árbol ──
+ * ── página: categorías y productos unificados en un solo árbol ──
  *
  * Los productos se cargan de a una categoría por vez, recién cuando esa
  * categoría se expande (no hay un "traer todos los productos" al entrar a
- * la página) — pensado para catálogos de miles de productos, donde traer
+ * la página) — pensado para miles de productos, donde traer
  * todo de una sería lento y la mayoría ni se llega a ver. Las categorías sí
  * son siempre eager (son pocas, no pesan). `cantidad_productos` viaja con
  * cada categoría (lo agrega el backend) así el árbol sabe qué nodos son
@@ -283,7 +283,7 @@ export default function ProductosDistribuidoraPage() {
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900">Catálogo</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900">Categorías y productos</h1>
             <p className="mt-0.5 text-sm text-slate-500">Categorías y productos en un solo lugar — cada producto necesita al menos una variedad con precio.</p>
           </div>
           <div className="flex flex-wrap gap-2 self-start sm:self-auto">

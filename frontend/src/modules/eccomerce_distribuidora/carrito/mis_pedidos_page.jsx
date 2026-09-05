@@ -24,7 +24,7 @@ export default function MisPedidosPage() {
         ) : notas.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 px-5 py-10 text-center text-sm text-slate-400">
             Todavía no enviaste ningún pedido.
-            <Link to="/distribuidora/catalogo" className="mt-2 block font-semibold text-blue-600">Ir al catálogo</Link>
+            <Link to="/distribuidora/catalogo" className="mt-2 block font-semibold text-blue-600">Ver productos</Link>
           </div>
         ) : (
           notas.map((nota) => {

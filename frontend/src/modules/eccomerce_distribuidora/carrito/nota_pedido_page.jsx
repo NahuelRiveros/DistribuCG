@@ -167,7 +167,7 @@ export default function NotaPedidoPage() {
           <ShoppingBag size={40} className="mx-auto mb-3 text-slate-300" />
           <p className="text-slate-500">Todavía no agregaste productos a tu pedido.</p>
           <Link to="/distribuidora/catalogo" className="mt-3 inline-block rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-500">
-            Ir al catálogo
+            Ver productos
           </Link>
         </div>
       </div>

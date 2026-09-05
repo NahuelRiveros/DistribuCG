@@ -8,8 +8,8 @@ import { precioSinIva, formatearPrecio } from "../utils/precio_iva.js";
 // Estilos por resultado del click en "Agregar al pedido" — antes el mensaje
 // de error usaba el mismo verde que el de éxito (bug real, no solo estético).
 const ESTILO_BOTON = {
-  idle:      "bg-blue-600 hover:bg-blue-500",
-  agregando: "bg-blue-600",
+  idle:      "bg-(--kt-teal-700) hover:bg-(--kt-petrol)",
+  agregando: "bg-(--kt-teal-700)",
   ok:        "bg-emerald-600",
   error:     "bg-rose-600 kt-shake",
 };
@@ -45,13 +45,13 @@ export default function ProductoDetalleDistribuidoraPage() {
   }, [variedadId]);
 
   if (cargando) {
-    return <div className="min-h-screen bg-slate-50 p-8 text-center text-sm text-slate-400">Cargando…</div>;
+    return <div className="min-h-screen bg-(--kt-bg-soft) p-8 text-center text-sm text-(--kt-ink-soft)">Cargando…</div>;
   }
   if (!producto) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8 text-center">
-        <p className="text-sm text-slate-500">Producto no encontrado.</p>
-        <Link to="/distribuidora/catalogo" className="mt-2 inline-block text-sm font-semibold text-blue-600">Volver al catálogo</Link>
+      <div className="min-h-screen bg-(--kt-bg-soft) p-8 text-center">
+        <p className="text-sm text-(--kt-ink-soft)">Producto no encontrado.</p>
+        <Link to="/distribuidora/catalogo" className="mt-2 inline-block text-sm font-semibold text-(--kt-teal-700)">Volver a productos</Link>
       </div>
     );
   }
@@ -81,37 +81,37 @@ export default function ProductoDetalleDistribuidoraPage() {
   const textoBoton = { idle: "Agregar al pedido", agregando: "Agregando…", ok: "¡Agregado!", error: "No se pudo" }[estado];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-8">
+    <div className="kt-body min-h-screen bg-(--kt-bg-soft) p-4 sm:p-8">
       <div className="mx-auto max-w-4xl">
-        <nav className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-slate-500">
-          <Link to="/distribuidora/catalogo" className="hover:text-blue-600">Catálogo</Link>
+        <nav className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-(--kt-ink-soft)">
+          <Link to="/distribuidora/catalogo" className="hover:text-(--kt-teal-700)">Productos</Link>
           {producto.categoria?.nombre && (
             <>
-              <ChevronRight size={13} className="text-slate-300" />
-              <Link to={`/distribuidora/catalogo?categoria=${producto.categoria.id}`} className="hover:text-blue-600">
+              <ChevronRight size={13} className="text-(--kt-border)" />
+              <Link to={`/distribuidora/catalogo?categoria=${producto.categoria.id}`} className="hover:text-(--kt-teal-700)">
                 {producto.categoria.nombre}
               </Link>
             </>
           )}
-          <ChevronRight size={13} className="text-slate-300" />
-          <span className="truncate text-slate-400">{producto.nombre}</span>
+          <ChevronRight size={13} className="text-(--kt-border)" />
+          <span className="truncate text-(--kt-ink-soft)">{producto.nombre}</span>
         </nav>
 
-        <div className="grid grid-cols-1 gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-2 sm:p-7">
-          <div className="aspect-square overflow-hidden rounded-xl bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="grid grid-cols-1 gap-6 rounded-2xl border border-(--kt-border) bg-white p-5 shadow-sm sm:grid-cols-2 sm:p-7">
+          <div className="aspect-square overflow-hidden rounded-xl bg-(--kt-bg-soft)">
             {producto.imagen_url ? (
               <img src={producto.imagen_url} alt={producto.nombre} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
-                <div className="rounded-full bg-white/70 p-6 text-slate-300 shadow-sm"><Package size={40} /></div>
+                <div className="rounded-full bg-white/70 p-6 text-(--kt-ink-soft) shadow-sm"><Package size={40} /></div>
               </div>
             )}
           </div>
 
           <div className="flex flex-col">
-            {producto.marca && <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{producto.marca}</p>}
-            <h1 className="mt-1 text-xl font-extrabold text-slate-900">{producto.nombre}</h1>
-            {producto.descripcion && <p className="mt-3 text-sm leading-6 text-slate-600">{producto.descripcion}</p>}
+            {producto.marca && <p className="text-xs font-semibold uppercase tracking-wide text-(--kt-ink-soft)">{producto.marca}</p>}
+            <h1 className="kt-display mt-1 text-xl font-bold text-(--kt-ink)">{producto.nombre}</h1>
+            {producto.descripcion && <p className="mt-3 text-sm leading-6 text-(--kt-ink-soft)">{producto.descripcion}</p>}
 
             {!producto.variedades?.length ? (
               <p className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
@@ -121,13 +121,15 @@ export default function ProductoDetalleDistribuidoraPage() {
               <>
                 {producto.variedades.length > 1 && (
                   <div className="mt-5">
-                    <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">Elegí una opción</p>
+                    <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-(--kt-ink-soft)">Elegí una opción</p>
                     <div className="flex flex-wrap gap-2">
                       {producto.variedades.map((v) => (
                         <button
                           key={v.id} type="button" onClick={() => setVariedadId(v.id)}
                           className={`rounded-xl border px-3 py-2 text-left text-sm transition ${
-                            variedadId === v.id ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-300 text-slate-600 hover:border-blue-300"
+                            variedadId === v.id
+                              ? "border-(--kt-teal-700) bg-(--kt-turquoise-soft) text-(--kt-teal-700)"
+                              : "border-(--kt-border) text-(--kt-ink-soft) hover:border-(--kt-turquoise)"
                           }`}
                         >
                           <span className="block font-semibold">{v.nombre ?? "Única"}</span>
@@ -140,29 +142,29 @@ export default function ProductoDetalleDistribuidoraPage() {
 
                 <div className="mt-5 flex items-end justify-between">
                   <div>
-                    <p className="text-2xl font-extrabold text-slate-900">
+                    <p className="text-2xl font-extrabold text-(--kt-ink)">
                       {variedad ? formatearPrecio(variedad.precio) : "—"}
                     </p>
                     {variedad && (
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-(--kt-ink-soft)">
                         Precio sin IVA: {formatearPrecio(precioSinIva(variedad.precio, variedad.iva_porcentaje))}
                       </p>
                     )}
                     {variedad?.controla_stock && (
-                      <p className="text-xs text-slate-400">{sinStock ? "Sin stock" : `${variedad.cantidad} disponibles`}</p>
+                      <p className="text-xs text-(--kt-ink-soft)">{sinStock ? "Sin stock" : `${variedad.cantidad} disponibles`}</p>
                     )}
                     {variedad?.cod_ref && (
-                      <p className="mt-1 text-[11px] text-slate-300">Código: {variedad.cod_ref}</p>
+                      <p className="mt-1 text-[11px] text-(--kt-ink-soft)">Código: {variedad.cod_ref}</p>
                     )}
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 rounded-xl border border-slate-200 px-1 py-1">
+                    <div className="flex items-center gap-1 rounded-xl border border-(--kt-border) px-1 py-1">
                       <button type="button" onClick={() => setCantidad((c) => Math.max(1, c - 1))}
-                        className="rounded-lg p-1.5 text-slate-500 transition active:scale-90 hover:bg-slate-100 hover:text-slate-800"><Minus size={14} /></button>
+                        className="rounded-lg p-1.5 text-(--kt-ink-soft) transition active:scale-90 hover:bg-(--kt-bg-soft) hover:text-(--kt-ink)"><Minus size={14} /></button>
                       <span className="w-7 text-center text-sm font-semibold tabular-nums">{cantidad}</span>
                       <button type="button" onClick={() => setCantidad((c) => Math.min(c + 1, maxCantidad))}
-                        className="rounded-lg p-1.5 text-slate-500 transition active:scale-90 hover:bg-slate-100 hover:text-slate-800"><Plus size={14} /></button>
+                        className="rounded-lg p-1.5 text-(--kt-ink-soft) transition active:scale-90 hover:bg-(--kt-bg-soft) hover:text-(--kt-ink)"><Plus size={14} /></button>
                     </div>
                     <button
                       type="button" onClick={agregar} disabled={estado === "agregando" || sinStock || !variedad}

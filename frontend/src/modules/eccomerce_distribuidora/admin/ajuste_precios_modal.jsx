@@ -6,7 +6,7 @@ import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import { ajustarPreciosMasivo } from "../api/producto_distribuidora_api.js";
 
 /* ── modal: ajuste de precios (individual por producto, o masivo por
-   categoría/todo el catálogo) — mismo endpoint, distinto alcance ────────── */
+   categoría/todos los productos) — mismo endpoint, distinto alcance ────── */
 
 export default function AjustePreciosModal({ productoFijo, opcionesCategoria, onClose, onAplicado }) {
   const [alcance, setAlcance] = useState(productoFijo ? "producto" : "categoria");
@@ -23,7 +23,7 @@ export default function AjustePreciosModal({ productoFijo, opcionesCategoria, on
     const pct = Number(porcentaje);
     if (!porcentaje || Number.isNaN(pct) || pct === 0) { setError("Ingresá un porcentaje distinto de 0 (ej: 10 o -5)"); return; }
     if (alcance === "categoria" && !categoriaId) { setError("Elegí una categoría"); return; }
-    if (alcance === "todo" && !confirmarTodo) { setError("Tildá la confirmación para aplicar a todo el catálogo"); return; }
+    if (alcance === "todo" && !confirmarTodo) { setError("Tildá la confirmación para aplicar a todos los productos"); return; }
 
     setError("");
     setAplicando(true);
@@ -69,7 +69,7 @@ export default function AjustePreciosModal({ productoFijo, opcionesCategoria, on
                   </button>
                   <button type="button" onClick={() => setAlcance("todo")}
                     className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold ${alcance === "todo" ? "border-rose-600 bg-rose-50 text-rose-700" : "border-slate-300 text-slate-500"}`}>
-                    Todo el catálogo
+                    Todos los productos
                   </button>
                 </div>
               )}
@@ -95,7 +95,7 @@ export default function AjustePreciosModal({ productoFijo, opcionesCategoria, on
               {!productoFijo && alcance === "todo" && (
                 <label className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs font-medium text-rose-700">
                   <input type="checkbox" checked={confirmarTodo} onChange={(e) => setConfirmarTodo(e.target.checked)} className="mt-0.5" />
-                  Sí, quiero aplicar este ajuste a TODOS los productos del catálogo.
+                  Sí, quiero aplicar este ajuste a TODOS los productos.
                 </label>
               )}
 

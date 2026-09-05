@@ -59,10 +59,11 @@ export const eccomerceDistribuidoraDropdown = {
   ],
 };
 
-// "Distribuidora · Gestión" — administración del catálogo (admin/staff) y
-// de los pedidos recibidos (admin/vendedor, rol acotado aparte). El roles
-// de acá arriba es la UNIÓN de ambos, para que el dropdown se muestre si el
-// usuario puede ver AL MENOS un ítem — cada ítem filtra el suyo.
+// "Distribuidora · Gestión" — administración de categorías/productos
+// (admin/staff) y de los pedidos recibidos (admin/vendedor, rol acotado
+// aparte). El roles de acá arriba es la UNIÓN de ambos, para que el
+// dropdown se muestre si el usuario puede ver AL MENOS un ítem — cada ítem
+// filtra el suyo.
 export const eccomerceDistribuidoraAdminDropdown = {
   id: "eccomerce_distribuidora_admin",
   labelNoAuth: "Distribuidora · Gestión",
@@ -70,7 +71,7 @@ export const eccomerceDistribuidoraAdminDropdown = {
   icon: Boxes,
   items: [
     {
-      label: "Catálogo (categorías y productos)",
+      label: "Categorías y productos",
       to: "/distribuidora/admin/productos",
       requiereAuth: true,
       modulo: "eccomerce_distribuidora",
