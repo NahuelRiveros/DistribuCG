@@ -1,5 +1,6 @@
 import { brandConfig } from "../../config/brand_config.js";
 import logoS from "../../assets/logoS1.svg";
+import gcMark from "../../assets/gc_mark.svg";
 
 // Recreación en SVG del isotipo "moovs" (wordmark "moov" + una S final
 // estilizada como columna vertebral, degradé gris → turquesa) a partir del
@@ -10,16 +11,19 @@ const SIZE = {
     text: "text-xl",
     spine: "h-[1.46em]",
     spineBox: "w-[0.72em] -ml-[0.21em] translate-y-[0.19em]",
+    markBox: "h-8 w-8",
   },
   md: {
     text: "text-3xl sm:text-4xl",
     spine: "h-[1.52em]",
     spineBox: "w-[0.76em] -ml-[0.22em] translate-y-[0.2em]",
+    markBox: "h-10 w-10",
   },
   hero: {
     text: "text-6xl sm:text-7xl md:text-[8.15rem]",
     spine: "h-[1.72em]",
     spineBox: "w-[0.95em] -ml-[0.25em] translate-y-[0.25em]",
+    markBox: "h-16 w-16",
   },
 };
 
@@ -50,15 +54,24 @@ export function LogoMoovsIcon({ className = "" }) {
   const logo = brandConfig.logo ?? {};
   const sizing = SIZE.sm;
 
-  if (logo.tipo !== "moovs-spine") {
+  if (logo.tipo === "moovs-spine") {
     return (
       <span
         aria-label={logo.ariaLabel || brandConfig.nombre}
         className={`inline-flex leading-none ${sizing.text} ${className}`}
-        style={WORDMARK_STYLE}
       >
-        {logo.texto || brandConfig.nombre}
+        <ImagenSpinaS className={`${sizing.spine} ${sizing.spineBox}`} />
       </span>
+    );
+  }
+
+  if (logo.tipo === "gc-mark") {
+    return (
+      <img
+        src={gcMark}
+        alt={logo.ariaLabel || brandConfig.nombre}
+        className={`${sizing.markBox} shrink-0 rounded-lg ${className}`}
+      />
     );
   }
 
@@ -66,17 +79,21 @@ export function LogoMoovsIcon({ className = "" }) {
     <span
       aria-label={logo.ariaLabel || brandConfig.nombre}
       className={`inline-flex leading-none ${sizing.text} ${className}`}
+      style={WORDMARK_STYLE}
     >
-      <ImagenSpinaS className={`${sizing.spine} ${sizing.spineBox}`} />
+      {logo.texto || brandConfig.nombre}
     </span>
   );
 }
 
 /**
- * Wordmark de marca — "moov" + la S-columna. `variant="light"` es para
- * fondos oscuros (footer, CTA final del home); `animated` prende el mismo
- * shimmer que ya existía para el nombre viejo (solo pensado para el hero,
- * sobre fondo claro).
+ * Wordmark de marca completo. `variant="light"` es para fondos oscuros
+ * (footer, CTA final del home); `animated` prende el shimmer (pensado para
+ * usos grandes tipo hero). Para logo.tipo "gc-mark": el isotipo (hexágono +
+ * "GC", ver src/assets/gc_mark.svg) YA tiene el monograma "GC" dibujado
+ * adentro — a diferencia de la S de moovs-spine (que es solo un trazo, sin
+ * letras), acá no hace falta agregar texto al lado, sería repetir el mismo
+ * "GC" dos veces. Se renderiza igual que LogoMoovsIcon, más grande según `size`.
  */
 export default function LogoMoovs({ size = "md", variant = "dark", animated = false, className = "" }) {
   const sizing = SIZE[size] ?? SIZE.md;
@@ -84,31 +101,38 @@ export default function LogoMoovs({ size = "md", variant = "dark", animated = fa
   const logo = brandConfig.logo ?? {};
   const textClass = animated ? "kt-shimmer-text" : isLight ? "text-white" : "text-[var(--kt-ink)]";
 
-  if (logo.tipo !== "moovs-spine") {
+  if (logo.tipo === "moovs-spine") {
     return (
       <span
         aria-label={logo.ariaLabel || brandConfig.nombre}
-        className={`inline-flex leading-none ${sizing.text} ${textClass} ${className}`}
+        className={`inline-flex items-end leading-none ${sizing.text} ${className}`}
         style={WORDMARK_STYLE}
       >
-        {logo.texto || brandConfig.nombre}
+        <span aria-hidden="true" className={textClass}>
+          {(logo.texto || "MOOV").toUpperCase()}
+        </span>
+        <ImagenSpinaS className={`${sizing.spine} ${sizing.spineBox}`} />
       </span>
+    );
+  }
+
+  if (logo.tipo === "gc-mark") {
+    return (
+      <img
+        src={gcMark}
+        alt={logo.ariaLabel || brandConfig.nombre}
+        className={`${sizing.markBox} shrink-0 rounded-lg ${className}`}
+      />
     );
   }
 
   return (
     <span
       aria-label={logo.ariaLabel || brandConfig.nombre}
-      className={`inline-flex items-end leading-none ${sizing.text} ${className}`}
+      className={`inline-flex leading-none ${sizing.text} ${textClass} ${className}`}
       style={WORDMARK_STYLE}
     >
-      <span
-        aria-hidden="true"
-        className={textClass}
-      >
-        {(logo.texto || "MOOV").toUpperCase()}
-      </span>
-      <ImagenSpinaS className={`${sizing.spine} ${sizing.spineBox}`} />
+      {logo.texto || brandConfig.nombre}
     </span>
   );
 }

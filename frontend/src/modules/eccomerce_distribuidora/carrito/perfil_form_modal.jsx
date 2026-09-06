@@ -1,22 +1,15 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import InputField from "../../../controls/ui/input_field.jsx";
-import SelectField from "../../../controls/ui/select_field.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import { guardarMiPerfil } from "../api/perfil_cliente_api.js";
-import { PROVINCIAS_ARGENTINA } from "./provincias_argentina.js";
-
-const OPCIONES_CONDICION_IVA = [
-  { value: "responsable_inscripto", label: "Responsable Inscripto" },
-  { value: "monotributista", label: "Monotributista" },
-  { value: "exento", label: "Exento" },
-  { value: "consumidor_final", label: "Consumidor Final" },
-];
+import PerfilCampos from "../perfil/perfil_campos.jsx";
 
 /**
  * Se pide recién al enviar la primera nota de pedido, no en el registro —
  * ver nota_pedido_service.js (PERFIL_INCOMPLETO). Corto a propósito: solo
- * cuit/dirección/provincia/localidad son obligatorios.
+ * cuit/dirección/provincia/localidad son obligatorios. Para editar estos
+ * datos después (no solo la primera vez), ver perfil/perfil_page.jsx — los
+ * campos en sí viven en perfil/perfil_campos.jsx, compartidos entre los dos.
  */
 export default function PerfilFormModal({ onClose, onGuardado }) {
   const [cuit, setCuit] = useState("");
@@ -64,49 +57,14 @@ export default function PerfilFormModal({ onClose, onGuardado }) {
         <form onSubmit={submit} className="space-y-4 px-6 py-5">
           <ErrorBanner message={error} />
 
-          <div className="grid grid-cols-2 gap-3">
-            <InputField
-              label="CUIT" required hideMessage
-              tooltip="El número con guiones, ej: 20-12345678-9. Lo usamos para facturar."
-              value={cuit} onChange={(e) => setCuit(e.target.value)}
-              placeholder="20-12345678-9"
-            />
-            <SelectField
-              label="Condición IVA"
-              options={OPCIONES_CONDICION_IVA}
-              value={condicionIva}
-              onChange={(e) => setCondicionIva(e.target.value)}
-              placeholder="No especificada"
-            />
-          </div>
-
-          <InputField
-            label="Razón social" hideMessage
-            tooltip="Dejalo vacío si facturás a tu propio nombre."
-            value={razonSocial} onChange={(e) => setRazonSocial(e.target.value)}
-            placeholder="(opcional)"
+          <PerfilCampos
+            cuit={cuit} setCuit={setCuit}
+            razonSocial={razonSocial} setRazonSocial={setRazonSocial}
+            condicionIva={condicionIva} setCondicionIva={setCondicionIva}
+            direccion={direccion} setDireccion={setDireccion}
+            provincia={provincia} setProvincia={setProvincia}
+            localidad={localidad} setLocalidad={setLocalidad}
           />
-
-          <InputField
-            label="Dirección de entrega" required hideMessage
-            tooltip="Calle, número y piso/depto si corresponde."
-            value={direccion} onChange={(e) => setDireccion(e.target.value)}
-            placeholder="Ej: Av. Siempre Viva 742"
-          />
-
-          <div className="grid grid-cols-2 gap-3">
-            <SelectField
-              label="Provincia" required
-              options={PROVINCIAS_ARGENTINA.map((p) => ({ value: p, label: p }))}
-              value={provincia}
-              onChange={(e) => setProvincia(e.target.value)}
-            />
-            <InputField
-              label="Localidad" required hideMessage
-              value={localidad} onChange={(e) => setLocalidad(e.target.value)}
-              placeholder="Ej: Rosario"
-            />
-          </div>
 
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} disabled={guardando}

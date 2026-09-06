@@ -3,6 +3,7 @@ import ProductosDistribuidoraPage from "../../modules/eccomerce_distribuidora/pr
 import ProductoDetalleDistribuidoraPage from "../../modules/eccomerce_distribuidora/productos/producto_detalle_page.jsx";
 import NotaPedidoPage from "../../modules/eccomerce_distribuidora/carrito/nota_pedido_page.jsx";
 import MisPedidosPage from "../../modules/eccomerce_distribuidora/carrito/mis_pedidos_page.jsx";
+import PerfilPage from "../../modules/eccomerce_distribuidora/perfil/perfil_page.jsx";
 // Aliaseado para no chocar con ProductosDistribuidoraPage (arriba) — son dos
 // componentes con el mismo nombre por default export en archivos distintos
 // (catálogo del cliente vs. árbol de categorías/productos del admin), nada
@@ -29,6 +30,13 @@ export const eccomerceDistribuidoraRoutes = [
   { path: "/distribuidora/catalogo/:id", element: protegida(<ProductoDetalleDistribuidoraPage />, ROLES_CLIENTE) },
   { path: "/distribuidora/carrito", element: protegida(<NotaPedidoPage />, ROLES_CLIENTE) },
   { path: "/distribuidora/mis-pedidos", element: protegida(<MisPedidosPage />, ROLES_CLIENTE) },
+
+  // Sin restricción de rol — el backend (perfil_cliente_router.js) tampoco
+  // la tiene, es siempre "mi propio perfil" (req.user.usuario_id). El link
+  // "Mi perfil" del navbar (navbar_userbox.jsx) apunta acá para CUALQUIER
+  // usuario logueado, no solo clientes — un admin/staff que hace su propio
+  // pedido también necesita completar estos datos.
+  { path: "/perfil", element: protegida(<PerfilPage />) },
 
   // Categorías se unificó dentro de Productos (mismo árbol, categorías y
   // productos se gestionan desde un solo lugar) — se deja el redirect por si

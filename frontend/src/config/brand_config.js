@@ -1,8 +1,15 @@
 /**
- * Identidad visual de la instalacion.
+ * Identidad visual de la instalacion (textos, logo, fuentes).
+ *
+ * Los COLORES no viven acá — están en src/index.css (:root), única fuente
+ * de verdad del theme (así lo documenta ese mismo archivo). Antes se
+ * duplicaban acá y un script (`apply_brand_theme.js`, ya sin lógica de
+ * color) los volvía a aplicar en runtime, pisando lo que se editara en
+ * index.css si alguien olvidaba sincronizar ambos lados.
  *
  * Para replicar el sistema en otro cliente, duplicar el objeto dentro de
- * `clientes`, cambiar colores/textos y setear `clienteActivo`.
+ * `clientes`, cambiar textos/logo/fuentes acá y la paleta en index.css, y
+ * setear `clienteActivo`.
  */
 export const clientes = {
   moovs: {
@@ -21,28 +28,6 @@ export const clientes = {
       display: "'Bricolage Grotesque', sans-serif",
       body: "'Plus Jakarta Sans', sans-serif",
     },
-
-    colores: {
-      accent: "#87C7E8",
-      accentSoft: "#EAF6FC",
-      accentBorder: "#C7E6F4",
-      primary: "#47556A",
-      primaryDark: "#243447",
-      primarySoft: "#909BAA",
-      night: "#17283A",
-      bg: "#FFFFFF",
-      bgSoft: "#F3F5F7",
-      ink: "#243447",
-      inkSoft: "#647184",
-      border: "#DDE4EA",
-      inkMute: "#909BAA",
-      success: "#047857",
-      successBg: "#ECFDF5",
-      warning: "#B45309",
-      warningBg: "#FFFBEB",
-      danger: "#B91C1C",
-      dangerBg: "#FEF2F2",
-    },
   },
 
   gc: {
@@ -50,44 +35,24 @@ export const clientes = {
     rubro: "Distribuidora mayorista y minorista" ,
     tagline: "Tu pedido, directo al mostrador.",
 
-    // Sin gráfico propio todavía — logo.tipo distinto de "moovs-spine" hace
-    // que LogoMoovs/LogoMoovsIcon rendericen un wordmark de texto simple con
-    // `logo.texto` (ver controls/brand/logo_moovs.jsx). El día que haya un
-    // isotipo real para GC, ahí sí se arma un tipo de logo propio.
+    // Isotipo propio: hexágono con degradé de marca (--kt-teal-500 a
+    // --kt-teal-900) + monograma "GC" en Bricolage Grotesque (la tipografía
+    // real del sitio — antes el wordmark de texto plano usaba Raleway, sin
+    // relación con el resto de la identidad). Archivo fuente en
+    // src/assets/gc_mark.svg; el mismo diseño se usa como favicon
+    // (public/gc-favicon.svg, ver index.html) para que la marca sea
+    // consistente entre la pestaña del navegador y el navbar.
     logo: {
-      tipo: "texto",
+      tipo: "gc-mark",
       texto: "GC",
       ariaLabel: "GC Distribuidora",
     },
 
-    // Mismas fuentes y misma paleta que ya estaba — no se pidió rediseño,
-    // solo cambiar textos/identidad.
     fuentes: {
       display: "'Bricolage Grotesque', sans-serif",
       body: "'Plus Jakarta Sans', sans-serif",
     },
-
-    colores: {
-      accent: "#87C7E8",
-      accentSoft: "#EAF6FC",
-      accentBorder: "#C7E6F4",
-      primary: "#47556A",
-      primaryDark: "#243447",
-      primarySoft: "#909BAA",
-      night: "#17283A",
-      bg: "#FFFFFF",
-      bgSoft: "#F3F5F7",
-      ink: "#243447",
-      inkSoft: "#647184",
-      border: "#DDE4EA",
-      inkMute: "#909BAA",
-      success: "#047857",
-      successBg: "#ECFDF5",
-      warning: "#B45309",
-      warningBg: "#FFFBEB",
-      danger: "#B91C1C",
-      dangerBg: "#FEF2F2",
-    },
+    // Paleta navy-teal + acento cálido: ver src/index.css (:root).
   },
 };
 

@@ -71,7 +71,7 @@ export default function ProductosDistribuidoraPage() {
 
   return (
     <div className="kt-body min-h-screen bg-(--kt-bg-soft) p-4 sm:p-8">
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="mx-auto max-w-7xl space-y-5">
 
         <div>
           <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-(--kt-teal-700)">
@@ -83,9 +83,13 @@ export default function ProductosDistribuidoraPage() {
           <p className="mt-2 text-sm text-(--kt-ink-soft)">Buscá un producto o elegí una categoría.</p>
         </div>
 
-        {/* ── Buscador ── */}
+        {/* ── Buscador + acceso a categorías en mobile + limpiar — una sola
+            fila (antes eran 2-3 filas apiladas: buscador, "Limpiar filtros"
+            y el botón ancho "Filtrar", empujando los productos bien abajo en
+            mobile). flex-wrap solo pasa el botón de categoría/limpiar a una
+            segunda línea si el teléfono es angosto de verdad. ── */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1">
+          <div className="relative min-w-45 flex-1">
             <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-(--kt-ink-soft)" />
             <input
               value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
@@ -103,6 +107,16 @@ export default function ProductosDistribuidoraPage() {
             )}
           </div>
 
+          {/* Acceso al árbol de categorías — solo mobile/tablet chico, en
+              md+ el sidebar ya está siempre visible al costado. */}
+          <button
+            type="button" onClick={() => setFiltroMobileAbierto(true)}
+            className="flex shrink-0 items-center gap-1.5 rounded-2xl border border-(--kt-border) bg-white px-3.5 py-2.5 text-sm font-semibold text-(--kt-ink) transition hover:border-(--kt-turquoise) md:hidden"
+          >
+            <SlidersHorizontal size={15} className="text-(--kt-ink-soft)" />
+            <span className="max-w-28 truncate">{categoriaActual ? categoriaActual.nombre : "Categorías"}</span>
+          </button>
+
           {/* Resetea búsqueda + categoría juntos — el X de arriba solo limpia el texto. */}
           {hayFiltrosActivos && (
             <button
@@ -114,26 +128,23 @@ export default function ProductosDistribuidoraPage() {
           )}
         </div>
 
-        {/* ── Botón "Filtrar" solo en mobile — en desktop el árbol ya está siempre visible al costado ── */}
-        <button
-          type="button" onClick={() => setFiltroMobileAbierto(true)}
-          className="flex w-full items-center justify-between rounded-xl border border-(--kt-border) bg-white px-4 py-2.5 text-sm font-semibold text-(--kt-ink) lg:hidden"
-        >
-          <span className="flex items-center gap-2">
-            <SlidersHorizontal size={15} className="text-(--kt-ink-soft)" />
-            {categoriaActual ? categoriaActual.nombre : "Todas las categorías"}
-          </span>
-          <span className="text-xs text-(--kt-ink-soft)">Filtrar</span>
-        </button>
+        {/* El sidebar pasa a ser fijo desde `md` (768px) — a los 240px que
+            ocupa le sobra espacio en cualquier tablet, no hace falta esperar
+            a `lg` (1024px) para dejar de mostrar el drawer mobile. */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr] md:items-start">
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr] lg:items-start">
-
-          {/* ── Árbol de categorías — sidebar fijo en desktop ── */}
-          <aside className="hidden rounded-2xl border border-(--kt-border) bg-white p-3 shadow-sm lg:block lg:sticky lg:top-6">
+          {/* ── Árbol de categorías — sidebar fijo desde tablet ── */}
+          <aside className="hidden rounded-2xl border border-(--kt-border) bg-white p-3 shadow-sm md:block md:sticky md:top-6">
             <CategoriasArbol categorias={categorias} categoriaId={categoriaId} onSeleccionar={elegirCategoria} />
           </aside>
 
-          {/* ── Grilla de productos ── */}
+          {/* ── Grilla de productos ──
+              Los saltos de columnas están pensados para el ancho REAL
+              disponible, no el del viewport entero: sm:3 aprovecha el ancho
+              completo en teléfonos grandes/tablets angostas (todavía sin
+              sidebar); md:2 vuelve a bajar apenas aparece el sidebar de
+              240px, para no comprimir las tarjetas de golpe; lg/xl vuelven a
+              subir a medida que ese espacio (viewport - sidebar) crece. */}
           {cargando ? (
             <div className="rounded-2xl border border-(--kt-border) bg-white shadow-sm">
               <AdminSpinner />
@@ -153,7 +164,7 @@ export default function ProductosDistribuidoraPage() {
               />
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {productos.map((p, i) => <ProductoCard key={p.id} producto={p} index={i} />)}
             </div>
           )}
@@ -162,9 +173,9 @@ export default function ProductosDistribuidoraPage() {
 
       </div>
 
-      {/* ── Panel de categorías en mobile (drawer) ── */}
+      {/* ── Panel de categorías en mobile/tablet chica (drawer) ── */}
       {filtroMobileAbierto && (
-        <div className="fixed inset-0 z-(--z-modal) lg:hidden">
+        <div className="fixed inset-0 z-(--z-modal) md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setFiltroMobileAbierto(false)} aria-hidden="true" />
           <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] overflow-y-auto bg-white p-4 shadow-xl">
             <div className="mb-3 flex items-center justify-between">

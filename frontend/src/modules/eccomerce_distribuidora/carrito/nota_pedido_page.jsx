@@ -270,7 +270,7 @@ export default function NotaPedidoPage() {
             ) : (
               <button
                 type="button" onClick={enviar} disabled={enviando}
-                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-60"
+                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-(--kt-accent-comercial) py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-(--kt-accent-comercial-hover) disabled:opacity-60"
               >
                 {enviando ? "Enviando…" : "Enviar pedido"} <ArrowRight size={15} />
               </button>

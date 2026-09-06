@@ -7,8 +7,8 @@ import { precioSinIva, formatearPrecio } from "../utils/precio_iva.js";
 // Estados del botón de agregado rápido — el ícono/color/texto reflejan el
 // resultado real (antes un error quedaba silenciado: sin catch, sin aviso).
 const ESTILO_BOTON = {
-  idle:      "bg-(--kt-teal-700) hover:bg-(--kt-petrol)",
-  agregando: "bg-(--kt-teal-700)",
+  idle:      "bg-(--kt-accent-comercial) hover:bg-(--kt-accent-comercial-hover)",
+  agregando: "bg-(--kt-accent-comercial)",
   agregado:  "bg-emerald-600",
   error:     "bg-rose-500 kt-shake",
 };

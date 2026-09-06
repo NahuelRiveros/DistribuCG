@@ -8,8 +8,8 @@ import { precioSinIva, formatearPrecio } from "../utils/precio_iva.js";
 // Estilos por resultado del click en "Agregar al pedido" — antes el mensaje
 // de error usaba el mismo verde que el de éxito (bug real, no solo estético).
 const ESTILO_BOTON = {
-  idle:      "bg-(--kt-teal-700) hover:bg-(--kt-petrol)",
-  agregando: "bg-(--kt-teal-700)",
+  idle:      "bg-(--kt-accent-comercial) hover:bg-(--kt-accent-comercial-hover)",
+  agregando: "bg-(--kt-accent-comercial)",
   ok:        "bg-emerald-600",
   error:     "bg-rose-600 kt-shake",
 };

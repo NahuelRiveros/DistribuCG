@@ -12,35 +12,57 @@
       define UNA vez acá y todo lo demás lo referencia con var(--kt-x).
    2) El bloque @theme reexpone esos mismos valores como colores nativos de
       Tailwind (bg-primary, text-accent, etc.) para código nuevo, Y redefine
-      la escala neutra de Tailwind (slate/gray) para que TODO el código ya
-      existente que usa bg-slate-600, text-gray-400, etc. (~150 archivos)
-      quede centralizado acá también, sin tener que renombrar ni una clase.
+      las escalas de color de Tailwind que el código existente ya usa como
+      vocabulario (slate/gray como neutro de marca; blue como acción/info;
+      emerald+green como éxito; rose+red como error; amber+yellow+orange
+      como advertencia) para que TODO ese código (~200 archivos) quede
+      centralizado acá también, sin tener que renombrar ni una clase.
+      indigo/purple/cyan/sky/violet/fuchsia quedan SIN redefinir a propósito:
+      su uso real es distinguir series/categorías entre sí (charts, badges
+      de rol) en el módulo gym — homogeneizarlas a un solo color de marca
+      borraría esa distinción en vez de "tokenizarlas".
    3) --z-* y --duration-* son props planas (Tailwind v4 no las tematiza),
       se usan como z-[var(--z-modal)] / duration-[var(--duration-base)].
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Marca ─────────────────────────────────────────────────────────────── */
-  --kt-turquoise:      #87C7E8; /* acento tomado del logo: lineas, foco, detalles; evitar texto chico encima */
-  --kt-turquoise-soft: #EAF6FC;
-  --kt-turquoise-border: #C7E6F4; /* borde sutil de tarjetas/cabeceras con acento de marca */
-  --kt-petrol:         #47556A; /* azul acero principal del wordmark, accesible con texto blanco */
-  --kt-night:          #17283A; /* paneles oscuros (kiosk, register, pagos) */
+  /* ── Marca ─────────────────────────────────────────────────────────────────
+     Paleta rediseñada para "distribuidora mayorista y minorista": navy-teal
+     (confianza/logística) más saturado que el celeste pastel heredado del
+     logo de gimnasio, combinado con el acento cálido comercial (ámbar) ya
+     usado en los CTAs de venta — cool + warm es el par clásico de marcas de
+     distribución, y antes competían tres tonos fríos (turquesa pastel, azul
+     acero apagado, gris azulado) sin un cálido real que los balanceara. ── */
+  --kt-turquoise:      #4FB6C9; /* acento de marca: lineas, foco, detalles; evitar texto chico encima */
+  --kt-turquoise-soft: #E7F6F8;
+  --kt-turquoise-border: #C2E8EC; /* borde sutil de tarjetas/cabeceras con acento de marca */
+  --kt-petrol:         #2F4C6B; /* azul acero principal del wordmark, accesible con texto blanco */
+  --kt-night:          #1C2E42; /* paneles oscuros (kiosk, register, pagos) */
   --kt-bg:             #FFFFFF;
-  --kt-bg-soft:        #F3F5F7;
-  --kt-ink:            #243447;
-  --kt-ink-soft:       #647184;
-  --kt-border:         #DDE4EA;
+  --kt-bg-soft:        #F5F5F4; /* piedra cálida, no gris frío — para no chocar con el ámbar de los CTAs; = --color-neutral-100 abajo */
+  --kt-ink:            #22303F;
+  --kt-ink-soft:       #63707F;
+  --kt-border:         #E7E5E4; /* = --color-neutral-200 abajo */
 
   /* ── Paleta accesible (auditoría WCAG, ver kinetica-audit) ──────────────── */
-  --kt-teal-900: #243447; /* fondos oscuros de marca / titulares */
-  --kt-teal-700: #47556A; /* acción: botones sólidos, link activo, foco */
-  --kt-teal-500: #6CAFD4; /* acento fuerte derivado del celeste */
-  --kt-ink-mute: #909BAA; /* gris del sistema de marca */
+  --kt-teal-900: #1C2E42; /* fondos oscuros de marca / titulares */
+  --kt-teal-700: #2F4C6B; /* acción: botones sólidos, link activo, foco */
+  --kt-teal-500: #5C93B8; /* acento fuerte derivado del celeste */
+  --kt-ink-mute: #98A2AC; /* gris del sistema de marca */
 
   --kt-success:    #047857; --kt-success-bg: #ECFDF5;
   --kt-warning:    #B45309; --kt-warning-bg: #FFFBEB;
   --kt-danger:     #B91C1C; --kt-danger-bg: #FEF2F2;
+
+  /* Acento cálido reservado para CTAs comerciales (agregar al pedido, enviar
+     pedido, ver catálogo) — mismo valor ya auditado por contraste que
+     --kt-warning, pero como token propio: un botón de compra no debería
+     compartir significado semántico con un banner de advertencia, aunque
+     hoy compartan el mismo hex. El frío (--kt-teal-700) sigue siendo la
+     acción "de marca" (navegación, botones secundarios); este acento queda
+     solo para el punto exacto donde se convierte una venta. */
+  --kt-accent-comercial:       #B45309;
+  --kt-accent-comercial-hover: #92400E;
 
   /* ── Radio de bordes — vocabulario semántico sobre la escala de Tailwind ── */
   --radius-chip: 999px;   /* rounded-full ya cubre esto, alias solo para claridad de intención */
@@ -80,21 +102,28 @@
   --color-warning-bg:   var(--kt-warning-bg);
   --color-danger:       var(--kt-danger);
   --color-danger-bg:    var(--kt-danger-bg);
+  --color-accent-comercial:       var(--kt-accent-comercial);
+  --color-accent-comercial-hover: var(--kt-accent-comercial-hover);
 
-  /* ── Escala neutra propia — incialmente igual a la escala default de
-     Tailwind (mismo hex, cero cambio visual), pero ahora vive en este
-     archivo. slate-* y gray-* del código existente apuntan acá abajo. ── */
-  --color-neutral-50:  #f8fafc;
-  --color-neutral-100: #f1f5f9;
-  --color-neutral-200: #e2e8f0;
-  --color-neutral-300: #cbd5e1;
-  --color-neutral-400: #94a3b8;
-  --color-neutral-500: #64748b;
-  --color-neutral-600: #475569;
-  --color-neutral-700: #334155;
-  --color-neutral-800: #1e293b;
-  --color-neutral-900: #0f172a;
-  --color-neutral-950: #020617;
+  /* ── Escala neutra propia — antes era la escala "slate" default de
+     Tailwind (fría, base azulada), lo que hacía que la navbar y los
+     paneles de admin (que usan bg-slate-100/border-slate-100 en ~150
+     archivos) se vieran desconectados de --kt-bg-soft/--kt-border de
+     arriba (recalentados a piedra cálida). Ahora es la escala "stone" de
+     Tailwind — misma familia cálida, incialmente elegida para que
+     neutral-100/200 calcen con --kt-bg-soft/--kt-border. slate-* y gray-*
+     del código existente apuntan acá abajo. ── */
+  --color-neutral-50:  #fafaf9;
+  --color-neutral-100: #f5f5f4;
+  --color-neutral-200: #e7e5e4;
+  --color-neutral-300: #d6d3d1;
+  --color-neutral-400: #a8a29e;
+  --color-neutral-500: #78716c;
+  --color-neutral-600: #57534e;
+  --color-neutral-700: #44403c;
+  --color-neutral-800: #292524;
+  --color-neutral-900: #1c1917;
+  --color-neutral-950: #0c0a09;
 
   --color-slate-50:  var(--color-neutral-50);
   --color-slate-100: var(--color-neutral-100);
@@ -119,6 +148,103 @@
   --color-gray-800: var(--color-neutral-800);
   --color-gray-900: var(--color-neutral-900);
   --color-gray-950: var(--color-neutral-950);
+
+  /* ── Escalas semánticas — mismo criterio que slate/gray arriba: se redefine
+     la escala default de Tailwind para que bg-blue-600, bg-emerald-50,
+     bg-red-700, etc. (código ya escrito en ~80 archivos) dejen de ser un
+     azul/verde/rojo genérico de Tailwind y pasen a resolver contra la
+     paleta de marca — sin tocar una sola clase en esos archivos. ── */
+
+  /* blue = acción/interactivo (botones, links, foco, info) — deriva de
+     --kt-turquoise/--kt-teal-*, ya definidos arriba. */
+  --color-blue-50:  var(--kt-turquoise-soft);
+  --color-blue-100: #D3F0F2;
+  --color-blue-200: var(--kt-turquoise-border);
+  --color-blue-300: #96CFDB;
+  --color-blue-400: #79B0C6;
+  --color-blue-500: var(--kt-teal-500);
+  --color-blue-600: var(--kt-teal-700);
+  --color-blue-700: #24405B;
+  --color-blue-800: #1F374C;
+  --color-blue-900: var(--kt-teal-900);
+
+  /* emerald/green = éxito — deriva de --kt-success/--kt-success-bg. */
+  --color-emerald-50:  var(--kt-success-bg);
+  --color-emerald-100: #D3F8E7;
+  --color-emerald-200: #A8F0D2;
+  --color-emerald-300: #6EE0B8;
+  --color-emerald-400: #3BCB9E;
+  --color-emerald-500: #10A981;
+  --color-emerald-600: #0D8C6C;
+  --color-emerald-700: var(--kt-success);
+  --color-emerald-800: #065F46;
+  --color-emerald-900: #064E3B;
+  --color-green-50:  var(--color-emerald-50);
+  --color-green-100: var(--color-emerald-100);
+  --color-green-200: var(--color-emerald-200);
+  --color-green-300: var(--color-emerald-300);
+  --color-green-400: var(--color-emerald-400);
+  --color-green-500: var(--color-emerald-500);
+  --color-green-600: var(--color-emerald-600);
+  --color-green-700: var(--color-emerald-700);
+  --color-green-800: var(--color-emerald-800);
+  --color-green-900: var(--color-emerald-900);
+
+  /* rose/red = error — deriva de --kt-danger/--kt-danger-bg. Comparten
+     escala: en este código ambos ya significan lo mismo (ver ESTILO_BOTON
+     de las cards de producto: error usa rose, el resto del admin usa red). */
+  --color-red-50:  var(--kt-danger-bg);
+  --color-red-100: #FEE2E2;
+  --color-red-200: #FECACA;
+  --color-red-300: #FCA5A5;
+  --color-red-400: #F87171;
+  --color-red-500: #EF4444;
+  --color-red-600: #DC2626;
+  --color-red-700: var(--kt-danger);
+  --color-red-800: #991B1B;
+  --color-red-900: #7F1D1D;
+  --color-rose-50:  var(--color-red-50);
+  --color-rose-100: var(--color-red-100);
+  --color-rose-200: var(--color-red-200);
+  --color-rose-300: var(--color-red-300);
+  --color-rose-400: var(--color-red-400);
+  --color-rose-500: var(--color-red-500);
+  --color-rose-600: var(--color-red-600);
+  --color-rose-700: var(--color-red-700);
+  --color-rose-800: var(--color-red-800);
+  --color-rose-900: var(--color-red-900);
+
+  /* amber/yellow/orange = advertencia — deriva de --kt-warning/--kt-warning-bg. */
+  --color-amber-50:  var(--kt-warning-bg);
+  --color-amber-100: #FEF3C7;
+  --color-amber-200: #FDE68A;
+  --color-amber-300: #FCD34D;
+  --color-amber-400: #FBBF24;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
+  --color-amber-700: var(--kt-warning);
+  --color-amber-800: #92400E;
+  --color-amber-900: #78350F;
+  --color-yellow-50:  var(--color-amber-50);
+  --color-yellow-100: var(--color-amber-100);
+  --color-yellow-200: var(--color-amber-200);
+  --color-yellow-300: var(--color-amber-300);
+  --color-yellow-400: var(--color-amber-400);
+  --color-yellow-500: var(--color-amber-500);
+  --color-yellow-600: var(--color-amber-600);
+  --color-yellow-700: var(--color-amber-700);
+  --color-yellow-800: var(--color-amber-800);
+  --color-yellow-900: var(--color-amber-900);
+  --color-orange-50:  var(--color-amber-50);
+  --color-orange-100: var(--color-amber-100);
+  --color-orange-200: var(--color-amber-200);
+  --color-orange-300: var(--color-amber-300);
+  --color-orange-400: var(--color-amber-400);
+  --color-orange-500: var(--color-amber-500);
+  --color-orange-600: var(--color-amber-600);
+  --color-orange-700: var(--color-amber-700);
+  --color-orange-800: var(--color-amber-800);
+  --color-orange-900: var(--color-amber-900);
 }
 
 /* ── Moovs: fuentes (definidas en index.html via <link>, aquí solo asignamos) ── */
