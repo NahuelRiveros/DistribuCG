@@ -81,7 +81,7 @@ export default function NotaPedidoPage() {
       <section aria-label="Productos del carrito" className="space-y-3">
         {cart.items.length > 8 && <InputField name="cart-search" label="Buscar en el carrito" type="search" value={search} onChange={(e) => setSearch(e.target.value)} />}
         {filtered.map((item) => <CartItem key={item.item_id} item={item} to={config.catalogPath + "/" + item.producto_id} formatPrice={fmt} maxQuantity={config.maxQuantity}
-          disabled={busy || cart.pending > 0 || !!attempt} onQuantity={(q) => act(cart.setCantidad(item.item_id, q))} onRemove={() => act(cart.removeItem(item.item_id))} />)}
+          disabled={busy || !!attempt} onQuantity={(q) => act(cart.setCantidad(item.item_id, q))} onRemove={() => act(cart.removeItem(item.item_id))} />)}
         {!filtered.length && <p className="p-4 text-sm">No encontramos productos con ese nombre en tu carrito.</p>}
         <button type="button" disabled={busy || !!attempt} onClick={() => setClearOpen(true)} className="min-h-11 px-3 text-sm text-rose-700 underline">Vaciar carrito</button>
       </section>

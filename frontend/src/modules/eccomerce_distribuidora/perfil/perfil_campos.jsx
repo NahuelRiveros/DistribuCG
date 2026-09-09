@@ -12,6 +12,16 @@ function conValorActual(opciones, valorActual) {
   return [{ id: "__actual__", nombre: valorActual }, ...opciones];
 }
 
+// GeoRef repite nombres entre distintas entidades (ej. una localidad y un
+// componente suyo con el mismo nombre) — como el select solo guarda el
+// nombre, dos opciones iguales son indistinguibles para el usuario. Sin
+// dedupear, además, la key repetida en <option> confunde la reconciliación
+// de React dentro de un <select> y deja opciones viejas huérfanas en el DOM.
+function unicosPorNombre(lista) {
+  const vistos = new Set();
+  return lista.filter((o) => (vistos.has(o.nombre) ? false : (vistos.add(o.nombre), true)));
+}
+
 /**
  * Campos de facturación/entrega del cliente distribuidor — compartidos entre
  * el modal que se muestra antes del primer pedido (carrito/perfil_form_modal.jsx)
@@ -50,7 +60,7 @@ export default function PerfilCampos({
     let cancelado = false;
     (async () => {
       const lista = provinciaId ? await getDepartamentos(provinciaId).catch(() => []) : [];
-      if (!cancelado) setDepartamentos(lista);
+      if (!cancelado) setDepartamentos(unicosPorNombre(lista));
     })();
     return () => { cancelado = true; };
   }, [provinciaId]);
@@ -59,7 +69,7 @@ export default function PerfilCampos({
     let cancelado = false;
     (async () => {
       const lista = provinciaId ? await getLocalidades(provinciaId, departamentoId).catch(() => []) : [];
-      if (!cancelado) setLocalidades(lista);
+      if (!cancelado) setLocalidades(unicosPorNombre(lista));
     })();
     return () => { cancelado = true; };
   }, [provinciaId, departamentoId]);
@@ -115,7 +125,7 @@ export default function PerfilCampos({
           onChange={elegirProvincia}
         />
         <SelectField
-          label="Departamento/Partido" hideMessage
+          label="Departamento/Partido"
           options={conValorActual(departamentos, departamento).map((d) => ({ value: d.nombre, label: d.nombre }))}
           value={departamento}
           onChange={elegirDepartamento}
