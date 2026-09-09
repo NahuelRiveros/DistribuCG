@@ -20,6 +20,9 @@ export function mergeGuestItems(items, next, maxQuantity, maxLines) {
   const quantity = (old?.cantidad ?? 0) + next.cantidad;
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > maxQuantity || next.stock_disponible != null && quantity > next.stock_disponible) throw new Error("La cantidad supera la disponibilidad o el máximo permitido.");
   if (!old && items.length >= maxLines) throw new Error("Alcanzaste el máximo de productos por pedido.");
-  const item = { ...next, cantidad: quantity };
+  // Si ya existía la línea, conservamos su item_id real (para un usuario
+  // logueado es el id numérico del servidor) — solo una línea nueva usa el
+  // id provisorio "guest:variedad_id" de `next`.
+  const item = { ...next, item_id: old?.item_id ?? next.item_id, cantidad: quantity };
   return old ? items.map((i) => i.variedad_id === next.variedad_id ? item : i) : [...items, item];
 }

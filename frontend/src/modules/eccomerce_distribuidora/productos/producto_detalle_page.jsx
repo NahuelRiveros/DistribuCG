@@ -38,7 +38,7 @@ function Detail({ product }) {
       {variant && <div className="flex flex-wrap gap-3"><QuantityInput value={quantity} onChange={setQuantity} max={max} disabled={busy || max < 1} />
         <ActionButton disabled={busy || max < 1} onClick={async () => {
           setBusy(true); setError(""); setAdded(false);
-          try { await addItem({ producto_id: product.id, variedad_id: variant.id, cantidad: quantity }); setAdded(true); }
+          try { await addItem({ producto_id: product.id, variedad_id: variant.id, cantidad: quantity, producto: product }); setAdded(true); }
           catch (e) { setError(e.response?.data?.mensaje || e.message); } finally { setBusy(false); }
         }}>{busy ? "Agregando…" : "Agregar al carrito"}</ActionButton></div>}
       <ErrorBanner message={error} />

@@ -14,7 +14,7 @@ export default function ProductoCard({ producto }) {
   const single = varieties.length === 1;
   const add = async () => {
     setBusy(true); setError(""); setMessage("");
-    try { await addItem({ producto_id: producto.id, variedad_id: varieties[0].id, cantidad: 1 }); setMessage("Agregado al carrito"); }
+    try { await addItem({ producto_id: producto.id, variedad_id: varieties[0].id, cantidad: 1, producto }); setMessage("Agregado al carrito"); }
     catch (e) { setError(e.response?.data?.mensaje || e.message || "No se pudo agregar. Intentá nuevamente."); }
     finally { setBusy(false); }
   };

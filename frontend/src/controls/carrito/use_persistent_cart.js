@@ -80,16 +80,60 @@ export function usePersistentCart({ userId, enabled, config, adapter }) {
       timers.current = {};
     };
   }, [enabled, userId, recargar]);
-  const addItem = useCallback((payload) => enqueue(async () => {
-    if (!enabled) throw new Error("El carrito no está disponible.");
+  // Optimista cuando el caller ya tiene el producto a mano (la card/detalle
+  // que llama a addItem ya lo cargó para pintarse) — evita el fetch extra
+  // que antes hacía esta función incluso para invitados, y muestra la línea
+  // en el carrito al instante en vez de esperar la confirmación del server.
+  // Sin `producto` en el payload cae al camino viejo (pide el producto y
+  // recién ahí construye el item).
+  const addItem = useCallback((payload) => {
+    const { producto_id, variedad_id, cantidad = 1, producto: productoPreview } = payload;
+    if (!enabled) {
+      const err = new Error("El carrito no está disponible.");
+      setError(err.message);
+      return Promise.reject(err);
+    }
+
+    let provisional = null;
+    if (productoPreview) {
+      const variety = productoPreview.variedades?.find((v) => v.id === variedad_id);
+      if (variety) {
+        try {
+          provisional = mergeGuestItems(itemsRef.current, guestItem(productoPreview, variety, cantidad), config.maxQuantity, config.maxCartLines);
+        } catch (e) {
+          setError(e.message);
+          return Promise.reject(e);
+        }
+      }
+    }
     setError("");
-    if (userId && ready.current) return publish(await adapter.add(payload));
-    if (!config.guestCart || !config.publicCatalog) throw new Error("Ingresá para agregar productos.");
-    const product = await adapter.product(payload.producto_id);
-    const variety = product.variedades?.find((v) => v.id === payload.variedad_id);
-    if (!variety) throw new Error("Esta presentación ya no está disponible.");
-    saveGuest(mergeGuestItems(itemsRef.current, guestItem(product, variety, payload.cantidad ?? 1), config.maxQuantity, config.maxCartLines));
-  }), [adapter, config, enabled, enqueue, publish, saveGuest, userId]);
+
+    if (!(userId && ready.current)) {
+      if (!config.guestCart || !config.publicCatalog) {
+        const err = new Error("Ingresá para agregar productos.");
+        setError(err.message);
+        return Promise.reject(err);
+      }
+      if (provisional) { saveGuest(provisional); return Promise.resolve(provisional); }
+      return enqueue(async () => {
+        const product = await adapter.product(producto_id);
+        const variety = product.variedades?.find((v) => v.id === variedad_id);
+        if (!variety) throw new Error("Esta presentación ya no está disponible.");
+        saveGuest(mergeGuestItems(itemsRef.current, guestItem(product, variety, cantidad), config.maxQuantity, config.maxCartLines));
+      });
+    }
+
+    const previo = itemsRef.current;
+    if (provisional) publish(provisional);
+    return enqueue(async () => {
+      try {
+        return publish(await adapter.add({ producto_id, variedad_id, cantidad }));
+      } catch (e) {
+        if (provisional) publish(previo); // rollback: el server rechazó el agregado
+        throw e;
+      }
+    });
+  }, [adapter, config, enabled, enqueue, publish, saveGuest, userId]);
   // Optimista: la cantidad se refleja en la UI al instante (localStorage para
   // invitados, estado en memoria para logueados) y el PUT al servidor se
   // manda debounced en segundo plano — ver DEBOUNCE_MS arriba. Si el server
