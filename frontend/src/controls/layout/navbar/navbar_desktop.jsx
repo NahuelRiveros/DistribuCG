@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import NavbarLink from "./navbar_link.jsx";
 import NavbarDropdown from "./navbar_dropdown.jsx";
 import { UI_NAVBAR as S } from "./navbar_style.js";
 
@@ -31,17 +31,7 @@ export default function NavbarDesktop({ config }) {
   return (
     <div className={S.desktop_contenedor}>
       {config.links?.map((link) => (
-        <NavLink
-          key={link.to}
-          to={link.to}
-          end={link.exact}
-          onClick={closeDropdown}
-          className={({ isActive }) =>
-            [S.desktop_link, isActive ? S.desktop_link_activo : S.desktop_link_inactivo].join(" ")
-          }
-        >
-          <span className="truncate">{link.label}</span>
-        </NavLink>
+        <NavbarLink key={link.to} item={link} onNavigate={closeDropdown} base={S.desktop_link} active={S.desktop_link_activo} inactive={S.desktop_link_inactivo} />
       ))}
 
       {config.dropdowns?.map((dropdown) => (

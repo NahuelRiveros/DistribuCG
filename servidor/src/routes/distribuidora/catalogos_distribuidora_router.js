@@ -1,3 +1,4 @@
+import { clientConfig } from "../../../../client_config.js";
 import { Router } from "express";
 import {
   listarCategoriasController, crearCategoriaController, actualizarCategoriaController, eliminarCategoriaController,
@@ -10,7 +11,7 @@ catalogosDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidor
 
 // A diferencia de indumentaria, acá el GET también requiere login — el
 // catálogo entero es solo para clientes logueados (decisión de negocio).
-catalogosDistribuidoraRouter.get("/categorias", requireAuth, listarCategoriasController);
+catalogosDistribuidoraRouter.get("/categorias", (req, res, next) => clientConfig.distribuidora.publicCatalog ? next() : requireAuth(req, res, next), listarCategoriasController);
 catalogosDistribuidoraRouter.post("/categorias", requireAuth, requireRole("admin", "staff"), crearCategoriaController);
 catalogosDistribuidoraRouter.put("/categorias/:id", requireAuth, requireRole("admin", "staff"), actualizarCategoriaController);
 catalogosDistribuidoraRouter.delete("/categorias/:id", requireAuth, requireRole("admin", "staff"), eliminarCategoriaController);

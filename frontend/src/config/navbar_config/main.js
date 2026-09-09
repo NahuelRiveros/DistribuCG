@@ -1,4 +1,5 @@
-import { Home } from "lucide-react";
+import { Home, HelpCircle, Phone } from "lucide-react";
+import { accountLinks } from "./account.js";
 import { brandConfig } from "../brand_config.js";
 import { projectModules } from "../gate_config.js";
 import { catalogConfig } from "../catalog_config.js";
@@ -12,7 +13,6 @@ import { adminDropdown } from "./admin_dropdown.js";
 import { superAdminDropdown } from "./super_admin_dropdown.js";
 import {
   eccomerceDistribuidoraCatalogoLink,
-  eccomerceDistribuidoraDropdown,
   eccomerceDistribuidoraAdminDropdown,
 } from "./eccomerce_distribuidora_dropdown.js";
 
@@ -45,6 +45,7 @@ import {
 // todo lo demás esté apagado, para poder volver a prenderlo.
 export const navbar_config = {
   extras: [CartIcon, CarritoDistribuidoraIcon],
+  accountLinks,
 
   brand: {
     titulo: brandConfig.nombre,
@@ -59,20 +60,23 @@ export const navbar_config = {
     menuAbrir: "Abrir menú",
     dropdownAbrir: "Abrir submenú",
     seccionDropdownMobile: "Administración",
-    botonSalir: "Logout",
+    botonSalir: "Cerrar sesión",
   },
 
   links: [
-    { label: "Inicio", to: "/", icon: Home },
+    { label: "Inicio", to: "/", exact: true, icon: Home },
     ...(projectModules.gym ? gymLinks : []),
-    ...(projectModules.eccomerce_distribuidora ? [eccomerceDistribuidoraCatalogoLink] : []),
+    ...(projectModules.eccomerce_distribuidora ? [eccomerceDistribuidoraCatalogoLink,
+      { label: "Cómo pedir", to: "/#como-pedir", icon: HelpCircle },
+      { label: "Contacto", to: "/#contacto", icon: Phone },
+    ] : []),
   ],
 
   dropdowns: [
     ...(projectModules.gym ? [gymDropdown] : []),
     ...(projectModules.kinesiologia ? [kinesiologiaDropdown] : []),
     ...(catalogConfig.enabled ? [eccomerceIndumentariaDropdown] : []),
-    ...(projectModules.eccomerce_distribuidora ? [eccomerceDistribuidoraDropdown, eccomerceDistribuidoraAdminDropdown] : []),
+    ...(projectModules.eccomerce_distribuidora ? [eccomerceDistribuidoraAdminDropdown] : []),
     adminDropdown,
     superAdminDropdown,
   ],

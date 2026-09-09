@@ -1,6 +1,11 @@
 import {
-  obtenerCarrito, agregarItem, actualizarCantidad, eliminarItem, vaciarCarrito,
+  fusionarCarrito, obtenerCarrito, agregarItem, actualizarCantidad, eliminarItem, vaciarCarrito,
 } from "../../services/distribuidora/carrito_distribuidora_service.js";
+
+export async function fusionarCarritoController(req, res) {
+  try { return res.json({ ok: true, data: await fusionarCarrito(req.user.usuario_id, req.body) }); }
+  catch (e) { return res.status(e.status ?? 500).json({ ok: false, mensaje: e.status ? e.message : "No pudimos recuperar tu carrito." }); }
+}
 
 export async function obtenerCarritoController(req, res) {
   try {

@@ -1,26 +1,12 @@
+import { clientConfig } from "../../../client_config.js";
+import { projectModules } from "./gate_config.js";
+const tienda = projectModules.eccomerce_distribuidora || projectModules.eccomerce_indumentaria;
 export const authConfig = {
-  storageKey: "token", // donde se guarda el token
-  endpoints: {
-    login: "/auth/login",
-    me: "/auth/me",
-    logout: "/auth/logout",
-    register: "/auth/register", // lo dejamos listo aunque no lo uses todavía
-  },
-  // para proyectos futuros: campos default
-  loginCampos: {
-    emailLabel: "Email",
-    passwordLabel: "Contraseña",
-    botonLabel: "Ingresar",
-  },
-
+  storageKey: "token", ...clientConfig.auth,
+  defaultDestination: projectModules.eccomerce_distribuidora ? "/distribuidora/catalogo" : "/",
+  logoutDestination: "/",
+  endpoints: { login: "/auth/login", me: "/auth/me", logout: "/auth/logout", register: "/auth/register", forgot: "/auth/forgot-password", reset: "/auth/reset-password" },
+  loginCampos: { emailLabel: "Email", passwordLabel: "Contraseña", botonLabel: "Ingresar" },
+  texts: { title: "Iniciar sesión", subtitle: tienda ? "Ingresá para enviar y consultar tus pedidos." : "Ingresá con tu cuenta para continuar.", registerTitle: "Crear cuenta", registerSubtitle: "Completá tus datos para continuar." },
 };
-
-export const registroConfig = {
-  titulo: "Crear cuenta",
-  subtitulo: "Completá tus datos para registrarte.",
-  botonLabel: "Registrar",
-
-  // navegación tras registrarse
-  redirigirA: "/login",
-};
-
+export const registroConfig = { titulo: authConfig.texts.registerTitle, subtitulo: authConfig.texts.registerSubtitle, botonLabel: "Crear cuenta", redirigirA: authConfig.defaultDestination };

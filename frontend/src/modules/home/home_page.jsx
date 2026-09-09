@@ -165,7 +165,7 @@ export default function HomePage() {
       </section>
 
       {/* ── GALERÍA CONFIGURABLE (grid o carrusel, por área) ── */}
-      <section id="galeria" className="bg-[var(--kt-bg-soft)] py-24 px-6">
+      {areasConContenido.length > 0 && <section id="galeria" className="bg-[var(--kt-bg-soft)] py-24 px-6">
         <div className="mx-auto max-w-6xl">
           <SectionKicker>{texto("galeria_kicker", HOME_TEXTOS_DEFAULT.galeria_kicker)}</SectionKicker>
           <h2 className="kt-display mt-3 text-4xl font-bold uppercase leading-none sm:text-5xl">
@@ -200,7 +200,7 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-      </section>
+      </section>}
 
       {/* ── CONTACTO (editable desde /admin/home-config) ──── */}
       <section id="contacto" className="py-24 px-6">

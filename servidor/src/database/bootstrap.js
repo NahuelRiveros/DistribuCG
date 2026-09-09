@@ -14,7 +14,7 @@ import {
   Carrito, CarritoItem,
   CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora,
   CarritoDistribuidora, CarritoDistribuidoraItem, NotaPedido, NotaPedidoItem, NotaPedidoPago,
-  PerfilClienteDistribuidora,
+  PerfilClienteDistribuidora, OperacionCarrito,
 } from "../models/index.js";
 
 /**
@@ -170,6 +170,7 @@ async function sincronizar_modelos() {
   // módulo eccomerce_distribuidora — catálogo tipo supermercado + nota de
   // pedido. Tablas propias, sin depender de productos/ ni carrito/ (indumentaria).
   const MODELOS_DISTRIBUIDORA = [
+    OperacionCarrito,
     CategoriaDistribuidora, // categoria_distribuidora (auto-referenciada)
     ProductoDistribuidora,  // producto_distribuidora → categoria_distribuidora
     VariedadDistribuidora,  // variedad_distribuidora → producto_distribuidora

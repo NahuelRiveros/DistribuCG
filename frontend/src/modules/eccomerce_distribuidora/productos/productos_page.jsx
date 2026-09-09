@@ -1,193 +1,51 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { SlidersHorizontal } from "lucide-react";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getProductos } from "../api/producto_distribuidora_api.js";
+import { storefrontConfig as config } from "../../../config/storefront_config.js";
+import SearchField from "../../../controls/ui/search_field.jsx";
+import Pagination from "../../../controls/ui/pagination.jsx";
+import Modal from "../../../controls/ui/modal.jsx";
+import ErrorBanner from "../../../controls/ui/error_banner.jsx";
+import ActionButton from "../../../controls/ui/action_button.jsx";
 import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
-import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
 import ProductoCard from "./producto_card.jsx";
 import CategoriasArbol from "./categorias_arbol.jsx";
-
 export default function ProductosDistribuidoraPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const categoriaUrl = searchParams.get("categoria");
-  const [categorias, setCategorias] = useState([]);
-  // El filtro de categoría y la búsqueda viven en la URL (?categoria=ID&q=texto)
-  // para poder linkear directo a un resultado — ej. desde el breadcrumb del
-  // detalle de producto, o compartir/recargar la página sin perder el filtro.
-  const [categoriaId, setCategoriaId] = useState(categoriaUrl ? Number(categoriaUrl) : null);
-  const [busqueda, setBusqueda] = useState(searchParams.get("q") ?? "");
-  // Versión "aplicada" (con debounce) de la búsqueda — lo que realmente
-  // dispara el pedido al servidor y se refleja en la URL. `busqueda` es solo
-  // lo que el usuario está tipeando en ese instante.
-  const [busquedaAplicada, setBusquedaAplicada] = useState(busqueda);
-  const [productos, setProductos] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [filtroMobileAbierto, setFiltroMobileAbierto] = useState(false);
-
-  useEffect(() => { getCategorias().then(setCategorias).catch(() => {}); }, []);
-
-  function elegirCategoria(id) {
-    setCategoriaId(id);
-    setFiltroMobileAbierto(false);
-  }
-
-  const hayFiltrosActivos = categoriaId !== null || busquedaAplicada !== "";
-
-  function limpiarFiltros() {
-    setBusqueda("");
-    setCategoriaId(null);
-  }
-
-  // Buscador con debounce — evita un pedido al servidor en cada tecla. La
-  // búsqueda se resuelve en el backend (listarProductos ya soporta `q`, con
-  // índice trigram para que ILIKE '%texto%' no escanee toda la tabla — ver
-  // servidor/src/database/bootstrap.js), no filtrando en el cliente, así
-  // también busca fuera de lo ya cargado.
-  useEffect(() => {
-    const t = setTimeout(() => setBusquedaAplicada(busqueda.trim()), 350);
-    return () => clearTimeout(t);
-  }, [busqueda]);
-
-  // Filtro + búsqueda viven en la URL (?categoria=ID&q=texto) para poder
-  // linkear directo a un resultado o recargar sin perderlo.
-  useEffect(() => {
-    const params = {};
-    if (categoriaId) params.categoria = categoriaId;
-    if (busquedaAplicada) params.q = busquedaAplicada;
-    setSearchParams(params, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoriaId, busquedaAplicada]);
-
-  useEffect(() => {
-    setCargando(true);
-    getProductos({ categoria: categoriaId ?? undefined, q: busquedaAplicada || undefined, por_pagina: 60 })
-      .then((r) => setProductos(r.data ?? []))
-      .catch(() => setProductos([]))
-      .finally(() => setCargando(false));
-  }, [categoriaId, busquedaAplicada]);
-
-  const categoriaActual = categorias.find((c) => c.id === categoriaId);
-
-  return (
-    <div className="kt-body min-h-screen bg-(--kt-bg-soft) p-4 sm:p-8">
-      <div className="mx-auto max-w-7xl space-y-5">
-
-        <div>
-          <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-(--kt-teal-700)">
-            Nuestra tienda
-          </span>
-          <h1 className="kt-display mt-1 text-3xl font-bold uppercase leading-none text-(--kt-ink) sm:text-4xl">
-            Productos
-          </h1>
-          <p className="mt-2 text-sm text-(--kt-ink-soft)">Buscá un producto o elegí una categoría.</p>
-        </div>
-
-        {/* ── Buscador + acceso a categorías en mobile + limpiar — una sola
-            fila (antes eran 2-3 filas apiladas: buscador, "Limpiar filtros"
-            y el botón ancho "Filtrar", empujando los productos bien abajo en
-            mobile). flex-wrap solo pasa el botón de categoría/limpiar a una
-            segunda línea si el teléfono es angosto de verdad. ── */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-45 flex-1">
-            <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-(--kt-ink-soft)" />
-            <input
-              value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar productos…"
-              className="w-full rounded-2xl border border-(--kt-border) bg-white py-2.5 pl-10 pr-9 text-sm text-(--kt-ink) outline-none transition focus:border-(--kt-teal-700) focus:ring-2 focus:ring-(--kt-turquoise)/30"
-            />
-            {busqueda && (
-              <button
-                type="button" onClick={() => setBusqueda("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-(--kt-ink-soft) hover:text-(--kt-ink)"
-                title="Limpiar búsqueda"
-              >
-                <X size={15} />
-              </button>
-            )}
-          </div>
-
-          {/* Acceso al árbol de categorías — solo mobile/tablet chico, en
-              md+ el sidebar ya está siempre visible al costado. */}
-          <button
-            type="button" onClick={() => setFiltroMobileAbierto(true)}
-            className="flex shrink-0 items-center gap-1.5 rounded-2xl border border-(--kt-border) bg-white px-3.5 py-2.5 text-sm font-semibold text-(--kt-ink) transition hover:border-(--kt-turquoise) md:hidden"
-          >
-            <SlidersHorizontal size={15} className="text-(--kt-ink-soft)" />
-            <span className="max-w-28 truncate">{categoriaActual ? categoriaActual.nombre : "Categorías"}</span>
-          </button>
-
-          {/* Resetea búsqueda + categoría juntos — el X de arriba solo limpia el texto. */}
-          {hayFiltrosActivos && (
-            <button
-              type="button" onClick={limpiarFiltros}
-              className="shrink-0 rounded-2xl border border-(--kt-border) bg-white px-3.5 py-2.5 text-sm font-semibold text-(--kt-ink-soft) transition hover:border-(--kt-turquoise) hover:text-(--kt-teal-700)"
-            >
-              Limpiar filtros
-            </button>
-          )}
-        </div>
-
-        {/* El sidebar pasa a ser fijo desde `md` (768px) — a los 240px que
-            ocupa le sobra espacio en cualquier tablet, no hace falta esperar
-            a `lg` (1024px) para dejar de mostrar el drawer mobile. */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr] md:items-start">
-
-          {/* ── Árbol de categorías — sidebar fijo desde tablet ── */}
-          <aside className="hidden rounded-2xl border border-(--kt-border) bg-white p-3 shadow-sm md:block md:sticky md:top-6">
-            <CategoriasArbol categorias={categorias} categoriaId={categoriaId} onSeleccionar={elegirCategoria} />
-          </aside>
-
-          {/* ── Grilla de productos ──
-              Los saltos de columnas están pensados para el ancho REAL
-              disponible, no el del viewport entero: sm:3 aprovecha el ancho
-              completo en teléfonos grandes/tablets angostas (todavía sin
-              sidebar); md:2 vuelve a bajar apenas aparece el sidebar de
-              240px, para no comprimir las tarjetas de golpe; lg/xl vuelven a
-              subir a medida que ese espacio (viewport - sidebar) crece. */}
-          {cargando ? (
-            <div className="rounded-2xl border border-(--kt-border) bg-white shadow-sm">
-              <AdminSpinner />
-            </div>
-          ) : productos.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-(--kt-border) bg-white">
-              <AdminEmptyState
-                title={busquedaAplicada ? `Ningún producto coincide con "${busquedaAplicada}".` : "No hay productos en esta categoría todavía."}
-                action={hayFiltrosActivos && (
-                  <button
-                    type="button" onClick={limpiarFiltros}
-                    className="rounded-xl bg-(--kt-teal-700) px-4 py-2 text-sm font-bold text-white transition hover:bg-(--kt-petrol)"
-                  >
-                    Limpiar filtros
-                  </button>
-                )}
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {productos.map((p, i) => <ProductoCard key={p.id} producto={p} index={i} />)}
-            </div>
-          )}
-
-        </div>
-
-      </div>
-
-      {/* ── Panel de categorías en mobile/tablet chica (drawer) ── */}
-      {filtroMobileAbierto && (
-        <div className="fixed inset-0 z-(--z-modal) md:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setFiltroMobileAbierto(false)} aria-hidden="true" />
-          <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] overflow-y-auto bg-white p-4 shadow-xl">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm font-bold text-(--kt-ink)">Categorías</span>
-              <button type="button" onClick={() => setFiltroMobileAbierto(false)} aria-label="Cerrar">
-                <X size={18} className="text-(--kt-ink-soft)" />
-              </button>
-            </div>
-            <CategoriasArbol categorias={categorias} categoriaId={categoriaId} onSeleccionar={elegirCategoria} />
-          </div>
-        </div>
-      )}
+  const [params, setParams] = useSearchParams();
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const q = params.get("q") ?? "";
+  const category = Number(params.get("categoria")) || null;
+  const page = Math.max(1, Math.floor(Number(params.get("pagina")) || 1));
+  const update = useCallback((patch) => setParams((old) => {
+    const next = new URLSearchParams(old);
+    Object.entries(patch).forEach(([key, value]) => value ? next.set(key, String(value)) : next.delete(key));
+    return next;
+  }), [setParams]);
+  const search = useCallback((text) => update({ q: text, pagina: null }), [update]);
+  const products = useQuery({ queryKey: ["storefront", "products", q, category, page], queryFn: ({ signal }) => getProductos({ q: q || undefined, categoria: category || undefined, pagina: page, por_pagina: config.pageSize }, { signal, publicAccess: config.publicCatalog }), staleTime: 30000 });
+  const categories = useQuery({ queryKey: ["storefront", "categories"], queryFn: getCategorias, staleTime: 60000 });
+  const choose = (id) => { update({ categoria: id, pagina: null }); setFiltersOpen(false); };
+  const tree = <CategoriasArbol categorias={categories.data ?? []} categoriaId={category} onSeleccionar={choose} />;
+  return <div className="bg-(--kt-bg-soft) px-3 py-6 sm:px-6"><div className="mx-auto max-w-7xl space-y-5">
+    <div><p className="text-xs font-semibold uppercase tracking-widest text-(--kt-teal-700)">Nuestro catálogo</p><h1 className="kt-display mt-1 text-3xl font-bold">{config.labels.title}</h1><p className="mt-2 text-sm text-slate-600">{config.labels.priceNotice}</p></div>
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="min-w-48 flex-1"><SearchField value={q} onSearch={search} label="Buscar productos" placeholder={config.labels.search} /></div>
+      <button type="button" onClick={() => setFiltersOpen(true)} className="flex min-h-11 items-center gap-2 rounded-xl border border-(--kt-border) bg-white px-3 text-sm md:hidden"><SlidersHorizontal size={18} />Categorías</button>
+      {(q || category) && <button type="button" onClick={() => setParams({})} className="min-h-11 px-3 text-sm font-semibold underline">Limpiar filtros</button>}
     </div>
-  );
+    {categories.isError && <ErrorBanner message={<span>No pudimos cargar las categorías. <button onClick={() => categories.refetch()} className="underline">Reintentar</button></span>} />}
+    <div className="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)]">
+      <aside className="hidden self-start rounded-2xl border border-(--kt-border) bg-white p-3 md:sticky md:top-20 md:block">{tree}</aside>
+      <section aria-label="Resultados" aria-busy={products.isFetching}>
+        {products.isPending ? <AdminSpinner /> : products.isError ? <div className="space-y-3"><ErrorBanner message="No pudimos cargar los productos. Revisá la conexión y volvé a intentar." /><ActionButton onClick={() => products.refetch()}>Reintentar</ActionButton></div>
+          : !products.data?.data?.length ? <div className="rounded-2xl border border-dashed p-8 text-center"><p>No encontramos productos con estos filtros.</p><button onClick={() => setParams({})} className="mt-3 min-h-11 underline">Ver todos los productos</button></div>
+          : <><div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">{products.data.data.map((p) => <ProductoCard key={p.id} producto={p} />)}</div>
+            <Pagination page={page} pages={products.data.total_paginas} total={products.data.total} disabled={products.isFetching} onChange={(p) => { update({ pagina: p }); window.scrollTo({ top: 0, behavior: "instant" }); }} /></>}
+      </section>
+    </div>
+    {filtersOpen && <Modal title="Categorías" onClose={() => setFiltersOpen(false)}>{tree}</Modal>}
+  </div></div>;
 }

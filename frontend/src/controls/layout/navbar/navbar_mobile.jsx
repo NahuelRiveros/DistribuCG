@@ -1,174 +1,34 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../../auth/auth_context.jsx";
+import { authConfig } from "../../../config/auth_config.js";
+import { authLink } from "../../acceso/return_to.js";
+import Modal from "../../ui/modal.jsx";
 import NavbarUserBox from "./navbar_userbox.jsx";
-import { LogoMoovsIcon } from "../../brand/logo_moovs.jsx";
+import NavbarLink from "./navbar_link.jsx";
 import { UI_NAVBAR as S } from "./navbar_style.js";
-
-export default function NavbarMobile({ config, open, onNavigate, onClose }) {
-  const [openGroups, setOpenGroups] = useState({});
+function Items({ items, onNavigate }) {
+  return items.map((item) => item.children?.length
+    ? <div key={item.label}><p className="px-3 py-2 text-xs font-bold text-slate-500">{item.label}</p><Items items={item.children} onNavigate={onNavigate} /></div>
+    : <NavbarLink key={item.to} item={item} onNavigate={onNavigate} base={S.mobile_link} active={S.mobile_link_activo} inactive={S.mobile_link_inactivo} />);
+}
+export default function NavbarMobile({ config, open, onNavigate, onClose, returnTo }) {
+  const [groups, setGroups] = useState({});
   const { usuario } = useAuth();
-
-  function toggleGroup(id) {
-    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
-  }
-
-  function handleNavigate() {
-    setOpenGroups({});
-    onNavigate();
-  }
-
-  return (
-    <aside
-      aria-hidden={!open}
-      className={[
-        S.mobile_drawer,
-        open ? S.mobile_drawer_abierto : S.mobile_drawer_cerrado,
-      ].join(" ")}
-    >
-      <div className={S.mobile_drawer_header}>
-        <LogoMoovsIcon />
-        <div className="flex items-center gap-1">
-          {config.extras?.map((Extra, i) => <Extra key={i} />)}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar menú"
-            className={S.mobile_drawer_cerrar}
-          >
-            <X size={18} />
-          </button>
-        </div>
-      </div>
-
-      <div className={S.mobile_scroll}>
-        {(config.links?.length ?? 0) > 0 && (
-          <div className={S.mobile_links_lista}>
-            {config.links.map((link) => {
-              const Icon = link.icon;
-              return (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end={link.exact}
-                  onClick={handleNavigate}
-                  className={({ isActive }) =>
-                    [S.mobile_link, isActive ? S.mobile_link_activo : S.mobile_link_inactivo].join(" ")
-                  }
-                >
-                  {Icon && <span className={S.mobile_link_icono}><Icon size={15} /></span>}
-                  {link.label}
-                </NavLink>
-              );
-            })}
-          </div>
-        )}
-
-        {(config.dropdowns?.length ?? 0) > 0 && (
-          <div className={S.mobile_dropdowns_lista}>
-            {config.dropdowns.map((dropdown) => {
-              const Icon = dropdown.icon;
-              const isOpen = Boolean(openGroups[dropdown.id]);
-
-              return (
-                <div
-                  key={dropdown.id}
-                  className={[
-                    S.mobile_dropdown_tarjeta,
-                    isOpen ? S.mobile_dropdown_tarjeta_abierta : S.mobile_dropdown_tarjeta_cerrada,
-                  ].join(" ")}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleGroup(dropdown.id)}
-                    className={[
-                      S.mobile_dropdown_trigger,
-                      isOpen ? S.mobile_dropdown_trigger_abierto : S.mobile_dropdown_trigger_cerrado,
-                    ].join(" ")}
-                  >
-                    <span className="flex items-center gap-3">
-                      <span className={isOpen ? S.mobile_dropdown_icono_abierto : S.mobile_dropdown_icono_cerrado}>
-                        {Icon && <Icon size={16} />}
-                      </span>
-                      <span className={isOpen ? S.mobile_dropdown_label_abierto : S.mobile_dropdown_label_cerrado}>
-                        {dropdown.label}
-                      </span>
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={isOpen ? S.mobile_dropdown_chevron_abierto : S.mobile_dropdown_chevron_cerrado}
-                    />
-                  </button>
-
-                  {isOpen && (
-                    <div className={S.mobile_dropdown_contenido}>
-                      {dropdown.items?.map((item) => {
-                        const ItemIcon = item.icon;
-
-                        if (item.children?.length) {
-                          return (
-                            <div key={item.label} className={S.mobile_subgrupo_wrapper}>
-                              <div className={S.mobile_subgrupo_cabecera}>
-                                {ItemIcon && (
-                                  <span className={S.mobile_subgrupo_icono}><ItemIcon size={11} /></span>
-                                )}
-                                <span className={S.item_grupo_label}>{item.label}</span>
-                              </div>
-                              <div className={S.item_lista}>
-                                {item.children.map((child) => {
-                                  const ChildIcon = child.icon;
-                                  return (
-                                    <NavLink
-                                      key={child.to}
-                                      to={child.to}
-                                      onClick={handleNavigate}
-                                      className={({ isActive }) =>
-                                        [S.item_link, isActive ? S.item_link_activo : S.item_link_inactivo].join(" ")
-                                      }
-                                    >
-                                      {ChildIcon && <span className={S.item_icono}><ChildIcon size={13} /></span>}
-                                      <span className="truncate">{child.label}</span>
-                                    </NavLink>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <NavLink
-                            key={item.to}
-                            to={item.to}
-                            onClick={handleNavigate}
-                            className={({ isActive }) =>
-                              [S.item_link, isActive ? S.item_link_activo : S.item_link_inactivo].join(" ")
-                            }
-                          >
-                            {ItemIcon && <span className={S.item_icono}><ItemIcon size={13} /></span>}
-                            <span className="truncate">{item.label}</span>
-                          </NavLink>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className={S.mobile_pie_usuario}>
-        {usuario ? (
-          <NavbarUserBox mobile onLogout={handleNavigate} />
-        ) : (
-          <NavLink to="/login" onClick={handleNavigate} className={S.mobile_btn_login}>
-            Iniciar sesión
-          </NavLink>
-        )}
-      </div>
-    </aside>
-  );
+  return <Modal open={open} onClose={onClose} title="Menú de navegación" className="!m-0 !ml-auto !h-dvh !max-h-dvh !w-[min(90vw,24rem)] !rounded-r-none">
+    <nav aria-label="Navegación móvil" className="space-y-4">
+      <div className="space-y-1"><Items items={config.links ?? []} onNavigate={onNavigate} /></div>
+      {config.dropdowns?.map((group) => <div key={group.id} className="rounded-xl border border-(--kt-border)">
+        <button type="button" aria-expanded={!!groups[group.id]} aria-controls={`mobile-${group.id}`}
+          onClick={() => setGroups((p) => ({ ...p, [group.id]: !p[group.id] }))}
+          className="flex min-h-12 w-full items-center justify-between gap-2 px-3 text-left text-sm font-bold">{group.label}<ChevronDown size={16} /></button>
+        {groups[group.id] && <div id={`mobile-${group.id}`} className="space-y-1 p-2"><Items items={group.items} onNavigate={onNavigate} /></div>}
+      </div>)}
+      {usuario ? <NavbarUserBox mobile links={config.accountLinks} onLogout={onNavigate} /> : <div className="grid gap-2 border-t border-(--kt-border) pt-4">
+        <Link to={authLink("/login", returnTo)} onClick={onNavigate} className={S.mobile_btn_login}>Ingresar</Link>
+        {authConfig.publicRegistration && <Link to={authLink("/register", returnTo)} onClick={onNavigate} className="min-h-11 rounded-xl border p-3 text-center text-sm font-semibold">Crear cuenta</Link>}
+      </div>}
+    </nav>
+  </Modal>;
 }

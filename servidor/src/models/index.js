@@ -8,6 +8,7 @@
  *   import "../models/index.js";  // efectos colaterales: registra asociaciones
  */
 
+import { OperacionCarrito } from "./distribuidora/operacion_carrito.js";
 import { aplicarRelaciones } from "./common/relaciones.js";
 
 // ── persona/ — identidad base y sus catálogos ────────────────────────────────
@@ -285,6 +286,7 @@ aplicarRelaciones([
 ]);
 
 export {
+  OperacionCarrito,
   Sexo, TipoDocumento, TipoPersona, AlumnoEstado,
   Rol, Modulo, Permiso, RolPermiso,
   Persona, Usuario, UsuarioRol,

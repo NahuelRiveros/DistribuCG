@@ -1,4 +1,7 @@
 ﻿import bcrypt from "bcrypt";
+import { randomBytes } from "node:crypto";
+import { passwordVersion } from "../common/auth_tokens.js";
+import { clientConfig } from "../../../../client_config.js";
 import jwt from "jsonwebtoken";
 import { env } from "../../configuracion_servidor/env.js";
 import { sequelize } from "../../database/sequelize.js";
@@ -8,18 +11,18 @@ function safeStr(v) {
   return String(v ?? "").trim();
 }
 
-function crearToken({ usuario_id, persona_id, roles }) {
+function crearToken({ usuario_id, persona_id, roles, contrasena }) {
   const secret = env.JWT_SECRET;
   if (!secret) throw new Error("Falta JWT_SECRET en .env");
 
-  return jwt.sign({ sub: usuario_id, persona_id, roles }, secret, {
+  return jwt.sign({ sub: String(usuario_id), persona_id, roles, pv: passwordVersion(contrasena) }, secret, {
     expiresIn: env.JWT_EXPIRES_IN ?? "24h",
   });
 }
 
 export async function login({ email, password }) {
   const emailNorm = safeStr(email).toLowerCase();
-  const pass = safeStr(password);
+  const pass = String(password ?? "");
 
   const persona = await Persona.findOne({ where: { email: emailNorm } });
   if (!persona) {
@@ -51,7 +54,7 @@ export async function login({ email, password }) {
 
   const roles = rolesRows.map((r) => r.codigo);
 
-  const token = crearToken({ usuario_id: usuario.id, persona_id: persona.id, roles });
+  const token = crearToken({ usuario_id: usuario.id, persona_id: persona.id, roles, contrasena: usuario.contrasena });
 
   await usuario.update({ ultimo_login: new Date() });
 
@@ -84,13 +87,15 @@ export async function registrarCliente({ nombre, apellido, email, password }) {
   const nombreN   = safeStr(nombre);
   const apellidoN = safeStr(apellido);
   const emailN    = safeStr(email).toLowerCase();
-  const pass      = safeStr(password);
+  const pass      = String(password ?? "");
+  if (!clientConfig.auth.publicRegistration) return { ok: false, codigo: "REGISTRO_DESHABILITADO", mensaje: "El registro público no está habilitado." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailN)) return { ok: false, codigo: "EMAIL_INVALIDO", mensaje: "Ingresá un email válido" };
 
   if (!nombreN || !apellidoN || !emailN || !pass) {
     return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: nombre, apellido, email y password" };
   }
-  if (pass.length < 6) {
-    return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: "La contraseña debe tener al menos 6 caracteres" };
+  if (pass.length < clientConfig.auth.passwordMinLength || Buffer.byteLength(pass, "utf8") > clientConfig.auth.passwordMaxLength) {
+    return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: `La contraseña debe tener entre ${clientConfig.auth.passwordMinLength} caracteres y ${clientConfig.auth.passwordMaxLength} bytes` };
   }
 
   const yaExiste = await Persona.findOne({ where: { email: emailN } });
@@ -100,7 +105,7 @@ export async function registrarCliente({ nombre, apellido, email, password }) {
 
   return await sequelize.transaction(async (t) => {
     const tipoDocumentoDni = await TipoDocumento.findOne({ where: { descripcion: "DNI" }, transaction: t });
-    const documentoSintetico = `REG${Date.now()}`;
+    const documentoSintetico = `REG${randomBytes(8).toString("hex")}`;
 
     const persona = await Persona.create({
       nombre: nombreN, apellido: apellidoN, email: emailN,
@@ -115,6 +120,7 @@ export async function registrarCliente({ nombre, apellido, email, password }) {
     );
 
     const rolCliente = await Rol.findOne({ where: { codigo: "cliente" }, transaction: t });
+    if (!rolCliente) throw new Error("Falta configurar el rol cliente");
     if (rolCliente) {
       await UsuarioRol.create({ usuario_id: usuario.id, rol_id: rolCliente.id }, { transaction: t });
     }
@@ -138,21 +144,3 @@ export async function obtenerPerfil(persona_id) {
   };
 }
 
-export async function resetearPassword({ email, newPassword }) {
-  const persona = await Persona.findOne({
-    where: { email: String(email).trim().toLowerCase() },
-  });
-  if (!persona) {
-    return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Email no encontrado" };
-  }
-
-  const usuario = await Usuario.findOne({ where: { persona_id: persona.id } });
-  if (!usuario) {
-    return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Usuario no encontrado" };
-  }
-
-  const hash = await bcrypt.hash(String(newPassword).trim(), 10);
-  await usuario.update({ contrasena: hash });
-
-  return { ok: true, codigo: "PASSWORD_ACTUALIZADA", mensaje: "Contraseña actualizada correctamente" };
-}

@@ -1,188 +1,58 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ShoppingBag, Package, ChevronRight, Minus, Plus, Check, AlertTriangle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Package } from "lucide-react";
 import { getProducto } from "../api/producto_distribuidora_api.js";
 import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
-import { precioSinIva, formatearPrecio } from "../utils/precio_iva.js";
-
-// Estilos por resultado del click en "Agregar al pedido" — antes el mensaje
-// de error usaba el mismo verde que el de éxito (bug real, no solo estético).
-const ESTILO_BOTON = {
-  idle:      "bg-(--kt-accent-comercial) hover:bg-(--kt-accent-comercial-hover)",
-  agregando: "bg-(--kt-accent-comercial)",
-  ok:        "bg-emerald-600",
-  error:     "bg-rose-600 kt-shake",
-};
-
+import { storefrontConfig as config } from "../../../config/storefront_config.js";
+import { formatearPrecio } from "../utils/precio_iva.js";
+import QuantityInput from "../../../controls/ui/quantity_input.jsx";
+import ActionButton from "../../../controls/ui/action_button.jsx";
+import ErrorBanner from "../../../controls/ui/error_banner.jsx";
+import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
+function Detail({ product }) {
+  const { addItem } = useCarritoDistribuidora();
+  const [variantId, setVariantId] = useState(() => product.variedades?.find((v) => !v.controla_stock || v.cantidad > 0)?.id ?? product.variedades?.[0]?.id);
+  const [quantity, setQuantity] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [added, setAdded] = useState(false);
+  const variant = product.variedades?.find((v) => v.id === variantId);
+  const max = Math.min(config.maxQuantity, variant?.controla_stock ? variant.cantidad : config.maxQuantity);
+  return <div className="grid gap-6 rounded-2xl border border-(--kt-border) bg-white p-4 sm:grid-cols-2 sm:p-6">
+    <div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-(--kt-bg-soft)">
+      {product.imagen_url ? <img src={product.imagen_url} alt={product.nombre} className="h-full w-full object-contain p-4" /> : <Package size={48} />}
+    </div>
+    <div className="min-w-0 space-y-4">
+      <div><p className="text-sm text-slate-500">{product.marca}</p><h1 className="kt-display text-2xl font-bold">{product.nombre}</h1></div>
+      {product.descripcion && <p className="whitespace-pre-line text-sm leading-6 text-slate-600">{product.descripcion}</p>}
+      {!!product.variedades?.length && <fieldset><legend className="mb-2 text-sm font-bold">Presentación</legend><div className="flex flex-wrap gap-2">
+        {product.variedades.map((v) => <button type="button" key={v.id} aria-pressed={variantId === v.id}
+          onClick={() => { setVariantId(v.id); setQuantity(1); setAdded(false); setError(""); }}
+          className={`min-h-11 rounded-xl border px-3 py-2 text-left text-sm ${variantId === v.id ? "border-(--kt-teal-700) bg-(--kt-turquoise-soft)" : "border-(--kt-border)"}`}>{v.nombre || "Unidad"}{v.controla_stock && v.cantidad <= 0 ? " · Sin stock" : ""}</button>)}
+      </div></fieldset>}
+      <div><p className="text-2xl font-extrabold">{variant ? formatearPrecio(variant.precio) : "Consultá disponibilidad"}</p><p className="text-xs text-slate-500">{config.labels.priceNotice}</p>
+        <p className="mt-2 text-sm">{variant?.controla_stock ? max > 0 ? `${variant.cantidad} unidades disponibles` : "Sin stock" : config.labels.availability}</p>
+        {variant?.cod_ref && <p className="text-xs text-slate-500">Código: {variant.cod_ref}</p>}
+      </div>
+      {variant && <div className="flex flex-wrap gap-3"><QuantityInput value={quantity} onChange={setQuantity} max={max} disabled={busy || max < 1} />
+        <ActionButton disabled={busy || max < 1} onClick={async () => {
+          setBusy(true); setError(""); setAdded(false);
+          try { await addItem({ producto_id: product.id, variedad_id: variant.id, cantidad: quantity }); setAdded(true); }
+          catch (e) { setError(e.response?.data?.mensaje || e.message); } finally { setBusy(false); }
+        }}>{busy ? "Agregando…" : "Agregar al carrito"}</ActionButton></div>}
+      <ErrorBanner message={error} />
+      {added && <p role="status" className="text-sm text-emerald-700">Agregado. <Link to={config.cartPath} className="font-bold underline">Ver carrito</Link></p>}
+      {!variant && <Link to="/#contacto" className="inline-block min-h-11 py-3 font-semibold underline">Consultar este producto</Link>}
+    </div>
+  </div>;
+}
 export default function ProductoDetalleDistribuidoraPage() {
   const { id } = useParams();
-  const { addItem } = useCarritoDistribuidora();
-  const [producto, setProducto] = useState(null);
-  const [cargando, setCargando] = useState(true);
-  const [variedadId, setVariedadId] = useState(null);
-  const [cantidad, setCantidad] = useState(1);
-  const [estado, setEstado] = useState("idle"); // idle | agregando | ok | error
-  const [errorTexto, setErrorTexto] = useState("");
-  const timeoutRef = useRef(null);
-  useEffect(() => () => clearTimeout(timeoutRef.current), []);
-
-  useEffect(() => {
-    setCargando(true);
-    getProducto(id)
-      .then((p) => { setProducto(p); setVariedadId(p.variedades?.[0]?.id ?? null); })
-      .catch(() => setProducto(null))
-      .finally(() => setCargando(false));
-  }, [id]);
-
-  // Si cambiás de variedad y la cantidad elegida ya no entra en el stock de
-  // la nueva, la reacomodamos — mismo tope que usa el stepper del carrito.
-  useEffect(() => {
-    const v = producto?.variedades?.find((x) => x.id === variedadId) ?? null;
-    if (v?.controla_stock && cantidad > v.cantidad) {
-      setCantidad(Math.max(1, v.cantidad));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [variedadId]);
-
-  if (cargando) {
-    return <div className="min-h-screen bg-(--kt-bg-soft) p-8 text-center text-sm text-(--kt-ink-soft)">Cargando…</div>;
-  }
-  if (!producto) {
-    return (
-      <div className="min-h-screen bg-(--kt-bg-soft) p-8 text-center">
-        <p className="text-sm text-(--kt-ink-soft)">Producto no encontrado.</p>
-        <Link to="/distribuidora/catalogo" className="mt-2 inline-block text-sm font-semibold text-(--kt-teal-700)">Volver a productos</Link>
-      </div>
-    );
-  }
-
-  const variedad = producto.variedades?.find((v) => v.id === variedadId) ?? null;
-  // Si la variedad no controla stock acá, siempre se puede pedir — la
-  // disponibilidad real se confirma al procesar la nota de pedido.
-  const sinStock = variedad?.controla_stock && variedad.cantidad <= 0;
-  const maxCantidad = variedad?.controla_stock ? variedad.cantidad : 99;
-
-  async function agregar() {
-    if (!variedad || estado === "agregando") return;
-    setEstado("agregando");
-    try {
-      await addItem({ producto_id: producto.id, variedad_id: variedad.id, cantidad });
-      setEstado("ok");
-    } catch (e) {
-      setErrorTexto(e?.response?.data?.mensaje || "No se pudo agregar, probá de nuevo");
-      setEstado("error");
-    } finally {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => setEstado("idle"), 2200);
-    }
-  }
-
-  const IconoBoton = estado === "ok" ? Check : estado === "error" ? AlertTriangle : ShoppingBag;
-  const textoBoton = { idle: "Agregar al pedido", agregando: "Agregando…", ok: "¡Agregado!", error: "No se pudo" }[estado];
-
-  return (
-    <div className="kt-body min-h-screen bg-(--kt-bg-soft) p-4 sm:p-8">
-      <div className="mx-auto max-w-4xl">
-        <nav className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-(--kt-ink-soft)">
-          <Link to="/distribuidora/catalogo" className="hover:text-(--kt-teal-700)">Productos</Link>
-          {producto.categoria?.nombre && (
-            <>
-              <ChevronRight size={13} className="text-(--kt-border)" />
-              <Link to={`/distribuidora/catalogo?categoria=${producto.categoria.id}`} className="hover:text-(--kt-teal-700)">
-                {producto.categoria.nombre}
-              </Link>
-            </>
-          )}
-          <ChevronRight size={13} className="text-(--kt-border)" />
-          <span className="truncate text-(--kt-ink-soft)">{producto.nombre}</span>
-        </nav>
-
-        <div className="grid grid-cols-1 gap-6 rounded-2xl border border-(--kt-border) bg-white p-5 shadow-sm sm:grid-cols-2 sm:p-7">
-          <div className="aspect-square overflow-hidden rounded-xl bg-(--kt-bg-soft)">
-            {producto.imagen_url ? (
-              <img src={producto.imagen_url} alt={producto.nombre} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <div className="rounded-full bg-white/70 p-6 text-(--kt-ink-soft) shadow-sm"><Package size={40} /></div>
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col">
-            {producto.marca && <p className="text-xs font-semibold uppercase tracking-wide text-(--kt-ink-soft)">{producto.marca}</p>}
-            <h1 className="kt-display mt-1 text-xl font-bold text-(--kt-ink)">{producto.nombre}</h1>
-            {producto.descripcion && <p className="mt-3 text-sm leading-6 text-(--kt-ink-soft)">{producto.descripcion}</p>}
-
-            {!producto.variedades?.length ? (
-              <p className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
-                Este producto todavía no tiene variedades cargadas.
-              </p>
-            ) : (
-              <>
-                {producto.variedades.length > 1 && (
-                  <div className="mt-5">
-                    <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-(--kt-ink-soft)">Elegí una opción</p>
-                    <div className="flex flex-wrap gap-2">
-                      {producto.variedades.map((v) => (
-                        <button
-                          key={v.id} type="button" onClick={() => setVariedadId(v.id)}
-                          className={`rounded-xl border px-3 py-2 text-left text-sm transition ${
-                            variedadId === v.id
-                              ? "border-(--kt-teal-700) bg-(--kt-turquoise-soft) text-(--kt-teal-700)"
-                              : "border-(--kt-border) text-(--kt-ink-soft) hover:border-(--kt-turquoise)"
-                          }`}
-                        >
-                          <span className="block font-semibold">{v.nombre ?? "Única"}</span>
-                          <span className="block text-xs">{formatearPrecio(v.precio)}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-5 flex items-end justify-between">
-                  <div>
-                    <p className="text-2xl font-extrabold text-(--kt-ink)">
-                      {variedad ? formatearPrecio(variedad.precio) : "—"}
-                    </p>
-                    {variedad && (
-                      <p className="text-xs text-(--kt-ink-soft)">
-                        Precio sin IVA: {formatearPrecio(precioSinIva(variedad.precio, variedad.iva_porcentaje))}
-                      </p>
-                    )}
-                    {variedad?.controla_stock && (
-                      <p className="text-xs text-(--kt-ink-soft)">{sinStock ? "Sin stock" : `${variedad.cantidad} disponibles`}</p>
-                    )}
-                    {variedad?.cod_ref && (
-                      <p className="mt-1 text-[11px] text-(--kt-ink-soft)">Código: {variedad.cod_ref}</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 rounded-xl border border-(--kt-border) px-1 py-1">
-                      <button type="button" onClick={() => setCantidad((c) => Math.max(1, c - 1))}
-                        className="rounded-lg p-1.5 text-(--kt-ink-soft) transition active:scale-90 hover:bg-(--kt-bg-soft) hover:text-(--kt-ink)"><Minus size={14} /></button>
-                      <span className="w-7 text-center text-sm font-semibold tabular-nums">{cantidad}</span>
-                      <button type="button" onClick={() => setCantidad((c) => Math.min(c + 1, maxCantidad))}
-                        className="rounded-lg p-1.5 text-(--kt-ink-soft) transition active:scale-90 hover:bg-(--kt-bg-soft) hover:text-(--kt-ink)"><Plus size={14} /></button>
-                    </div>
-                    <button
-                      type="button" onClick={agregar} disabled={estado === "agregando" || sinStock || !variedad}
-                      className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm transition active:scale-95 disabled:opacity-60 ${ESTILO_BOTON[estado]}`}
-                    >
-                      <IconoBoton key={estado} size={15} className={estado === "ok" || estado === "error" ? "kt-pop" : ""} />
-                      {textoBoton}
-                    </button>
-                  </div>
-                </div>
-                {estado === "error" && (
-                  <p className="kt-item-in mt-2 text-right text-xs font-semibold text-rose-600">{errorTexto}</p>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const query = useQuery({ queryKey: ["storefront", "product", id], queryFn: ({ signal }) => getProducto(id, { signal, publicAccess: config.publicCatalog }), staleTime: 30000 });
+  return <div className="bg-(--kt-bg-soft) px-3 py-6 sm:px-6"><div className="mx-auto max-w-5xl space-y-4">
+    <nav aria-label="Ubicación" className="flex flex-wrap gap-2 text-sm"><Link to={config.catalogPath} className="min-h-11 py-3 font-semibold underline">Productos</Link>
+      {query.data?.categoria && <Link to={config.catalogPath + "?categoria=" + query.data.categoria.id} className="min-h-11 py-3">/ {query.data.categoria.nombre}</Link>}</nav>
+    {query.isPending ? <AdminSpinner /> : query.isError ? <><ErrorBanner message={query.error.response?.status === 404 ? "Este producto ya no está disponible." : "No pudimos cargar el producto."} /><ActionButton onClick={() => query.refetch()}>Reintentar</ActionButton></> : <Detail key={id} product={query.data} />}
+  </div></div>;
 }

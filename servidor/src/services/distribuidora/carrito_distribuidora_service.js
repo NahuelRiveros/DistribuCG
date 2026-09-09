@@ -1,134 +1,78 @@
 import { CarritoDistribuidora, CarritoDistribuidoraItem, ProductoDistribuidora, VariedadDistribuidora, CategoriaDistribuidora } from "../../models/index.js";
-
-/**
- * Contrato de cada item devuelto — mismo shape que carrito_service.js
- * (indumentaria) para que el frontend pueda usar la misma lógica de
- * detección de alertas (cart_staleness.js), aunque acá vive en un contexto
- * propio (modules/eccomerce_distribuidora/carrito/), no en controls/carrito/:
- *
- *   activo, variante_disponible, variante, precio, precio_al_agregar,
- *   stock_disponible, cantidad, item_id, producto_id, nombre, categoria, imagen
- */
-
-async function obtenerOCrearCarrito(usuario_id) {
-  const [carrito] = await CarritoDistribuidora.findOrCreate({
-    where: { usuario_id },
-    defaults: { usuario_id, fecha_alta: new Date(), fecha_mod: new Date() },
-  });
-  return carrito;
+import { withCart, idempotent } from "./cart_transaction.js";
+import { cartError, validQuantity } from "../common/cart_rules.js";
+import { clientConfig } from "../../../../client_config.js";
+export async function obtenerOCrearCarrito(usuario_id) {
+  const [cart] = await CarritoDistribuidora.findOrCreate({ where: { usuario_id }, defaults: { usuario_id } });
+  return cart;
 }
-
-function mapearItem(item) {
-  const producto = item.producto;
-  const variedad = item.variedad; // VariedadDistribuidora, alias definido en models/index.js
-
-  // null = "sin control de stock acá" — cart_validators.js/cart_staleness.js
-  // (controls/carrito/) ya interpretan null como "no bloquear, no avisar".
-  const stockDisponible = variedad?.controla_stock ? variedad.cantidad : null;
-  const variedadEliminada = item.variedad_id != null && !variedad;
-
-  return {
-    item_id: item.id,
-    producto_id: item.producto_id,
-    nombre: producto?.nombre ?? "(producto eliminado)",
-    categoria: producto?.categoria?.nombre ?? null,
-    imagen: producto?.imagen_url ?? null,
-    variante: variedad?.nombre ?? null,
-    variante_disponible: !variedadEliminada,
-    precio: variedad ? Number(variedad.precio) : Number(item.precio_unidad),
-    precio_al_agregar: Number(item.precio_unidad),
-    stock_disponible: stockDisponible,
-    cantidad: item.cantidad,
-    activo: !!producto && producto.activo && !producto.fecha_baja,
-  };
-}
-
-async function listarItemsCarrito(carrito_id) {
-  const items = await CarritoDistribuidoraItem.findAll({
-    where: { carrito_id },
+export async function listarItemsCarrito(carrito_id, transaction) {
+  const rows = await CarritoDistribuidoraItem.findAll({
+    where: { carrito_id }, transaction,
     include: [
-      {
-        model: ProductoDistribuidora, as: "producto", required: false,
-        attributes: ["id", "nombre", "activo", "fecha_baja", "imagen_url"],
-        include: [{ model: CategoriaDistribuidora, as: "categoria", attributes: ["nombre"] }],
-      },
-      {
-        model: VariedadDistribuidora, as: "variedad", required: false,
-        attributes: ["id", "nombre", "precio", "controla_stock", "cantidad"],
-      },
-    ],
-    order: [["fecha_alta", "ASC"]],
+      { model: ProductoDistribuidora, as: "producto", required: false, include: [{ model: CategoriaDistribuidora, as: "categoria", attributes: ["nombre"] }] },
+      { model: VariedadDistribuidora, as: "variedad", required: false },
+    ], order: [["fecha_alta", "ASC"]],
   });
-
-  return items.map(mapearItem);
+  return rows.map((item) => ({
+    item_id: item.id, producto_id: item.producto_id, variedad_id: item.variedad_id,
+    nombre: item.producto?.nombre ?? "Producto no disponible", categoria: item.producto?.categoria?.nombre ?? null,
+    imagen: item.producto?.imagen_url ?? null, variante: item.variedad?.nombre ?? null,
+    variante_disponible: !!item.variedad && !item.variedad.fecha_baja,
+    precio: Number(item.variedad?.precio ?? item.precio_unidad), precio_al_agregar: Number(item.precio_unidad),
+    stock_disponible: item.variedad?.controla_stock ? item.variedad.cantidad : null,
+    cantidad: item.cantidad, activo: !!item.producto?.activo && !item.producto.fecha_baja,
+  }));
 }
-
-export async function obtenerCarrito(usuario_id) {
-  const carrito = await obtenerOCrearCarrito(usuario_id);
-  return listarItemsCarrito(carrito.id);
-}
-
-export async function agregarItem(usuario_id, { producto_id, variedad_id = null, cantidad = 1 }) {
-  const producto = await ProductoDistribuidora.findOne({ where: { id: producto_id, activo: true, fecha_baja: null } });
-  if (!producto) throw Object.assign(new Error("Producto no disponible"), { status: 404 });
-
-  let variedad = null;
-  if (variedad_id) {
-    variedad = await VariedadDistribuidora.findOne({ where: { id: variedad_id, producto_id, fecha_baja: null } });
-    if (!variedad) throw Object.assign(new Error("Variedad no disponible"), { status: 404 });
-  } else {
-    // Sin variedad explícita — el producto necesita tener exactamente una
-    // (el caso "sin variedades reales", nombre null) para poder agregarse así.
-    variedad = await VariedadDistribuidora.findOne({ where: { producto_id, nombre: null, fecha_baja: null } });
-    if (!variedad) throw Object.assign(new Error("Este producto requiere elegir una variedad"), { status: 400 });
+export async function obtenerCarrito(usuario_id) { const cart = await obtenerOCrearCarrito(usuario_id); return listarItemsCarrito(cart.id); }
+async function addToCart(cart, payload, t) {
+  const { producto_id, variedad_id, cantidad } = payload;
+  validQuantity(cantidad);
+  const product = await ProductoDistribuidora.findOne({ where: { id: producto_id, activo: true, fecha_baja: null }, transaction: t });
+  if (!product) throw cartError("Producto no disponible", 404);
+  const variants = await VariedadDistribuidora.findAll({ where: { producto_id, fecha_baja: null, ...(variedad_id ? { id: variedad_id } : {}) }, transaction: t });
+  if (variants.length !== 1) throw cartError("Elegí una presentación disponible");
+  const variant = variants[0];
+  const existing = await CarritoDistribuidoraItem.findOne({ where: { carrito_id: cart.id, variedad_id: variant.id }, transaction: t });
+  const quantity = validQuantity((existing?.cantidad ?? 0) + cantidad, variant.controla_stock ? variant.cantidad : null);
+  if (existing) await existing.update({ cantidad: quantity, precio_unidad: variant.precio }, { transaction: t });
+  else {
+    const count = await CarritoDistribuidoraItem.count({ where: { carrito_id: cart.id }, transaction: t });
+    if (count >= clientConfig.distribuidora.maxCartLines) throw cartError("Alcanzaste el máximo de productos por pedido.");
+    await CarritoDistribuidoraItem.create({ carrito_id: cart.id, producto_id, variedad_id: variant.id, cantidad: quantity, precio_unidad: variant.precio, fecha_alta: new Date() }, { transaction: t });
   }
-
-  const carrito = await obtenerOCrearCarrito(usuario_id);
-
-  const existente = await CarritoDistribuidoraItem.findOne({
-    where: { carrito_id: carrito.id, producto_id, variedad_id: variedad.id },
-  });
-
-  if (existente) {
-    await existente.update({ cantidad: existente.cantidad + cantidad, precio_unidad: variedad.precio });
-  } else {
-    await CarritoDistribuidoraItem.create({
-      carrito_id: carrito.id,
-      producto_id,
-      variedad_id: variedad.id,
-      cantidad,
-      precio_unidad: variedad.precio,
-      fecha_alta: new Date(),
+  await cart.update({ fecha_mod: new Date() }, { transaction: t });
+}
+export async function agregarItem(usuario_id, payload) {
+  return withCart(usuario_id, async (cart, t) => { await addToCart(cart, payload, t); return listarItemsCarrito(cart.id, t); });
+}
+export async function fusionarCarrito(usuario_id, { key, items }) {
+  if (!clientConfig.distribuidora.guestCart || !Array.isArray(items) || items.length > clientConfig.distribuidora.maxCartLines) throw cartError("Carrito de visitante inválido");
+  return withCart(usuario_id, async (cart, t) => {
+    await idempotent(usuario_id, "merge:" + key, items, t, async () => {
+      for (const item of items) await addToCart(cart, item, t);
+      return { ok: true };
     });
-  }
-
-  await carrito.update({ fecha_mod: new Date() });
-  return listarItemsCarrito(carrito.id);
+    return listarItemsCarrito(cart.id, t);
+  });
 }
-
 export async function actualizarCantidad(usuario_id, item_id, cantidad) {
-  const carrito = await obtenerOCrearCarrito(usuario_id);
-  const item = await CarritoDistribuidoraItem.findOne({ where: { id: item_id, carrito_id: carrito.id } });
-  if (!item) throw Object.assign(new Error("Item no encontrado en el carrito"), { status: 404 });
-
-  await item.update({ cantidad });
-  await carrito.update({ fecha_mod: new Date() });
-  return listarItemsCarrito(carrito.id);
+  return withCart(usuario_id, async (cart, t) => {
+    const item = await CarritoDistribuidoraItem.findOne({ where: { id: item_id, carrito_id: cart.id }, transaction: t });
+    if (!item) throw cartError("Producto no encontrado en tu carrito", 404);
+    const variant = await VariedadDistribuidora.findOne({ where: { id: item.variedad_id, fecha_baja: null }, transaction: t });
+    if (!variant) throw cartError("La presentación ya no está disponible", 409);
+    validQuantity(cantidad, variant.controla_stock ? variant.cantidad : null);
+    await item.update({ cantidad }, { transaction: t });
+    return listarItemsCarrito(cart.id, t);
+  });
 }
-
 export async function eliminarItem(usuario_id, item_id) {
-  const carrito = await obtenerOCrearCarrito(usuario_id);
-  await CarritoDistribuidoraItem.destroy({ where: { id: item_id, carrito_id: carrito.id } });
-  await carrito.update({ fecha_mod: new Date() });
-  return listarItemsCarrito(carrito.id);
+  return withCart(usuario_id, async (cart, t) => {
+    await CarritoDistribuidoraItem.destroy({ where: { id: item_id, carrito_id: cart.id }, transaction: t });
+    return listarItemsCarrito(cart.id, t);
+  });
 }
-
 export async function vaciarCarrito(usuario_id) {
-  const carrito = await obtenerOCrearCarrito(usuario_id);
-  await CarritoDistribuidoraItem.destroy({ where: { carrito_id: carrito.id } });
-  await carrito.update({ fecha_mod: new Date() });
+  return withCart(usuario_id, async (cart, t) => { await CarritoDistribuidoraItem.destroy({ where: { carrito_id: cart.id }, transaction: t }); });
 }
-
-// Usado por nota_pedido_service.js — expone el carrito "crudo" (con la fila
-// CarritoDistribuidora) para poder snapshotearlo y vaciarlo en la misma operación.
-export { obtenerOCrearCarrito, listarItemsCarrito };

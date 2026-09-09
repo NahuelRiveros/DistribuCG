@@ -1,6 +1,7 @@
+import { forgotPasswordController, secureResetPasswordController } from "../../controllers/usuarios/password_recovery_controller.js";
 import { Router } from "express";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import { loginController, registerController, meController, logoutController, resetPasswordController } from "../../controllers/usuarios/auth_controller.js";
+import { loginController, registerController, meController, logoutController } from "../../controllers/usuarios/auth_controller.js";
 import { requireAuth } from "../../middleware/auth_middleware.js";
 import { seedAdmin, seedStaff } from "../../controllers/usuarios/auth_seed_controller.js";
 import { env } from "../../configuracion_servidor/env.js";
@@ -12,7 +13,7 @@ const loginLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => `${ipKeyGenerator(req)}:${req.body?.usuario || req.body?.email || ""}`,
+  keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${req.body?.usuario || req.body?.email || ""}`,
   message: { ok: false, codigo: "DEMASIADOS_INTENTOS", mensaje: "Demasiados intentos. Intentá en 15 minutos." },
 });
 
@@ -58,7 +59,8 @@ function requireSeedToken(req, res, next) {
   next();
 }
 
-authRouter.post("/reset-password", resetLimiter, resetPasswordController);
+authRouter.post("/forgot-password", resetLimiter, forgotPasswordController);
+authRouter.post("/reset-password", resetLimiter, secureResetPasswordController);
 authRouter.post("/seed-admin", requireSeedToken, seedAdmin);
 authRouter.post("/seed-staff", requireSeedToken, seedStaff);
 authRouter.post("/login", loginLimiter, loginController);

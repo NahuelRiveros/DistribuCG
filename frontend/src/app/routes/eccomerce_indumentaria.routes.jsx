@@ -1,6 +1,7 @@
-import CartPage from "../../modules/eccomerce_indumentaria/carrito/cart_page.jsx";
-import AdminCatalogsPage from "../../modules/eccomerce_indumentaria/catalogos/admin_catalogs_page.jsx";
-import AdminStockAlertsPage from "../../modules/eccomerce_indumentaria/productos/admin_stock_alerts_page.jsx";
+import { lazy } from "react";
+const CartPage = lazy(() => import("../../modules/eccomerce_indumentaria/carrito/cart_page.jsx"));
+const AdminCatalogsPage = lazy(() => import("../../modules/eccomerce_indumentaria/catalogos/admin_catalogs_page.jsx"));
+const AdminStockAlertsPage = lazy(() => import("../../modules/eccomerce_indumentaria/productos/admin_stock_alerts_page.jsx"));
 import { protegida } from "./route_helpers.jsx";
 
 // Rutas del módulo opcional eccomerce_indumentaria (ver

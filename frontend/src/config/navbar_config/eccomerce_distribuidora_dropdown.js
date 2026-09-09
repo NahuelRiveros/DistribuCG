@@ -1,3 +1,4 @@
+import { storefrontConfig } from "../storefront_config.js";
 import {
   ShoppingBag,
   LayoutGrid,
@@ -27,9 +28,9 @@ import {
 export const eccomerceDistribuidoraCatalogoLink = {
   label: "Productos",
   to: "/distribuidora/catalogo",
-  requiereAuth: true,
+  requiereAuth: !storefrontConfig.publicCatalog,
   modulo: "eccomerce_distribuidora",
-  roles: ["cliente", "admin", "staff"],
+  roles: storefrontConfig.publicCatalog ? [] : ["cliente", "admin", "staff"],
   icon: LayoutGrid,
 };
 

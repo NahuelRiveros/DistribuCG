@@ -1,6 +1,7 @@
-import StaffPage from "../../modules/usuarios/admin/staff_page.jsx";
-import SuscripcionPage from "../../modules/usuarios/admin/suscripcion_page.jsx";
-import HomeConfigPage from "../../modules/home/admin/home_config_page.jsx";
+import { lazy } from "react";
+const StaffPage = lazy(() => import("../../modules/usuarios/admin/staff_page.jsx"));
+const SuscripcionPage = lazy(() => import("../../modules/usuarios/admin/suscripcion_page.jsx"));
+const HomeConfigPage = lazy(() => import("../../modules/home/admin/home_config_page.jsx"));
 import { protegida } from "./route_helpers.jsx";
 
 export const adminRoutes = [

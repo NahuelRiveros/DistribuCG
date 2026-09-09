@@ -6,8 +6,8 @@ import {
 
 export async function crearNotaPedidoController(req, res) {
   try {
-    const { notas } = req.body ?? {};
-    const nota = await crearNotaPedido(req.user.usuario_id, { notas });
+    const { notas, expectedItems, key } = req.body ?? {};
+    const nota = await crearNotaPedido(req.user.usuario_id, { notas, expectedItems, key });
     return res.status(201).json({ ok: true, mensaje: "Pedido enviado correctamente", data: nota });
   } catch (error) {
     console.error("Error al crear nota de pedido:", error);

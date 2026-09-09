@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Menu } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../../auth/auth_context.jsx";
+import { authLink } from "../../acceso/return_to.js";
 import { filtrarNavbarPorRol } from "./navbar_permissions.js";
 import { navbar_config } from "../../../config/navbar_config/main.js";
 import NavbarDesktop from "./navbar_desktop.jsx";
@@ -12,112 +13,37 @@ import LogoMoovs from "../../brand/logo_moovs.jsx";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const { usuario, modulosHabilitados } = useAuth();
-
-  const navbarFiltrado = filtrarNavbarPorRol(navbar_config, usuario, modulosHabilitados);
-
-  function cerrarMobile() {
-    setMobileOpen(false);
-  }
-
+  const { usuario, cargando, modulosHabilitados } = useAuth();
+  const location = useLocation();
+  const returnTo = location.pathname + location.search + location.hash;
+  const config = filtrarNavbarPorRol(navbar_config, usuario, modulosHabilitados);
   useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 6);
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const media = window.matchMedia("(min-width: 1280px)");
+    const close = () => { if (media.matches) setMobileOpen(false); };
+    media.addEventListener("change", close);
+    return () => media.removeEventListener("change", close);
   }, []);
-
-  useEffect(() => {
-    function onKey(e) {
-      if (e.key === "Escape") cerrarMobile();
-    }
-    if (mobileOpen) document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [mobileOpen]);
-
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
-
-  return (
-    <>
-      <header className={[S.barra_header, scrolled ? S.barra_header_con_sombra : ""].join(" ")}>
-        <div className={S.barra_linea_acento} />
-
-        <nav className={S.barra_nav_container}>
-          <NavLink to={navbar_config.brand.linkTo} onClick={cerrarMobile} className={S.brand_link}>
-            {navbar_config.brand.logoUrl ? (
-              <>
-                <img
-                  src={navbar_config.brand.logoUrl}
-                  alt={navbar_config.brand.titulo}
-                  className="h-9 w-9 rounded-xl object-cover shadow-md"
-                />
-                {navbar_config.brand.mostrarTitulo !== false && (
-                  <div className={S.brand_textos}>
-                    <p className={S.brand_titulo}>{navbar_config.brand.titulo}</p>
-                    {navbar_config.brand.mostrarSubtitulo && navbar_config.brand.subtitulo && (
-                      <p className={S.brand_subtitulo}>{navbar_config.brand.subtitulo}</p>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <LogoMoovs size="sm" />
-                {navbar_config.brand.mostrarSubtitulo && navbar_config.brand.subtitulo && (
-                  <p className={`hidden sm:block ${S.brand_subtitulo}`}>{navbar_config.brand.subtitulo}</p>
-                )}
-              </>
-            )}
-          </NavLink>
-
-          <NavbarDesktop config={navbarFiltrado} />
-
-          <div className="hidden shrink-0 items-center gap-1 lg:flex">
-            {navbar_config.extras?.map((Extra, i) => <Extra key={i} />)}
-            {usuario ? (
-              <NavbarUserBox />
-            ) : (
-              <NavLink to="/login" className={S.btn_login_desktop}>
-                Iniciar sesión
-              </NavLink>
-            )}
+  return <>
+    <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-white focus:p-3">Saltar al contenido</a>
+    <header className={S.barra_header}>
+      <div className={S.barra_linea_acento} />
+      <nav aria-label="Navegación principal" className={S.barra_nav_container}>
+        <Link to={config.brand.linkTo} className={S.brand_link} aria-label={config.brand.titulo}>
+          {config.brand.logoUrl ? <img src={config.brand.logoUrl} alt={config.brand.titulo} className="h-10 max-w-36 object-contain" /> : <LogoMoovs size="sm" />}
+        </Link>
+        <NavbarDesktop config={config} />
+        <div className="flex shrink-0 items-center gap-2">
+          {config.extras?.map((Extra, i) => <Extra key={i} />)}
+          <div className="hidden xl:block">
+            {cargando ? <span className="text-sm text-slate-500">Ingresando…</span> : usuario
+              ? <NavbarUserBox links={config.accountLinks} />
+              : <Link to={authLink("/login", returnTo)} className={S.btn_login_desktop}>Ingresar</Link>}
           </div>
-
-          <div className="lg:hidden">
-            <button
-              type="button"
-              onClick={() => setMobileOpen((prev) => !prev)}
-              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
-              aria-expanded={mobileOpen}
-              className={S.btn_hamburguesa}
-            >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-        </nav>
-      </header>
-
-      <div
-        aria-hidden={!mobileOpen}
-        onClick={cerrarMobile}
-        className={[
-          S.mobile_overlay,
-          mobileOpen ? S.mobile_overlay_abierto : S.mobile_overlay_cerrado,
-        ].join(" ")}
-      />
-      <NavbarMobile
-        config={navbarFiltrado}
-        open={mobileOpen}
-        onNavigate={cerrarMobile}
-        onClose={cerrarMobile}
-      />
-    </>
-  );
+          <button type="button" onClick={() => setMobileOpen(true)} aria-label="Abrir menú" aria-expanded={mobileOpen}
+            className={S.btn_hamburguesa + " xl:hidden"}><Menu size={22} /></button>
+        </div>
+      </nav>
+    </header>
+    {mobileOpen && <NavbarMobile config={config} open onNavigate={() => setMobileOpen(false)} onClose={() => setMobileOpen(false)} returnTo={returnTo} />}
+  </>;
 }

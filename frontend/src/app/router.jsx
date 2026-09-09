@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { projectModules } from "../config/gate_config.js";
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import AppLayout from "../controls/layout/app_layout.jsx";
 
@@ -13,17 +15,17 @@ export const router = createBrowserRouter([
   {
     element: (
       <AppLayout>
-        <Outlet />
+        <Suspense fallback={<p role="status" className="p-8 text-center">Cargando…</p>}><Outlet /></Suspense>
       </AppLayout>
     ),
     children: [
       ...generalRoutes,
       ...adminRoutes,
       ...superAdminRoutes,
-      ...eccomerceIndumentariaRoutes,
+      ...(projectModules.eccomerce_indumentaria ? eccomerceIndumentariaRoutes : []),
       ...eccomerceDistribuidoraRoutes,
-      ...gymRoutes,
-      ...kinesiologiaRoutes,
+      ...(projectModules.gym ? gymRoutes : []),
+      ...(projectModules.kinesiologia ? kinesiologiaRoutes : []),
     ],
   },
 ]);

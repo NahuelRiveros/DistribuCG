@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Eye, EyeOff, Info } from "lucide-react";
 
 const PRESET_RULES = {
@@ -85,6 +85,7 @@ export default function InputField({
   ...rest
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const generatedId = useId();
 
   const validationRules = useMemo(() => ({
     ...buildRules({ type, required, requiredMessage, minLength, maxLength, pattern, validate, watch, matchField, matchFieldMessage }),
@@ -95,7 +96,7 @@ export default function InputField({
 
   if (hidden) return null;
 
-  const inputId = id ?? name;
+  const inputId = id ?? name ?? generatedId;
   const isPassword = type === "password";
   const finalType = isPassword && showPassword ? "text" : type;
   const isControlled = value !== undefined || onChange !== undefined;
@@ -132,7 +133,7 @@ export default function InputField({
           className={["flex items-center gap-1 text-sm font-semibold text-gray-700", labelClassName].join(" ")}
         >
           {label}
-          {required && <span className="text-red-500">*</span>}
+          {required && <span aria-hidden="true" className="text-red-500">*</span>}
           {tooltip && (
             <span className="group/tooltip relative inline-flex">
               <Info className="h-3.5 w-3.5 cursor-help text-gray-400 hover:text-gray-600" />
@@ -167,6 +168,7 @@ export default function InputField({
           disabled={isDisabled}
           readOnly={readOnly}
           aria-invalid={Boolean(error)}
+          aria-required={required}
           aria-describedby={message ? `${inputId}-message` : undefined}
           className={[
             BASE,
@@ -190,8 +192,7 @@ export default function InputField({
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 flex items-center text-gray-400 transition hover:text-gray-700 focus:outline-none"
-            tabIndex={-1}
+            className="absolute right-1 flex h-11 w-11 items-center justify-center rounded-xl text-gray-500 transition hover:text-gray-700 focus-visible:outline-2"
             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

@@ -24,7 +24,7 @@ export default function NavbarDropdown({ dropdown, open = false, onToggle, onClo
       setCoords(
         dropdown.wide
           ? { top: rect.bottom + 8, right: Math.max(8, window.innerWidth - rect.right) }
-          : { top: rect.bottom + 8, left: rect.left }
+          : { top: rect.bottom + 8, left: Math.min(rect.left, window.innerWidth - 296) }
       );
     }
     actualizarCoords();
@@ -45,6 +45,10 @@ export default function NavbarDropdown({ dropdown, open = false, onToggle, onClo
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (open && coords) panelRef.current?.querySelector("a,button")?.focus();
+  }, [open, coords]);
 
   return (
     <div className="relative">
@@ -67,7 +71,7 @@ export default function NavbarDropdown({ dropdown, open = false, onToggle, onClo
       </button>
 
       {open && coords && createPortal(
-        <div ref={panelRef} style={coords} className={dropdown.wide ? S.dropdown_panel_ancho : S.dropdown_panel}>
+        <div ref={panelRef} onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); triggerRef.current?.focus(); } }} style={coords} className={dropdown.wide ? S.dropdown_panel_ancho : S.dropdown_panel}>
           <div className={S.dropdown_cabecera}>
             {Icon && <span className={S.dropdown_cabecera_icono}><Icon size={13} /></span>}
             <span className={S.dropdown_cabecera_label}>{dropdown.label}</span>

@@ -8,7 +8,7 @@ export const http = axios.create({ baseURL: API_URL });
 
 http.interceptors.request.use((config) => {
   const token = localStorage.getItem(authConfig.storageKey);
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token && !config.publicAccess) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -19,9 +19,7 @@ http.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem(authConfig.storageKey);
-      if (!window.location.pathname.startsWith("/login")) {
-        window.location.replace("/login");
-      }
+      if (!error.config?.url?.startsWith("/auth/login")) window.dispatchEvent(new Event("auth:expired"));
     }
     return Promise.reject(error);
   }

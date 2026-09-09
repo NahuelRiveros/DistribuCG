@@ -1,7 +1,8 @@
 import { Sequelize } from "sequelize";
 import { env } from "../configuracion_servidor/env.js";
 
-export const DB_SCHEMA = "kinetica";
+export const DB_SCHEMA = process.env.DB_SCHEMA || "kinetica";
+if (!/^[a-z][a-z0-9_]*$/.test(DB_SCHEMA)) throw new Error("DB_SCHEMA inválido");
 
 // Neon pooler no soporta search_path como parámetro de startup.
 // Se establece vía afterConnect para compatibilidad con pooler y conexión directa.

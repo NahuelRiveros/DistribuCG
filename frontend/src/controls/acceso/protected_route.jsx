@@ -1,5 +1,6 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/auth_context.jsx";
+import { authLink } from "./return_to.js";
 
 /**
  * Protege rutas según autenticación y roles.
@@ -17,6 +18,7 @@ import { useAuth } from "../../auth/auth_context.jsx";
  */
 export default function ProtectedRoute({ children, roles = [] }) {
   const { usuario, cargando, isAuth } = useAuth();
+  const location = useLocation();
 
   // El contexto todavía está verificando el token → esperar
   if (cargando) {
@@ -32,7 +34,7 @@ export default function ProtectedRoute({ children, roles = [] }) {
 
   // No hay sesión → ir a login
   if (!isAuth) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={authLink("/login", location.pathname + location.search + location.hash)} replace />;
   }
 
   // Hay roles requeridos → verificar que el usuario tenga al menos uno

@@ -1,7 +1,7 @@
 import { http } from "../../../api/http.js";
 
-export async function enviarNotaPedido(notas = null) {
-  const { data } = await http.post("/distribuidora/notas-pedido", { notas });
+export async function enviarNotaPedido(notas = null, expectedItems, key) {
+  const { data } = await http.post("/distribuidora/notas-pedido", { notas, expectedItems, key });
   return data;
 }
 

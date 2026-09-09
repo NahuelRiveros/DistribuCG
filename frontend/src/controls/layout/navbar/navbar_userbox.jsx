@@ -1,153 +1,37 @@
 import { useState, useRef, useEffect } from "react";
-import { LogOut, User, Settings, UserCircle, ChevronDown } from "lucide-react";
-import { useNavigate, NavLink } from "react-router-dom";
+import { LogOut, User, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth/auth_context.jsx";
+import { authConfig } from "../../../config/auth_config.js";
 import { UI_NAVBAR as S } from "./navbar_style.js";
-
-export default function NavbarUserBox({ mobile = false, onLogout }) {
+import NavbarLink from "./navbar_link.jsx";
+export default function NavbarUserBox({ mobile = false, onLogout, links = [] }) {
   const [open, setOpen] = useState(false);
-  const wrapperRef = useRef(null);
+  const ref = useRef(null);
+  const trigger = useRef(null);
   const navigate = useNavigate();
   const { usuario, logout } = useAuth();
-
   useEffect(() => {
-    function onClickOutside(e) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    if (open) document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    if (!open) return;
+    const closeOutside = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    const escape = (e) => { if (e.key === "Escape") { setOpen(false); trigger.current?.focus(); } };
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", closeOutside); document.removeEventListener("keydown", escape); };
   }, [open]);
-
   if (!usuario) return null;
-
-  async function cerrarSesion() {
-    await logout();
-    onLogout?.();
-    navigate("/login");
-  }
-
-  const nombre = [usuario.nombre, usuario.apellido].filter(Boolean).join(" ")
-    || usuario.email
-    || "Usuario";
-  const rol = (usuario.roles?.[0] ?? usuario.rol ?? "usuario")
-    .replace(/^\w/, (c) => c.toUpperCase());
-  const initials = nombre
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-
-  if (mobile) {
-    return (
-      <div className={S.userbox_mobile_tarjeta}>
-        <div className={S.userbox_mobile_header}>
-          <div className={S.userbox_avatar_xl}>
-            {initials || <User size={18} />}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className={S.userbox_nombre}>{nombre}</p>
-            <div className="mt-0.5 flex items-center gap-1.5">
-              <span className={S.userbox_online_sm}>
-                <span className={S.userbox_online_sm_ping} />
-                <span className={S.userbox_online_sm_solido} />
-              </span>
-              <p className={S.userbox_rol}>{rol}</p>
-            </div>
-          </div>
-        </div>
-        <div className={S.userbox_mobile_logout_area}>
-          <button type="button" onClick={cerrarSesion} className={S.userbox_mobile_logout_btn}>
-            <span className={S.userbox_logout_icono}><LogOut size={14} /></span>
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={wrapperRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className={[
-          S.userbox_desktop_trigger,
-          open ? S.userbox_desktop_trigger_abierto : S.userbox_desktop_trigger_cerrado,
-        ].join(" ")}
-      >
-        <div className={S.userbox_avatar_sm}>
-          {initials || <User size={11} />}
-        </div>
-        <div className="min-w-0 text-left leading-tight">
-          <p className={S.userbox_desktop_nombre}>{nombre}</p>
-          <p className={S.userbox_desktop_rol}>{rol}</p>
-        </div>
-        <span className={S.userbox_online_sm}>
-          <span className={S.userbox_online_sm_ping} />
-          <span className={S.userbox_online_sm_solido} />
-        </span>
-        <ChevronDown
-          size={12}
-          className={[S.userbox_desktop_chevron, open ? "rotate-180" : ""].join(" ")}
-        />
-      </button>
-
-      <div
-        aria-hidden={!open}
-        className={[
-          S.userbox_desktop_panel,
-          open ? S.panel_flotante_abierto : S.panel_flotante_cerrado,
-        ].join(" ")}
-      >
-          <div className={S.userbox_desktop_panel_header}>
-            <div className={S.userbox_avatar_lg}>
-              {initials || <User size={20} />}
-            </div>
-            <div className="min-w-0">
-              <p className={S.userbox_nombre}>{nombre}</p>
-              <div className="mt-0.5 flex items-center gap-1.5">
-                <span className={S.userbox_online_sm}>
-                  <span className={S.userbox_online_sm_ping} />
-                  <span className={S.userbox_online_sm_solido} />
-                </span>
-                <p className={S.userbox_rol}>{rol}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className={S.userbox_desktop_links_area}>
-            <NavLink
-              to="/perfil"
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                [S.userbox_desktop_link, isActive ? S.userbox_desktop_link_activo : S.userbox_desktop_link_inactivo].join(" ")
-              }
-            >
-              <span className={S.userbox_desktop_link_icono}><UserCircle size={14} /></span>
-              Mi perfil
-            </NavLink>
-
-            <NavLink
-              to="/configuracion/persona"
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                [S.userbox_desktop_link, isActive ? S.userbox_desktop_link_activo : S.userbox_desktop_link_inactivo].join(" ")
-              }
-            >
-              <span className={S.userbox_desktop_link_icono}><Settings size={14} /></span>
-              Configuración
-            </NavLink>
-          </div>
-
-          <div className={S.userbox_desktop_logout_area}>
-            <button type="button" onClick={cerrarSesion} className={S.userbox_desktop_logout_btn}>
-              <span className={S.userbox_logout_icono}><LogOut size={14} /></span>
-              Cerrar sesión
-            </button>
-          </div>
-      </div>
-    </div>
-  );
+  const nombre = [usuario.nombre, usuario.apellido].filter(Boolean).join(" ") || usuario.email;
+  const cerrar = () => { setOpen(false); onLogout?.(); };
+  const content = <>
+    <p className="truncate border-b border-(--kt-border) p-3 text-sm font-semibold">{nombre}</p>
+    <div className="space-y-1 p-2">{links.map((item) => <NavbarLink key={item.to} item={item} onNavigate={cerrar} base={S.item_link} active={S.item_link_activo} inactive={S.item_link_inactivo} />)}</div>
+    <button type="button" className="flex min-h-11 w-full items-center gap-2 border-t border-(--kt-border) px-4 text-sm font-semibold text-rose-700"
+      onClick={async () => { await logout(); cerrar(); navigate(authConfig.logoutDestination); }}><LogOut size={16} />Cerrar sesión</button>
+  </>;
+  if (mobile) return <div className="overflow-hidden rounded-xl border border-(--kt-border)">{content}</div>;
+  return <div ref={ref} className="relative" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
+    <button ref={trigger} type="button" aria-expanded={open} aria-controls="account-menu" onClick={() => setOpen((v) => !v)}
+      className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-(--kt-border) bg-white px-3 text-sm font-semibold"><User size={18} /><span>Mi cuenta</span><ChevronDown size={14} /></button>
+    {open && <div id="account-menu" className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-(--kt-border) bg-white shadow-xl">{content}</div>}
+  </div>;
 }

@@ -1,6 +1,9 @@
+import { withCart, idempotent } from "./cart_transaction.js";
+import { cartError, validQuantity, validateSnapshot } from "../common/cart_rules.js";
+import { CarritoDistribuidoraItem, VariedadDistribuidora, ProductoDistribuidora } from "../../models/index.js";
 import { sequelize } from "../../database/sequelize.js";
 import { NotaPedido, NotaPedidoItem, NotaPedidoPago, Persona, Usuario } from "../../models/index.js";
-import { obtenerOCrearCarrito, listarItemsCarrito, vaciarCarrito } from "./carrito_distribuidora_service.js";
+import { listarItemsCarrito } from "./carrito_distribuidora_service.js";
 import { obtenerPerfil, perfilCompleto } from "./perfil_cliente_service.js";
 
 // Pasar a estos estados exige que el pedido tenga al menos un pago parcial
@@ -50,54 +53,39 @@ async function recomputarEstadoPago(nota_pedido_id, t) {
  * completarlo antes de reintentar (no se pide en el registro, ver
  * perfil_cliente_service.js).
  */
-export async function crearNotaPedido(usuario_id, { notas = null } = {}) {
-  const perfil = await obtenerPerfil(usuario_id);
-  if (!perfilCompleto(perfil)) {
-    throw Object.assign(new Error("Completá tus datos de entrega antes de enviar el pedido"), { status: 400, codigo: "PERFIL_INCOMPLETO" });
-  }
-
-  const carrito = await obtenerOCrearCarrito(usuario_id);
-  const items = await listarItemsCarrito(carrito.id);
-
-  if (items.length === 0) {
-    throw Object.assign(new Error("El pedido está vacío"), { status: 400 });
-  }
-  if (items.some((i) => i.activo === false || i.variante_disponible === false)) {
-    throw Object.assign(new Error("Hay productos no disponibles en el pedido — revisalos antes de enviar"), { status: 400 });
-  }
-
-  const total = items.reduce((suma, i) => suma + i.precio * i.cantidad, 0);
-
-  return sequelize.transaction(async (t) => {
-    const notaPedido = await NotaPedido.create(
-      {
-        usuario_id, estado: "pendiente", estado_pago: "pendiente", monto_pagado: 0, notas, total,
-        cuit: perfil.cuit, razon_social: perfil.razon_social, condicion_iva: perfil.condicion_iva,
-        direccion: perfil.direccion, provincia: perfil.provincia, localidad: perfil.localidad,
-        fecha_alta: new Date(), fecha_mod: new Date(),
-      },
-      { transaction: t }
-    );
-
-    await NotaPedidoItem.bulkCreate(
-      items.map((i) => ({
-        nota_pedido_id: notaPedido.id,
-        producto_id: i.producto_id,
-        variedad_id: null, // no viaja en el shape mapeado — no hace falta para el snapshot
-        nombre_producto: i.nombre,
-        variedad_nombre: i.variante,
-        precio_unitario: i.precio,
-        cantidad: i.cantidad,
-        subtotal: i.precio * i.cantidad,
-      })),
-      { transaction: t }
-    );
-
-    return notaPedido;
-  }).then(async (notaPedido) => {
-    await vaciarCarrito(usuario_id);
-    return notaPedido;
-  });
+export async function crearNotaPedido(usuario_id, { notas = null, expectedItems, key } = {}) {
+  if (notas != null && (typeof notas !== "string" || notas.length > 2000)) throw cartError("Las notas pueden tener hasta 2000 caracteres.");
+  return withCart(usuario_id, async (carrito, t) => idempotent(usuario_id, "order:" + key, { notas, expectedItems }, t, async () => {
+    const perfil = await obtenerPerfil(usuario_id);
+    if (!perfilCompleto(perfil)) throw cartError("Completá tus datos de entrega.", 400, "PERFIL_INCOMPLETO");
+    // Bloquear precios y disponibilidad hasta completar el snapshot. El pedido no reserva stock.
+    const raw = await CarritoDistribuidoraItem.findAll({ where: { carrito_id: carrito.id }, transaction: t });
+    const productIds = [...new Set(raw.map((i) => i.producto_id))].sort((a,b) => a-b);
+    const variantIds = [...new Set(raw.map((i) => i.variedad_id).filter(Boolean))].sort((a,b) => a-b);
+    for (const id of productIds) await ProductoDistribuidora.findByPk(id, { transaction: t, lock: t.LOCK.UPDATE });
+    for (const id of variantIds) await VariedadDistribuidora.findByPk(id, { transaction: t, lock: t.LOCK.UPDATE });
+    const items = await listarItemsCarrito(carrito.id, t);
+    if (!items.length) throw cartError("El carrito está vacío.");
+    for (const item of items) {
+      if (!item.activo || !item.variante_disponible) throw cartError("Hay productos no disponibles. Revisá tu carrito.", 409);
+      validQuantity(item.cantidad, item.stock_disponible);
+    }
+    validateSnapshot(items, expectedItems);
+    const total = items.reduce((sum, i) => sum + Math.round(i.precio * 100) * i.cantidad, 0) / 100;
+    const nota = await NotaPedido.create({
+      usuario_id, estado: "pendiente", estado_pago: "pendiente", monto_pagado: 0, notas, total,
+      cuit: perfil.cuit, razon_social: perfil.razon_social, condicion_iva: perfil.condicion_iva,
+      direccion: perfil.direccion, provincia: perfil.provincia, localidad: perfil.localidad,
+      fecha_alta: new Date(), fecha_mod: new Date(),
+    }, { transaction: t });
+    await NotaPedidoItem.bulkCreate(items.map((i) => ({
+      nota_pedido_id: nota.id, producto_id: i.producto_id, variedad_id: i.variedad_id,
+      nombre_producto: i.nombre, variedad_nombre: i.variante, precio_unitario: i.precio,
+      cantidad: i.cantidad, subtotal: Math.round(i.precio * 100) * i.cantidad / 100,
+    })), { transaction: t });
+    await CarritoDistribuidoraItem.destroy({ where: { carrito_id: carrito.id }, transaction: t });
+    return nota;
+  }));
 }
 
 export async function listarPropias(usuario_id) {

@@ -1,6 +1,7 @@
-import ListaPacientesKinesiologiaPage from "../../modules/kinesiologia/lista_pacientes_page.jsx";
-import FichaPacientePage from "../../modules/kinesiologia/ficha_paciente_page.jsx";
-import PatologiasPage from "../../modules/kinesiologia/patologias_page.jsx";
+import { lazy } from "react";
+const ListaPacientesKinesiologiaPage = lazy(() => import("../../modules/kinesiologia/lista_pacientes_page.jsx"));
+const FichaPacientePage = lazy(() => import("../../modules/kinesiologia/ficha_paciente_page.jsx"));
+const PatologiasPage = lazy(() => import("../../modules/kinesiologia/patologias_page.jsx"));
 import { protegida } from "./route_helpers.jsx";
 
 export const kinesiologiaRoutes = [

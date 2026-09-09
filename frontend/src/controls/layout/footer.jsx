@@ -155,13 +155,13 @@ export default function Footer() {
   );
 }
 
-function SectionHeader({ label, code }) {
+function SectionHeader({ label }) {
   return (
     <div className="mb-5 flex items-baseline gap-2 border-b border-white/[0.06] pb-3">
       <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white">
         {label}
       </h4>
-      <span className="font-mono text-[9px] text-slate-600">[{code}]</span>
+
     </div>
   );
 }

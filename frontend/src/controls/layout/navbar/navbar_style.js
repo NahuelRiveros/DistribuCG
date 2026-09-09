@@ -47,7 +47,7 @@ export const UI_NAVBAR = {
   // ════════════════════════════════════════════════════════════════
 
   barra_header:                                            // ← bg de toda la barra (ambos tamaños)
-    "sticky top-0 z-[var(--z-modal)] border-b border-slate-200/70 bg-slate-100/96 backdrop-blur-xl transition-all duration-300",
+    "sticky top-0 z-30 border-b border-slate-200/70 bg-slate-100/96 backdrop-blur-xl transition-all duration-300",
   barra_header_con_sombra:
     "shadow-lg shadow-slate-900/8",
 
@@ -55,7 +55,7 @@ export const UI_NAVBAR = {
     "absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-[var(--kt-turquoise)] via-[var(--kt-petrol)] to-[var(--kt-turquoise)]",
 
   barra_nav_container:
-    "mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8",
+    "mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:gap-4 sm:px-6 lg:px-8",
 
   // ════════════════════════════════════════════════════════════════
   // BRAND / LOGO
@@ -81,17 +81,17 @@ export const UI_NAVBAR = {
     `inline-flex items-center gap-2 rounded-xl ${C.activo_bg} px-4 py-2 text-sm font-bold ${C.activo_texto} shadow-sm ${C.activo_sombra} transition-all ${C.btn_hover}`,
 
   btn_hamburguesa:
-    `inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 ${C.foco_ring} focus-visible:ring-offset-2`,
+    `inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 ${C.foco_ring} focus-visible:ring-offset-2`,
 
   // ════════════════════════════════════════════════════════════════
   // NAVEGACIÓN DESKTOP (navbar_desktop.jsx)
   // ════════════════════════════════════════════════════════════════
 
   desktop_contenedor:                                      // ← scroll horizontal si no entran todos los menús (evita que se encimen con logo/userbox)
-    "hidden min-w-0 flex-1 items-center gap-1.5 overflow-x-auto lg:flex [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+    "hidden min-w-0 flex-1 items-center gap-1.5 overflow-x-auto xl:flex [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 
   desktop_link:
-    "inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200",
+    "inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-3 text-sm font-semibold transition-all duration-200",
 
   desktop_link_activo:                                     // ← C.activo_bg
     `${C.activo_bg} ${C.activo_texto} shadow-md ${C.activo_sombra}`,
@@ -121,7 +121,7 @@ export const UI_NAVBAR = {
   // el panel se porta a document.body para no quedar recortado por el
   // overflow-x-auto de desktop_contenedor (ver navbar_dropdown.jsx).
   dropdown_panel:
-    "fixed z-[var(--z-modal)] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 w-72",
+    "fixed z-[var(--z-modal)] max-h-[calc(100dvh-100px)] overflow-y-auto rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 w-72",
   dropdown_panel_ancho:
     "fixed z-[var(--z-modal)] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/10 ring-1 ring-black/5 min-w-150",
   // Estados compartidos de entrada/salida para paneles flotantes (userbox)

@@ -6,10 +6,16 @@ import SuscripcionBanner from "../suscripcion/suscripcion_banner.jsx";
 import ErrorBoundary from "../ui/error_boundary.jsx";
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash, key } = useLocation();
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [pathname]);
+    if (hash) {
+      document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView();
+      return;
+    }
+    const saved = sessionStorage.getItem("scroll:" + key);
+    window.scrollTo({ top: saved ? Number(saved) : 0, behavior: "instant" });
+    return () => sessionStorage.setItem("scroll:" + key, String(window.scrollY));
+  }, [pathname, hash, key]);
   return null;
 }
 
@@ -20,7 +26,7 @@ export default function AppLayout({ children }) {
       <ScrollToTop />
       <Navbar />
       <SuscripcionBanner />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
       </main>
       <Footer />

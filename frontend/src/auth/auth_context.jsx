@@ -1,89 +1,46 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useMemo, useCallback, useState } from "react";
 import { http } from "../api/http.js";
 import { authConfig } from "../config/auth_config.js";
 import { getEstadoModulos } from "../api/modulos_api.js";
-
 const AuthContext = createContext(null);
-
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
-  const [cargando, setCargando] = useState(true);
+  const [cargando, setCargando] = useState(!!localStorage.getItem(authConfig.storageKey));
   const [modulosHabilitados, setModulosHabilitados] = useState(null);
-
-  const token = localStorage.getItem(authConfig.storageKey);
-
-  async function cargarMe() {
-    try {
-      const r = await http.get(authConfig.endpoints.me);
-      setUsuario(r.data?.usuario ?? null);
-    } catch {
-      setUsuario(null);
-    } finally {
-      setCargando(false);
-    }
-  }
-
-  async function cargarModulos() {
-    try {
-      const r = await getEstadoModulos();
-      setModulosHabilitados(r?.modulos ?? null);
-    } catch {
-      setModulosHabilitados(null);
-    }
-  }
-
-  useEffect(() => {
-    // si hay token, intentamos /me y el estado de módulos al iniciar
-    if (token) {
-      cargarMe();
-      cargarModulos();
-    } else {
-      setCargando(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const cargarMe = useCallback(async () => {
+    const r = await http.get(authConfig.endpoints.me);
+    if (!r.data?.usuario) throw new Error("No pudimos verificar tu sesión. Intentá ingresar nuevamente.");
+    setUsuario(r.data.usuario);
+    return r.data.usuario;
   }, []);
-
-  async function login(payload) {
-    const r = await http.post(authConfig.endpoints.login, payload);
-    const nuevoToken = r.data?.token;
-
-    if (nuevoToken) localStorage.setItem(authConfig.storageKey, nuevoToken);
-    // luego traemos el usuario real desde /me para no depender del response del login
-    await cargarMe();
-    await cargarModulos();
-
-    return r.data;
-  }
-
-  async function logout() {
-    try {
-      await http.post(authConfig.endpoints.logout);
-    } catch {
-      // si falla igual limpiamos local
-    } finally {
-      localStorage.removeItem(authConfig.storageKey);
-      setUsuario(null);
+  const cargarModulos = useCallback(async () => {
+    try { const r = await getEstadoModulos(); setModulosHabilitados(r?.modulos ?? null); } catch { setModulosHabilitados(null); }
+  }, []);
+  useEffect(() => {
+    let active = true;
+    const expired = () => { setUsuario(null); setModulosHabilitados(null); };
+    window.addEventListener("auth:expired", expired);
+    if (localStorage.getItem(authConfig.storageKey)) {
+      http.get(authConfig.endpoints.me).then((r) => { if (active) setUsuario(r.data?.usuario ?? null); })
+        .catch(() => { if (active) setUsuario(null); }).finally(() => { if (active) setCargando(false); });
+      cargarModulos();
     }
-  }
-
-  const value = useMemo(
-    () => ({
-      usuario,
-      cargando,
-      isAuth: !!usuario,
-      modulosHabilitados,
-      login,
-      logout,
-      recargarUsuario: cargarMe,
-    }),
-    [usuario, cargando, modulosHabilitados]
-  );
-
+    return () => { active = false; window.removeEventListener("auth:expired", expired); };
+  }, [cargarModulos]);
+  const login = useCallback(async (payload) => {
+    const r = await http.post(authConfig.endpoints.login, payload);
+    if (!r.data?.token) throw new Error("No pudimos iniciar la sesión.");
+    localStorage.setItem(authConfig.storageKey, r.data.token);
+    try { await cargarMe(); await cargarModulos(); }
+    catch (e) { localStorage.removeItem(authConfig.storageKey); setUsuario(null); throw e; }
+    return r.data;
+  }, [cargarMe, cargarModulos]);
+  const logout = useCallback(async () => {
+    try { await http.post(authConfig.endpoints.logout); } catch { /* La sesión local se cierra aunque no haya conexi?n. */ }
+    finally { localStorage.removeItem(authConfig.storageKey); setUsuario(null); setModulosHabilitados(null); }
+  }, []);
+  const value = useMemo(() => ({ usuario, cargando, isAuth: !!usuario, modulosHabilitados, login, logout, recargarUsuario: cargarMe }), [usuario, cargando, modulosHabilitados, login, logout, cargarMe]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth debe usarse dentro de <AuthProvider>");
-  return ctx;
-}
+export function useAuth() { const context = useContext(AuthContext); if (!context) throw new Error("Falta AuthProvider"); return context; }

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  obtenerCarritoController, agregarItemController,
+  fusionarCarritoController, obtenerCarritoController, agregarItemController,
   actualizarCantidadController, eliminarItemController, vaciarCarritoController,
 } from "../../controllers/distribuidora/carrito_distribuidora_controller.js";
 import { requireAuth } from "../../middleware/auth_middleware.js";
@@ -10,6 +10,7 @@ export const carritoDistribuidoraRouter = Router();
 carritoDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));
 carritoDistribuidoraRouter.use(requireAuth); // cualquier usuario logueado, sin rol específico
 
+carritoDistribuidoraRouter.post("/merge", fusionarCarritoController);
 carritoDistribuidoraRouter.get("/", obtenerCarritoController);
 carritoDistribuidoraRouter.post("/items", agregarItemController);
 carritoDistribuidoraRouter.put("/items/:itemId", actualizarCantidadController);

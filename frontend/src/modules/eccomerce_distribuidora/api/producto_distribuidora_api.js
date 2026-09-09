@@ -1,12 +1,12 @@
 import { http } from "../../../api/http.js";
 
-export async function getProductos(params = {}) {
-  const { data } = await http.get("/distribuidora/productos", { params });
+export async function getProductos(params = {}, options = {}) {
+  const { data } = await http.get("/distribuidora/productos", { params, ...options });
   return data; // { ok, data, total, pagina, total_paginas }
 }
 
-export async function getProducto(id) {
-  const { data } = await http.get(`/distribuidora/productos/${id}`);
+export async function getProducto(id, options = {}) {
+  const { data } = await http.get(`/distribuidora/productos/${id}`, options);
   return data.data;
 }
 

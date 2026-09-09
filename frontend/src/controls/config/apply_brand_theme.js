@@ -1,21 +1,5 @@
 import { brandConfig } from "../../config/brand_config.js";
-
-// Los colores de marca viven solo en src/index.css (:root) — ya no se
-// pisan acá en runtime. Esto sigue existiendo para lo que brand_config.js
-// SÍ define por cliente y no tiene lugar en un CSS estático: la fuente
-// (variable, no un valor fijo) y el nombre en el DOM para debug/CSS hooks.
-function setVar(root, name, value) {
-  if (value) root.style.setProperty(name, value);
-}
-
-export function applyBrandTheme(config = brandConfig) {
-  if (typeof document === "undefined" || !config) return;
-
-  const root = document.documentElement;
-  root.dataset.clientBrand = config.nombre;
-
-  setVar(root, "--kt-font-display", config.fuentes?.display);
-  setVar(root, "--kt-font-body", config.fuentes?.body);
-}
-
-applyBrandTheme();
+import { themeConfig } from "../../config/theme_config.js";
+for (const [name, value] of Object.entries(themeConfig)) document.documentElement.style.setProperty(name, value);
+if (brandConfig.fuentes?.display) document.documentElement.style.setProperty("--kt-font-display", brandConfig.fuentes.display);
+if (brandConfig.fuentes?.body) document.documentElement.style.setProperty("--kt-font-body", brandConfig.fuentes.body);

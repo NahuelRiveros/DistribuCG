@@ -1,4 +1,4 @@
-﻿import { login, registrarCliente, obtenerPerfil, resetearPassword } from "../../services/usuarios/auth_service.js";
+﻿import { login, registrarCliente, obtenerPerfil } from "../../services/usuarios/auth_service.js";
 
 export async function loginController(req, res) {
   try {
@@ -38,20 +38,3 @@ export async function logoutController(_req, res) {
   return res.json({ ok: true, mensaje: "Logout OK" });
 }
 
-export async function resetPasswordController(req, res, next) {
-  try {
-    const { email, newPassword } = req.body ?? {};
-    if (!email || !newPassword) {
-      return res.status(400).json({ ok: false, codigo: "VALIDACION", mensaje: "Requerido: email y newPassword" });
-    }
-
-    const r = await resetearPassword({ email, newPassword });
-    if (!r.ok) {
-      return res.status(r.codigo === "NO_ENCONTRADO" ? 404 : 400).json(r);
-    }
-
-    return res.json(r);
-  } catch (err) {
-    next(err);
-  }
-}

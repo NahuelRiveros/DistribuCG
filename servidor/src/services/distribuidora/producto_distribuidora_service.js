@@ -69,7 +69,14 @@ async function construirWhere({ categoria, incluirDescendientes = true, q, soloA
   if (categoria) {
     where.categoria_id = incluirDescendientes ? { [Op.in]: await idsConDescendientes(categoria) } : categoria;
   }
-  if (q) where.nombre = { [Op.iLike]: `%${q}%` };
+  if (q) {
+    const pattern = "%" + String(q).slice(0, 120) + "%";
+    const variants = await VariedadDistribuidora.findAll({ where: { fecha_baja: null, cod_ref: { [Op.iLike]: pattern } }, attributes: ["producto_id"], raw: true });
+    where[Op.or] = [
+      { nombre: { [Op.iLike]: pattern } }, { marca: { [Op.iLike]: pattern } },
+      { id: { [Op.in]: variants.map((v) => v.producto_id) } },
+    ];
+  }
   return where;
 }
 
