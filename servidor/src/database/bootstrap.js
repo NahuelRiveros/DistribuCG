@@ -1,6 +1,7 @@
 import { QueryTypes } from "sequelize";
 import { sequelize, DB_SCHEMA } from "./sequelize.js";
 import { projectModules } from "../configuracion_servidor/gate_config.js";
+import { calcularHashEsquema } from "./schema_hash.js";
 import {
   Sexo, TipoDocumento, TipoPersona, AlumnoEstado, PlanTipo, Rol, Modulo,
   TipoEjercicio, GrupoMuscular, CategoriaProducto, Patologia, HomeArea,
@@ -27,10 +28,57 @@ export async function bootstrap_database() {
   console.log("🛠️  Iniciando bootstrap...");
   await crear_schema();
   await aplicar_ajustes_puntuales();
-  await sincronizar_modelos();
+  await sincronizar_modelos_si_hace_falta();
   await crear_indice_busqueda_productos();
   await backfill_pago_legado();
   console.log("✅ Bootstrap finalizado correctamente");
+}
+
+/**
+ * sincronizar_modelos() hace un sync({alter:true}) por cada modelo — cada
+ * uno le pregunta a Postgres cómo es la tabla hoy y compara contra la
+ * definición, aunque no haya cambiado nada. Medido: ~2s para ~30 tablas
+ * contra Postgres LOCAL (sin latencia de red); contra Neon en producción, y
+ * sobre todo si el compute estaba en autosuspend, bastante más — y esto
+ * corre en CADA boot del proceso, no solo después de un deploy con cambios
+ * reales de schema.
+ *
+ * Guardamos un hash del contenido de los modelos (ver schema_hash.js) en una
+ * tabla de 1 fila. Si no cambió desde el último boot exitoso, nos salteamos
+ * sincronizar_modelos() entero. Si cambió (o es la primera vez, o algo
+ * falló a mitad de camino la vez anterior) corremos el sync completo como
+ * siempre y guardamos el hash nuevo — a prueba de olvidos: nunca hace falta
+ * acordarse de "correr una migración", el resync se dispara solo con
+ * cualquier cambio real en los modelos.
+ */
+async function sincronizar_modelos_si_hace_falta() {
+  const hashActual = calcularHashEsquema();
+
+  const filas = await sequelize.query(
+    `SELECT hash FROM "${DB_SCHEMA}"."_schema_meta" WHERE id = 1`,
+    { type: QueryTypes.SELECT }
+  ).catch(() => []); // la tabla puede no existir todavía (primer boot)
+  const hashGuardado = filas[0]?.hash ?? null;
+
+  if (hashActual === hashGuardado) {
+    console.log("⏭️  Modelos sin cambios — se omite sincronizar_modelos()");
+    return;
+  }
+
+  await sincronizar_modelos();
+
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS "${DB_SCHEMA}"."_schema_meta" (
+      id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+      hash TEXT NOT NULL,
+      actualizado_en TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await sequelize.query(`
+    INSERT INTO "${DB_SCHEMA}"."_schema_meta" (id, hash, actualizado_en)
+    VALUES (1, :hash, now())
+    ON CONFLICT (id) DO UPDATE SET hash = EXCLUDED.hash, actualizado_en = now()
+  `, { replacements: { hash: hashActual } });
 }
 
 async function crear_schema() {
