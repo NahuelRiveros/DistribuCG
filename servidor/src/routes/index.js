@@ -20,6 +20,7 @@ import { stockRouter } from "./stock/stock_router.js";
 import { homeRouter } from "./home/home_router.js";
 import { kinesiologiaRouter } from "./kinesiologia/kinesiologia_router.js";
 import { modulosRouter } from "./sistema/modulos_router.js";
+import { ubicacionRouter } from "./ubicacion/ubicacion_router.js";
 import { verificarSuscripcion } from "../middleware/suscripcion_middleware.js";
 
 // Módulo eccomerce_indumentaria (fase 1: catálogo, productos, carrito, upload
@@ -90,6 +91,7 @@ router.use("/stock", stockRouter);                   // ← productos y movimien
 router.use("/home",  homeRouter);                     // ← contenido configurable del home (GET público)
 router.use("/kinesiologia", kinesiologiaRouter);      // ← pacientes de kinesiología
 router.use("/modulos", modulosRouter);                // ← gestión de módulos de negocio habilitados
+router.use("/ubicacion", ubicacionRouter);            // ← provincia/departamento/localidad (público, sin auth)
 
 // ── eccomerce_indumentaria (fase 1) ───────────────────────────────────────
 router.use("/catalogos", catalogosProductosRouter);   // ← categorías/marcas/talles/colores/envío/IVA

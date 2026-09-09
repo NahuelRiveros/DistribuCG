@@ -5,7 +5,11 @@ import ActionButton from "../../../controls/ui/action_button.jsx";
 import { guardarMiPerfil } from "../api/perfil_cliente_api.js";
 import PerfilCampos from "../perfil/perfil_campos.jsx";
 export default function PerfilFormModal({ onClose, onGuardado, perfil = {} }) {
-  const [data, setData] = useState({ cuit: perfil?.cuit ?? "", razon_social: perfil?.razon_social ?? "", condicion_iva: perfil?.condicion_iva ?? "", direccion: perfil?.direccion ?? "", provincia: perfil?.provincia ?? "", localidad: perfil?.localidad ?? "" });
+  const [data, setData] = useState({
+    cuit: perfil?.cuit ?? "", razon_social: perfil?.razon_social ?? "", condicion_iva: perfil?.condicion_iva ?? "",
+    direccion: perfil?.direccion ?? "", provincia: perfil?.provincia ?? "", departamento: perfil?.departamento ?? "",
+    localidad: perfil?.localidad ?? "", codigo_postal: perfil?.codigo_postal ?? "",
+  });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const setter = (key) => (value) => setData((old) => ({ ...old, [key]: value }));
@@ -22,7 +26,8 @@ export default function PerfilFormModal({ onClose, onGuardado, perfil = {} }) {
       <ErrorBanner message={error} />
       <PerfilCampos cuit={data.cuit} setCuit={setter("cuit")} razonSocial={data.razon_social} setRazonSocial={setter("razon_social")}
         condicionIva={data.condicion_iva} setCondicionIva={setter("condicion_iva")} direccion={data.direccion} setDireccion={setter("direccion")}
-        provincia={data.provincia} setProvincia={setter("provincia")} localidad={data.localidad} setLocalidad={setter("localidad")} />
+        provincia={data.provincia} setProvincia={setter("provincia")} departamento={data.departamento} setDepartamento={setter("departamento")}
+        localidad={data.localidad} setLocalidad={setter("localidad")} codigoPostal={data.codigo_postal} setCodigoPostal={setter("codigo_postal")} />
       <ActionButton type="submit" disabled={busy} className="w-full">{busy ? "Guardando…" : "Guardar datos"}</ActionButton>
     </form>
   </Modal>;

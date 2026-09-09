@@ -14,11 +14,12 @@ export function perfilCompleto(perfil) {
   return !!(perfil && perfil.cuit && perfil.direccion && perfil.provincia && perfil.localidad);
 }
 
-export async function guardarPerfil(usuario_id, { cuit, razon_social = null, condicion_iva = null, direccion, provincia, localidad }) {
+export async function guardarPerfil(usuario_id, { cuit, razon_social = null, condicion_iva = null, direccion, provincia, departamento = null, localidad, codigo_postal = null }) {
+  const datos = { cuit, razon_social, condicion_iva, direccion, provincia, departamento, localidad, codigo_postal };
   const [perfil] = await PerfilClienteDistribuidora.findOrCreate({
     where: { usuario_id },
-    defaults: { usuario_id, cuit, razon_social, condicion_iva, direccion, provincia, localidad },
+    defaults: { usuario_id, ...datos },
   });
-  await perfil.update({ cuit, razon_social, condicion_iva, direccion, provincia, localidad, fecha_mod: new Date() });
+  await perfil.update({ ...datos, fecha_mod: new Date() });
   return perfil;
 }

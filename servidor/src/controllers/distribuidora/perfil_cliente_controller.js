@@ -11,13 +11,14 @@ export async function obtenerMiPerfilController(req, res) {
 
 export async function guardarMiPerfilController(req, res) {
   try {
-    const { cuit, razon_social, condicion_iva, direccion, provincia, localidad } = req.body ?? {};
+    const { cuit, razon_social, condicion_iva, direccion, provincia, departamento, localidad, codigo_postal } = req.body ?? {};
     if (!cuit?.trim() || !direccion?.trim() || !provincia?.trim() || !localidad?.trim()) {
       return res.status(400).json({ ok: false, mensaje: "cuit, direccion, provincia y localidad son requeridos" });
     }
     const perfil = await guardarPerfil(req.user.usuario_id, {
       cuit: cuit.trim(), razon_social: razon_social?.trim() || null, condicion_iva: condicion_iva || null,
-      direccion: direccion.trim(), provincia: provincia.trim(), localidad: localidad.trim(),
+      direccion: direccion.trim(), provincia: provincia.trim(), departamento: departamento?.trim() || null,
+      localidad: localidad.trim(), codigo_postal: codigo_postal?.trim() || null,
     });
     return res.json({ ok: true, mensaje: "Perfil guardado correctamente", data: perfil });
   } catch (error) {

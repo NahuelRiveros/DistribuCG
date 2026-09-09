@@ -23,9 +23,14 @@ export const PerfilClienteDistribuidora = defineModel("PerfilClienteDistribuidor
   razon_social:   { type: DataTypes.STRING(150), allowNull: true },
   condicion_iva:  { type: DataTypes.STRING(30), allowNull: true },
 
-  direccion: { type: DataTypes.STRING(200), allowNull: true },
-  provincia: { type: DataTypes.STRING(50), allowNull: true },
-  localidad: { type: DataTypes.STRING(100), allowNull: true },
+  direccion:     { type: DataTypes.STRING(200), allowNull: true },
+  provincia:     { type: DataTypes.STRING(50), allowNull: true },
+  departamento:  { type: DataTypes.STRING(100), allowNull: true },
+  localidad:     { type: DataTypes.STRING(100), allowNull: true },
+  // CPA de Correo Argentino — texto libre a propósito: no tiene relación
+  // 1 a 1 con localidad (una localidad puede tener varios CPA por zona/calle),
+  // así que no se valida contra ningún catálogo (ver ubicacion_service.js).
+  codigo_postal: { type: DataTypes.STRING(15), allowNull: true },
 
   fecha_alta: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   fecha_mod:  { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },

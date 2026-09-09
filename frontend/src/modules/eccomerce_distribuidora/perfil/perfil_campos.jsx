@@ -1,13 +1,29 @@
+import { useEffect, useState } from "react";
 import InputField from "../../../controls/ui/input_field.jsx";
 import SelectField from "../../../controls/ui/select_field.jsx";
-import { PROVINCIAS_ARGENTINA } from "../carrito/provincias_argentina.js";
+import { getProvincias, getDepartamentos, getLocalidades } from "../../../api/ubicacion_api.js";
 import { OPCIONES_CONDICION_IVA } from "./perfil_constantes.js";
+
+// Si el valor guardado no aparece en la lista vigente (perfil viejo con un
+// nombre que ya no coincide, ej. "CABA" antes de pasar a los datos oficiales
+// de GeoRef), lo agregamos igual como opción para no dejar el select vacío.
+function conValorActual(opciones, valorActual) {
+  if (!valorActual || opciones.some((o) => o.nombre === valorActual)) return opciones;
+  return [{ id: "__actual__", nombre: valorActual }, ...opciones];
+}
 
 /**
  * Campos de facturación/entrega del cliente distribuidor — compartidos entre
  * el modal que se muestra antes del primer pedido (carrito/perfil_form_modal.jsx)
  * y la página "Mi perfil" (perfil/perfil_page.jsx): mismos campos, misma
  * validación visual, dos chromes distintos (modal de un solo uso vs. ABM).
+ *
+ * Provincia/departamento/localidad son un select en cascada contra la
+ * división política oficial (ver servidor/ubicacion_service.js) — cada uno
+ * sigue guardando el NOMBRE (no el id) para no romper compatibilidad con lo
+ * que ya persiste perfil_cliente_distribuidora/nota_pedido. El código postal
+ * es texto libre a propósito: el CPA de Correo Argentino no tiene relación
+ * 1 a 1 con localidad, así que no sale de ningún catálogo.
  */
 export default function PerfilCampos({
   cuit, setCuit,
@@ -15,8 +31,50 @@ export default function PerfilCampos({
   condicionIva, setCondicionIva,
   direccion, setDireccion,
   provincia, setProvincia,
+  departamento, setDepartamento,
   localidad, setLocalidad,
+  codigoPostal, setCodigoPostal,
 }) {
+  const [provincias, setProvincias] = useState([]);
+  const [departamentos, setDepartamentos] = useState([]);
+  const [localidades, setLocalidades] = useState([]);
+
+  useEffect(() => {
+    getProvincias().then(setProvincias).catch(() => setProvincias([]));
+  }, []);
+
+  const provinciaId = provincias.find((p) => p.nombre === provincia)?.id;
+  const departamentoId = departamentos.find((d) => d.nombre === departamento)?.id;
+
+  useEffect(() => {
+    let cancelado = false;
+    (async () => {
+      const lista = provinciaId ? await getDepartamentos(provinciaId).catch(() => []) : [];
+      if (!cancelado) setDepartamentos(lista);
+    })();
+    return () => { cancelado = true; };
+  }, [provinciaId]);
+
+  useEffect(() => {
+    let cancelado = false;
+    (async () => {
+      const lista = provinciaId ? await getLocalidades(provinciaId, departamentoId).catch(() => []) : [];
+      if (!cancelado) setLocalidades(lista);
+    })();
+    return () => { cancelado = true; };
+  }, [provinciaId, departamentoId]);
+
+  function elegirProvincia(e) {
+    setProvincia(e.target.value);
+    setDepartamento("");
+    setLocalidad("");
+  }
+
+  function elegirDepartamento(e) {
+    setDepartamento(e.target.value);
+    setLocalidad("");
+  }
+
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
@@ -52,14 +110,34 @@ export default function PerfilCampos({
       <div className="grid grid-cols-2 gap-3">
         <SelectField
           label="Provincia" required
-          options={PROVINCIAS_ARGENTINA.map((p) => ({ value: p, label: p }))}
+          options={conValorActual(provincias, provincia).map((p) => ({ value: p.nombre, label: p.nombre }))}
           value={provincia}
-          onChange={(e) => setProvincia(e.target.value)}
+          onChange={elegirProvincia}
+        />
+        <SelectField
+          label="Departamento/Partido" hideMessage
+          options={conValorActual(departamentos, departamento).map((d) => ({ value: d.nombre, label: d.nombre }))}
+          value={departamento}
+          onChange={elegirDepartamento}
+          disabled={!provincia}
+          placeholder={provincia ? "Seleccionar..." : "Elegí primero una provincia"}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Localidad" required
+          options={conValorActual(localidades, localidad).map((l) => ({ value: l.nombre, label: l.nombre }))}
+          value={localidad}
+          onChange={(e) => setLocalidad(e.target.value)}
+          disabled={!provincia}
+          placeholder={provincia ? "Seleccionar..." : "Elegí primero una provincia"}
         />
         <InputField
-          label="Localidad" required hideMessage
-          value={localidad} onChange={(e) => setLocalidad(e.target.value)}
-          placeholder="Ej: Rosario"
+          label="Código postal" hideMessage
+          tooltip="El CPA de 4 u 8 caracteres, ej: 2000 o C1425AAB."
+          value={codigoPostal} onChange={(e) => setCodigoPostal(e.target.value)}
+          placeholder="(opcional)"
         />
       </div>
     </>

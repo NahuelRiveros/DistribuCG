@@ -23,7 +23,9 @@ export default function PerfilPage() {
   const [condicionIva, setCondicionIva] = useState("");
   const [direccion, setDireccion] = useState("");
   const [provincia, setProvincia] = useState("");
+  const [departamento, setDepartamento] = useState("");
   const [localidad, setLocalidad] = useState("");
+  const [codigoPostal, setCodigoPostal] = useState("");
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
 
@@ -36,7 +38,9 @@ export default function PerfilPage() {
         setCondicionIva(p.condicion_iva ?? "");
         setDireccion(p.direccion ?? "");
         setProvincia(p.provincia ?? "");
+        setDepartamento(p.departamento ?? "");
         setLocalidad(p.localidad ?? "");
+        setCodigoPostal(p.codigo_postal ?? "");
       })
       .catch(() => setError("No se pudo cargar tu perfil"))
       .finally(() => setCargando(false));
@@ -53,7 +57,8 @@ export default function PerfilPage() {
     try {
       const r = await guardarMiPerfil({
         cuit: cuit.trim(), razon_social: razonSocial.trim() || null, condicion_iva: condicionIva || null,
-        direccion: direccion.trim(), provincia, localidad: localidad.trim(),
+        direccion: direccion.trim(), provincia, departamento: departamento || null,
+        localidad: localidad.trim(), codigo_postal: codigoPostal.trim() || null,
       });
       if (r?.ok === false) { setError(r.mensaje); return; }
       toast.success("Perfil actualizado correctamente");
@@ -96,7 +101,9 @@ export default function PerfilPage() {
             condicionIva={condicionIva} setCondicionIva={setCondicionIva}
             direccion={direccion} setDireccion={setDireccion}
             provincia={provincia} setProvincia={setProvincia}
+            departamento={departamento} setDepartamento={setDepartamento}
             localidad={localidad} setLocalidad={setLocalidad}
+            codigoPostal={codigoPostal} setCodigoPostal={setCodigoPostal}
           />
 
           <div className="flex justify-end pt-2">

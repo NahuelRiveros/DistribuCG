@@ -17,8 +17,9 @@ import { defineModel } from "../common/define_model.js";
  * NotaPedidoPago (ledger con quién/cuándo/anulado); estos dos campos son un
  * agregado denormalizado para no tener que sumar esa tabla en cada listado.
  *
- * cuit/razon_social/condicion_iva/direccion/provincia/localidad son un
- * SNAPSHOT de PerfilClienteDistribuidora al momento de crear el pedido — si
+ * cuit/razon_social/condicion_iva/direccion/provincia/departamento/localidad/
+ * codigo_postal son un SNAPSHOT de PerfilClienteDistribuidora al momento de
+ * crear el pedido — si
  * el cliente edita su perfil después, los pedidos viejos no cambian (mismo
  * criterio que nombre_producto/precio_unitario en NotaPedidoItem).
  */
@@ -43,7 +44,9 @@ export const NotaPedido = defineModel("NotaPedido", {
   condicion_iva: { type: DataTypes.STRING(30), allowNull: true },
   direccion:     { type: DataTypes.STRING(200), allowNull: true },
   provincia:     { type: DataTypes.STRING(50), allowNull: true },
+  departamento:  { type: DataTypes.STRING(100), allowNull: true },
   localidad:     { type: DataTypes.STRING(100), allowNull: true },
+  codigo_postal: { type: DataTypes.STRING(15), allowNull: true },
 
   // snapshot de la suma de subtotales de sus items
   total: { type: DataTypes.DECIMAL(10, 2), allowNull: false },

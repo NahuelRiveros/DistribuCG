@@ -75,7 +75,8 @@ export async function crearNotaPedido(usuario_id, { notas = null, expectedItems,
     const nota = await NotaPedido.create({
       usuario_id, estado: "pendiente", estado_pago: "pendiente", monto_pagado: 0, notas, total,
       cuit: perfil.cuit, razon_social: perfil.razon_social, condicion_iva: perfil.condicion_iva,
-      direccion: perfil.direccion, provincia: perfil.provincia, localidad: perfil.localidad,
+      direccion: perfil.direccion, provincia: perfil.provincia, departamento: perfil.departamento,
+      localidad: perfil.localidad, codigo_postal: perfil.codigo_postal,
       fecha_alta: new Date(), fecha_mod: new Date(),
     }, { transaction: t });
     await NotaPedidoItem.bulkCreate(items.map((i) => ({

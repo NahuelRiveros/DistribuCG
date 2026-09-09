@@ -142,7 +142,7 @@ export default function NotaPedidoCard({ nota, onCambiarEstado, onRegistrarPago,
       {abierta && (
         <div className="border-t border-slate-100 px-5 py-4">
           <div className="mb-3 grid grid-cols-1 gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-slate-600 sm:grid-cols-2">
-            <p><span className="font-semibold text-slate-500">Entregar en:</span> {nota.direccion}, {nota.localidad}, {nota.provincia}</p>
+            <p><span className="font-semibold text-slate-500">Entregar en:</span> {nota.direccion}, {nota.localidad}, {nota.provincia}{nota.codigo_postal && ` (CP ${nota.codigo_postal})`}</p>
             <p>
               <span className="font-semibold text-slate-500">CUIT:</span> {nota.cuit}
               {nota.razon_social && <> — {nota.razon_social}</>}
