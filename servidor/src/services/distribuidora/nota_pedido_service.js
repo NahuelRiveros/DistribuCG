@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { withCart, idempotent } from "./cart_transaction.js";
 import { cartError, validQuantity, validateSnapshot } from "../common/cart_rules.js";
 import { CarritoDistribuidoraItem, VariedadDistribuidora, ProductoDistribuidora } from "../../models/index.js";
@@ -62,8 +63,10 @@ export async function crearNotaPedido(usuario_id, { notas = null, expectedItems,
     const raw = await CarritoDistribuidoraItem.findAll({ where: { carrito_id: carrito.id }, transaction: t });
     const productIds = [...new Set(raw.map((i) => i.producto_id))].sort((a,b) => a-b);
     const variantIds = [...new Set(raw.map((i) => i.variedad_id).filter(Boolean))].sort((a,b) => a-b);
-    for (const id of productIds) await ProductoDistribuidora.findByPk(id, { transaction: t, lock: t.LOCK.UPDATE });
-    for (const id of variantIds) await VariedadDistribuidora.findByPk(id, { transaction: t, lock: t.LOCK.UPDATE });
+    // Bloqueo por lote (un solo SELECT ... FOR UPDATE con IN) en vez de un
+    // findByPk por id — un pedido de 20 líneas antes eran 20 round-trips.
+    if (productIds.length) await ProductoDistribuidora.findAll({ where: { id: { [Op.in]: productIds } }, transaction: t, lock: t.LOCK.UPDATE });
+    if (variantIds.length) await VariedadDistribuidora.findAll({ where: { id: { [Op.in]: variantIds } }, transaction: t, lock: t.LOCK.UPDATE });
     const items = await listarItemsCarrito(carrito.id, t);
     if (!items.length) throw cartError("El carrito está vacío.");
     for (const item of items) {
