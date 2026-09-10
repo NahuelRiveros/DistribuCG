@@ -15,7 +15,7 @@ import {
   Carrito, CarritoItem,
   CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora,
   CarritoDistribuidora, CarritoDistribuidoraItem, NotaPedido, NotaPedidoItem, NotaPedidoPago,
-  PerfilClienteDistribuidora, OperacionCarrito, NotaPedidoEstadoLog,
+  PerfilClienteDistribuidora, OperacionCarrito, NotaPedidoEstadoLog, ImportacionCatalogo, ImportacionCatalogoLote,
 } from "../models/index.js";
 
 /**
@@ -219,6 +219,8 @@ async function sincronizar_modelos() {
   // pedido. Tablas propias, sin depender de productos/ ni carrito/ (indumentaria).
   const MODELOS_DISTRIBUIDORA = [
     OperacionCarrito,
+    ImportacionCatalogo,
+    ImportacionCatalogoLote,
     CategoriaDistribuidora, // categoria_distribuidora (auto-referenciada)
     ProductoDistribuidora,  // producto_distribuidora → categoria_distribuidora
     VariedadDistribuidora,  // variedad_distribuidora → producto_distribuidora

@@ -8,6 +8,7 @@
  *   import "../models/index.js";  // efectos colaterales: registra asociaciones
  */
 
+import { ImportacionCatalogo, ImportacionCatalogoLote } from "./distribuidora/importacion_catalogo.js";
 import { NotaPedidoEstadoLog } from "./distribuidora/nota_pedido_estado_log.js";
 import { OperacionCarrito } from "./distribuidora/operacion_carrito.js";
 import { aplicarRelaciones } from "./common/relaciones.js";
@@ -289,7 +290,7 @@ aplicarRelaciones([
 ]);
 
 export {
-  OperacionCarrito, NotaPedidoEstadoLog,
+  OperacionCarrito, NotaPedidoEstadoLog, ImportacionCatalogo, ImportacionCatalogoLote,
   Sexo, TipoDocumento, TipoPersona, AlumnoEstado,
   Rol, Modulo, Permiso, RolPermiso,
   Persona, Usuario, UsuarioRol,
