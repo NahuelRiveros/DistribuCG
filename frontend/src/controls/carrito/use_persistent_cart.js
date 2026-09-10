@@ -1,61 +1,88 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { readGuestCart, guestItem, mergeGuestItems } from "./guest_storage.js";
-
-// Cuántos ms esperar tras el último click sobre la MISMA línea antes de
-// mandar el PUT — varios clicks seguidos de +/- terminan en un solo request
-// con la cantidad final, no uno por click.
 const DEBOUNCE_MS = 400;
 
-// Contrato de adapter: get, add, update, remove, clear, merge, product.
-// El provider que lo consume debe remontar por identidad de cuenta.
+// Adapter: get, add, update, remove, clear, merge, product.
+// Remontar el provider al cambiar de cuenta. Los borradores de cantidad se
+// superponen al último snapshot confirmado; una respuesta nunca pisa otro borrador.
 export function usePersistentCart({ userId, enabled, config, adapter }) {
   const [items, setItems] = useState(() => enabled ? readGuestCart(localStorage, config.storageKey, config.cartTtlDays)?.items ?? [] : []);
   const [loading, setLoading] = useState(!!userId && enabled);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(0);
   const itemsRef = useRef(items);
+  const confirmed = useRef(items);
+  const drafts = useRef(new Map());
+  const timers = useRef(new Map());
+  const version = useRef(0);
   const queue = useRef(Promise.resolve());
   const active = useRef(true);
   const ready = useRef(!userId);
-  // item_id → { timeoutId, quantity, original } — cantidades optimistas
-  // todavía no confirmadas contra el servidor (ver setCantidad/commit).
-  const timers = useRef({});
-  const publish = useCallback((data) => { if (active.current) { itemsRef.current = data; setItems(data); } }, []);
+  const redraw = useCallback(() => {
+    const data = confirmed.current.map((item) => {
+      const draft = drafts.current.get(String(item.item_id));
+      return draft ? { ...item, cantidad: draft.quantity } : item;
+    });
+    if (active.current) { itemsRef.current = data; setItems(data); }
+    return data;
+  }, []);
+  const publish = useCallback((data) => {
+    if (!active.current) return data;
+    confirmed.current = data;
+    return redraw();
+  }, [redraw]);
   const saveGuest = useCallback((data) => {
     if (!active.current) throw new Error("La sesión cambió. Volvé a intentar.");
     localStorage.setItem(config.storageKey, JSON.stringify({ key: crypto.randomUUID(), updatedAt: Date.now(), items: data }));
-    publish(data);
+    return publish(data);
   }, [config, publish]);
   const enqueue = useCallback((action) => {
     setPending((n) => n + 1);
-    const operation = queue.current.then(() => { if (!active.current) throw new Error("La sesión cambió."); return action(); });
+    const operation = queue.current.then(() => {
+      if (!active.current) throw new Error("La sesión cambió.");
+      return action();
+    });
     queue.current = operation.catch(() => {});
-    return operation.catch((e) => { if (active.current) setError(e.response?.data?.mensaje || e.message || "No pudimos guardar tu carrito."); throw e; })
-      .finally(() => { if (active.current) setPending((n) => n - 1); });
+    return operation.catch((e) => {
+      if (active.current) setError(e.response?.data?.mensaje || e.message || "No pudimos guardar tu carrito.");
+      throw e;
+    }).finally(() => { if (active.current) setPending((n) => n - 1); });
   }, []);
-  // Envía al servidor la cantidad optimista pendiente de una línea (si la
-  // hay) y limpia su timer — lo dispara tanto el debounce natural como
-  // flush() (checkout no puede avanzar con cambios todavía sin confirmar).
-  const commit = useCallback((id) => {
-    const t = timers.current[id];
-    if (!t) return Promise.resolve(itemsRef.current);
-    clearTimeout(t.timeoutId);
-    delete timers.current[id];
+  const commit = useCallback((key) => {
+    key = String(key);
+    const entry = timers.current.get(key);
+    if (!entry) return Promise.resolve(itemsRef.current);
+    clearTimeout(entry.timer);
+    timers.current.delete(key);
     if (active.current) setPending((n) => n - 1);
-    return enqueue(async () => {
-      // La línea se borró (o el carrito se vació) mientras esperaba el debounce.
-      if (!itemsRef.current.some((i) => i.item_id === id)) return itemsRef.current;
+    const operation = enqueue(async () => {
       try {
-        return publish(await adapter.update(id, t.quantity));
+        const data = await adapter.update(entry.id, entry.quantity);
+        if (drafts.current.get(key)?.version === entry.version) drafts.current.delete(key);
+        return publish(data);
       } catch (e) {
-        // Rollback: si el servidor rechaza (sin stock, variante de baja, etc.)
-        // volvemos a la última cantidad confirmada en vez de dejar la UI
-        // mostrando un número que en realidad no se guardó.
-        publish(itemsRef.current.map((i) => (i.item_id === id ? { ...i, cantidad: t.original } : i)));
+        if (drafts.current.get(key)?.version === entry.version) drafts.current.delete(key);
+        redraw();
         throw e;
       }
     });
-  }, [adapter, enqueue, publish]);
+    // Todos los callers del debounce finalizan, incluso si lo adelantó flush().
+    operation.then(
+      (data) => entry.waiters.forEach((w) => w.resolve(data)),
+      (e) => entry.waiters.forEach((w) => w.reject(e)),
+    );
+    return operation;
+  }, [adapter, enqueue, publish, redraw]);
+  const cancelTimer = useCallback((key) => {
+    key = String(key);
+    const entry = timers.current.get(key);
+    if (entry) {
+      clearTimeout(entry.timer); timers.current.delete(key);
+      entry.waiters.forEach((w) => w.resolve(itemsRef.current));
+      if (active.current) setPending((n) => n - 1);
+    }
+    drafts.current.delete(key);
+  }, []);
   const recargar = useCallback(() => enqueue(async () => {
     if (!enabled) return itemsRef.current;
     setError("");
@@ -64,128 +91,75 @@ export function usePersistentCart({ userId, enabled, config, adapter }) {
     let data;
     if (guest?.items.length) {
       data = await adapter.merge({ key: guest.key, items: guest.items.map(({ producto_id, variedad_id, cantidad }) => ({ producto_id, variedad_id, cantidad })) });
-      // No borrar un borrador modificado desde otra pestaña mientras se enviaba.
       if (readGuestCart(localStorage, config.storageKey, config.cartTtlDays)?.key === guest.key) localStorage.removeItem(config.storageKey);
     } else data = await adapter.get();
     ready.current = true;
-    publish(data);
-    return data;
+    return publish(data);
   }), [adapter, config, enabled, enqueue, publish, userId]);
   useEffect(() => {
     active.current = true;
     if (enabled && userId) recargar().catch(() => {}).finally(() => { if (active.current) setLoading(false); });
+    const pendingTimers = timers.current;
     return () => {
       active.current = false;
-      Object.values(timers.current).forEach((t) => clearTimeout(t.timeoutId));
-      timers.current = {};
+      for (const entry of pendingTimers.values()) {
+        clearTimeout(entry.timer);
+        entry.waiters.forEach((w) => w.resolve([]));
+      }
+      pendingTimers.clear();
     };
   }, [enabled, userId, recargar]);
-  // Optimista cuando el caller ya tiene el producto a mano (la card/detalle
-  // que llama a addItem ya lo cargó para pintarse) — evita el fetch extra
-  // que antes hacía esta función incluso para invitados, y muestra la línea
-  // en el carrito al instante en vez de esperar la confirmación del server.
-  // Sin `producto` en el payload cae al camino viejo (pide el producto y
-  // recién ahí construye el item).
-  const addItem = useCallback((payload) => {
-    const { producto_id, variedad_id, cantidad = 1, producto: productoPreview } = payload;
-    if (!enabled) {
-      const err = new Error("El carrito no está disponible.");
-      setError(err.message);
-      return Promise.reject(err);
-    }
-
-    let provisional = null;
-    if (productoPreview) {
-      const variety = productoPreview.variedades?.find((v) => v.id === variedad_id);
-      if (variety) {
-        try {
-          provisional = mergeGuestItems(itemsRef.current, guestItem(productoPreview, variety, cantidad), config.maxQuantity, config.maxCartLines);
-        } catch (e) {
-          setError(e.message);
-          return Promise.reject(e);
-        }
-      }
-    }
+  const addItem = useCallback((payload) => enqueue(async () => {
+    if (!enabled) throw new Error("El carrito no está disponible.");
     setError("");
-
-    if (!(userId && ready.current)) {
-      if (!config.guestCart || !config.publicCatalog) {
-        const err = new Error("Ingresá para agregar productos.");
-        setError(err.message);
-        return Promise.reject(err);
-      }
-      if (provisional) { saveGuest(provisional); return Promise.resolve(provisional); }
-      return enqueue(async () => {
-        const product = await adapter.product(producto_id);
-        const variety = product.variedades?.find((v) => v.id === variedad_id);
-        if (!variety) throw new Error("Esta presentación ya no está disponible.");
-        saveGuest(mergeGuestItems(itemsRef.current, guestItem(product, variety, cantidad), config.maxQuantity, config.maxCartLines));
-      });
-    }
-
-    const previo = itemsRef.current;
-    if (provisional) publish(provisional);
-    return enqueue(async () => {
-      try {
-        return publish(await adapter.add({ producto_id, variedad_id, cantidad }));
-      } catch (e) {
-        if (provisional) publish(previo); // rollback: el server rechazó el agregado
-        throw e;
-      }
-    });
-  }, [adapter, config, enabled, enqueue, publish, saveGuest, userId]);
-  // Optimista: la cantidad se refleja en la UI al instante (localStorage para
-  // invitados, estado en memoria para logueados) y el PUT al servidor se
-  // manda debounced en segundo plano — ver DEBOUNCE_MS arriba. Si el server
-  // lo rechaza, commit() revierte la línea a su última cantidad confirmada.
+    const { producto_id, variedad_id, cantidad = 1, producto: preview } = payload;
+    if (userId && ready.current) return publish(await adapter.add({ producto_id, variedad_id, cantidad }));
+    if (!config.guestCart || !config.publicCatalog) throw new Error("Ingresá para agregar productos.");
+    // La card ya dispone de producto/presentaciones: el invitado no necesita otro GET.
+    const product = preview || await adapter.product(producto_id);
+    const variety = product.variedades?.find((v) => v.id === variedad_id);
+    if (!variety) throw new Error("Esta presentación ya no está disponible.");
+    return saveGuest(mergeGuestItems(itemsRef.current, guestItem(product, variety, cantidad), config.maxQuantity, config.maxCartLines));
+  }), [adapter, config, enabled, enqueue, publish, saveGuest, userId]);
   const setCantidad = useCallback((id, quantity) => {
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > config.maxQuantity) {
-      const err = new Error("Cantidad inválida.");
-      setError(err.message);
-      return Promise.reject(err);
+    const item = itemsRef.current.find((i) => i.item_id === id);
+    if (!item) return Promise.resolve(itemsRef.current);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > config.maxQuantity || item.stock_disponible != null && quantity > item.stock_disponible) {
+      const e = new Error("La cantidad supera la disponibilidad o el máximo permitido.");
+      setError(e.message); return Promise.reject(e);
     }
-    const actual = itemsRef.current.find((i) => i.item_id === id);
-    if (!actual) return Promise.resolve(itemsRef.current);
     setError("");
-    publish(itemsRef.current.map((i) => (i.item_id === id ? { ...i, cantidad: quantity } : i)));
-
-    if (!(userId && ready.current)) {
-      saveGuest(itemsRef.current);
-      return Promise.resolve(itemsRef.current);
-    }
-
-    const existente = timers.current[id];
-    const original = existente ? existente.original : actual.cantidad;
-    if (existente) clearTimeout(existente.timeoutId);
+    if (!(userId && ready.current)) return enqueue(() => saveGuest(itemsRef.current.map((i) => i.item_id === id ? { ...i, cantidad: quantity } : i)));
+    const key = String(id);
+    const previous = timers.current.get(key);
+    const entry = { id, quantity, version: ++version.current, waiters: previous?.waiters || [] };
+    if (previous) clearTimeout(previous.timer);
     else setPending((n) => n + 1);
-    return new Promise((resolve, reject) => {
-      timers.current[id] = {
-        original,
-        quantity,
-        timeoutId: setTimeout(() => commit(id).then(resolve, reject), DEBOUNCE_MS),
-      };
+    drafts.current.set(key, entry);
+    redraw();
+    const result = new Promise((resolve, reject) => entry.waiters.push({ resolve, reject }));
+    entry.timer = setTimeout(() => { commit(key).catch(() => {}); }, DEBOUNCE_MS);
+    timers.current.set(key, entry);
+    return result;
+  }, [commit, config, enqueue, redraw, saveGuest, userId]);
+  const removeItem = useCallback((id) => {
+    cancelTimer(id);
+    return enqueue(async () => {
+      setError("");
+      if (userId && ready.current) return publish(await adapter.remove(id));
+      return saveGuest(itemsRef.current.filter((i) => i.item_id !== id));
     });
-  }, [commit, config, publish, saveGuest, userId]);
-  const removeItem = useCallback((id) => enqueue(async () => {
-    setError("");
-    // Una cantidad optimista todavía sin confirmar para esta línea ya no
-    // aplica — se está borrando la línea entera.
-    const t = timers.current[id];
-    if (t) { clearTimeout(t.timeoutId); delete timers.current[id]; if (active.current) setPending((n) => n - 1); }
-    if (userId && ready.current) return publish(await adapter.remove(id));
-    saveGuest(itemsRef.current.filter((i) => i.item_id !== id));
-  }), [adapter, enqueue, publish, saveGuest, userId]);
-  const clearCart = useCallback(() => enqueue(async () => {
-    Object.entries(timers.current).forEach(([id, t]) => { clearTimeout(t.timeoutId); delete timers.current[id]; if (active.current) setPending((n) => n - 1); });
-    if (userId && ready.current) { await adapter.clear(); publish([]); }
-    else saveGuest([]);
-    setError("");
-  }), [adapter, enqueue, publish, saveGuest, userId]);
+  }, [adapter, cancelTimer, enqueue, publish, saveGuest, userId]);
+  const clearCart = useCallback(() => {
+    for (const key of [...timers.current.keys()]) cancelTimer(key);
+    return enqueue(async () => {
+      if (userId && ready.current) { await adapter.clear(); publish([]); }
+      else saveGuest([]);
+      setError("");
+    });
+  }, [adapter, cancelTimer, enqueue, publish, saveGuest, userId]);
   const flush = useCallback(async () => {
-    // Confirma contra el servidor cualquier cantidad optimista que todavía
-    // esté esperando su debounce — el checkout no puede avanzar con cambios
-    // sin guardar (ver prepare() en nota_pedido_page.jsx).
-    await Promise.all(Object.keys(timers.current).map((id) => commit(id)));
+    await Promise.all([...timers.current.keys()].map(commit));
     await queue.current;
     if (userId && !ready.current) throw new Error("Primero recuperá o corregí tu carrito guardado.");
     return itemsRef.current;

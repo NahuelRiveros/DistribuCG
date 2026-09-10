@@ -1,3 +1,4 @@
+import { orderConfig } from "../../config/order_config.js";
 import { lazy } from "react";
 import { projectModules } from "../../config/gate_config.js";
 import { storefrontConfig } from "../../config/storefront_config.js";
@@ -16,17 +17,12 @@ const NotasPedidoDistribuidoraPage = lazy(() => import("../../modules/eccomerce_
 const ImportacionDistribuidoraPage = lazy(() => import("../../modules/eccomerce_distribuidora/admin/importacion_page.jsx"));
 import { protegida } from "./route_helpers.jsx";
 
-// Rutas del módulo opcional eccomerce_distribuidora (ver módulo hermano
-// eccomerce_indumentaria para el mismo patrón). Catálogo y carrito son solo
-// para logueados (cliente/admin/staff) — decisión de negocio, no hay
-// navegación pública acá. La visibilidad real se controla con
-// modulo: "eccomerce_distribuidora" en navbar_config/eccomerce_distribuidora_dropdown.js
-// + el toggle de /super-admin/modulos, no acá.
+// Catálogo público y carrito invitado configurables por instalación.
+// Las acciones de gestión también se autorizan en el servidor.
 const ROLES_CLIENTE = ["cliente", "admin", "staff"];
 const ROLES_ADMIN = ["admin", "staff"];
-// Ver/procesar pedidos es un rol acotado aparte de "staff" — separa a
-// propósito quien gestiona catálogo de quien gestiona ventas/pedidos.
-const ROLES_VENTAS = ["admin", "vendedor"];
+// Personal autorizado a gestionar notas; fuente compartida con la API.
+const ROLES_VENTAS = orderConfig.managementRoles;
 
 export const eccomerceDistribuidoraRoutes = !projectModules.eccomerce_distribuidora ? [] : [
   { path: "/distribuidora/catalogo", element: storefrontConfig.publicCatalog ? <ProductosDistribuidoraPage /> : protegida(<ProductosDistribuidoraPage />, ROLES_CLIENTE) },

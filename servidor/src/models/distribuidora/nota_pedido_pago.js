@@ -19,6 +19,8 @@ export const NotaPedidoPago = defineModel("NotaPedidoPago", {
     references: { model: "nota_pedido", key: "id" },
   },
 
+  metodo: { type: DataTypes.STRING(30), allowNull: true },
+  anulacion_motivo: { type: DataTypes.STRING(500), allowNull: true },
   monto: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   nota:  { type: DataTypes.STRING(255), allowNull: true },
 

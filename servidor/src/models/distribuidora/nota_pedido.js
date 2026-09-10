@@ -2,26 +2,11 @@ import { DataTypes } from "sequelize";
 import { defineModel } from "../common/define_model.js";
 
 /**
- * Un pedido enviado por el cliente — inmutable una vez creado (snapshot de
- * lo que había en CarritoDistribuidora al momento de enviar). Sin pago
- * online: un empleado la procesa por fuera del sistema. `estado` es un
- * string libre a propósito (sin tabla de catálogo, no se pidió workflow
- * configurable) — valores esperados: "pendiente" | "en_curso" | "entregado" | "cancelada".
- *
- * `estado_pago`/`monto_pagado` son independientes del `estado` de
- * cumplimiento, salvo por una regla: pasar a "en_curso" o "entregado"
- * requiere `estado_pago !== "pendiente"` (al menos un pago parcial), ver
- * ESTADOS_QUE_REQUIEREN_PAGO en nota_pedido_service.js. Reemplaza al viejo
- * booleano `pagado` — soporta pagos parciales (cliente mayorista que deja
- * una seña y paga el resto después). El detalle de cada pago vive en
- * NotaPedidoPago (ledger con quién/cuándo/anulado); estos dos campos son un
- * agregado denormalizado para no tener que sumar esa tabla en cada listado.
- *
- * cuit/razon_social/condicion_iva/direccion/provincia/departamento/localidad/
- * codigo_postal son un SNAPSHOT de PerfilClienteDistribuidora al momento de
- * crear el pedido — si
- * el cliente edita su perfil después, los pedidos viejos no cambian (mismo
- * criterio que nombre_producto/precio_unitario en NotaPedidoItem).
+ * Snapshot de productos, precios y entrega al enviar la nota.
+ * Estado comercial y cobro son independientes según order_config.js.
+ * Los cobros se conservan en NotaPedidoPago; monto_pagado/estado_pago
+ * se recalculan en una transacción. El historial de estados guarda operador,
+ * fecha y motivo. Cambiar el perfil no modifica notas anteriores.
  */
 export const NotaPedido = defineModel("NotaPedido", {
   usuario_id: {

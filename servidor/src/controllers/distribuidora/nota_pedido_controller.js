@@ -1,3 +1,4 @@
+import { orderConfig } from "../../../../order_config.js";
 import ExcelJS from "exceljs";
 import {
   crearNotaPedido, listarPropias, listarTodas, obtenerDetalle,
@@ -30,7 +31,7 @@ export async function listarMisNotasController(req, res) {
 
 export async function listarTodasController(req, res) {
   try {
-    return res.json({ ok: true, data: await listarTodas() });
+    return res.json({ ok: true, ...await listarTodas(req.query) });
   } catch (error) {
     console.error("Error al listar notas de pedido:", error);
     return res.status(500).json({ ok: false, mensaje: "Error interno al listar los pedidos" });
@@ -39,11 +40,11 @@ export async function listarTodasController(req, res) {
 
 export async function cambiarEstadoController(req, res) {
   try {
-    const { estado } = req.body ?? {};
-    if (!["pendiente", "en_curso", "entregado", "cancelada"].includes(estado)) {
+    const { estado, motivo, expectedState } = req.body ?? {};
+    if (!orderConfig.states[estado]) {
       return res.status(400).json({ ok: false, mensaje: "estado inválido" });
     }
-    const nota = await cambiarEstado(req.params.id, estado);
+    const nota = await cambiarEstado(req.params.id, estado, { usuario_id: req.user.usuario_id, motivo, expectedState });
     if (!nota) return res.status(404).json({ ok: false, mensaje: "Pedido no encontrado" });
     return res.json({ ok: true, mensaje: "Estado actualizado", data: nota });
   } catch (error) {
@@ -58,8 +59,8 @@ export async function cambiarEstadoController(req, res) {
 
 export async function registrarPagoController(req, res) {
   try {
-    const { monto, nota } = req.body ?? {};
-    const notaPedido = await registrarPago(req.params.id, { monto, nota, usuario_id: req.user.usuario_id });
+    const { monto, nota, metodo, key } = req.body ?? {};
+    const notaPedido = await registrarPago(req.params.id, { monto, nota, metodo, key, usuario_id: req.user.usuario_id });
     if (!notaPedido) return res.status(404).json({ ok: false, mensaje: "Pedido no encontrado" });
     return res.status(201).json({ ok: true, mensaje: "Pago registrado", data: notaPedido });
   } catch (error) {
@@ -74,7 +75,7 @@ export async function registrarPagoController(req, res) {
 
 export async function anularPagoController(req, res) {
   try {
-    const pago = await anularPago(req.params.pagoId, req.user.usuario_id);
+    const pago = await anularPago(req.params.pagoId, req.user.usuario_id, { pedidoId: req.params.id, motivo: req.body?.motivo });
     if (!pago) return res.status(404).json({ ok: false, mensaje: "Pago no encontrado" });
     return res.json({ ok: true, mensaje: "Pago anulado", data: pago });
   } catch (error) {
@@ -89,7 +90,7 @@ export async function anularPagoController(req, res) {
 
 const fmtMoneda = (n) => `$ ${Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`;
 const ESTADO_PAGO_LABEL = { pendiente: "Pendiente", parcial: "Parcial", pagado: "Pagado" };
-const ESTADO_LABEL = { pendiente: "Pendiente", en_curso: "En curso", entregado: "Entregado", cancelada: "Cancelada" };
+const ESTADO_LABEL = Object.fromEntries(Object.entries(orderConfig.states).map(([key, state]) => [key, state.label]));
 
 export async function exportarNotaPedidoController(req, res) {
   try {

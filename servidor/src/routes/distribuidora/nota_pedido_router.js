@@ -1,3 +1,4 @@
+import { orderConfig } from "../../../../order_config.js";
 import { Router } from "express";
 import {
   crearNotaPedidoController, listarMisNotasController, listarTodasController,
@@ -11,9 +12,7 @@ export const notaPedidoRouter = Router();
 notaPedidoRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));
 notaPedidoRouter.use(requireAuth);
 
-// Ver/procesar TODOS los pedidos es "admin" + "vendedor" (no "staff" — a
-// propósito separado de quien gestiona catálogo, ver seed_rbac.js).
-const ROLES_VENTAS = ["admin", "vendedor"];
+const ROLES_VENTAS = orderConfig.managementRoles;
 
 // Rutas específicas ANTES de "/:id".
 notaPedidoRouter.get("/todas", requireRole(...ROLES_VENTAS), listarTodasController);

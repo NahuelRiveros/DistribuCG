@@ -1,4 +1,6 @@
-const BASE = "mt-1 rounded-xl border px-3 py-2 outline-none transition duration-200";
+import { useId } from "react";
+
+const BASE = "min-h-11 mt-1 rounded-xl border px-3 py-2 outline-none transition duration-200";
 const STATE = {
   enabled:  "border-gray-300 bg-white text-gray-900 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25",
   disabled: "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400",
@@ -30,9 +32,10 @@ export default function SelectField({
   showPlaceholderOption = true,
   ...rest
 }) {
+  const generatedId = useId();
   if (hidden) return null;
 
-  const selectId = id || name;
+  const selectId = id || name || generatedId;
   const isDisabled = disabled || disabledVisual;
 
   const registerOptions = asNumber
@@ -64,7 +67,8 @@ export default function SelectField({
         disabled={isDisabled}
         {...(register && name ? register(name, registerOptions) : {})}
         value={value}
-        onChange={onChange}
+        {...(onChange ? { onChange } : {})}
+        aria-invalid={!!error}
         defaultValue={value === undefined ? (fijoValue ?? "") : undefined}
         className={[BASE, fullWidth ? "w-full" : "", stateClass, className].join(" ")}
         {...rest}

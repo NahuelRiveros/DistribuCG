@@ -15,7 +15,7 @@ import {
   Carrito, CarritoItem,
   CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora,
   CarritoDistribuidora, CarritoDistribuidoraItem, NotaPedido, NotaPedidoItem, NotaPedidoPago,
-  PerfilClienteDistribuidora, OperacionCarrito,
+  PerfilClienteDistribuidora, OperacionCarrito, NotaPedidoEstadoLog,
 } from "../models/index.js";
 
 /**
@@ -225,6 +225,7 @@ async function sincronizar_modelos() {
     CarritoDistribuidora,     // carrito_distribuidora → usuario
     CarritoDistribuidoraItem, // carrito_distribuidora_item → carrito_distribuidora, producto_distribuidora, variedad_distribuidora
     NotaPedido,     // nota_pedido → usuario
+    NotaPedidoEstadoLog,
     NotaPedidoItem, // nota_pedido_item → nota_pedido, producto_distribuidora, variedad_distribuidora
     NotaPedidoPago, // nota_pedido_pago → nota_pedido, usuario
     PerfilClienteDistribuidora, // perfil_cliente_distribuidora → usuario

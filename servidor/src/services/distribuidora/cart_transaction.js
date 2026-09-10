@@ -11,7 +11,7 @@ export async function withCart(usuario_id, action) {
   });
 }
 export async function idempotent(usuario_id, key, payload, transaction, action) {
-  if (typeof key !== "string" || !/^(merge|order):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) throw cartError("Falta el identificador de la operación.");
+  if (typeof key !== "string" || !/^(merge|order|payment):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) throw cartError("Falta el identificador de la operación.");
   const huella = fingerprint(payload);
   const previous = await OperacionCarrito.findOne({ where: { usuario_id, clave: key }, transaction });
   if (previous) {

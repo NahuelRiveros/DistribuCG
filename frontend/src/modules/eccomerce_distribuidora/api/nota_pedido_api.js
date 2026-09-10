@@ -10,24 +10,24 @@ export async function getMisNotasPedido() {
   return data.data;
 }
 
-// admin/vendedor
-export async function getTodasLasNotasPedido() {
-  const { data } = await http.get("/distribuidora/notas-pedido/todas");
-  return data.data;
-}
-
-export async function cambiarEstadoNotaPedido(id, estado) {
-  const { data } = await http.put(`/distribuidora/notas-pedido/${id}/estado`, { estado });
+// Gestión: permisos definidos en order_config.js
+export async function getTodasLasNotasPedido(params) {
+  const { data } = await http.get("/distribuidora/notas-pedido/todas", { params });
   return data;
 }
 
-export async function registrarPagoNotaPedido(id, { monto, nota } = {}) {
-  const { data } = await http.post(`/distribuidora/notas-pedido/${id}/pagos`, { monto, nota });
+export async function cambiarEstadoNotaPedido(id, estado, { motivo, expectedState } = {}) {
+  const { data } = await http.put(`/distribuidora/notas-pedido/${id}/estado`, { estado, motivo, expectedState });
   return data;
 }
 
-export async function anularPagoNotaPedido(id, pagoId) {
-  const { data } = await http.post(`/distribuidora/notas-pedido/${id}/pagos/${pagoId}/anular`);
+export async function registrarPagoNotaPedido(id, { monto, nota, metodo, key } = {}) {
+  const { data } = await http.post(`/distribuidora/notas-pedido/${id}/pagos`, { monto, nota, metodo, key });
+  return data;
+}
+
+export async function anularPagoNotaPedido(id, pagoId, motivo) {
+  const { data } = await http.post(`/distribuidora/notas-pedido/${id}/pagos/${pagoId}/anular`, { motivo });
   return data;
 }
 

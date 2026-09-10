@@ -1,3 +1,4 @@
+import { orderConfig } from "../order_config.js";
 import { storefrontConfig } from "../storefront_config.js";
 import {
   ShoppingBag,
@@ -92,7 +93,7 @@ export const eccomerceDistribuidoraAdminDropdown = {
       to: "/distribuidora/admin/notas-pedido",
       requiereAuth: true,
       modulo: "eccomerce_distribuidora",
-      roles: ["admin", "vendedor"],
+      roles: orderConfig.managementRoles,
       icon: ClipboardList,
     },
   ],

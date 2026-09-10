@@ -1,3 +1,6 @@
+import { orderConfig, transitionProblem } from "../../../../order_config.js";
+import { normalizarPaginacion, armarPaginacion } from "../common/pagination.js";
+import { NotaPedidoEstadoLog } from "../../models/index.js";
 import { Op } from "sequelize";
 import { withCart, idempotent } from "./cart_transaction.js";
 import { cartError, validQuantity, validateSnapshot } from "../common/cart_rules.js";
@@ -7,19 +10,13 @@ import { NotaPedido, NotaPedidoItem, NotaPedidoPago, Persona, Usuario } from "..
 import { listarItemsCarrito } from "./carrito_distribuidora_service.js";
 import { obtenerPerfil, perfilCompleto } from "./perfil_cliente_service.js";
 
-// Pasar a estos estados exige que el pedido tenga al menos un pago parcial
-// (estado_pago !== "pendiente") — no hace falta estar 100% pagado, pero no
-// se puede avanzar un pedido en el que no se cobró nada. Incluye "entregado"
-// además de "en_curso" para que no se pueda saltear el requisito saltando
-// directo de "pendiente" a "entregado" (el UI permite cualquier salto).
-const ESTADOS_QUE_REQUIEREN_PAGO = ["en_curso", "entregado"];
+const ESTADOS_QUE_REQUIEREN_PAGO = orderConfig.paymentRequiredStates;
 
-// Nota: Sequelize no soporta `order` dentro de un include anidado — si hace
-// falta un orden garantizado, se ordena en el consumidor (el frontend ya
-// lo hace por fecha al renderizar el historial de pagos).
+// Consultas separadas por asociación evitan multiplicar items × cobros × historial.
+// Se cargan en lote para toda la página, sin una consulta por pedido.
 const INCLUDE_PAGOS = {
   model: NotaPedidoPago,
-  as: "pagos",
+  as: "pagos", separate: true, order: [["registrado_en", "ASC"], ["id", "ASC"]],
   include: [
     { model: Usuario, as: "registrado_por_usuario", attributes: ["id"], include: [{ model: Persona, as: "persona", attributes: ["nombre", "apellido"] }] },
     { model: Usuario, as: "anulado_por_usuario", attributes: ["id"], include: [{ model: Persona, as: "persona", attributes: ["nombre", "apellido"] }] },
@@ -38,7 +35,7 @@ async function recomputarEstadoPago(nota_pedido_id, t) {
     where: { nota_pedido_id, anulado_en: null },
     transaction: t,
   });
-  const monto_pagado = pagosActivos.reduce((s, p) => s + Number(p.monto), 0);
+  const monto_pagado = pagosActivos.reduce((s, p) => s + Math.round(Number(p.monto) * 100), 0) / 100;
   const estado_pago = monto_pagado <= 0 ? "pendiente" : monto_pagado >= Number(nota.total) ? "pagado" : "parcial";
   await nota.update({ monto_pagado, estado_pago, fecha_mod: new Date() }, { transaction: t });
   return nota;
@@ -65,8 +62,8 @@ export async function crearNotaPedido(usuario_id, { notas = null, expectedItems,
     const variantIds = [...new Set(raw.map((i) => i.variedad_id).filter(Boolean))].sort((a,b) => a-b);
     // Bloqueo por lote (un solo SELECT ... FOR UPDATE con IN) en vez de un
     // findByPk por id — un pedido de 20 líneas antes eran 20 round-trips.
-    if (productIds.length) await ProductoDistribuidora.findAll({ where: { id: { [Op.in]: productIds } }, transaction: t, lock: t.LOCK.UPDATE });
-    if (variantIds.length) await VariedadDistribuidora.findAll({ where: { id: { [Op.in]: variantIds } }, transaction: t, lock: t.LOCK.UPDATE });
+    if (productIds.length) await ProductoDistribuidora.findAll({ where: { id: { [Op.in]: productIds } }, transaction: t, lock: t.LOCK.UPDATE, order: [["id", "ASC"]] });
+    if (variantIds.length) await VariedadDistribuidora.findAll({ where: { id: { [Op.in]: variantIds } }, transaction: t, lock: t.LOCK.UPDATE, order: [["id", "ASC"]] });
     const items = await listarItemsCarrito(carrito.id, t);
     if (!items.length) throw cartError("El carrito está vacío.");
     for (const item of items) {
@@ -82,6 +79,7 @@ export async function crearNotaPedido(usuario_id, { notas = null, expectedItems,
       localidad: perfil.localidad, codigo_postal: perfil.codigo_postal,
       fecha_alta: new Date(), fecha_mod: new Date(),
     }, { transaction: t });
+    await NotaPedidoEstadoLog.create({ nota_pedido_id: nota.id, usuario_id, anterior: null, nuevo: "pendiente", motivo: "Nota enviada por el cliente" }, { transaction: t });
     await NotaPedidoItem.bulkCreate(items.map((i) => ({
       nota_pedido_id: nota.id, producto_id: i.producto_id, variedad_id: i.variedad_id,
       nombre_producto: i.nombre, variedad_nombre: i.variante, precio_unitario: i.precio,
@@ -100,18 +98,26 @@ export async function listarPropias(usuario_id) {
   });
 }
 
-export async function listarTodas() {
-  return NotaPedido.findAll({
-    order: [["fecha_alta", "DESC"]],
+export async function listarTodas({ q, estado, estado_pago, pagina, por_pagina } = {}) {
+  const where = {};
+  if (estado && orderConfig.states[estado]) where.estado = estado;
+  if (["pendiente", "parcial", "pagado"].includes(estado_pago)) where.estado_pago = estado_pago;
+  if (q) {
+    const text = "%" + String(q).trim().slice(0, 100) + "%";
+    const people = await Persona.findAll({ where: { [Op.or]: [{ nombre: { [Op.iLike]: text } }, { apellido: { [Op.iLike]: text } }, { email: { [Op.iLike]: text } }] }, attributes: ["id"], raw: true });
+    const users = people.length ? await Usuario.findAll({ where: { persona_id: { [Op.in]: people.map((p) => p.id) } }, attributes: ["id"], raw: true }) : [];
+    where[Op.or] = [{ usuario_id: { [Op.in]: users.map((u) => u.id) } }, ...(/^#?\d+$/.test(q) ? [{ id: Number(String(q).replace("#", "")) }] : [])];
+  }
+  const { page, limit, offset } = normalizarPaginacion({ page: pagina, limit: por_pagina, defaultLimit: 20, maxLimit: 50 });
+  const result = await NotaPedido.findAndCountAll({
+    where, limit, offset, distinct: true, order: [["fecha_alta", "DESC"], ["id", "DESC"]],
     include: [
-      { model: NotaPedidoItem, as: "items" },
-      INCLUDE_PAGOS,
-      {
-        model: Usuario, as: "usuario", attributes: ["id"],
-        include: [{ model: Persona, as: "persona", attributes: ["nombre", "apellido", "email"] }],
-      },
+      { model: NotaPedidoItem, as: "items" }, INCLUDE_PAGOS,
+      { model: NotaPedidoEstadoLog, as: "historial_estados", separate: true, order: [["fecha", "ASC"], ["id", "ASC"]], include: [{ model: Usuario, as: "autor", attributes: ["id"], include: [{ model: Persona, as: "persona", attributes: ["nombre", "apellido"] }] }] },
+      { model: Usuario, as: "usuario", attributes: ["id"], include: [{ model: Persona, as: "persona", attributes: ["nombre", "apellido", "email"] }] },
     ],
   });
+  return { data: result.rows, ...armarPaginacion({ page, limit, total: result.count }) };
 }
 
 /** Detalle completo de un pedido para el export a Excel. */
@@ -127,76 +133,53 @@ export async function obtenerDetalle(id) {
   });
 }
 
-export async function cambiarEstado(id, estado) {
-  const nota = await NotaPedido.findByPk(id);
-  if (!nota) return null;
-
-  if (ESTADOS_QUE_REQUIEREN_PAGO.includes(estado) && nota.estado_pago === "pendiente") {
-    throw Object.assign(
-      new Error("Este pedido no tiene ningún pago registrado — registrá al menos un pago antes de avanzarlo"),
-      { status: 409, codigo: "REQUIERE_PAGO" }
-    );
-  }
-
-  await nota.update({ estado, fecha_mod: new Date() });
-  return nota;
-}
-
-/** Registra un pago (total o parcial) y recalcula el agregado del pedido. */
-export async function registrarPago(nota_pedido_id, { monto, nota: notaTexto = null, usuario_id }) {
-  const montoNum = Number(monto);
-  if (!Number.isFinite(montoNum) || montoNum <= 0) {
-    throw Object.assign(new Error("El monto debe ser mayor a cero"), { status: 400 });
-  }
-
+export async function cambiarEstado(id, estado, { usuario_id, motivo = null, expectedState } = {}) {
+  if (motivo != null && (typeof motivo !== "string" || motivo.length > 500)) throw cartError("El motivo puede tener hasta 500 caracteres.");
   return sequelize.transaction(async (t) => {
-    // Lock de fila — dos pagos concurrentes sobre el mismo pedido deben
-    // serializarse, si no ambos podrían validar el saldo contra el mismo
-    // monto_pagado desactualizado y juntos superar el total.
-    const notaPedido = await NotaPedido.findByPk(nota_pedido_id, { transaction: t, lock: t.LOCK.UPDATE });
-    if (!notaPedido) return null;
-
-    const saldoPendiente = Number(notaPedido.total) - Number(notaPedido.monto_pagado);
-    if (montoNum > saldoPendiente) {
-      throw Object.assign(
-        new Error(`El monto supera el saldo pendiente ($${saldoPendiente.toFixed(2)})`),
-        { status: 400 }
-      );
-    }
-
-    await NotaPedidoPago.create(
-      { nota_pedido_id, monto: montoNum, nota: notaTexto, registrado_por: usuario_id ?? null, registrado_en: new Date() },
-      { transaction: t }
-    );
-
-    return recomputarEstadoPago(nota_pedido_id, t);
+    const nota = await NotaPedido.findByPk(id, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!nota) return null;
+    if (nota.estado === estado) return nota;
+    if (expectedState !== nota.estado) throw cartError("Otro operador actualizó este pedido. Actualizá la lista.", 409);
+    const problem = transitionProblem(nota.estado, estado, motivo, nota.estado_pago);
+    if (problem) throw cartError(problem, 409);
+    await NotaPedidoEstadoLog.create({ nota_pedido_id: nota.id, usuario_id, anterior: nota.estado, nuevo: estado, motivo: motivo?.trim() || null }, { transaction: t });
+    await nota.update({ estado, fecha_mod: new Date() }, { transaction: t });
+    return nota;
   });
 }
 
-/**
- * Anula un pago sin borrarlo (queda el rastro de quién y cuándo). Si
- * anularlo dejaría al pedido en $0 pagado mientras sigue en un estado que
- * requiere pago (en_curso/entregado), se bloquea — primero hay que revertir
- * el estado a "pendiente" o "cancelada".
- */
-export async function anularPago(pago_id, usuario_id) {
+// Registro de dinero YA recibido fuera de la web; no ejecuta un cobro.
+export async function registrarPago(nota_pedido_id, { monto, nota: notaTexto = null, usuario_id, metodo, key }) {
+  const amount = Number(monto);
+  const cents = Math.round(amount * 100);
+  if (!Number.isFinite(amount) || amount <= 0 || Math.abs(amount * 100 - cents) > 0.00001) throw cartError("Ingresá un importe positivo con hasta dos decimales.");
+  if (!orderConfig.paymentMethods.some((m) => m.value === metodo)) throw cartError("Elegí cómo se recibió el cobro.");
+  if (notaTexto != null && (typeof notaTexto !== "string" || notaTexto.length > 255)) throw cartError("La referencia puede tener hasta 255 caracteres.");
   return sequelize.transaction(async (t) => {
-    const pago = await NotaPedidoPago.findByPk(pago_id, { transaction: t });
+    const pedido = await NotaPedido.findByPk(nota_pedido_id, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!pedido) return null;
+    return idempotent(usuario_id, "payment:" + key, { nota_pedido_id: String(nota_pedido_id), cents, notaTexto, metodo }, t, async () => {
+      if (pedido.estado === "cancelada") throw cartError("Reabrí el pedido antes de registrar un nuevo cobro.", 409);
+      const saldo = Math.round(Number(pedido.total) * 100) - Math.round(Number(pedido.monto_pagado) * 100);
+      if (cents > saldo) throw cartError("El importe supera el saldo pendiente. Actualizá el pedido.", 409);
+      await NotaPedidoPago.create({ nota_pedido_id, monto: cents / 100, nota: notaTexto, metodo, registrado_por: usuario_id, registrado_en: new Date() }, { transaction: t });
+      return recomputarEstadoPago(nota_pedido_id, t);
+    });
+  });
+}
+
+export async function anularPago(pago_id, usuario_id, { pedidoId, motivo } = {}) {
+  if (typeof motivo !== "string" || motivo.trim().length < 3 || motivo.length > 500) throw cartError("Indicá el motivo de la anulación (3 a 500 caracteres).");
+  return sequelize.transaction(async (t) => {
+    const pedido = await NotaPedido.findByPk(pedidoId, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!pedido) return null;
+    const pago = await NotaPedidoPago.findOne({ where: { id: pago_id, nota_pedido_id: pedidoId }, transaction: t });
     if (!pago) return null;
-    if (pago.anulado_en) return pago; // ya estaba anulado, no-op
-
-    const notaPedido = await NotaPedido.findByPk(pago.nota_pedido_id, { transaction: t });
-    const montoSinEstePago = Number(notaPedido.monto_pagado) - Number(pago.monto);
-
-    if (montoSinEstePago <= 0 && ESTADOS_QUE_REQUIEREN_PAGO.includes(notaPedido.estado)) {
-      throw Object.assign(
-        new Error("Revertí el estado del pedido a Pendiente antes de anular este pago"),
-        { status: 409, codigo: "REQUIERE_REVERTIR_ESTADO" }
-      );
-    }
-
-    await pago.update({ anulado_por: usuario_id ?? null, anulado_en: new Date() }, { transaction: t });
-    await recomputarEstadoPago(pago.nota_pedido_id, t);
+    if (pago.anulado_en) return pago;
+    const restante = Math.round(Number(pedido.monto_pagado) * 100) - Math.round(Number(pago.monto) * 100);
+    if (restante <= 0 && ESTADOS_QUE_REQUIEREN_PAGO.includes(pedido.estado)) throw cartError("Revertí primero el estado del pedido.", 409);
+    await pago.update({ anulado_por: usuario_id, anulado_en: new Date(), anulacion_motivo: motivo.trim() }, { transaction: t });
+    await recomputarEstadoPago(pedidoId, t);
     return pago;
   });
 }

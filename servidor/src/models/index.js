@@ -8,6 +8,7 @@
  *   import "../models/index.js";  // efectos colaterales: registra asociaciones
  */
 
+import { NotaPedidoEstadoLog } from "./distribuidora/nota_pedido_estado_log.js";
 import { OperacionCarrito } from "./distribuidora/operacion_carrito.js";
 import { aplicarRelaciones } from "./common/relaciones.js";
 
@@ -98,6 +99,8 @@ import { PerfilClienteDistribuidora } from "./distribuidora/perfil_cliente_distr
 // "through") y, si algo quedó mal, tira un error que señala exactamente qué
 // entrada falló y por qué.
 aplicarRelaciones([
+  { tipo: "hasMany", from: NotaPedido, to: NotaPedidoEstadoLog, foreignKey: "nota_pedido_id", as: "historial_estados" },
+  { tipo: "belongsTo", from: NotaPedidoEstadoLog, to: Usuario, foreignKey: "usuario_id", as: "autor" },
   // ─── Persona ↔ Catálogos ────────────────────────────────────────────────
   { tipo: "belongsTo", from: Persona, to: TipoDocumento, foreignKey: "tipo_documento_id", as: "tipo_documento" },
   { tipo: "belongsTo", from: Persona, to: Sexo,          foreignKey: "sexo_id",           as: "sexo" },
@@ -286,7 +289,7 @@ aplicarRelaciones([
 ]);
 
 export {
-  OperacionCarrito,
+  OperacionCarrito, NotaPedidoEstadoLog,
   Sexo, TipoDocumento, TipoPersona, AlumnoEstado,
   Rol, Modulo, Permiso, RolPermiso,
   Persona, Usuario, UsuarioRol,

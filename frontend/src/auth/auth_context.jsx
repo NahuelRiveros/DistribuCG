@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
     return r.data;
   }, [cargarMe, cargarModulos]);
   const logout = useCallback(async () => {
-    try { await http.post(authConfig.endpoints.logout); } catch { /* La sesión local se cierra aunque no haya conexi?n. */ }
+    try { await http.post(authConfig.endpoints.logout); } catch { /* La sesión local se cierra aunque no haya conexión. */ }
     finally { localStorage.removeItem(authConfig.storageKey); setUsuario(null); setModulosHabilitados(null); }
   }, []);
   const value = useMemo(() => ({ usuario, cargando, isAuth: !!usuario, modulosHabilitados, login, logout, recargarUsuario: cargarMe }), [usuario, cargando, modulosHabilitados, login, logout, cargarMe]);

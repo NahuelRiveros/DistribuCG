@@ -1,65 +1,33 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Package } from "lucide-react";
+import { useAuth } from "../../../auth/auth_context.jsx";
+import { storefrontConfig } from "../../../config/storefront_config.js";
+import OrderSummary from "../../../controls/pedidos/order_summary.jsx";
+import { money } from "../../../controls/pedidos/order_format.js";
+import ErrorBanner from "../../../controls/ui/error_banner.jsx";
+import ActionButton from "../../../controls/ui/action_button.jsx";
 import { getMisNotasPedido } from "../api/nota_pedido_api.js";
-import { ESTADOS, ESTADOS_PAGO } from "../pedidos/estados_pedido.js";
-
-const fmt = (n) => `$ ${Number(n).toLocaleString("es-AR", { minimumFractionDigits: 0 })}`;
-
 export default function MisPedidosPage() {
-  const [notas, setNotas] = useState([]);
-  const [cargando, setCargando] = useState(true);
-
-  useEffect(() => {
-    getMisNotasPedido().then(setNotas).catch(() => setNotas([])).finally(() => setCargando(false));
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-8">
-      <div className="mx-auto max-w-2xl space-y-4">
-        <h1 className="text-2xl font-extrabold text-slate-900">Mis pedidos</h1>
-
-        {cargando ? (
-          <p className="text-center text-sm text-slate-400">Cargando…</p>
-        ) : notas.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 px-5 py-10 text-center text-sm text-slate-400">
-            Todavía no enviaste ningún pedido.
-            <Link to="/distribuidora/catalogo" className="mt-2 block font-semibold text-blue-600">Ver productos</Link>
-          </div>
-        ) : (
-          notas.map((nota) => {
-            const estado = ESTADOS[nota.estado] ?? ESTADOS.pendiente;
-            const estadoPago = ESTADOS_PAGO[nota.estado_pago] ?? ESTADOS_PAGO.pendiente;
-            const saldoPendiente = Number(nota.total) - Number(nota.monto_pagado);
-            return (
-              <div key={nota.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Package size={16} /></div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-800">Pedido #{nota.id}</p>
-                      <p className="text-xs text-slate-500">{new Date(nota.fecha_alta).toLocaleString("es-AR")}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${estadoPago.className}`}>{estadoPago.label}</span>
-                      <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${estado.className}`}>{estado.label}</span>
-                    </div>
-                    <p className="mt-1 text-sm font-bold text-slate-800">{fmt(nota.total)}</p>
-                    {saldoPendiente > 0 && <p className="text-[11px] text-slate-400">Saldo: {fmt(saldoPendiente)}</p>}
-                  </div>
-                </div>
-                <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                  {nota.items?.map((item) => (
-                    <p key={item.id}>{item.cantidad} × {item.nombre_producto}{item.variedad_nombre ? ` (${item.variedad_nombre})` : ""}</p>
-                  ))}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+  const { usuario } = useAuth();
+  const query = useQuery({ queryKey: ["mis-pedidos", usuario?.usuario_id], queryFn: getMisNotasPedido, refetchInterval: 30000 });
+  return <main className="min-h-screen bg-slate-50 px-3 py-6 sm:p-8">
+    <div className="mx-auto max-w-3xl space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-2xl font-extrabold">Mis pedidos</h1><ActionButton disabled={query.isFetching} onClick={() => query.refetch()}>Actualizar</ActionButton></div>
+      <p className="text-sm text-slate-600">{storefrontConfig.labels.orderNotice}</p>
+      {query.isError && <ErrorBanner message="No pudimos actualizar tus pedidos. Reintentá con Actualizar." />}
+      {query.isPending && <p role="status">Cargando pedidos…</p>}
+      {query.data?.length === 0 && <div className="rounded-xl border border-dashed p-8 text-center"><p>Todavía no enviaste ningún pedido.</p><Link className="mt-3 inline-flex min-h-11 items-center font-bold underline" to={storefrontConfig.catalogPath}>Ver productos</Link></div>}
+      {query.data?.map((nota) => <article key={nota.id} className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+          <div><h2 className="font-bold">Pedido #{nota.id}</h2><p className="text-xs text-slate-500">{new Date(nota.fecha_alta).toLocaleString("es-AR")}</p></div>
+          <OrderSummary order={nota} />
+        </div>
+        <details className="border-t pt-3"><summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold">Ver productos y entrega</summary>
+          <ul className="space-y-2 text-sm">{nota.items?.map((item) => <li className="flex flex-wrap justify-between gap-2" key={item.id}><span>{item.cantidad} × {item.nombre_producto}{item.variedad_nombre ? " (" + item.variedad_nombre + ")" : ""}</span><span>{money(item.subtotal)}</span></li>)}</ul>
+          <p className="mt-3 break-words text-sm">Entrega: {[nota.direccion, nota.localidad, nota.departamento, nota.provincia, nota.codigo_postal].filter(Boolean).join(", ")}</p>
+          {nota.notas && <p className="mt-2 whitespace-pre-wrap break-words text-sm">Observaciones: {nota.notas}</p>}
+        </details>
+      </article>)}
     </div>
-  );
+  </main>;
 }

@@ -1,16 +1,9 @@
 /**
- * Identidad visual de la instalacion (textos, logo, fuentes).
- *
- * Los COLORES no viven acá — están en src/index.css (:root), única fuente
- * de verdad del theme (así lo documenta ese mismo archivo). Antes se
- * duplicaban acá y un script (`apply_brand_theme.js`, ya sin lógica de
- * color) los volvía a aplicar en runtime, pisando lo que se editara en
- * index.css si alguien olvidaba sincronizar ambos lados.
- *
- * Para replicar el sistema en otro cliente, duplicar el objeto dentro de
- * `clientes`, cambiar textos/logo/fuentes acá y la paleta en index.css, y
- * setear `clienteActivo`.
+ * Identidad por cliente: textos, logo y fuentes.
+ * La instalación activa se elige en client_config.js.
+ * Paleta en theme_config.js; index.css conserva los tokens de base.
  */
+import { clientConfig } from "../../../client_config.js";
 export const clientes = {
   moovs: {
     nombre: "NOMBRE INC",
@@ -56,5 +49,5 @@ export const clientes = {
   },
 };
 
-export const clienteActivo = "gc";
+export const clienteActivo = clientConfig.id;
 export const brandConfig = clientes[clienteActivo];
