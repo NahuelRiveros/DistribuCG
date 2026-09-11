@@ -278,14 +278,25 @@ export default function ProductosDistribuidoraPage() {
 
   function renderLabel(nodo) {
     if (nodo.tipo === "categoria") {
-      return <span className="font-semibold text-slate-800">{nodo.nombre}</span>;
+      return (
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold text-slate-800">{nodo.nombre}</span>
+          {/* Cuántos productos tiene DIRECTO esta categoría — se ve sin
+              tener que expandirla, así se sabe si vale la pena entrar. */}
+          {(nodo.cantidad_productos ?? 0) > 0 && (
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
+              {nodo.cantidad_productos} producto{nodo.cantidad_productos === 1 ? "" : "s"}
+            </span>
+          )}
+        </span>
+      );
     }
     if (nodo.tipo === "cargar_mas") {
       return (
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); cargarMasDeCategoria(nodo.categoriaId); }}
-          className="text-xs font-bold text-blue-600 hover:underline"
+          className="rounded-lg border border-dashed border-blue-200 bg-blue-50/50 px-2.5 py-1 text-xs font-bold text-blue-600 hover:bg-blue-50"
         >
           Cargar más productos… ({nodo.restantes} página{nodo.restantes === 1 ? "" : "s"} más)
         </button>
@@ -294,25 +305,28 @@ export default function ProductosDistribuidoraPage() {
     const variedad = nodo.variedades?.[0];
     const sinStock = variedad?.controla_stock && Number(variedad.cantidad) <= 0;
     const enOferta = variedad?.precio_anterior && Number(variedad.precio_anterior) > Number(variedad.precio);
+    const fecha = nodo.fecha_alta ? `Agregado el ${new Date(nodo.fecha_alta).toLocaleDateString("es-AR", { timeZone: "UTC" })}` : undefined;
     return (
-      <span className="flex flex-wrap items-center gap-2">
-        <span className="font-medium text-slate-700">{nodo.nombre}</span>
-        {nodo.marca && <span className="text-xs text-slate-400">({nodo.marca})</span>}
-        {variedad ? (
-          <span className="text-xs font-semibold text-slate-600">{formatearPrecio(variedad.precio)}</span>
-        ) : (
-          <span className="text-xs font-semibold text-amber-600">Sin precio cargado</span>
-        )}
-        {enOferta && <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">Oferta</span>}
-        {sinStock && <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">Sin stock</span>}
-        {nodo.fecha_alta && (
-          <span className="text-[11px] text-slate-400" title="Fecha de alta">
-            Agregado {new Date(nodo.fecha_alta).toLocaleDateString("es-AR", { timeZone: "UTC" })}
+      // Identidad (nombre + marca) a la izquierda, estado (precio/oferta/
+      // stock/activo) agrupado a la derecha — antes eran 7 datos sueltos en
+      // una sola tira, sin distinguir "qué es" de "cómo está".
+      <span className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <span className="flex min-w-0 items-baseline gap-1.5" title={fecha}>
+          <span className="truncate font-medium text-slate-700">{nodo.nombre}</span>
+          {nodo.marca && <span className="shrink-0 text-xs text-slate-400">{nodo.marca}</span>}
+        </span>
+        <span className="flex shrink-0 flex-wrap items-center gap-1.5">
+          {variedad ? (
+            <span className="text-xs font-bold text-slate-700">{formatearPrecio(variedad.precio)}</span>
+          ) : (
+            <span className="text-xs font-bold text-amber-600">Sin precio</span>
+          )}
+          {enOferta && <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">Oferta</span>}
+          {sinStock && <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">Sin stock</span>}
+          <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${nodo.activo ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
+            {nodo.activo ? <ShieldCheck size={9} /> : <ShieldOff size={9} />}
+            {nodo.activo ? "Activo" : "Inactivo"}
           </span>
-        )}
-        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${nodo.activo ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
-          {nodo.activo ? <ShieldCheck size={9} /> : <ShieldOff size={9} />}
-          {nodo.activo ? "Activo" : "Inactivo"}
         </span>
       </span>
     );

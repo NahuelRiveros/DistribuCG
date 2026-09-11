@@ -86,7 +86,7 @@ function nodoOHijoMatchea(nodo, query, buscarEn) {
   return propio || nodo.children.some((h) => nodoOHijoMatchea(h, query, buscarEn));
 }
 
-function TreeNode({ nodo, depth, expandidos, cargandoIds, toggle, actions, keyField, renderLabel, query, buscarEn }) {
+function TreeNode({ nodo, expandidos, cargandoIds, toggle, actions, keyField, renderLabel, query, buscarEn }) {
   const id = nodo[keyField];
   const tieneHijos = nodo.children.length > 0 || !!nodo.siempreExpandible;
   const abierto = query ? true : expandidos.has(id); // con búsqueda activa, todo expandido
@@ -98,13 +98,15 @@ function TreeNode({ nodo, depth, expandidos, cargandoIds, toggle, actions, keyFi
   return (
     <div>
       <div
-        className="group flex flex-wrap items-center gap-1.5 rounded-lg py-2 pr-2 hover:bg-slate-50"
-        style={{ paddingLeft: `${depth * 22 + 4}px` }}
+        // Fondo apenas teñido en los nodos "contenedor" (tienen hijos) — el
+        // ojo distingue de entrada una fila de organización de una fila de
+        // ítem final, sin depender solo del color del ícono.
+        className={`group flex flex-wrap items-center gap-1.5 rounded-lg py-2.5 pr-2 pl-1 hover:bg-slate-100 ${tieneHijos ? "bg-slate-50/70" : ""}`}
       >
         <button
           type="button"
           onClick={() => tieneHijos && !cargando && toggle(id, nodo)}
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${tieneHijos ? "text-slate-400 hover:bg-slate-200" : "invisible"}`}
+          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${tieneHijos ? "text-slate-400 hover:bg-slate-200" : "invisible"}`}
         >
           {cargando
             ? <Loader2 size={13} className="animate-spin" />
@@ -112,10 +114,10 @@ function TreeNode({ nodo, depth, expandidos, cargandoIds, toggle, actions, keyFi
         </button>
 
         {tieneHijos
-          ? <FolderTree size={14} className="shrink-0 text-blue-400" />
-          : <Folder size={14} className="shrink-0 text-slate-300" />}
+          ? <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-500"><FolderTree size={13} /></span>
+          : <span className="flex h-6 w-6 shrink-0 items-center justify-center text-slate-300"><Folder size={13} /></span>}
 
-        <span className="flex-1 truncate text-sm font-medium text-slate-700">
+        <span className="flex min-w-0 flex-1 items-center text-sm font-medium text-slate-700">
           {renderLabel(nodo)}
         </span>
 
@@ -130,15 +132,15 @@ function TreeNode({ nodo, depth, expandidos, cargandoIds, toggle, actions, keyFi
       </div>
 
       {tieneHijos && abierto && (
-        <div>
+        // Línea guía a la izquierda de los hijos — refuerza la jerarquía a
+        // simple vista en vez de depender solo de la sangría.
+        <div className="ml-3.75 border-l border-slate-200 pl-2.5">
           {nodo.children.length === 0 ? (
-            <p className="py-1.5 text-xs italic text-slate-300" style={{ paddingLeft: `${(depth + 1) * 22 + 28}px` }}>
-              Sin elementos.
-            </p>
+            <p className="py-1.5 pl-2 text-xs italic text-slate-300">Sin elementos.</p>
           ) : (
             nodo.children.map((hijo) => (
               <TreeNode
-                key={hijo[keyField]} nodo={hijo} depth={depth + 1}
+                key={hijo[keyField]} nodo={hijo}
                 expandidos={expandidos} cargandoIds={cargandoIds} toggle={toggle} actions={actions}
                 keyField={keyField} renderLabel={renderLabel} query={query} buscarEn={buscarEn}
               />
@@ -219,7 +221,7 @@ export default function TreeView({
         ) : (
           arbol.map((nodo) => (
             <TreeNode
-              key={nodo[keyField]} nodo={nodo} depth={0}
+              key={nodo[keyField]} nodo={nodo}
               expandidos={expandidos} cargandoIds={cargandoIds} toggle={toggle} actions={actions}
               keyField={keyField} renderLabel={renderLabel} query={queryNorm} buscarEn={searchIn}
             />
