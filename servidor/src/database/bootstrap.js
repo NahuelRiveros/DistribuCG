@@ -10,7 +10,7 @@ import {
   UsuarioRol, Membresia, MovimientoStock, AsignacionProfesional,
   RegistroEjercicio, PacientePatologia, AlumnoEstadoLog,
   FichaKinesiologica, SesionKinesiologia, RecordatorioKinesiologia,
-  Ingreso, ModuloNegocio, HomeTexto, HomePilar, HomeContacto,
+  Ingreso, ModuloNegocio, BannerAnuncio, HomeTexto, HomePilar, HomeContacto,
   Categoria, Marca, Talle, Color, ProductoTienda, Stock, EnvioOpcion, CondicionIva,
   Carrito, CarritoItem,
   CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora,
@@ -151,7 +151,7 @@ async function sincronizar_modelos() {
 
   const MODELOS_COMPARTIDOS = [
     // catálogos sin dependencias externas
-    Sexo, TipoDocumento, TipoPersona, Rol, Modulo, ModuloNegocio,
+    Sexo, TipoDocumento, TipoPersona, Rol, Modulo, ModuloNegocio, BannerAnuncio,
     HomeArea, HomeTexto, HomePilar, HomeContacto,
     // nivel 1
     Permiso,       // permiso → modulo

@@ -1,4 +1,4 @@
-import { Package, Truck, LineChart, ShieldCheck } from "lucide-react";
+import { LineChart, ShieldCheck } from "lucide-react";
 import { brandConfig } from "./brand_config.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,29 +18,6 @@ export const footer_config = {
     estadoLabel: "Sistema activo",
     selloLabel: "Pedidos · Stock · Entregas",
   },
-
-  // ── Nuestro enfoque ──────────────────────────────────────────────────────
-  // A diferencia de "accesos" (links funcionales), esto es contenido de marca.
-  enfoque: [
-    {
-      codigo: "enfoque-1",
-      modulo: null,
-      habilitado: true,
-      icon: Package,
-      code: "01",
-      titulo: "Catálogo amplio",
-      texto: "Cientos de productos organizados por categoría, fáciles de encontrar y pedir.",
-    },
-    {
-      codigo: "enfoque-2",
-      modulo: null,
-      habilitado: true,
-      icon: Truck,
-      code: "02",
-      titulo: "Entrega confiable",
-      texto: "Coordinamos cada pedido para que llegue completo y a tiempo.",
-    },
-  ],
 
   // ── ¿Por qué elegirnos? ──────────────────────────────────────────────────
   diferenciales: [
@@ -66,9 +43,9 @@ export const footer_config = {
   },
 
   legal: {
-    // Nombre que aparece en el copyright — normalmente el mismo que la marca
-    // del logo, pero puede diferir (ej. razón social) si un cliente lo pide.
-    nombreDerechos: brandConfig.nombre,
+    // Nombre que aparece en el copyright — razón social si está definida
+    // (con S.R.L./S.A./etc.), si no la marca comercial de siempre.
+    nombreDerechos: brandConfig.razonSocial || brandConfig.nombre,
     mostrarDesarrolladoPor: true,
     desarrolladoPor: "Riveros Edgardo Nahuel",
   },

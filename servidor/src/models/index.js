@@ -64,6 +64,7 @@ import { HomeContacto }     from "./home/home_contacto.js";
 
 // ── sistema/ — licenciamiento por módulo de negocio (gym / kinesiología) ────
 import { ModuloNegocio }    from "./sistema/modulo_negocio.js";
+import { BannerAnuncio }    from "./sistema/banner_anuncio.js";
 
 // ── productos/ — catálogo de la tienda online (módulo eccomerce_indumentaria) ─
 // "ProductoTienda" (tabla producto_tienda), no "Producto" — ya existe ese
@@ -301,7 +302,7 @@ export {
   Patologia, PacientePatologia,
   FichaKinesiologica, SesionKinesiologia, RecordatorioKinesiologia,
   HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto,
-  ModuloNegocio,
+  ModuloNegocio, BannerAnuncio,
   Categoria, Marca, Talle, Color, ProductoTienda, Stock, EnvioOpcion, CondicionIva,
   Carrito, CarritoItem,
   CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora,

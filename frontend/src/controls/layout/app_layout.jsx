@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "./navbar/navbar.jsx";
 import Footer from "./footer.jsx";
+import AnunciosBanner from "./anuncios_banner.jsx";
 import SuscripcionBanner from "../suscripcion/suscripcion_banner.jsx";
 import ErrorBoundary from "../ui/error_boundary.jsx";
 
@@ -24,6 +25,7 @@ export default function AppLayout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <ScrollToTop />
+      <AnunciosBanner />
       <Navbar />
       <SuscripcionBanner />
       <main id="main-content" tabIndex={-1}>

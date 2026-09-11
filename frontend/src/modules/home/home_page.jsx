@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight, ArrowDown, ImageOff,
 } from "lucide-react";
@@ -6,10 +7,19 @@ import { useHomeContent } from "../../hooks/use_home_content.js";
 import { useHomeConfig } from "../../hooks/use_home_config.js";
 import { iconoHome } from "../../controls/config/home_iconos.js";
 import { brandConfig } from "../../config/brand_config.js";
+import { logoConfig } from "../../config/logo_config.js";
+import { storefrontConfig } from "../../config/storefront_config.js";
 import {
   HOME_TEXTOS_DEFAULT, HOME_VALOR, HOME_COMO_PEDIR, HOME_PILARES, HOME_CONTACTOS,
 } from "../../config/home_config.js";
+import { getProductos } from "../eccomerce_distribuidora/api/producto_distribuidora_api.js";
+import { getCategorias } from "../eccomerce_distribuidora/api/categoria_distribuidora_api.js";
 import HomeCarousel from "./home_carousel.jsx";
+
+// Un placeholder sin completar en home_config.js se ve como "[Tu número
+// acá]" — mostrarlo tal cual a un visitante real sería peor que no mostrar
+// nada (mismo criterio que footer.jsx).
+const esPlaceholder = (v) => /^\[.*\]$/.test(String(v ?? "").trim());
 
 function contenidoASlide(c) {
   return {
@@ -28,41 +38,106 @@ export default function HomePage() {
   // usan los pilares/contactos fijos del config — igual forma, mismo mapeo
   // de íconos, así el home nunca se queda sin esta sección.
   const pilaresAMostrar = pilares.length > 0 ? pilares : HOME_PILARES;
-  const contactosAMostrar = contactos.length > 0 ? contactos : HOME_CONTACTOS;
+  const contactosAMostrar = (contactos.length > 0 ? contactos : HOME_CONTACTOS)
+    .filter((c) => !esPlaceholder(c.valor));
 
   const areasConContenido = areas
     .map((a) => ({ ...a, slides: contenidosDeArea(a.descripcion).map(contenidoASlide) }))
     .filter((a) => a.slides.length > 0);
 
+  // Números reales del catálogo para la sección "Quiénes somos" — nunca un
+  // número inventado para "vender más": si la consulta falla o el catálogo
+  // todavía está vacío, el stat correspondiente simplemente no se muestra.
+  const comercioActivo = storefrontConfig.enabled;
+  const productosQuery = useQuery({
+    queryKey: ["home", "stats", "productos"],
+    queryFn: ({ signal }) => getProductos({ pagina: 1, por_pagina: 1 }, { signal, publicAccess: true }),
+    enabled: comercioActivo,
+    staleTime: 5 * 60 * 1000,
+  });
+  const categoriasQuery = useQuery({
+    queryKey: ["home", "stats", "categorias"],
+    queryFn: () => getCategorias(),
+    enabled: comercioActivo,
+    staleTime: 5 * 60 * 1000,
+  });
+  const totalProductos = productosQuery.data?.total ?? 0;
+  const totalCategorias = categoriasQuery.data?.length ?? 0;
+
   return (
     <div className="kt-body min-h-screen bg-white text-[var(--kt-ink)]">
 
-      {/* ── HERO ──────────────────────────────────────────── */}
+      {/* ── QUIÉNES SOMOS — primera sección de la página: la marca completa
+          (isotipo + wordmark, ver logo_config.js) y la propuesta de valor en
+          palabras, antes que ninguna otra cosa. Los números de abajo salen
+          del catálogo real (useQuery más arriba) — nunca una cifra de
+          marketing inventada; si el catálogo está vacío o la consulta
+          falla, esa fila directamente no se muestra. ── */}
       <section className="relative overflow-hidden bg-linear-to-b from-[var(--kt-bg-soft)] to-white">
-        <div className="kt-dotgrid pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_70%_60%_at_50%_20%,black,transparent)]" />
+        <div className="kt-dotgrid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_55%_65%_at_85%_40%,black,transparent)]" />
 
+        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pb-24 pt-28 sm:pt-36 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+
+          <div className="kt-a1 mx-auto w-full max-w-sm lg:mx-0">
+            <img src={logoConfig.home} alt={brandConfig.nombre} className="w-full" />
+          </div>
+
+          <div>
+            <div className="kt-a2">
+              <SectionKicker>{texto("quienes_kicker", HOME_TEXTOS_DEFAULT.quienes_kicker)}</SectionKicker>
+              <h2 className="kt-display mt-3 text-4xl font-bold uppercase leading-none sm:text-5xl">
+                {texto("quienes_titulo", HOME_TEXTOS_DEFAULT.quienes_titulo)}{" "}
+                <span className="text-(--kt-teal-700)">
+                  {texto("quienes_titulo_resaltado", HOME_TEXTOS_DEFAULT.quienes_titulo_resaltado)}
+                </span>
+              </h2>
+            </div>
+            <p className="kt-a3 mt-6 max-w-lg text-base leading-relaxed text-[var(--kt-ink-soft)] sm:text-lg">
+              Somos <strong className="font-bold text-[var(--kt-ink)]">{brandConfig.nombre}</strong>:{" "}
+              {texto("quienes_texto", HOME_TEXTOS_DEFAULT.quienes_texto)}
+            </p>
+
+            {comercioActivo && (totalProductos > 0 || totalCategorias > 0) && (
+              <div className="kt-a4 mt-10 flex flex-wrap gap-x-12 gap-y-6 border-t border-[var(--kt-border)] pt-8">
+                {totalProductos > 0 && (
+                  <div>
+                    <div className="kt-display text-4xl font-bold text-(--kt-teal-700)">+{totalProductos}</div>
+                    <div className="mt-1 text-xs font-semibold uppercase tracking-wider text-[var(--kt-ink-soft)]">
+                      Productos en catálogo
+                    </div>
+                  </div>
+                )}
+                {totalCategorias > 0 && (
+                  <div>
+                    <div className="kt-display text-4xl font-bold text-(--kt-teal-700)">{totalCategorias}</div>
+                    <div className="mt-1 text-xs font-semibold uppercase tracking-wider text-[var(--kt-ink-soft)]">
+                      Categorías
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HERO — ahora es la franja de acción, después de la
+          presentación de marca: bajada corta + botones, sin H1 propio (ver
+          comentario de arriba). ── */}
+      <section className="relative overflow-hidden">
         <KineticPath className="pointer-events-none absolute -right-24 top-10 h-[420px] w-[420px] opacity-70 md:right-0" />
 
-        <div className="relative mx-auto max-w-3xl px-6 pb-24 pt-28 text-center sm:pt-36">
-          <div className="kt-a1 inline-flex items-center gap-2 rounded-full border border-[var(--kt-border)] bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kt-petrol)] shadow-sm">
+        <div className="relative mx-auto max-w-3xl px-6 py-20 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kt-border)] bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kt-petrol)] shadow-sm">
             <span className="kt-pulse-dot h-1.5 w-1.5 rounded-full bg-[var(--kt-turquoise)]" />
             {texto("hero_kicker", brandConfig.rubro)}
           </div>
 
-          {/* Titular real en vez del logo a tamaño gigante — GC no tiene
-              isotipo propio todavía (ver brand_config.js), así que ahí antes
-              se veía solo la sigla "GC" sola y enorme, sin decir nada del
-              negocio; el logo de marca ya está siempre visible en el navbar. */}
-          <h1 className="kt-display kt-a2 mt-8 text-4xl font-bold leading-[1.05] text-[var(--kt-ink)] text-balance sm:text-6xl">
-            {texto("hero_titulo", HOME_TEXTOS_DEFAULT.hero_titulo)}{" "}
-            <span className="text-(--kt-teal-700)">{texto("hero_titulo_resaltado", HOME_TEXTOS_DEFAULT.hero_titulo_resaltado)}</span>
-          </h1>
-
-          <p className="kt-a3 mx-auto mt-6 max-w-lg text-base leading-relaxed text-[var(--kt-ink-soft)] sm:text-lg">
+          <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-[var(--kt-ink-soft)] sm:text-lg">
             {texto("hero_subtitulo", HOME_TEXTOS_DEFAULT.hero_subtitulo)}
           </p>
 
-          <div className="kt-a4 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               to="/distribuidora/catalogo"
               className="group inline-flex items-center gap-2.5 rounded-2xl bg-(--kt-accent-comercial) px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-(--kt-accent-comercial)/30 transition-all duration-200 hover:bg-(--kt-accent-comercial-hover) hover:shadow-(--kt-accent-comercial-hover)/30"

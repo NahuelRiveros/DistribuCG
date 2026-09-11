@@ -14,26 +14,36 @@
  * silencio el contenido real de acá. home_page.jsx sigue teniendo un
  * fallback a esas tablas por compatibilidad, pero hoy están siempre vacías.
  *
- * hero_kicker y footer_cta_texto no están acá — usan brandConfig.rubro y
- * brandConfig.tagline directo (brand_config.js) para no duplicar el mismo
- * dato de marca en dos archivos de config.
+ * hero_kicker, footer_cta_texto y footer_cta_titulo_resaltado no están acá
+ * como strings fijos — leen de brandConfig (rubro/tagline/nombreCorto en
+ * brand_config.js) para no duplicar el mismo dato de marca en dos archivos
+ * de config. Cualquier texto que sea "el nombre de la empresa" debería
+ * seguir este mismo patrón en vez de escribirse literal acá.
  */
 
 import { Package, Truck, Clock, ShieldCheck } from "lucide-react";
-import { clienteActivo } from "./brand_config.js";
+import { clienteActivo, brandConfig } from "./brand_config.js";
 
 const clientes = {
   gc: {
     textos: {
-      // Titular real del hero — antes esa jerarquía la ocupaba el logo
-      // ("GC" solo, gigante, en Raleway — ni siquiera la tipografía de
-      // marca) sin decir nada del negocio. Ahora dice algo, con kt-display.
-      hero_titulo: "Tu pedido mayorista y minorista,",
-      hero_titulo_resaltado: "un solo lugar",
+      // El hero ya no tiene H1 propio — "Quiénes somos" (arriba del hero en
+      // home_page.jsx) es lo primero que se ve y ya trae el titular grande
+      // con la marca. Esta bajada es la única línea de texto del hero.
       hero_subtitulo:
         "Miles de productos, stock actualizado y despacho puntual — armá tu pedido online y nosotros nos encargamos del resto.",
       hero_cta_primario: "Ver catálogo",
       hero_cta_secundario: "Cómo pedir",
+      // Sección "Quiénes somos" — el nombre de la empresa NO va acá adentro
+      // (mismo criterio que el resto del archivo, ver comentario de arriba
+      // de todo): home_page.jsx arma la oración completa intercalando
+      // brandConfig.nombre, así que este texto tiene que poder leerse
+      // seguido de "Somos {nombre}: ...".
+      quienes_kicker: "Quiénes somos",
+      quienes_titulo: "Una forma más simple de",
+      quienes_titulo_resaltado: "comprar mayorista",
+      quienes_texto:
+        "manejamos pedidos mayoristas y minoristas desde un catálogo online siempre actualizado: elegís los productos, armás tu pedido y coordinamos la entrega directo con vos, sin trámites de más.",
       como_pedir_kicker: "Así es de simple",
       como_pedir_titulo: "De la góndola a tu puerta",
       pilares_kicker: "Por qué elegirnos",
@@ -44,7 +54,10 @@ const clientes = {
       contacto_kicker: "Hablemos",
       contacto_titulo: "Hacé tu pedido",
       footer_cta_titulo: "Pedí con",
-      footer_cta_titulo_resaltado: "GC",
+      // Antes hardcodeado ("GC") — eso rompía la promesa de que renombrar la
+      // marca alcanza con tocar brand_config.js. Ahora sale de ahí (forma
+      // corta, ver nombreCorto) así este texto se actualiza solo.
+      footer_cta_titulo_resaltado: brandConfig.nombreCorto,
     },
 
     // Chips de la sección "VALOR" — sin conexión a la base, siempre estos 4.
@@ -104,11 +117,13 @@ const clientes = {
   // reusar/pisar la de "gc".
   moovs: {
     textos: {
-      hero_titulo: "Título del hero,",
-      hero_titulo_resaltado: "a definir",
       hero_subtitulo: "Completá este texto en home_config.js antes de activar este cliente.",
       hero_cta_primario: "Conocé más",
       hero_cta_secundario: "Contacto",
+      quienes_kicker: "Quiénes somos",
+      quienes_titulo: "Título de quiénes somos,",
+      quienes_titulo_resaltado: "a definir",
+      quienes_texto: "Completá este texto en home_config.js antes de activar este cliente.",
       como_pedir_kicker: "Así es de simple",
       como_pedir_titulo: "Cómo funciona",
       pilares_kicker: "Por qué elegirnos",

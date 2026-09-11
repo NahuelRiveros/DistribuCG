@@ -1,6 +1,6 @@
 import { brandConfig } from "../../config/brand_config.js";
+import { logoConfig } from "../../config/logo_config.js";
 import logoS from "../../assets/logoS1.svg";
-import gcMark from "../../assets/gc_mark.svg";
 
 // Recreación en SVG del isotipo "moovs" (wordmark "moov" + una S final
 // estilizada como columna vertebral, degradé gris → turquesa) a partir del
@@ -68,9 +68,9 @@ export function LogoMoovsIcon({ className = "" }) {
   if (logo.tipo === "gc-mark") {
     return (
       <img
-        src={gcMark}
+        src={logoConfig.navbar}
         alt={logo.ariaLabel || brandConfig.nombre}
-        className={`${sizing.markBox} shrink-0 rounded-lg ${className}`}
+        className={`${sizing.markBox} shrink-0 object-contain ${className}`}
       />
     );
   }
@@ -89,13 +89,18 @@ export function LogoMoovsIcon({ className = "" }) {
 /**
  * Wordmark de marca completo. `variant="light"` es para fondos oscuros
  * (footer, CTA final del home); `animated` prende el shimmer (pensado para
- * usos grandes tipo hero). Para logo.tipo "gc-mark": el isotipo (hexágono +
- * "GC", ver src/assets/gc_mark.svg) YA tiene el monograma "GC" dibujado
- * adentro — a diferencia de la S de moovs-spine (que es solo un trazo, sin
- * letras), acá no hace falta agregar texto al lado, sería repetir el mismo
- * "GC" dos veces. Se renderiza igual que LogoMoovsIcon, más grande según `size`.
+ * usos grandes tipo hero). `slot` elige qué imagen usar para logo.tipo
+ * "gc-mark" — "navbar" (default) o "footer" — ver logo_config.js, el único
+ * lugar que hay que tocar para cambiar el logo. El ícono YA tiene la letra
+ * dibujada adentro — a diferencia de la S de moovs-spine (que es solo un
+ * trazo, sin letras), acá no hace falta agregar texto al lado, sería
+ * repetirla dos veces. El ícono está pensado para fondo claro (viene de un
+ * PNG sin base propia) — en `variant="light"` (fondos oscuros como el
+ * footer) se le agrega una tarjeta blanca detrás para que no se pierda
+ * contra el fondo oscuro. Se renderiza igual que LogoMoovsIcon, más grande
+ * según `size`.
  */
-export default function LogoMoovs({ size = "md", variant = "dark", animated = false, className = "" }) {
+export default function LogoMoovs({ size = "md", variant = "dark", slot = "navbar", animated = false, className = "" }) {
   const sizing = SIZE[size] ?? SIZE.md;
   const isLight = variant === "light";
   const logo = brandConfig.logo ?? {};
@@ -119,9 +124,9 @@ export default function LogoMoovs({ size = "md", variant = "dark", animated = fa
   if (logo.tipo === "gc-mark") {
     return (
       <img
-        src={gcMark}
+        src={logoConfig[slot] ?? logoConfig.navbar}
         alt={logo.ariaLabel || brandConfig.nombre}
-        className={`${sizing.markBox} shrink-0 rounded-lg ${className}`}
+        className={`${sizing.markBox} shrink-0 rounded-lg object-contain ${isLight ? "bg-white p-1.5" : ""} ${className}`}
       />
     );
   }

@@ -85,6 +85,13 @@ export const adminDropdown = {
           roles: ["admin"],
           icon: LayoutTemplate,
         },
+        {
+          label: "Cinta de anuncios",
+          to: "/admin/anuncios",
+          requiereAuth: true,
+          roles: ["admin"],
+          icon: Megaphone,
+        },
         // {
         //   label: "Mi suscripción",
         //   to: "/admin/suscripcion",
