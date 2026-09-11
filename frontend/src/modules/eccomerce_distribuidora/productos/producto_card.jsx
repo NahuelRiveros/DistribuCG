@@ -12,6 +12,14 @@ export default function ProductoCard({ producto }) {
   const available = varieties.filter((v) => !v.controla_stock || v.cantidad > 0);
   const cheapest = [...(available.length ? available : varieties)].sort((a,b) => Number(a.precio) - Number(b.precio))[0];
   const single = varieties.length === 1;
+  // precio_anterior es un dato de "oferta puntual" (ver producto_distribuidora_service.js)
+  // que ya viaja del backend pero nadie lo mostraba en el catálogo.
+  const previousPrice = cheapest?.precio_anterior && Number(cheapest.precio_anterior) > Number(cheapest.precio) ? Number(cheapest.precio_anterior) : null;
+  const discountPercent = previousPrice ? Math.round((1 - Number(cheapest.precio) / previousPrice) * 100) : null;
+  const stock = !cheapest ? null
+    : !cheapest.controla_stock ? { tone: "unknown", label: config.labels.availability }
+    : available.length ? { tone: "ok", label: `${cheapest.cantidad} disponibles` }
+    : { tone: "out", label: "Sin stock" };
   const add = async () => {
     setBusy(true); setError(""); setMessage("");
     try { await addItem({ producto_id: producto.id, variedad_id: varieties[0].id, cantidad: 1, producto }); setMessage("Agregado al carrito"); }
@@ -20,8 +28,11 @@ export default function ProductoCard({ producto }) {
   };
   return <ProductCard name={producto.nombre} brand={producto.marca} image={producto.imagen_url}
     to={config.catalogPath + "/" + producto.id}
-    price={cheapest ? (single ? "" : "Desde ") + formatearPrecio(cheapest.precio) : "Consultá disponibilidad"}
-    presentation={single ? varieties[0].nombre || "Unidad" : "Elegí una presentación"}
-    availability={cheapest?.controla_stock ? available.length ? "Disponible · IVA incluido" : "Sin stock" : config.labels.availability}
+    price={cheapest ? formatearPrecio(cheapest.precio) : null}
+    pricePrefix={!single && cheapest ? "Desde " : ""}
+    previousPrice={previousPrice ? formatearPrecio(previousPrice) : null}
+    discountPercent={discountPercent}
+    presentation={single ? (varieties[0].nombre || "Unidad") : `${varieties.length} presentaciones`}
+    stock={stock}
     unavailable={!available.length} onAdd={single ? add : undefined} busy={busy} message={message} error={error} />;
 }

@@ -34,18 +34,3 @@ export async function ajustarPreciosMasivo(payload) {
   const { data } = await http.post("/distribuidora/productos/ajustar-precios", payload);
   return data;
 }
-
-export async function crearVariedad(productoId, payload) {
-  const { data } = await http.post(`/distribuidora/productos/${productoId}/variedades`, payload);
-  return data;
-}
-
-export async function actualizarVariedad(id, payload) {
-  const { data } = await http.put(`/distribuidora/productos/variedades/${id}`, payload);
-  return data;
-}
-
-export async function eliminarVariedad(id) {
-  const { data } = await http.delete(`/distribuidora/productos/variedades/${id}`);
-  return data;
-}

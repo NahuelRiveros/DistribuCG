@@ -1,6 +1,6 @@
 import {
-  listarProductos, obtenerProductoPorId, crearProducto, actualizarProducto, cambiarEstadoProducto, eliminarProducto,
-  crearVariedad, actualizarVariedad, eliminarVariedad, ajustarPreciosMasivo,
+  listarProductos, obtenerProductoPorId, crearProductoConVariedad, actualizarProductoConVariedad, cambiarEstadoProducto, eliminarProducto,
+  ajustarPreciosMasivo,
 } from "../../services/distribuidora/producto_distribuidora_service.js";
 
 // admin/staff gestionan el catálogo y necesitan seguir viendo los productos
@@ -39,11 +39,14 @@ export async function obtenerProductoController(req, res) {
 
 export async function crearProductoController(req, res) {
   try {
-    const { categoria_id, nombre } = req.body;
+    const { categoria_id, nombre, precio } = req.body;
     if (!categoria_id || !nombre?.trim()) {
       return res.status(400).json({ ok: false, mensaje: "categoria_id y nombre son requeridos" });
     }
-    const producto = await crearProducto(req.body);
+    if (precio === undefined || precio === null || Number.isNaN(Number(precio))) {
+      return res.status(400).json({ ok: false, mensaje: "El precio es requerido" });
+    }
+    const producto = await crearProductoConVariedad(req.body);
     return res.status(201).json({ ok: true, mensaje: "Producto creado correctamente", data: producto });
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {
@@ -56,7 +59,11 @@ export async function crearProductoController(req, res) {
 
 export async function actualizarProductoController(req, res) {
   try {
-    const producto = await actualizarProducto(req.params.id, req.body);
+    const { precio } = req.body;
+    if (precio === undefined || precio === null || Number.isNaN(Number(precio))) {
+      return res.status(400).json({ ok: false, mensaje: "El precio es requerido" });
+    }
+    const producto = await actualizarProductoConVariedad(req.params.id, req.body);
     if (!producto) return res.status(404).json({ ok: false, mensaje: "Producto no encontrado" });
     return res.json({ ok: true, mensaje: "Producto actualizado correctamente", data: producto });
   } catch (error) {
@@ -106,43 +113,5 @@ export async function ajustarPreciosMasivoController(req, res) {
   } catch (error) {
     console.error("Error al ajustar precios masivamente:", error);
     return res.status(error.status ?? 500).json({ ok: false, mensaje: error.status ? error.message : "Error interno al ajustar los precios" });
-  }
-}
-
-// ── Variedades ───────────────────────────────────────────────────────────
-
-export async function crearVariedadController(req, res) {
-  try {
-    const { precio } = req.body;
-    if (precio === undefined) return res.status(400).json({ ok: false, mensaje: "precio es requerido" });
-    const variedad = await crearVariedad(req.params.productoId, req.body);
-    return res.status(201).json({ ok: true, mensaje: "Variedad creada correctamente", data: variedad });
-  } catch (error) {
-    console.error("Error al crear variedad:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno al crear la variedad" });
-  }
-}
-
-export async function actualizarVariedadController(req, res) {
-  try {
-    const { precio } = req.body;
-    if (precio === undefined) return res.status(400).json({ ok: false, mensaje: "precio es requerido" });
-    const variedad = await actualizarVariedad(req.params.id, req.body);
-    if (!variedad) return res.status(404).json({ ok: false, mensaje: "Variedad no encontrada" });
-    return res.json({ ok: true, mensaje: "Variedad actualizada correctamente", data: variedad });
-  } catch (error) {
-    console.error("Error al actualizar variedad:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno al actualizar la variedad" });
-  }
-}
-
-export async function eliminarVariedadController(req, res) {
-  try {
-    const variedad = await eliminarVariedad(req.params.id);
-    if (!variedad) return res.status(404).json({ ok: false, mensaje: "Variedad no encontrada" });
-    return res.json({ ok: true, mensaje: "Variedad eliminada correctamente", data: null });
-  } catch (error) {
-    console.error("Error al eliminar variedad:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno al eliminar la variedad" });
   }
 }

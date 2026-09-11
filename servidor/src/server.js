@@ -6,6 +6,7 @@ import { iniciarCronEstadoAlumnos } from "./cron/estado_alumno_cron.js";
 // import { iniciarSyncQueueCron } from "./cron/sync_queue_cron.js";
 import "./models/index.js";
 import { env } from "./configuracion_servidor/env.js";
+import { projectModules } from "./configuracion_servidor/gate_config.js";
 
 async function main() {
   console.log(`🚀 Iniciando Dynamic Gym [${env.NODE_ENV}]...`);
@@ -17,8 +18,14 @@ async function main() {
   await bootstrap_database();
   await seed_database();
 
-  iniciarCronEstadoAlumnos();
-  console.log("✅ Cron de estados iniciado");
+  // alumno/membresia son tablas del módulo gym — bootstrap.js no las crea
+  // si el módulo está apagado (ver gate_config.js), así que este cron no
+  // puede correr en ese caso: fallaría cada 10 minutos con "no existe la
+  // relación «alumno»" contra una base que nunca tuvo esas tablas.
+  if (projectModules.gym) {
+    iniciarCronEstadoAlumnos();
+    console.log("✅ Cron de estados iniciado");
+  }
 
   const app = createApp();
 

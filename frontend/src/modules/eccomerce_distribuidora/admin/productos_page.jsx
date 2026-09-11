@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Edit2, Plus, FolderPlus, ShieldCheck, ShieldOff, Layers, Trash2, DollarSign } from "lucide-react";
+import { Edit2, Plus, FolderPlus, ShieldCheck, ShieldOff, Trash2, DollarSign } from "lucide-react";
 import TreeView from "../../../controls/ui/tree_view.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import { useCrudPage } from "../../../hooks/use_crud_page.js";
@@ -8,9 +8,9 @@ import {
   getProductos, crearProducto, actualizarProducto, cambiarEstadoProducto, eliminarProducto,
 } from "../api/producto_distribuidora_api.js";
 import { construirOpcionesCategoria } from "../utils/categoria_jerarquia.js";
+import { formatearPrecio } from "../utils/precio_iva.js";
 import CategoriaFormModal from "./categoria_form_modal.jsx";
 import ProductoFormModal from "./producto_form_modal.jsx";
-import VariedadesModal from "./variedades_modal.jsx";
 import AjustePreciosModal from "./ajuste_precios_modal.jsx";
 
 /**
@@ -25,7 +25,6 @@ import AjustePreciosModal from "./ajuste_precios_modal.jsx";
  * expandibles y cuáles están realmente vacíos SIN tener que cargar nada.
  */
 export default function ProductosDistribuidoraPage() {
-  const [productoVariedades, setProductoVariedades] = useState(null);
   const [ajustePrecios, setAjustePrecios] = useState(null); // null | { producto } | { masivo: true }
 
   // ── categorías: eager, vía useCrudPage (listado chico, CRUD normal) ──────
@@ -292,11 +291,20 @@ export default function ProductosDistribuidoraPage() {
         </button>
       );
     }
+    const variedad = nodo.variedades?.[0];
+    const sinStock = variedad?.controla_stock && Number(variedad.cantidad) <= 0;
+    const enOferta = variedad?.precio_anterior && Number(variedad.precio_anterior) > Number(variedad.precio);
     return (
       <span className="flex flex-wrap items-center gap-2">
         <span className="font-medium text-slate-700">{nodo.nombre}</span>
         {nodo.marca && <span className="text-xs text-slate-400">({nodo.marca})</span>}
-        <span className="text-xs text-slate-400">{nodo.variedades?.length ?? 0} var.</span>
+        {variedad ? (
+          <span className="text-xs font-semibold text-slate-600">{formatearPrecio(variedad.precio)}</span>
+        ) : (
+          <span className="text-xs font-semibold text-amber-600">Sin precio cargado</span>
+        )}
+        {enOferta && <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">Oferta</span>}
+        {sinStock && <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">Sin stock</span>}
         {nodo.fecha_alta && (
           <span className="text-[11px] text-slate-400" title="Fecha de alta">
             Agregado {new Date(nodo.fecha_alta).toLocaleDateString("es-AR", { timeZone: "UTC" })}
@@ -319,8 +327,6 @@ export default function ProductosDistribuidoraPage() {
     { key: "agregar-producto", label: "Agregar producto acá", icon: <Plus size={12} />, variant: "success", onClick: (nodo) => abrirNuevoEnCategoria(nodo.id), show: (n) => esCategoria(n) && !tieneSubcategorias(n) },
     { key: "editar-categoria", label: "Editar categoría", icon: <Edit2 size={12} />, variant: "primary", onClick: abrirEditarCategoria, show: esCategoria },
     { key: "eliminar-categoria", label: "Eliminar categoría vacía", icon: <Trash2 size={12} />, variant: "danger", onClick: eliminarCategoriaNodo, show: (n) => esCategoria(n) && categoriaEsHoja(n) },
-    { key: "variedades", label: "Variedades", icon: <Layers size={12} />, variant: "primary", onClick: (row) => setProductoVariedades(row), show: esProducto },
-    { key: "ajustar", label: "Ajustar", icon: <DollarSign size={12} />, variant: "primary", onClick: (row) => setAjustePrecios({ producto: row }), show: esProducto },
     { key: "editar", label: "Editar", icon: <Edit2 size={12} />, variant: "primary", onClick: abrirEditarProducto, show: esProducto },
     { key: "desactivar", label: "Desactivar", icon: <ShieldOff size={12} />, variant: "danger", onClick: toggleEstado, show: (n) => esProducto(n) && n.activo },
     { key: "activar", label: "Activar", icon: <ShieldCheck size={12} />, variant: "success", onClick: toggleEstado, show: (n) => esProducto(n) && !n.activo },
@@ -334,7 +340,7 @@ export default function ProductosDistribuidoraPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-900">Categorías y productos</h1>
-            <p className="mt-0.5 text-sm text-slate-500">Categorías y productos en un solo lugar — cada producto necesita al menos una variedad con precio.</p>
+            <p className="mt-0.5 text-sm text-slate-500">Categorías y productos en un solo lugar — el precio se carga al crear el producto.</p>
           </div>
           <div className="flex flex-wrap gap-2 self-start sm:self-auto">
             <button
@@ -356,6 +362,14 @@ export default function ProductosDistribuidoraPage() {
               <Plus size={14} /> Nuevo producto
             </button>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+          <span className="flex items-center gap-1"><FolderPlus size={12} className="text-slate-400" /> agrega una subcategoría (o categoría, si no elegís ninguna fila)</span>
+          <span className="flex items-center gap-1"><Plus size={12} className="text-emerald-600" /> carga un producto nuevo ahí</span>
+          <span className="flex items-center gap-1"><Edit2 size={12} className="text-blue-600" /> edita nombre, precio o datos</span>
+          <span className="flex items-center gap-1"><ShieldOff size={12} className="text-rose-600" /> activa o desactiva sin borrar</span>
+          <span className="flex items-center gap-1"><Trash2 size={12} className="text-rose-600" /> elimina (categoría solo si está vacía)</span>
         </div>
 
         <ErrorBanner message={errorCategorias || errorProducto} />
@@ -404,14 +418,6 @@ export default function ProductosDistribuidoraPage() {
         categorias={categorias}
         padreInicial={padrePreseleccionado}
       />
-
-      {productoVariedades && (
-        <VariedadesModal
-          producto={productoVariedades}
-          onClose={() => { setProductoVariedades(null); refrescarCategoria(productoVariedades.categoria_id); }}
-          onCambio={() => refrescarCategoria(productoVariedades.categoria_id)}
-        />
-      )}
 
       {ajustePrecios && (
         <AjustePreciosModal

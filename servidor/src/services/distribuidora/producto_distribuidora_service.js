@@ -117,7 +117,7 @@ export async function obtenerProductoPorId(id, { soloActivos = true } = {}) {
   });
 }
 
-export async function crearProducto(payload) {
+export async function crearProducto(payload, { transaction } = {}) {
   return ProductoDistribuidora.create({
     categoria_id: payload.categoria_id,
     nombre: capitalizar(payload.nombre),
@@ -126,11 +126,35 @@ export async function crearProducto(payload) {
     imagen_url: payload.imagen_url ?? null,
     activo: true,
     fecha_alta: new Date(),
-  });
+  }, { transaction });
 }
 
-export async function actualizarProducto(id, payload) {
-  const producto = await ProductoDistribuidora.findByPk(id);
+/**
+ * Alta de producto + su variedad en un solo paso — antes había que crear el
+ * producto y, en una acción aparte ("Variedades", ya retirada), cargarle
+ * precio; hasta ese segundo paso el producto no era comprable. No hay UI
+ * para más de una presentación por producto — si en el futuro hace falta,
+ * `crearVariedad`/`actualizarVariedad` siguen soportándolo a nivel de datos.
+ * Transacción: si la variedad falla (ej. precio inválido), no queda un
+ * producto huérfano sin variedad.
+ */
+export async function crearProductoConVariedad(payload) {
+  const producto = await sequelize.transaction(async (transaction) => {
+    const nuevoProducto = await crearProducto(payload, { transaction });
+    await crearVariedad(nuevoProducto.id, {
+      precio: payload.precio,
+      precio_anterior: payload.precio_anterior || null,
+      iva_porcentaje: payload.iva_porcentaje,
+      controla_stock: payload.controla_stock,
+      cantidad: payload.cantidad,
+    }, { transaction });
+    return nuevoProducto;
+  });
+  return obtenerProductoPorId(producto.id);
+}
+
+export async function actualizarProducto(id, payload, { transaction } = {}) {
+  const producto = await ProductoDistribuidora.findByPk(id, { transaction });
   if (!producto) return null;
   await producto.update({
     categoria_id: payload.categoria_id,
@@ -139,8 +163,37 @@ export async function actualizarProducto(id, payload) {
     marca: payload.marca ?? null,
     imagen_url: payload.imagen_url ?? producto.imagen_url,
     activo: payload.activo ?? producto.activo,
-  });
+  }, { transaction });
   return producto;
+}
+
+/**
+ * Edición de producto + su variedad en un solo paso (mismo criterio que
+ * crearProductoConVariedad). Actualiza la variedad más antigua activa del
+ * producto — hoy siempre hay como máximo una — y si por algún motivo no
+ * tiene ninguna (dato viejo, o se la borró desde la base a mano), la crea
+ * en vez de fallar.
+ */
+export async function actualizarProductoConVariedad(id, payload) {
+  const producto = await sequelize.transaction(async (transaction) => {
+    const actualizado = await actualizarProducto(id, payload, { transaction });
+    if (!actualizado) return null;
+    const datosVariedad = {
+      precio: payload.precio,
+      precio_anterior: payload.precio_anterior || null,
+      iva_porcentaje: payload.iva_porcentaje,
+      controla_stock: payload.controla_stock,
+      cantidad: payload.cantidad,
+    };
+    const variedad = await VariedadDistribuidora.findOne({
+      where: { producto_id: id, fecha_baja: null }, order: [["id", "ASC"]], transaction,
+    });
+    if (variedad) await variedad.update(datosVariedad, { transaction });
+    else await crearVariedad(id, datosVariedad, { transaction });
+    return actualizado;
+  });
+  if (!producto) return null;
+  return obtenerProductoPorId(id);
 }
 
 export async function cambiarEstadoProducto(id, activo) {
@@ -157,20 +210,17 @@ export async function eliminarProducto(id) {
   return producto;
 }
 
-// ── Variedades — un producto necesita ≥1 para ser comprable ────────────────
+// ── Variedades — un producto necesita una para ser comprable. Sin UI propia:
+// se maneja siempre junto al producto (ver crearProductoConVariedad /
+// actualizarProductoConVariedad más arriba) — crearVariedad queda como
+// función de datos, reutilizable si en el futuro hiciera falta más de una
+// presentación por producto. ──────────────────────────────────────────────
 
-export async function crearVariedad(producto_id, { nombre = null, precio, precio_anterior = null, iva_porcentaje = 21, controla_stock = false, cantidad = 0, cod_ref = null }) {
+export async function crearVariedad(producto_id, { nombre = null, precio, precio_anterior = null, iva_porcentaje = 21, controla_stock = false, cantidad = 0, cod_ref = null }, { transaction } = {}) {
   return VariedadDistribuidora.create({
     producto_id, nombre, precio, precio_anterior, iva_porcentaje, controla_stock, cantidad, cod_ref,
     fecha_alta: new Date(),
-  });
-}
-
-export async function actualizarVariedad(id, { nombre, precio, precio_anterior = null, iva_porcentaje = 21, controla_stock = false, cantidad, cod_ref = null }) {
-  const variedad = await VariedadDistribuidora.findByPk(id);
-  if (!variedad) return null;
-  await variedad.update({ nombre, precio, precio_anterior, iva_porcentaje, controla_stock, cantidad, cod_ref });
-  return variedad;
+  }, { transaction });
 }
 
 /**
@@ -210,11 +260,4 @@ export async function ajustarPreciosMasivo({ porcentaje, producto_id = null, cat
   );
 
   return cantidadActualizada;
-}
-
-export async function eliminarVariedad(id) {
-  const variedad = await VariedadDistribuidora.findByPk(id);
-  if (!variedad) return null;
-  await variedad.update({ fecha_baja: new Date() });
-  return variedad;
 }
