@@ -5,8 +5,26 @@ Navegador ──▶ Vercel (tienda y panel) ──▶ Render (API) ──▶ Neo
                                              └──────────▶ Cloudinary (imágenes)
 ```
 
+**Importante:** el servidor y la tienda usan la carpeta `compartido/`, así que en Render y en Vercel
+la raíz del proyecto es la **raíz del repo** (no `servidor/` ni `frontend/`).
+
 La explicación de cada variable está en `servidor/.env.example` y `frontend/.env.example`.
 Nunca se sube un `.env` real: los valores se cargan en el panel de cada plataforma.
+
+## Paso a paso
+
+1. **Neon** → New Project (región: la más cercana, ej. São Paulo) → copiar la *Connection string*
+   (con "Pooled connection" activado).
+2. **Render** → New → **Web Service** → conectar el repo de GitHub:
+   - Root Directory: *(vacío)* · Runtime: Node
+   - Build Command: `npm ci`
+   - Start Command: `npm run start -w servidor`
+   - Health Check Path: `/api/salud`
+   - Environment: las variables de la tabla de abajo.
+3. **Vercel** → Add New → Project → el mismo repo. Root Directory: *(vacío)*; el resto lo toma de
+   `vercel.json` (instala en la raíz, compila `frontend` y publica `frontend/dist`). Cargar `VITE_URL_API_RENDER`.
+4. Volver a Render y poner en `URL_FRONTEND_VERCEL` la dirección que dio Vercel (Render se reinicia solo).
+5. Probar: `https://<tu-api>.onrender.com/api/salud` responde `ok`, y en la tienda ingresar con el super admin.
 
 ## Render (API) → Environment
 
