@@ -22,7 +22,7 @@ Nunca se sube un `.env` real: los valores se cargan en el panel de cada platafor
    - Health Check Path: `/api/salud`
    - Environment: las variables de la tabla de abajo.
 3. **Vercel** → Add New → Project → el mismo repo. Root Directory: *(vacío)*; el resto lo toma de
-   `vercel.json` (instala en la raíz, compila `frontend` y publica `frontend/dist`). Cargar `VITE_URL_API_RENDER`.
+   `vercel.json` (instala en la raíz y compila `frontend` en una carpeta `dist` en la raíz, que es donde Vercel la busca por defecto). Cargar `VITE_URL_API_RENDER`.
 4. Volver a Render y poner en `URL_FRONTEND_VERCEL` la dirección que dio Vercel (Render se reinicia solo).
 5. Probar: `https://<tu-api>.onrender.com/api/salud?bd=1` responde `"base_de_datos": "ok"`, y en la tienda ingresar con el super admin.
    (Sin `?bd=1` la salud no toca la base: así los chequeos de Render no mantienen despierto a Neon.)

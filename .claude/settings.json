@@ -18,7 +18,9 @@
       "Bash(sed -i 's/se ignoran las BD_ de tu PC de abajo\\\\./se ignoran las BD_ de tu PC \\(las de arriba\\)./' servidor/.env.example)",
       "Bash(grep -n \"de arriba\" servidor/.env.example)",
       "Bash(git ls-remote *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(sed -i 's#`vercel.json` \\(instala en la raíz, compila `frontend` y publica `frontend/dist`\\)#`vercel.json` \\(instala en la raíz y compila `frontend` en una carpeta `dist` en la raíz, que es donde Vercel la busca por defecto\\)#' docs/DESPLIEGUE.md)",
+      "Bash(grep -c \"donde Vercel la busca\" docs/DESPLIEGUE.md)"
     ],
     "deny": [
       "Read(./.env)",
