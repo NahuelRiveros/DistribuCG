@@ -24,7 +24,7 @@ Las piezas marcadas "Traer" en `docs/ORIGEN_DISTRIBUCG.md` se copian desde Distr
    - `src/app.js` (crea la app y registra las rutas de los módulos activos según `proyecto.config.js`; exportable para Supertest) y `src/server.js` (conecta la base y escucha). **Sin `sync()`**.
    - `src/modulos/salud/` con `GET /api/salud` + test.
    - Primera migración: usuarios y roles. Seed: roles + super admin desde variables de entorno.
-   - `.env.example` con `DATABASE_URL`, `DATABASE_URL_TEST`, `DB_SCHEMA`, `JWT_SECRET`, `CORS_ORIGIN`, `PORT=3001`, Cloudinary, SMTP.
+   - `.env.example` con los nombres de `docs/DESPLIEGUE.md` (`BD_URL_NEON`, `BD_ESQUEMA`, `BD_ESQUEMA_TEST`, `CLAVE_SESIONES`, `URL_FRONTEND_VERCEL`, `PORT=3001`, `CLOUDINARY_*`), cada una con su explicación.
 4. **frontend/**
    - `npm create vite@latest frontend -- --template react`; Tailwind 4 (`@tailwindcss/vite`), React Router 7, TanStack Query, axios, React Hook Form, Zod, lucide-react, clsx. Dev: vitest, @testing-library/react, jsdom, msw, @playwright/test.
    - Alias `@/` → `src/` y `@compartido/` → `../compartido/` en `vite.config.js` (+ `server.fs.allow` para la carpeta compartida) y `jsconfig.json`.

@@ -22,7 +22,8 @@
     "db:seed": "npm run db:seed -w servidor",
     "cliente:nuevo": "node scripts/cliente.js nuevo",
     "cliente:verificar": "node scripts/cliente.js verificar",
-    "cliente:activar": "node scripts/cliente.js activar"
+    "cliente:activar": "node scripts/cliente.js activar",
+    "env:verificar": "node scripts/verificar_env.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
