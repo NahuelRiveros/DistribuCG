@@ -87,8 +87,12 @@ const esquema = z
     }
   });
 
+// En paneles como el de Render el valor se carga tal cual: si alguien lo pega con comillas o
+// espacios ("https://…"), quedarían como parte del texto. dotenv ya los quita en el .env.
+export const limpiarValor = (v) => (typeof v === "string" ? v.trim().replace(/^(["'])(.*)\1$/, "$2").trim() : v);
+
 // Nombre nuevo, y si no está, el anterior (avisando cuál renombrar).
-const valores = { ...process.env };
+const valores = Object.fromEntries(Object.entries(process.env).map(([clave, valor]) => [clave, limpiarValor(valor)]));
 const renombrar = [];
 for (const [nuevo, anterior] of Object.entries(NOMBRES_ANTERIORES)) {
   if (valores[nuevo] === undefined && valores[anterior] !== undefined) {

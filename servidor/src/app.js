@@ -15,6 +15,9 @@ export function crearApp() {
   const app = express();
   // Solo la tienda (URL_FRONTEND_VERCEL) puede usar la API desde un navegador; en tu PC, Vite.
   const origenes = env.origenesPermitidos.length ? env.origenesPermitidos : ORIGENES_DESARROLLO;
+  // A la vista en los logs de Render: si la tienda no puede usar la API, lo primero es mirar esto.
+  if (!env.esTest) console.log(`🌐 Tienda permitida (URL_FRONTEND_VERCEL): ${origenes.join(", ")}`);
+  const rechazados = new Set();
 
   app.disable("x-powered-by");
   app.set("trust proxy", 1); // detrás del proxy de Render: IP real para el rate limit
@@ -26,7 +29,15 @@ export function crearApp() {
   app.use(
     cors({
       // Sin origin = curl, Postman o el mismo servidor.
-      origin: (origin, callback) => callback(null, !origin || origenes.includes(origin)),
+      origin: (origin, callback) => {
+        const permitido = !origin || origenes.includes(origin);
+        // Una vez por dirección: el navegador solo dice "CORS"; acá queda cuál fue y qué corregir.
+        if (!permitido && !env.esTest && !rechazados.has(origin)) {
+          rechazados.add(origin);
+          console.warn(`⚠️  Pedido desde ${origin} rechazado: no está en URL_FRONTEND_VERCEL (${origenes.join(", ") || "vacía"}).`);
+        }
+        callback(null, permitido);
+      },
     }),
   );
 
