@@ -20,7 +20,8 @@ export function crearApp() {
   app.set("trust proxy", 1); // detrás del proxy de Render: IP real para el rate limit
   app.use(helmet());
   app.use(compression());
-  if (!env.esTest) app.use(morgan(env.esProduccion ? "combined" : "dev"));
+  // Sin registrar los chequeos de salud de Render (uno cada pocos segundos: solo ruido en los logs).
+  if (!env.esTest) app.use(morgan(env.esProduccion ? "combined" : "dev", { skip: (req) => req.originalUrl.startsWith("/api/salud") }));
   app.use(express.json({ limit: "1mb" }));
   app.use(
     cors({

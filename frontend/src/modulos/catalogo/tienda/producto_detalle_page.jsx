@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react";
 import { proyecto } from "compartido/proyecto.js";
 import { Cargando, ErrorCarga } from "@/componentes/ui/estado_carga.jsx";
 import { cn } from "@/utils/cn.js";
+import { ANCHOS, urlImagen } from "@/utils/imagenes.js";
 import { formatearDinero } from "@/utils/formatear_dinero.js";
 import { useProducto } from "../hooks/use_catalogo.js";
 import { leyendaIva, precioVisible, presentacionMasBarata } from "../utils/precios.js";
@@ -25,7 +26,7 @@ function Galeria({ imagenes, nombre }) {
   const [actual, setActual] = useState(0);
   return (
     <div>
-      <ImagenProducto imagen={imagenes[actual]} nombre={nombre} className="aspect-square w-full rounded-2xl border border-borde" />
+      <ImagenProducto imagen={imagenes[actual]} nombre={nombre} ancho={ANCHOS.detalle} prioridad className="aspect-square w-full rounded-2xl border border-borde" />
       {imagenes.length > 1 && (
         <div className="mt-3 flex gap-2 overflow-x-auto">
           {imagenes.map((img, i) => (
@@ -36,7 +37,7 @@ function Galeria({ imagenes, nombre }) {
               aria-label={`Ver imagen ${i + 1}`}
               className={cn("h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2", i === actual ? "border-primario" : "border-transparent")}
             >
-              <img src={img.url} alt="" className="h-full w-full object-cover" />
+              <img src={urlImagen(img.url, ANCHOS.miniatura)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>

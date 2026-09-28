@@ -139,6 +139,8 @@ npm run cliente:activar -- <id>    # cambia el cliente activo
 - Tailwind con los tokens del tema (`bg-primario`, `text-texto-suave`, `border-borde`, `text-acento`, `font-titulos`; definidos en `src/index.css`); nunca colores fijos de un cliente.
 - Accesible: `label` en inputs, `alt` en imágenes, botones reales, navegable con teclado.
 - Dinero siempre formateado con `utils/formatear_dinero.js`.
+- Imágenes de productos siempre con `urlImagen(url, ANCHOS.x)` de `utils/imagenes.js` (Cloudinary entrega el tamaño justo); nunca la `url` original en un `<img>`. Solo los anchos de `ANCHOS` (cada tamaño nuevo consume cuota de Cloudinary).
+- Pantallas nuevas con `lazy`; librerías pesadas nuevas, en su propio chunk (`vite.config.js → manualChunks`).
 - Fechas de calendario (sin hora) como texto `AAAA-MM-DD` con `compartido/reglas/fechas.js`; "hoy" es `hoyEn()` (zona de `proyecto.zona_horaria`), nunca `new Date()` suelto.
 - Gráficos: colores `bg-serie-1`, `bg-serie-2` (par validado para daltonismo); verde/rojo quedan para estados. Siempre con leyenda y una tabla con los mismos datos.
 
@@ -158,6 +160,7 @@ npm run cliente:activar -- <id>    # cambia el cliente activo
 - `process.env` solo se lee en `nucleo/env.js` (validado con Zod al arrancar; en producción, si falta algo, no arranca).
 - Auth: JWT en header `Authorization: Bearer`, invalidado si cambia la contraseña (versión de password en el payload). Passwords con `bcryptjs` (costo 10). Roles: `super_admin`, `admin`, `staff`, `cliente`. Middlewares en `nucleo/auth/middlewares.js`: `requerirAuth`, `authOpcional`, `requerirRol(...)`, `requerirModulo("stock")`. Registrar rutas nuevas en `modulos/registro.js`. `super_admin` pasa cualquier `requerirRol`. `authOpcional` ignora tokens vencidos (el visitante sigue navegando).
 - Seguridad HTTP: helmet, CORS con lista blanca, rate limit en login, registro, recuperación y envío de pedidos.
+- Red: `compression` activo; lecturas públicas con `cachePublico()` de `nucleo/cache.js`; `/api/salud` **no toca la base** (Render la consulta seguido y Neon tiene que poder suspenderse; `?bd=1` para probar la base).
 - Archivos subidos: `recibirArchivo()` de `nucleo/archivos.js` (tamaño y extensiones permitidas, errores en español). Imágenes: `nucleo/imagenes.js` (Cloudinary; sin credenciales se aceptan imágenes por URL https).
 - Allowlist de campos al crear/actualizar (schema Zod o `pick`), nunca `Modelo.create(req.body)`.
 - Todo lo que toca **dinero o stock va en una transacción** (`sequelize.transaction`).

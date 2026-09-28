@@ -4,7 +4,6 @@ import AppLayout from "@/componentes/layout/app_layout.jsx";
 import AdminLayout from "@/componentes/admin/admin_layout.jsx";
 import RutaProtegida from "@/componentes/acceso/ruta_protegida.jsx";
 import HomePage from "@/modulos/home/home_page.jsx";
-import LoginPage from "@/modulos/usuarios/login_page.jsx";
 import { proyecto } from "compartido/proyecto.js";
 import { modulosActivos } from "@/modulos/registro.js";
 import ErrorPage from "./error_page.jsx";
@@ -31,7 +30,8 @@ export const router = createBrowserRouter([
             errorElement: <ErrorPage />,
             children: [
               { index: true, element: <HomePage /> },
-              { path: "login", element: <LoginPage /> },
+              // Bajo demanda: el login trae las librerías de formularios, que el que solo mira productos no necesita.
+              { path: "login", lazy: async () => ({ Component: (await import("@/modulos/usuarios/login_page.jsx")).default }) },
               ...(proyecto.usuarios.registro_publico ? [{ path: "registro", lazy: async () => ({ Component: (await import("@/modulos/usuarios/registro_page.jsx")).default }) }] : []),
               ...rutasPublicas,
               { path: "*", element: <NoEncontradoPage /> },

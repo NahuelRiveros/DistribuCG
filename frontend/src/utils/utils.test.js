@@ -28,3 +28,18 @@ describe("volverASeguro", () => {
     expect(volverASeguro("/login")).toBe("/");
   });
 });
+
+describe("urlImagen", () => {
+  it("pide a Cloudinary el ancho justo con formato y calidad automáticos", async () => {
+    const { urlImagen } = await import("./imagenes.js");
+    expect(urlImagen("https://res.cloudinary.com/mi-nube/image/upload/v1712/tienda/productos/remera.jpg", 480)).toBe(
+      "https://res.cloudinary.com/mi-nube/image/upload/c_limit,w_480,f_auto,q_auto/v1712/tienda/productos/remera.jpg",
+    );
+  });
+
+  it("deja igual las imágenes que no son de Cloudinary (cargadas por URL)", async () => {
+    const { urlImagen } = await import("./imagenes.js");
+    expect(urlImagen("https://otra-web.com/foto.jpg", 480)).toBe("https://otra-web.com/foto.jpg");
+    expect(urlImagen(null, 480)).toBeNull();
+  });
+});

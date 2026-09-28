@@ -10,6 +10,7 @@ import { ImagenProducto } from "@/modulos/catalogo/tienda/producto_card.jsx";
 import { useCarrito } from "../hooks/use_carrito.js";
 import SelectorCantidad from "../componentes/selector_cantidad.jsx";
 import Totales from "../componentes/totales.jsx";
+import { ANCHOS } from "@/utils/imagenes.js";
 import { verProductos } from "@/clientes/index.js";
 
 const CONFIRMAR = "/pedido/confirmar";
@@ -39,7 +40,7 @@ export default function CarritoPage() {
         <ul className="divide-y divide-borde rounded-2xl border border-borde bg-superficie" aria-label="Productos del pedido">
           {carrito.items.map((l) => (
             <li key={l.item_id ?? l.variante_id} className="flex flex-wrap gap-4 p-4 sm:flex-nowrap">
-              <ImagenProducto imagen={l.imagen ? { url: l.imagen } : null} nombre={l.producto ?? ""} className="h-20 w-20 shrink-0 rounded-xl" />
+              <ImagenProducto imagen={l.imagen ? { url: l.imagen } : null} nombre={l.producto ?? ""} ancho={ANCHOS.miniatura} className="h-20 w-20 shrink-0 rounded-xl" />
               <div className="min-w-0 flex-1">
                 {l.slug ? (
                   <Link to={`/catalogo/${l.slug}`} className="font-semibold hover:text-primario">

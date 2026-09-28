@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
 import { Package } from "lucide-react";
 import { formatearDinero } from "@/utils/formatear_dinero.js";
+import { ANCHOS, urlImagen } from "@/utils/imagenes.js";
 import Insignia from "@/componentes/ui/insignia.jsx";
 import { leyendaIva, precioVisible, presentacionMasBarata } from "../utils/precios.js";
 import { productoAgotado } from "../utils/disponibilidad.js";
 import { conDescuento, mejorDescuento } from "compartido/reglas/pagos.js";
 import { usePagos } from "@/hooks/use_pagos.js";
 
-export function ImagenProducto({ imagen, nombre, className = "" }) {
+/** `ancho`: el tamaño en que se muestra (Cloudinary entrega la foto a esa medida, no la original). */
+export function ImagenProducto({ imagen, nombre, className = "", ancho = ANCHOS.tarjeta, prioridad = false }) {
   if (!imagen) {
     return (
       <div className={`flex items-center justify-center bg-fondo text-texto-suave ${className}`} aria-hidden="true">
@@ -15,7 +17,15 @@ export function ImagenProducto({ imagen, nombre, className = "" }) {
       </div>
     );
   }
-  return <img src={imagen.url} alt={imagen.alt || nombre} loading="lazy" className={`object-cover ${className}`} />;
+  return (
+    <img
+      src={urlImagen(imagen.url, ancho)}
+      alt={imagen.alt || nombre}
+      loading={prioridad ? "eager" : "lazy"}
+      decoding="async"
+      className={`object-cover ${className}`}
+    />
+  );
 }
 
 export default function ProductoCard({ producto }) {

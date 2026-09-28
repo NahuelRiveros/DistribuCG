@@ -8,6 +8,7 @@ import ConfirmDialog from "@/componentes/ui/confirm_dialog.jsx";
 import Insignia from "@/componentes/ui/insignia.jsx";
 import InputField from "@/componentes/ui/input_field.jsx";
 import { cn } from "@/utils/cn.js";
+import { ANCHOS, urlImagen } from "@/utils/imagenes.js";
 import { useAgregarImagenUrl, useEliminarImagen, useOrdenarImagenes, useSubirImagen } from "../hooks/use_catalogo.js";
 
 const MAXIMO = proyecto.catalogo.max_imagenes_producto;
@@ -92,7 +93,7 @@ export default function ImagenesProducto({ producto }) {
         {imagenes.map((img, i) => (
           <li key={img.id} className="overflow-hidden rounded-xl border border-borde">
             <div className="relative">
-              <img src={img.url} alt={img.alt ?? ""} className="aspect-square w-full object-cover" />
+              <img src={urlImagen(img.url, ANCHOS.tarjeta)} alt={img.alt ?? ""} loading="lazy" decoding="async" className="aspect-square w-full object-cover" />
               {i === 0 && (
                 <span className="absolute left-2 top-2">
                   <Insignia tono="info">Principal</Insignia>

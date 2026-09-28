@@ -17,7 +17,8 @@
       "Bash(git add *)",
       "Bash(sed -i 's/se ignoran las BD_ de tu PC de abajo\\\\./se ignoran las BD_ de tu PC \\(las de arriba\\)./' servidor/.env.example)",
       "Bash(grep -n \"de arriba\" servidor/.env.example)",
-      "Bash(git ls-remote *)"
+      "Bash(git ls-remote *)",
+      "Bash(node -e ' *)"
     ],
     "deny": [
       "Read(./.env)",
