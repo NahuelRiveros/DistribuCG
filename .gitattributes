@@ -1,0 +1,5 @@
+# Saltos de línea de Linux en el repo (el servidor corre en Linux); imágenes y planillas, binarias.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.xlsx binary

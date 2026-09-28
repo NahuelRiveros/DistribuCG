@@ -1,0 +1,37 @@
+{
+  "name": "mi-eccomerce",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "compartido",
+    "servidor",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w servidor\" \"npm run dev -w frontend\"",
+    "dev:api": "npm run dev -w servidor",
+    "dev:web": "npm run dev -w frontend",
+    "test": "npm run test -w compartido && npm run test -w servidor && npm run test -w frontend",
+    "test:api": "npm run test -w servidor --",
+    "test:web": "npm run test -w frontend --",
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "db:migrar": "npm run db:migrar -w servidor",
+    "db:migrar:deshacer": "npm run db:migrar:deshacer -w servidor",
+    "db:migracion": "npm run db:migracion -w servidor --",
+    "db:seed": "npm run db:seed -w servidor",
+    "cliente:nuevo": "node scripts/cliente.js nuevo",
+    "cliente:verificar": "node scripts/cliente.js verificar",
+    "cliente:activar": "node scripts/cliente.js activar"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.56.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2"
+  }
+}

@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/*
+  Tokens de diseño neutros. Cada cliente los pisa desde frontend/src/clientes/<id>/tema.js
+  (ver componentes/layout/aplicar_tema.js). Los componentes usan SIEMPRE estas clases
+  (bg-primario, text-texto-suave, border-borde...), nunca colores fijos de un cliente.
+*/
+:root {
+  --primario: #1f2937;
+  --primario-hover: #111827;
+  --primario-texto: #ffffff;
+  --acento: #2563eb;
+  --fondo: #f8fafc;
+  --superficie: #ffffff;
+  --texto: #0f172a;
+  --texto-suave: #64748b;
+  --borde: #e2e8f0;
+  --peligro: #dc2626;
+  --fuente-titulos: ui-sans-serif, system-ui, sans-serif;
+  --fuente-cuerpo: ui-sans-serif, system-ui, sans-serif;
+  /* Series de gráficos (ingresos / egresos). Par validado para daltonismo; no se usan
+     verde y rojo porque son colores de "estado" (bien/mal), no de identidad. */
+  --serie-1: #2a78d6;
+  --serie-2: #eb6834;
+}
+
+@theme inline {
+  --color-primario: var(--primario);
+  --color-primario-hover: var(--primario-hover);
+  --color-primario-texto: var(--primario-texto);
+  --color-acento: var(--acento);
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-borde: var(--borde);
+  --color-peligro: var(--peligro);
+  --color-serie-1: var(--serie-1);
+  --color-serie-2: var(--serie-2);
+  --font-titulos: var(--fuente-titulos);
+  --font-cuerpo: var(--fuente-cuerpo);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--fuente-cuerpo);
+}
