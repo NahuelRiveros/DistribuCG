@@ -27,6 +27,7 @@ const ANTERIORES = {
   CLOUDINARY_API_KEY: "CLOUDINARY_CLAVE_API",
   CLOUDINARY_API_SECRET: "CLOUDINARY_SECRETO_API",
   SUPERADMIN_PASSWORD: "SUPERADMIN_CONTRASENA",
+  // Ya no se lee: sin renombrar, la tienda usa la API local (http://localhost:3001/api).
   VITE_API_URL: "VITE_URL_API_RENDER",
 };
 

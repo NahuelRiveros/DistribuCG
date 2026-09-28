@@ -37,6 +37,7 @@ Todo lo que empieza con `VITE_` es **público** (queda en el navegador): nunca c
 ## Nombres anteriores
 
 El servidor todavía acepta los nombres viejos (`DB_*`, `JWT_SECRET`, `CORS_ORIGIN`, `NEON_DATABASE_URL`,
-`CLOUDINARY_API_*`, `SUPERADMIN_PASSWORD`, `VITE_API_URL`) y avisa al arrancar cuáles renombrar.
+`CLOUDINARY_API_*`, `SUPERADMIN_PASSWORD`) y avisa al arrancar cuáles renombrar.
+En el frontend **solo** se usa `VITE_URL_API_RENDER` (el nombre viejo `VITE_API_URL` ya no se lee).
 Variables de DistribuCG que este proyecto **no usa** y se pueden borrar: `APP_URL`, `FRONTEND_URL`,
 `MP_ACCESS_TOKEN`, `SEED_SECRET`, `SOFTWARE_CLIENTE`, `SOFTWARE_PRECIO`, `SUPERADMIN_APELLIDO`, `SUPERADMIN_DNI`.
