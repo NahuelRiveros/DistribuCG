@@ -12,14 +12,14 @@ async function sembrarRoles(log) {
 
 async function sembrarSuperAdmin(log) {
   const email = env.SUPERADMIN_EMAIL.trim().toLowerCase();
-  if (!email || !env.SUPERADMIN_PASSWORD) {
+  if (!email || !env.SUPERADMIN_CONTRASENA) {
     log("ℹ️  Sin SUPERADMIN_EMAIL/SUPERADMIN_PASSWORD en .env: no se crea el super admin.");
     return;
   }
   // Si ya existe no se toca (tampoco su contraseña): el .env solo sirve para crearlo la primera vez.
   const [usuario, creado] = await Usuario.findOrCreate({
     where: { email, eliminado_en: null },
-    defaults: { nombre: env.SUPERADMIN_NOMBRE, email, contrasena: await hashearContrasena(env.SUPERADMIN_PASSWORD) },
+    defaults: { nombre: env.SUPERADMIN_NOMBRE, email, contrasena: await hashearContrasena(env.SUPERADMIN_CONTRASENA) },
   });
   const superAdmin = await Rol.findOne({ where: { codigo: "super_admin" } });
   await usuario.addRoles([superAdmin]);

@@ -13,7 +13,8 @@ const ORIGENES_DESARROLLO = ["http://localhost:5173", "http://localhost:5174", "
 
 export function crearApp() {
   const app = express();
-  const origenes = env.CORS_ORIGIN ? env.CORS_ORIGIN.split(",").map((o) => o.trim()) : ORIGENES_DESARROLLO;
+  // Solo la tienda (URL_FRONTEND_VERCEL) puede usar la API desde un navegador; en tu PC, Vite.
+  const origenes = env.origenesPermitidos.length ? env.origenesPermitidos : ORIGENES_DESARROLLO;
 
   app.disable("x-powered-by");
   app.set("trust proxy", 1); // detrás del proxy de Render: IP real para el rate limit

@@ -5,7 +5,8 @@ import { proyecto } from "compartido/proyecto.js";
 export const CLAVE_SESION = `${proyecto.cliente}:sesion`;
 
 export const http = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:3001/api",
+  // En Vercel: la dirección de la API en Render + /api. VITE_API_URL es el nombre anterior.
+  baseURL: import.meta.env.VITE_URL_API_RENDER ?? import.meta.env.VITE_API_URL ?? "http://localhost:3001/api",
 });
 
 http.interceptors.request.use((config) => {

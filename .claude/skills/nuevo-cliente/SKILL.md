@@ -60,16 +60,11 @@ sobre `fondo` (se usa en textos destacados).
 - `pagos`: son solo los **valores iniciales**. Los reales (CBU, cuotas, promociones) los carga el
   cliente en el panel → **Configuración**. Si ya los pasó, cargarlos ahí después del primer arranque.
 
-## Paso 5 — Checklist del `servidor/.env` (lo completa el usuario)
-Mostrarle esta lista (valores de ejemplo en `servidor/.env.example`), **sin leer el `.env`**:
-- **Base de datos**: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`, `DB_SSL` (Neon: `true`),
-  `DB_SCHEMA` propio del cliente (ej. `ferreteria_lopez`).
-- **Seguridad**: `JWT_SECRET` nuevo para este cliente. Se genera con:
-  `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`
-- `CORS_ORIGIN`: la URL pública de la tienda.
-- **Imágenes**: `CLOUDINARY_*` y `CLOUDINARY_CARPETA` propia del cliente (así no se mezclan fotos).
-- **Primer acceso**: `SUPERADMIN_NOMBRE`, `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` (se crea solo al arrancar).
-- `frontend/.env`: `VITE_API_URL` con la URL pública de la API.
+## Paso 5 — Variables de entorno (las carga el usuario en Render y Vercel)
+Mostrarle la tabla de `docs/DESPLIEGUE.md` (explicación de cada una en los `.env.example`), **sin leer el `.env`**.
+Para cada cliente nuevo cambian sí o sí: `BD_URL_NEON` (o base propia), `BD_ESQUEMA` (ej. `ferreteria_lopez`),
+`CLAVE_SESIONES` (nueva, nunca reutilizar), `URL_FRONTEND_VERCEL`, `CLOUDINARY_CARPETA`, `SUPERADMIN_*`, y en
+Vercel `VITE_URL_API_RENDER`. Si pega claves reales en el chat, pedirle que las cambie.
 
 ## Paso 6 — Verificar
 1. `npm run cliente:verificar` → sin ❌ (los ⚠️ de datos EJEMPLO de pagos se resuelven en el panel).

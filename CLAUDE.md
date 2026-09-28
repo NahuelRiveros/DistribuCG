@@ -85,7 +85,7 @@ npm run dev:web                    # solo frontend
 npm run dev:api                    # solo servidor
 
 npm test                           # tests de servidor y frontend
-npm run test:api                   # solo servidor (usa DB de test: DATABASE_URL_TEST)
+npm run test:api                   # solo servidor (usa el esquema de test: BD_ESQUEMA_TEST)
 npm run test:web                   # solo frontend
 npm run test:e2e                   # Playwright (levanta su propia API :3101 y web :5175 sobre el schema mi_eccomerce_e2e)
 npm run lint                       # ESLint en todo el proyecto
@@ -124,7 +124,7 @@ npm run cliente:activar -- <id>    # cambia el cliente activo
 - Un cliente = una carpeta. No se mezclan varios clientes en un mismo objeto.
 - **Menú de productos** (`clientes/<id>/navbar.js`): `productos` (nombre de la sección, ej. "Productos"), `menu_productos: "enlace" | "categorias"` (por categorías = las marcadas "Mostrar en el menú" en el panel, con subcategorías desplegables; para indumentaria) y `novedades` / `ofertas`. Un módulo puede aportar al navbar un componente (`{ clave, Componente }`) en vez de un link.
 - **Cliente nuevo**: skill `/nuevo-cliente` (guiada). Por debajo usa `npm run cliente:nuevo -- <id> --nombre "..." [--activar]` (copia `clientes/demo`, que es la plantilla y no se edita), `npm run cliente:verificar` (marca `[COMPLETAR]` y datos de ejemplo) y `npm run cliente:activar -- <id>`. Ningún código ni test puede depender de que el cliente se llame `demo`.
-- Secretos y URLs de infraestructura solo en `.env` (validado en `servidor/src/nucleo/env.js`).
+- Secretos y URLs de infraestructura solo en `.env` (validado en `servidor/src/nucleo/env.js`). Nombres en español que dicen qué va y de dónde sale (`BD_URL_NEON`, `URL_FRONTEND_VERCEL`, `CLAVE_SESIONES`, `VITE_URL_API_RENDER`…); qué va en Render y en Vercel: `docs/DESPLIEGUE.md`.
 
 ## Reglas React (`frontend/`)
 

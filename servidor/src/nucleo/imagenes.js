@@ -10,9 +10,9 @@ let almacen = null;
 
 function almacenCloudinary() {
   cloudinary.config({
-    cloud_name: env.CLOUDINARY_CLOUD_NAME,
-    api_key: env.CLOUDINARY_API_KEY,
-    api_secret: env.CLOUDINARY_API_SECRET,
+    cloud_name: env.CLOUDINARY_NOMBRE_NUBE,
+    api_key: env.CLOUDINARY_CLAVE_API,
+    api_secret: env.CLOUDINARY_SECRETO_API,
     secure: true,
   });
   return {

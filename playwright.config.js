@@ -23,15 +23,15 @@ export default defineConfig({
       url: `http://localhost:${PUERTO_API}/api/salud`,
       reuseExistingServer: false,
       timeout: 60_000,
-      // LIMITE_LOGIN alto: los E2E inician sesión como admin muchas veces seguidas.
-      env: { PORT: String(PUERTO_API), DB_SCHEMA: ESQUEMA_E2E, CORS_ORIGIN: `http://localhost:${PUERTO_WEB}`, LIMITE_LOGIN: "1000" },
+      // INTENTOS_LOGIN alto: los E2E inician sesión como admin muchas veces seguidas.
+      env: { PORT: String(PUERTO_API), BD_ESQUEMA: ESQUEMA_E2E, URL_FRONTEND_VERCEL: `http://localhost:${PUERTO_WEB}`, INTENTOS_LOGIN: "1000" },
     },
     {
       command: `npm run dev -w frontend -- --port ${PUERTO_WEB} --strictPort`,
       url: `http://localhost:${PUERTO_WEB}`,
       reuseExistingServer: false,
       timeout: 60_000,
-      env: { VITE_API_URL: `http://localhost:${PUERTO_API}/api` },
+      env: { VITE_URL_API_RENDER: `http://localhost:${PUERTO_API}/api` },
     },
   ],
 });

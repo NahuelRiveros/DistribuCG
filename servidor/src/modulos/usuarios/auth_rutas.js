@@ -8,7 +8,7 @@ import { login, registro, yo } from "./auth_controlador.js";
 
 const limiteLogin = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: env.LIMITE_LOGIN,
+  limit: env.INTENTOS_LOGIN,
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => env.esTest,

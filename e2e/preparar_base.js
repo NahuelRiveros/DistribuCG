@@ -2,7 +2,7 @@ import { ADMIN_E2E, ESQUEMA_E2E } from "./config_e2e.js";
 
 // Antes de los E2E: schema limpio, migraciones, roles y un admin de prueba.
 export default async function prepararBase() {
-  process.env.DB_SCHEMA = ESQUEMA_E2E;
+  process.env.BD_ESQUEMA = ESQUEMA_E2E;
   const { sequelize, DB_SCHEMA } = await import("../servidor/src/nucleo/db/sequelize.js");
   const { crearMigrador } = await import("../servidor/src/nucleo/db/migrador.js");
   const { Rol, ROLES, Usuario } = await import("../servidor/src/modulos/usuarios/modelos.js");

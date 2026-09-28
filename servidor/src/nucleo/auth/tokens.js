@@ -7,13 +7,13 @@ import { env } from "../env.js";
 export const versionContrasena = (hash) => createHash("sha256").update(hash).digest("hex").slice(0, 16);
 
 export function firmarToken(usuario) {
-  return jwt.sign({ pv: versionContrasena(usuario.contrasena) }, env.JWT_SECRET, {
+  return jwt.sign({ pv: versionContrasena(usuario.contrasena) }, env.CLAVE_SESIONES, {
     algorithm: "HS256",
     subject: String(usuario.id),
-    expiresIn: env.JWT_EXPIRA,
+    expiresIn: env.DURACION_SESION,
   });
 }
 
 export function verificarToken(token) {
-  return jwt.verify(token, env.JWT_SECRET, { algorithms: ["HS256"] });
+  return jwt.verify(token, env.CLAVE_SESIONES, { algorithms: ["HS256"] });
 }

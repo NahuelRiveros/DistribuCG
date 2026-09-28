@@ -12,7 +12,9 @@
       "Bash(git diff*)",
       "Bash(git log*)",
       "Read(//c/Users/nahue/OneDrive/Documentos/GitHub/DistribuCG/**)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git remote *)",
+      "Bash(git add *)"
     ],
     "deny": [
       "Read(./.env)",

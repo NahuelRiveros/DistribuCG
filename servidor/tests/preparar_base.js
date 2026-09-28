@@ -1,4 +1,4 @@
-// Antes de correr los tests: borra y recrea el schema de test (DB_SCHEMA_TEST)
+// Antes de correr los tests: borra y recrea el schema de test (BD_ESQUEMA_TEST)
 // y le aplica todas las migraciones. Así cada corrida arranca de una base limpia
 // y además se prueba que las migraciones funcionan desde cero.
 export default async function prepararBase() {
