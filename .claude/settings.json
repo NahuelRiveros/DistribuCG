@@ -14,7 +14,9 @@
       "Read(//c/Users/nahue/OneDrive/Documentos/GitHub/DistribuCG/**)",
       "Bash(npm run *)",
       "Bash(git remote *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(sed -i 's/se ignoran las BD_ de tu PC de abajo\\\\./se ignoran las BD_ de tu PC \\(las de arriba\\)./' servidor/.env.example)",
+      "Bash(grep -n \"de arriba\" servidor/.env.example)"
     ],
     "deny": [
       "Read(./.env)",
