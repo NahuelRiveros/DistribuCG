@@ -250,15 +250,18 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
         assert.equal((await cancelar("/abc/cancelar")).status, 404);
         const staff = await models.Rol.findOne({ where: { codigo: "supervisor" } });
         await models.UsuarioRol.create({ usuario_id: id, rol_id: staff.id });
-        const response = await fetch(url + "/todas", { headers });
+        // USU-09: su sesión de cliente deja de valer; vuelve a ingresar y recibe la del personal.
+        assert.equal((await fetch(url + "/todas", { headers })).status, 401);
+        const personal = { ...headers, Authorization: "Bearer " + (await login({ identificador: "ana@example.test", password: "Clave1234" })).token };
+        const response = await fetch(url + "/todas", { headers: personal });
         assert.equal(response.status, 200);
         assert.ok((await response.json()).total >= 1);
         await models.ModuloNegocio.update({ habilitado: false }, { where: { codigo: "eccomerce_distribuidora" } });
-        assert.equal((await fetch(url + "/todas", { headers })).status, 403);
+        assert.equal((await fetch(url + "/todas", { headers: personal })).status, 403);
         await models.ModuloNegocio.update({ habilitado: true }, { where: { codigo: "eccomerce_distribuidora" } });
         // La revocación de rol debe surtir efecto con el mismo token.
         await models.UsuarioRol.destroy({ where: { usuario_id: id, rol_id: staff.id } });
-        assert.equal((await fetch(url + "/todas", { headers })).status, 403);
+        assert.equal((await fetch(url + "/todas", { headers: personal })).status, 403);
       } finally { await new Promise((resolve) => server.close(resolve)); }
     });
     await t.test("avisos: pedido nuevo al equipo y al comprador una sola vez; estados y cancelación; Brevo caído no frena el pedido", async () => {
@@ -536,7 +539,8 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       await nota.reload();
       assert.deepEqual([nota.estado, nota.estado_pago, nota.stock_descontado], ["en_curso", "pagado", true]);
       assert.equal((await variant.reload()).cantidad, stockAntes - 2, "se confirmó: descontó el stock");
-      const historial = await models.NotaPedidoEstadoLog.findAll({ where: { nota_pedido_id: nota.id }, order: [["id", "ASC"]] });
+      // El primer renglón es el del envío ("Nota enviada por el cliente"); después, los dos del pago.
+      const historial = (await models.NotaPedidoEstadoLog.findAll({ where: { nota_pedido_id: nota.id }, order: [["id", "ASC"]] })).slice(1);
       assert.deepEqual(historial.map((h) => [h.anterior, h.nuevo, h.motivo, h.usuario_id]), [
         ["pendiente", "confirmado", "Pago aceptado", id], ["confirmado", "en_curso", "Pago aceptado", id]]);
 
