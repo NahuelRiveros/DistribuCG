@@ -2,7 +2,7 @@
 
 | Estado | Pedido por | Fecha | Spec del módulo |
 | --- | --- | --- | --- |
-| Aprobada | Dueño del proyecto | 2026-11-08 | [core/usuarios.md](../core/usuarios.md) |
+| Hecha | Dueño del proyecto | 2026-11-08 | [core/usuarios.md](../core/usuarios.md) |
 
 ## Por qué
 
@@ -15,9 +15,9 @@
 
 | Código | Requisito | Estado |
 | --- | --- | --- |
-| USU-04 | Cuenta desactivada, dada de baja o persona sin usuario: el ingreso con contraseña responde lo mismo que una contraseña incorrecta ("Email, usuario o contraseña incorrectos"), y el ingreso con Google responde lo mismo que una credencial de Google inválida. | 🚧 |
-| USU-06 | Quien solo tiene el rol cliente recibe una sesión de 30 días; quien tiene cualquier otro rol (supervisor, vendedor, admin, super admin o uno creado en el panel), de 24 horas, aunque también sea cliente. | 🚧 |
-| USU-09 | Una sesión abierta como cliente deja de valer si esa persona pasa a tener un rol del personal: tiene que volver a ingresar, y recibe la sesión de 24 horas. | 🚧 |
+| USU-04 | Cuenta desactivada, dada de baja o persona sin usuario: el ingreso con contraseña responde lo mismo que una contraseña incorrecta ("Email, usuario o contraseña incorrectos"), y el ingreso con Google responde lo mismo que una credencial de Google inválida. | ✅ |
+| USU-06 | Quien solo tiene el rol cliente recibe una sesión de 30 días; quien tiene cualquier otro rol (supervisor, vendedor, admin, super admin o uno creado en el panel), de 24 horas, aunque también sea cliente. | ✅ |
+| USU-09 | Una sesión abierta como cliente deja de valer si esa persona pasa a tener un rol del personal: tiene que volver a ingresar, y recibe la sesión de 24 horas. | ✅ |
 
 **Fuera de alcance:** "recordarme" opcional en la pantalla de ingreso, cerrar sesión en todos los
 dispositivos a pedido y cambiar los límites de intentos (USU-05).
@@ -39,15 +39,15 @@ sistema en el próximo pedido aunque su sesión dure 30 días (eso ya se revisa 
 
 ## Tareas
 
-1. [ ] Tests (fallan al principio): USU-04 con cuenta inactiva, dada de baja y sin usuario, con
+1. [x] Tests (fallan al principio): USU-04 con cuenta inactiva, dada de baja y sin usuario, con
    contraseña y con Google; USU-06 con cliente, con personal y con alguien que es las dos cosas;
    USU-09 con un cliente al que se le da un rol del personal.
-2. [ ] Servidor: `auth_service.js` (mensajes y duración según roles), `auth_middleware.js` (USU-09),
+2. [x] Servidor: `auth_service.js` (mensajes y duración según roles), `auth_middleware.js` (USU-09),
    `client_config.js` (los dos valores nuevos).
-3. [ ] Revisar que la pantalla "Personal" del admin siga mostrando si una cuenta está inactiva:
+3. [x] Revisar que la pantalla "Personal" del admin siga mostrando si una cuenta está inactiva:
    es donde ahora se averigua por qué alguien del personal no puede entrar.
-4. [ ] `node scripts/verificar.mjs --completo` en verde.
-5. [ ] Pasar USU-04, USU-06 y USU-09 a ✅ en la spec del módulo y marcar este cambio como hecho.
+4. [x] `node scripts/verificar.mjs --completo` en verde.
+5. [x] Pasar USU-04, USU-06 y USU-09 a ✅ en la spec del módulo y marcar este cambio como hecho.
 
 ## Riesgos
 

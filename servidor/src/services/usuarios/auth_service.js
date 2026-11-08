@@ -1,6 +1,6 @@
 ﻿import bcrypt from "bcrypt";
 import { randomBytes } from "node:crypto";
-import { passwordVersion } from "../common/auth_tokens.js";
+import { duracionSesionSegundos, passwordVersion, tipoSesion } from "../common/auth_tokens.js";
 import { clasificarIdentificador, esNombreUsuarioValido, normalizarNombreUsuario } from "../common/nombre_usuario.js";
 import { verificarCredencialGoogle } from "../common/google_auth.js";
 import { clientConfig } from "../../../../client_config.js";
@@ -19,8 +19,9 @@ function crearToken({ usuario_id, persona_id, roles, contrasena }) {
   const secret = env.JWT_SECRET;
   if (!secret) throw new Error("Falta JWT_SECRET en .env");
 
-  return jwt.sign({ sub: String(usuario_id), persona_id, roles, pv: passwordVersion(contrasena) }, secret, {
-    expiresIn: env.JWT_EXPIRES_IN ?? "24h",
+  const sesion = tipoSesion(roles);
+  return jwt.sign({ sub: String(usuario_id), persona_id, roles, sesion, pv: passwordVersion(contrasena) }, secret, {
+    expiresIn: duracionSesionSegundos(sesion),
   });
 }
 
@@ -46,15 +47,9 @@ export async function login({ identificador, password }) {
   const { persona, usuario } = await buscarCuenta(identificador);
   if (!persona) return CREDENCIALES_INVALIDAS;
 
-  if (!usuario) {
-    return { ok: false, codigo: "SIN_USUARIO", mensaje: "La persona no tiene usuario habilitado" };
-  }
-
-  if (usuario.eliminado_en) return CREDENCIALES_INVALIDAS;
-
-  if (usuario.activo === false) {
-    return { ok: false, codigo: "USUARIO_INACTIVO", mensaje: "Usuario inactivo" };
-  }
+  // USU-04: sin usuario, dada de baja o desactivada responde igual que una contraseña incorrecta:
+  // nadie puede averiguar si una cuenta existe. Por qué no entra alguien del personal lo ve el admin.
+  if (!usuario || usuario.eliminado_en || usuario.activo === false) return CREDENCIALES_INVALIDAS;
 
   const valido = await bcrypt.compare(pass, usuario.contrasena ?? "");
   if (!valido) return CREDENCIALES_INVALIDAS;
@@ -165,7 +160,7 @@ export async function loginConGoogle({ credencial }, { verificar = verificarCred
     persona = await Persona.findOne({ where: { email } });
     if (persona) {
       usuario = await Usuario.findOne({ where: { persona_id: persona.id } });
-      if (!usuario) return { ok: false, codigo: "SIN_USUARIO", mensaje: "La persona no tiene usuario habilitado" };
+      if (!usuario) return GOOGLE_INVALIDO;
       if (usuario.google_id) return { ok: false, codigo: "GOOGLE_OTRA_CUENTA", mensaje: "Este email ya está vinculado a otra cuenta de Google." };
       await usuario.update({ google_id: datos.google_id });
     } else {
@@ -189,8 +184,7 @@ export async function loginConGoogle({ credencial }, { verificar = verificarCred
     }
   }
 
-  if (usuario.eliminado_en) return GOOGLE_INVALIDO;
-  if (usuario.activo === false) return { ok: false, codigo: "USUARIO_INACTIVO", mensaje: "Usuario inactivo" };
+  if (usuario.eliminado_en || usuario.activo === false) return GOOGLE_INVALIDO;
   return await abrirSesion({ persona, usuario });
 }
 

@@ -3,7 +3,7 @@ import { env } from "../configuracion_servidor/env.js";
 import { QueryTypes } from "sequelize";
 import { Usuario } from "../models/index.js";
 import { sequelize } from "../database/sequelize.js";
-import { passwordVersion } from "../services/common/auth_tokens.js";
+import { passwordVersion, sesionVigente } from "../services/common/auth_tokens.js";
 import { permisosEfectivos, tienePermiso } from "../../../permisos_config.js";
 
 // Roles y permisos en una sola consulta (antes era solo la de roles): se lee en cada
@@ -25,7 +25,10 @@ async function authenticate(req) {
   const payload = jwt.verify(auth.slice(7), env.JWT_SECRET, { algorithms: ["HS256"] });
   const user = await Usuario.findByPk(payload.sub);
   if (!user || !user.activo || user.eliminado_en || payload.pv !== passwordVersion(user.contrasena)) return null;
-  return { usuario_id: user.id, persona_id: user.persona_id, ...await rolesYPermisos(user.id) };
+  const acceso = await rolesYPermisos(user.id);
+  // USU-09: una sesión de cliente (30 días) no sirve para quien hoy es personal: vuelve a ingresar con la de 24 h.
+  if (!sesionVigente(payload.sesion, acceso.roles)) throw Object.assign(new Error("Sesión de cliente con rol del personal"), { name: "TokenExpiredError" });
+  return { usuario_id: user.id, persona_id: user.persona_id, ...acceso };
 }
 export async function requireAuth(req, res, next) {
   try {

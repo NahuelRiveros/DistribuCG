@@ -620,6 +620,47 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       const otra = await registrarCliente({ nombre: "Beto", apellido: "Prueba", email: "beto@example.test", password: "Clave1234" });
       await assert.rejects(models.Usuario.update({ nombre_usuario: "ana.prueba" }, { where: { id: otra.usuario_id } }));
     });
+    await t.test("USU-04, USU-06 y USU-09: mensaje genérico, 30 días de sesión para clientes y 24 h para el personal", async () => {
+      const jwt = (await import("jsonwebtoken")).default;
+      const { requireAuth } = await import("../src/middleware/auth_middleware.js");
+      const sesion = (token) => { const p = jwt.decode(token); return [p.sesion, p.exp - p.iat]; };
+      const sole = await registrarCliente({ nombre: "Sole", apellido: "Sesion", email: "sole@example.test", password: "Clave1234" });
+      const entrar = () => login({ identificador: "sole@example.test", password: "Clave1234" });
+      const comoCliente = (await entrar()).token;
+      assert.deepEqual(sesion(comoCliente), ["cliente", 30 * 24 * 3600]);
+
+      const express = (await import("express")).default;
+      const app = express();
+      app.get("/yo", requireAuth, (req, res) => res.json({ ok: true }));
+      const server = await new Promise((resolve) => { const s = app.listen(0, "127.0.0.1", () => resolve(s)); });
+      try {
+        const yo = (token) => fetch(`http://127.0.0.1:${server.address().port}/yo`, { headers: { Authorization: "Bearer " + token } });
+        assert.equal((await yo(comoCliente)).status, 200);
+        // Pasa a ser personal: su sesión de cliente deja de valer y vuelve a ingresar con 24 h.
+        const [vendedor] = await models.Rol.findOrCreate({ where: { codigo: "vendedor" }, defaults: { descripcion: "Vendedor" } });
+        await models.UsuarioRol.create({ usuario_id: sole.usuario_id, rol_id: vendedor.id });
+        const rechazo = await yo(comoCliente);
+        assert.deepEqual([rechazo.status, (await rechazo.json()).codigo], [401, "TOKEN_INVALIDO"]);
+        const comoPersonal = (await entrar()).token;
+        assert.deepEqual(sesion(comoPersonal), ["personal", 24 * 3600]);
+        assert.equal((await yo(comoPersonal)).status, 200);
+      } finally { await new Promise((resolve) => server.close(resolve)); }
+
+      // USU-04: desactivada, dada de baja o sin usuario: lo mismo que una contraseña incorrecta.
+      const generico = ["CREDENCIALES_INVALIDAS", "Email, usuario o contraseña incorrectos"];
+      await models.Usuario.update({ activo: false }, { where: { id: sole.usuario_id } });
+      const inactiva = await entrar();
+      assert.deepEqual([inactiva.codigo, inactiva.mensaje], generico);
+      const conGoogle = await loginConGoogle({ credencial: "x" }, { verificar: async () => ({ google_id: "g-sole", email: "sole@example.test", email_verificado: true }) });
+      assert.equal(conGoogle.codigo, "GOOGLE_INVALIDO");
+      await models.Usuario.update({ activo: true, eliminado_en: new Date() }, { where: { id: sole.usuario_id } });
+      const baja = await entrar();
+      assert.deepEqual([baja.codigo, baja.mensaje], generico);
+      const dni = await models.TipoDocumento.findOne();
+      await models.Persona.create({ tipo_documento_id: dni.id, nombre: "Sin", apellido: "Usuario", documento: "55555555", email: "sinusuario@example.test" });
+      const sinUsuario = await login({ identificador: "sinusuario@example.test", password: "Clave1234" });
+      assert.deepEqual([sinUsuario.codigo, sinUsuario.mensaje], generico);
+    });
     await t.test("registro con usuario opcional: guarda en minúsculas, rechaza repetido e inválido", async () => {
       const base = { nombre: "Caro", apellido: "Prueba", password: "Clave1234" };
       const conUsuario = await registrarCliente({ ...base, email: "caro@example.test", nombre_usuario: " Caro.P " });

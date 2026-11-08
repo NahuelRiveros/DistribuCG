@@ -29,11 +29,11 @@ seguir sus pedidos, el personal para trabajar en el panel.
 | USU-01 | Se ingresa con email **o** nombre de usuario en el mismo campo, sin distinguir mayúsculas. Con "@" se trata como email; sin "@", como usuario. | ✅ `checkout.integration.mjs` › "login con email o nombre de usuario, sin distinguir mayúsculas"; `ux_rules.test.mjs` › "login distingue email de nombre de usuario…" |
 | USU-02 | Con datos incorrectos se muestra "Email, usuario o contraseña incorrectos", sin decir cuál de los dos falló. | ✅ `storefront.spec.js` › "inicia sesión con nombre de usuario y muestra el error de credenciales" |
 | USU-03 | Una cuenta dada de baja recibe el mismo mensaje que una contraseña incorrecta. | ⚠️ sin test |
-| USU-04 | Una cuenta desactivada o una persona cargada sin usuario recibe el mismo mensaje que USU-02, también al ingresar con Google: nadie puede averiguar si una cuenta existe. Por qué no entra alguien del personal lo ve el admin en "Personal". | 🚧 [cambio 2026-11-sesion-e-ingreso](../cambios/2026-11-sesion-e-ingreso.md) |
+| USU-04 | Una cuenta desactivada o una persona cargada sin usuario recibe el mismo mensaje que USU-02, también al ingresar con Google: nadie puede averiguar si una cuenta existe. Por qué no entra alguien del personal lo ve el admin en "Personal". | ✅ `checkout.integration.mjs` › "USU-04, USU-06 y USU-09: mensaje genérico, 30 días de sesión para clientes y 24 h para el personal" |
 | USU-05 | Más de 10 intentos en 15 minutos desde la misma IP para la misma cuenta se frenan con "Demasiados intentos. Intentá en 15 minutos." | ⚠️ sin test |
-| USU-06 | La sesión de un cliente dura 30 días; la de quien tiene cualquier rol del personal, 24 horas. Después hay que volver a ingresar. | 🚧 [cambio 2026-11-sesion-e-ingreso](../cambios/2026-11-sesion-e-ingreso.md) (hoy: 24 horas para todos) |
+| USU-06 | La sesión de un cliente dura 30 días; la de quien tiene cualquier rol del personal, 24 horas. Después hay que volver a ingresar. | ✅ `checkout.integration.mjs` › "USU-04, USU-06 y USU-09: mensaje genérico, 30 días de sesión para clientes y 24 h para el personal"; `ux_rules.test.mjs` › "USU-06 y USU-09: …" |
 | USU-07 | Cambiar la contraseña cierra todas las sesiones abiertas con la contraseña anterior. | ⚠️ sin test |
-| USU-09 | Una sesión abierta como cliente deja de valer si esa persona pasa a tener un rol del personal: tiene que volver a ingresar. | 🚧 [cambio 2026-11-sesion-e-ingreso](../cambios/2026-11-sesion-e-ingreso.md) |
+| USU-09 | Una sesión abierta como cliente deja de valer si esa persona pasa a tener un rol del personal: tiene que volver a ingresar. | ✅ `checkout.integration.mjs` › "USU-04, USU-06 y USU-09: mensaje genérico, 30 días de sesión para clientes y 24 h para el personal"; `ux_rules.test.mjs` › "USU-06 y USU-09: …" |
 | USU-08 | Después de ingresar se vuelve a la página interna de donde se venía, con sus filtros; nunca a otro sitio ni otra vez al login. Sin página previa, va al catálogo. | ✅ `ux_rules.test.mjs` › "redirecciones internas conservan filtros y rechazan otros orígenes y login" |
 
 ### Registro
@@ -78,7 +78,7 @@ seguir sus pedidos, el personal para trabajar en el panel.
 | Registro público | `client_config.js` › `auth.publicRegistration` | Sí, con la tienda activa |
 | Largo de la contraseña | `client_config.js` › `auth.passwordMinLength` / `passwordMaxLength` | 8 a 72 |
 | Vencimiento del enlace de recuperación | `client_config.js` › `auth.resetMinutes` | 20 minutos |
-| Duración de la sesión | `services/usuarios/auth_service.js` (fijo) | 24 horas para todos (lee `JWT_EXPIRES_IN`, que no existe en `env.js`) |
+| Duración de la sesión | `client_config.js` › `auth.sesionClienteDias` / `sesionPersonalHoras` | 30 días clientes · 24 horas personal |
 | Ingreso con Google | variables `GOOGLE_CLIENT_ID` (servidor) y `VITE_GOOGLE_CLIENT_ID` (web) | Configurado |
 | Límites de intentos | `servidor/src/routes/usuarios/auth_router.js` | Ingreso 10 / 15 min · registro 10 / hora · recuperación 5 / hora |
 

@@ -482,3 +482,16 @@ test("PED-19: cada estado tiene un botón principal con el próximo paso; volver
   assert.deepEqual(accionesDeEstado("entregado"), { siguiente: null, cancelar: false, otras: [{ estado: "en_curso", label: "Volver a En preparación" }] });
   assert.deepEqual(accionesDeEstado("cancelada"), { siguiente: null, cancelar: false, otras: [{ estado: "pendiente", label: "Reabrir pedido" }] });
 });
+test("USU-06 y USU-09: sesión de 30 días para clientes y 24 h para el personal; la de cliente no vale si ahora es personal", async () => {
+  const { tipoSesion, duracionSesionSegundos, sesionVigente } = await import("../src/services/common/auth_tokens.js");
+  assert.equal(tipoSesion(["cliente"]), "cliente");
+  assert.equal(tipoSesion([]), "cliente");
+  assert.equal(tipoSesion(["vendedor"]), "personal");
+  assert.equal(tipoSesion(["cliente", "supervisor"]), "personal", "si también es personal, manda la más corta");
+  assert.equal(duracionSesionSegundos("cliente"), 30 * 24 * 3600);
+  assert.equal(duracionSesionSegundos("personal"), 24 * 3600);
+  assert.equal(sesionVigente("cliente", ["cliente"]), true);
+  assert.equal(sesionVigente("cliente", ["cliente", "vendedor"]), false);
+  assert.equal(sesionVigente("personal", ["vendedor"]), true);
+  assert.equal(sesionVigente(undefined, ["vendedor"]), true, "las sesiones de antes (sin tipo) siguen hasta vencer");
+});
