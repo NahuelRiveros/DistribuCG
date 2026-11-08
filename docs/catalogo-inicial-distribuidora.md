@@ -168,7 +168,7 @@ ampliaciones a una base que ya tiene datos, ejecutar desde `servidor`:
 npm run seed:distribuidora
 ```
 
-Este comando utiliza la conexión y el esquema del `.env` de `servidor`,
+Este comando utiliza la conexión y el esquema de `servidor/.env.local`,
 muestra el esquema de destino y agrega los faltantes en una sola transacción.
 No ejecuta bootstrap, `sync`, cambios de esquema ni los demás seeds. Un bloqueo
 transaccional serializa ejecuciones simultáneas del mismo comando.
@@ -266,7 +266,7 @@ seed solo afecta altas futuras, y una imagen ya cargada se edita en gestión.
 | Ayudín Gel Expert Original 700 ml | [Farmacity](https://www.farmacity.com/ayudin-lavandina-gel-expert-original-x-700-ml/p) |
 
 Las pruebas de `servidor/tests/seed_distribuidora.test.mjs` usan repositorios
-en memoria, sin leer el `.env` ni conectar a PostgreSQL. Incluyen la selección
+en memoria, sin leer los `.env` ni conectar a PostgreSQL. Incluyen la selección
 real contrastada con las listas de familias y marcas, repetición, bajas,
 renombres, asociación heredada, imágenes inválidas y errores de persistencia.
 

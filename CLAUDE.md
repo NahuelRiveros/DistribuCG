@@ -113,10 +113,10 @@ No hay package.json raíz ni workspaces; cada paquete instala sus dependencias.
 | Integración PostgreSQL | `npm --prefix servidor run test:integration` |
 | Navegador | `npm --prefix frontend run test:e2e` |
 | **Todo, con salida resumida** | `node scripts/verificar.mjs` (tests del servidor, lint y build); `--rapido` (sin build), `--completo` (más integración y Playwright), `--detalle` (salida completa de lo que falle) |
-| Precios de demostración (escribe en la base del `.env`; nunca en `gc_dist`) | `npm --prefix servidor run seed:precios-demo` (lo corre el usuario). Con `CATALOGO_DEMO_AL_INICIAR=true` lo hace el arranque (`seed/catalogo_demo.js`) |
+| Precios de demostración (escribe en la base de `.env.local`; nunca en `gc_dist`) | `npm --prefix servidor run seed:precios-demo` (lo corre el usuario). Con `CATALOGO_DEMO_AL_INICIAR=true` lo hace el arranque (`seed/catalogo_demo.js`) |
 | Subir fotos del catálogo del cliente a Cloudinary (escribe `seed/imagenes_catalogo.json`) | `npm --prefix servidor run imagenes:subir -- "<carpeta con _indice.json>"` (lo corre el usuario; usa sus claves). Con `IMAGENES_CATALOGO_AL_INICIAR=true` el arranque asigna esas fotos por `cod_ref` a los artículos sin foto (`seed/imagenes_catalogo.js`) |
-| Dar de baja el catálogo inicial de demostración (sin `--confirmar` solo cuenta) | `npm --prefix servidor run catalogo:retirar-demo -- --confirmar` (lo corre el usuario; escribe en la base del `.env`) |
-| Revisar los `.env` (solo nombres, sin valores) | `npm --prefix servidor run env:verificar` (lo corre el usuario; lee sus `.env`) |
+| Dar de baja el catálogo inicial de demostración (sin `--confirmar` solo cuenta) | `npm --prefix servidor run catalogo:retirar-demo -- --confirmar` (lo corre el usuario; escribe en la base de producción, lee `.env.produccion`) |
+| Revisar los `.env` (solo nombres, sin valores) | `npm --prefix servidor run env:verificar` (lo corre el usuario; lee sus `.env.local` y `.env.produccion`) |
 
 Un solo test: `node --test --test-name-pattern="carrito" servidor/tests/ux_rules.test.mjs`;
 en Playwright, `npm --prefix frontend run test:e2e -- --project=desktop -g "texto del test"`
@@ -194,6 +194,11 @@ actualizar el script correspondiente o ejecutarlo explícitamente con `node --te
 ## Secretos y permisos de Claude
 
 No leer ni mostrar archivos .env reales, tokens, contraseñas o cadenas de conexión.
+Variables: en la PC el servidor lee solo `servidor/.env.local` (PostgreSQL local, `BD_URL` vacía) y Vite
+`frontend/.env.local`. `*/.env.produccion` tiene lo de Render y Vercel (se pega con "Add from .env" /
+"Import .env"); el código no lo lee, salvo los scripts de producción con `node --env-file=.env.produccion`
+(`catalogo:retirar-demo`, `admin:verificar`, `imagenes:subir`). Los moldes con valores falsos son
+`.env.local.example` y `.env.produccion.example`; un `.env` a secas ya no se usa.
 Consultar nombres y ejemplos sanitizados; `VITE_*` es público. No copiar permisos locales
 de otro proyecto ni habilitar bypass de permisos. `.claude/settings.json` conserva permisos
 existentes y agrega comandos de verificación y restricciones del flujo importado.

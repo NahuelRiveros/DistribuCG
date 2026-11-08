@@ -11,9 +11,9 @@
     "start": "node src/server.js",
     "seed:distribuidora": "node src/modulos/eccomerce_distribuidora/seed/actualizar_catalogo_distribuidora.js",
     "seed:precios-demo": "node src/modulos/eccomerce_distribuidora/seed/aplicar_precios_demo.js",
-    "imagenes:subir": "node src/modulos/eccomerce_distribuidora/seed/subir_imagenes_catalogo.js",
-    "catalogo:retirar-demo": "node src/modulos/eccomerce_distribuidora/seed/retirar_productos_demo.js",
-    "admin:verificar": "node src/database/seed/verificar_super_admin.js"
+    "imagenes:subir": "node --env-file=.env.produccion src/modulos/eccomerce_distribuidora/seed/subir_imagenes_catalogo.js",
+    "catalogo:retirar-demo": "node --env-file=.env.produccion src/modulos/eccomerce_distribuidora/seed/retirar_productos_demo.js",
+    "admin:verificar": "node --env-file=.env.produccion src/database/seed/verificar_super_admin.js"
   },
   "keywords": [],
   "author": "",

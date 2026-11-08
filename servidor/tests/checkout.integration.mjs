@@ -2,8 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import dotenv from "dotenv";
+import { fileURLToPath } from "node:url";
 // Siempre localhost y un schema nuevo. Nunca ejecuta bootstrap ni usa la base remota.
-dotenv.config({ quiet: true });
+// Solo el .env.local: la conexión a tu PostgreSQL local. Nunca el de producción.
+dotenv.config({ path: fileURLToPath(new URL("../.env.local", import.meta.url)), quiet: true });
 process.env.NODE_ENV = "test";
 process.env.BD_URL = "";
 process.env.GOOGLE_CLIENT_ID = "cliente-de-prueba";

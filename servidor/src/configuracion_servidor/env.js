@@ -1,5 +1,11 @@
-import "dotenv/config.js";
+import dotenv from "dotenv";
+import { fileURLToPath } from "node:url";
 import { deploymentConfig } from "../../../deployment_config.js";
+
+// En tu PC solo se lee servidor/.env.local (PostgreSQL local): así nunca se toca producción por error.
+// En Render las variables vienen de su panel. Los scripts que tocan producción a propósito cargan
+// .env.produccion con `node --env-file` antes de esto, y dotenv no pisa lo que ya está cargado.
+dotenv.config({ path: fileURLToPath(new URL("../../.env.local", import.meta.url)), quiet: true });
 
 // El panel de Render guarda el valor tal cual: si se pega con comillas o espacios
 // ("https://…"), quedarían como parte del texto. dotenv ya los quita en el .env local.

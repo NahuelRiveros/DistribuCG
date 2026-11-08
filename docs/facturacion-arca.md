@@ -86,7 +86,7 @@ iva   = subtotal - neto
 ## Lo que falta programar
 
 1. ~~Variables de entorno~~ y ~~armado del comprobante~~: **ya preparados** (`arca.js`, `arca_comprobante.js`).
-   Las variables están declaradas en `env.js` y `servidor/.env.example`, vacías; los valores nunca van al repositorio:
+   Las variables están declaradas en `env.js` y `servidor/.env.produccion.example`, vacías; los valores nunca van al repositorio:
    - `ARCA_CUIT_EMISOR`: CUIT de la distribuidora.
    - `ARCA_PUNTO_VENTA`: número del punto de venta para Web Services.
    - `ARCA_CERTIFICADO_PEM` y `ARCA_CLAVE_PRIVADA_PEM`: certificado y clave, en base64.
