@@ -22,8 +22,8 @@ de esos rubros.
   archivo. Decide qué tablas crea el bootstrap; no cambiarlo como un simple ajuste visual.
 - `client_config.js`: cliente activo, acceso público y políticas del carrito.
 - `order_config.js`: estados, transiciones, stock por estado y comprobantes de cobro.
-- `permisos_config.js`: lista de permisos del personal: los del core acá y los de cada rubro en
-  `modulos_compartidos/<rubro>/permisos.js` (`pedidos.ver`, `cobros.gestionar`, `precios.editar`…),
+- `permisos_config.js`: lista de TODOS los permisos del personal, en un bloque CORE y
+  bloques por rubro del mismo archivo (`pedidos.ver`, `cobros.gestionar`, `precios.editar`…),
   sus grupos, dependencias (`requiere`) y los roles que los reciben al aparecer (`porDefecto`). Qué rol tiene
   cada permiso vive en la base (`rol_permiso`) y se edita en `/admin/permisos`. `admin` y `super_admin` tienen
   todos siempre. El rol `staff` se renombró a `supervisor` (`renombrarStaffASupervisor` en `seed_rbac.js`).
@@ -34,6 +34,8 @@ de esos rubros.
   `servidor/src/configuracion_servidor/arca.js` y nunca va al frontend. Los precios guardados son FINALES (con IVA); `nota_pedido_item.iva_porcentaje` los desglosa.
 - `unidades_config.js`: unidades de venta, bultos (equivalencia) y el cálculo de bultos/sueltos
   que usan la ficha del artículo, el catálogo y la lista de carga.
+- `docs/specs/`: especificaciones (SDD). Reglas con código (`USU-03`…) y su test; antes de programar un
+  cambio se escribe y aprueba su spec de cambio. Ver `docs/specs/README.md`.
 - `docs/distribuidora-pedidos.md`: contrato y reglas del pedido; leer para cambios de negocio.
 - Catálogo en dos niveles (Familia › Categoría). Las marcas son tabla propia (`marca_distribuidora`)
   asociada a familias o categorías (`marca_categoria_distribuidora`); el artículo guarda `marca_id` y

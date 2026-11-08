@@ -520,6 +520,35 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.ok(await permisosSrv.eliminarRol(repositor.id));
       assert.equal(await models.RolPermiso.count({ where: { rol_id: repositor.id } }), 0);
     });
+    await t.test("PER-20: el personal necesita 8 caracteres al crearse o cambiar la contraseña; las viejas siguen sirviendo", async () => {
+      const { crearStaff, cambiarPasswordStaff } = await import("../src/services/usuarios/admin_staff_service.js");
+      const bcrypt = (await import("bcrypt")).default;
+      const datos = { email: "vera@example.test", nombre: "Vera", apellido: "Vendedora", documento: "30111222", rol_codigo: "vendedor", solicitanteEsSuperAdmin: false };
+      assert.equal((await crearStaff({ ...datos, password: "1234567" })).codigo, "PASSWORD_INVALIDA");
+      const creada = await crearStaff({ ...datos, password: "Clave123" });
+      assert.equal(creada.ok, true, creada.mensaje);
+      assert.equal((await login({ identificador: "vera@example.test", password: "Clave123" })).ok, true);
+      assert.equal((await cambiarPasswordStaff(creada.usuario_id, "1234567", false)).codigo, "PASSWORD_INVALIDA");
+      assert.equal((await cambiarPasswordStaff(creada.usuario_id, "Nueva1234", false)).ok, true);
+      // Una contraseña corta de antes del cambio: se sigue aceptando para ingresar.
+      await models.Usuario.update({ contrasena: await bcrypt.hash("abcde", 10) }, { where: { id: creada.usuario_id } });
+      assert.equal((await login({ identificador: "vera@example.test", password: "abcde" })).ok, true);
+    });
+    await t.test("PER-13: el arranque borra el rol profesional si nadie lo tiene y lo conserva si alguien sí", async () => {
+      const { retirarRolProfesional } = await import("../src/database/seed/seed_rbac.js");
+      const crearProfesional = () => models.Rol.findOrCreate({ where: { codigo: "profesional" }, defaults: { descripcion: "Profesional" } }).then(([rol]) => rol);
+      await crearProfesional();
+      assert.deepEqual(await retirarRolProfesional(), { borrado: true, personas: 0 });
+      assert.equal(await models.Rol.count({ where: { codigo: "profesional" } }), 0);
+      assert.deepEqual(await retirarRolProfesional(), { borrado: false, personas: 0 }, "sin el rol no hace nada");
+      const rol = await crearProfesional();
+      const pablo = await registrarCliente({ nombre: "Pablo", apellido: "Profesional", email: "pablo@example.test", password: "Clave1234" });
+      await models.UsuarioRol.create({ usuario_id: pablo.usuario_id, rol_id: rol.id });
+      assert.deepEqual(await retirarRolProfesional(), { borrado: false, personas: 1 });
+      assert.equal(await models.Rol.count({ where: { codigo: "profesional" } }), 1, "con personas no se borra");
+      await models.UsuarioRol.destroy({ where: { rol_id: rol.id } });
+      await rol.destroy();
+    });
     await t.test("enlace de recuperación se utiliza una vez y el login acepta la nueva clave", async () => {
       const user = await models.Usuario.findByPk(id);
       const token = createResetToken(user, env.JWT_SECRET, 20);

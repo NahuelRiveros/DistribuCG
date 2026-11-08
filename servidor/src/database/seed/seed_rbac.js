@@ -22,16 +22,35 @@ export async function renombrarStaffASupervisor() {
   });
 }
 
+/**
+ * "profesional" era del gimnasio y la kinesiología (PER-13). Se borra si nadie lo tiene;
+ * si alguien lo tiene, se conserva y se avisa para resolverlo a mano: borrarlo dejaría
+ * a esa persona sin rol.
+ */
+export async function retirarRolProfesional() {
+  return sequelize.transaction(async (t) => {
+    const rol = await Rol.findOne({ where: { codigo: "profesional" }, transaction: t, lock: t.LOCK.UPDATE });
+    if (!rol) return { borrado: false, personas: 0 };
+    const personas = await UsuarioRol.count({ where: { rol_id: rol.id }, transaction: t });
+    if (personas) {
+      console.warn(`⚠️  El rol "profesional" ya no se usa, pero lo tienen ${personas} persona(s): cambiales el rol en "Personal".`);
+      return { borrado: false, personas };
+    }
+    await RolPermiso.destroy({ where: { rol_id: rol.id }, transaction: t });
+    await rol.destroy({ transaction: t });
+    return { borrado: true, personas: 0 };
+  });
+}
+
 export async function seed_rbac() {
   await renombrarStaffASupervisor();
-  // Roles genéricos, sin nombres de un rubro. "profesional" se conserva porque
-  // personal y stock lo siguen aceptando en sus permisos.
+  await retirarRolProfesional();
+  // Roles genéricos, sin nombres de un rubro.
   const roles = [
     { codigo: "super_admin", descripcion: "Super administrador de la plataforma" },
     { codigo: "admin",       descripcion: "Administrador del negocio" },
     // Antes "staff" (ver renombrarStaffASupervisor): todo lo del catálogo, pedidos y cobros.
     { codigo: "supervisor",  descripcion: "Supervisor" },
-    { codigo: "profesional", descripcion: "Profesional" },
     // Rol que se asigna automáticamente al auto-registrarse desde /register
     // (POST /auth/register) — clientes externos de un módulo con catálogo
     // propio (hoy: eccomerce_distribuidora), no personal interno.

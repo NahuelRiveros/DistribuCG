@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import InputField from "../ui/input_field.jsx";
+import { authConfig } from "../../config/auth_config.js";
 
 const valoresIniciales = {
   password: "",
@@ -42,10 +43,10 @@ export default function StaffPasswordModal({
         message: "La contraseña es obligatoria",
       });
       valido = false;
-    } else if (password.length < 4) {
+    } else if (password.length < authConfig.passwordMinLength) {
       setError("password", {
         type: "manual",
-        message: "La contraseña debe tener al menos 4 caracteres",
+        message: `La contraseña debe tener al menos ${authConfig.passwordMinLength} caracteres`,
       });
       valido = false;
     }
@@ -99,7 +100,7 @@ export default function StaffPasswordModal({
             name="password"
             register={register}
             error={errors.password?.message}
-            placeholder="Mínimo 4 caracteres"
+            placeholder={`Mínimo ${authConfig.passwordMinLength} caracteres`}
             type="password"
             autoComplete="new-password"
           />

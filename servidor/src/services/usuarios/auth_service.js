@@ -4,6 +4,7 @@ import { passwordVersion } from "../common/auth_tokens.js";
 import { clasificarIdentificador, esNombreUsuarioValido, normalizarNombreUsuario } from "../common/nombre_usuario.js";
 import { verificarCredencialGoogle } from "../common/google_auth.js";
 import { clientConfig } from "../../../../client_config.js";
+import { contrasenaValida, MENSAJE_CONTRASENA } from "../common/contrasena.js";
 import jwt from "jsonwebtoken";
 import { UniqueConstraintError } from "sequelize";
 import { env } from "../../configuracion_servidor/env.js";
@@ -115,9 +116,7 @@ export async function registrarCliente({ nombre, apellido, email, password, nomb
   if (!nombreN || !apellidoN || !emailN || !pass) {
     return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: nombre, apellido, email y password" };
   }
-  if (pass.length < clientConfig.auth.passwordMinLength || Buffer.byteLength(pass, "utf8") > clientConfig.auth.passwordMaxLength) {
-    return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: `La contraseña debe tener entre ${clientConfig.auth.passwordMinLength} caracteres y ${clientConfig.auth.passwordMaxLength} bytes` };
-  }
+  if (!contrasenaValida(pass)) return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: MENSAJE_CONTRASENA };
 
   if (usuarioN && !esNombreUsuarioValido(usuarioN)) {
     return { ok: false, codigo: "NOMBRE_USUARIO_INVALIDO", mensaje: "El usuario debe tener entre 3 y 30 caracteres: letras, números, punto, guion o guion bajo" };

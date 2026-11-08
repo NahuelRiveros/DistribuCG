@@ -284,6 +284,40 @@ test("panel de gestión: cada uno ve las secciones de sus permisos y el cliente 
   assert.equal(filtrarNavbarPorRol({ dropdowns: panelGrupos }, supervisor, { eccomerce_distribuidora: false }).dropdowns.some((g) => g.id === "distribuidora"), false);
 });
 
+test("PER-33: todos los permisos en permisos_config.js, con la misma lista de siempre (códigos, grupos, orden y roles de entrada)", async () => {
+  const { existsSync } = await import("node:fs");
+  assert.equal(existsSync(new URL("../../modulos_compartidos", import.meta.url)), false, "sin segundo archivo de permisos");
+  // Si un código cambiara, el arranque borraría lo tildado en el panel (PER-31).
+  assert.deepEqual(permisosConfig.grupos.map((g) => g.codigo), ["pedidos", "cobros", "catalogo", "contenido", "equipo"]);
+  assert.deepEqual(permisosConfig.permisos.map((p) => [p.codigo, p.grupo, p.porDefecto, p.requiere ?? []]), [
+    ["pedidos.ver", "pedidos", ["supervisor", "vendedor"], []],
+    ["pedidos.gestionar", "pedidos", ["supervisor", "vendedor"], ["pedidos.ver"]],
+    ["cobros.gestionar", "cobros", ["supervisor"], ["pedidos.ver"]],
+    ["ventas.ver", "cobros", [], []],
+    ["productos.editar", "catalogo", ["supervisor"], []],
+    ["precios.editar", "catalogo", ["supervisor"], []],
+    ["contenido.editar", "contenido", [], []],
+    ["usuarios.gestionar", "equipo", [], []],
+    ["permisos.gestionar", "equipo", [], []],
+  ]);
+  assert.equal(permisosConfig.rolesFuera.includes("profesional"), false, "PER-13: sin el rol del gimnasio");
+});
+test("PER-26: la API no tiene /admin/usuarios; el alta del personal pasa por /staff", async () => {
+  const { default: router } = await import("../src/routes/index.js");
+  const atiende = (ruta) => router.stack.filter((capa) => capa.handle?.stack && capa.match(ruta)).length;
+  assert.equal(atiende("/admin/usuarios"), 0);
+  assert.equal(atiende("/staff"), 1);
+});
+test("PER-20: la contraseña del personal sigue la misma regla que la de los clientes (8 a 72)", async () => {
+  const { contrasenaValida, MENSAJE_CONTRASENA } = await import("../src/services/common/contrasena.js");
+  assert.equal(contrasenaValida("1234567"), false);
+  assert.equal(contrasenaValida("12345678"), true);
+  assert.equal(contrasenaValida("a".repeat(72)), true);
+  assert.equal(contrasenaValida("a".repeat(73)), false);
+  assert.equal(contrasenaValida("ñ".repeat(37)), false, "el límite es en bytes: lo que bcrypt alcanza a leer");
+  assert.equal(contrasenaValida(undefined), false);
+  assert.match(MENSAJE_CONTRASENA, /8/);
+});
 test("permisos: admin y super admin tienen todo; el resto, solo lo asignado y conocido", () => {
   assert.deepEqual(permisosEfectivos(["admin"], []), CODIGOS_PERMISO);
   assert.deepEqual(permisosEfectivos(["vendedor"], ["pedidos.ver", "inventado.ver", null]), ["pedidos.ver"]);

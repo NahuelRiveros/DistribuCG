@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import { sequelize } from "../../database/sequelize.js";
 import { Persona, Usuario, UsuarioRol, Rol, TipoDocumento } from "../../models/index.js";
 import { permisosConfig } from "../../../../permisos_config.js";
+import { contrasenaValida, MENSAJE_CONTRASENA } from "../common/contrasena.js";
 
 const normalizarEmail = (v) => String(v ?? "").trim().toLowerCase();
 const normalizarDocumento = (v) => String(v ?? "").replace(/[.\s]/g, "").trim();
@@ -104,8 +105,8 @@ export async function crearStaff({ email, password, nombre, apellido, documento,
 
   if (!emailN || !pass || !nombreN || !apellidoN || !doc)
     return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: email, password, nombre, apellido y documento" };
-  if (pass.length < 4)
-    return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: "La contraseña debe tener al menos 4 caracteres" };
+  if (!contrasenaValida(pass))
+    return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: MENSAJE_CONTRASENA };
   if (!/^\d+$/.test(doc))
     return { ok: false, codigo: "DOCUMENTO_INVALIDO", mensaje: "El documento debe contener solo números" };
 
@@ -242,8 +243,8 @@ export async function actualizarStaff(usuarioId, data) {
 export async function cambiarPasswordStaff(usuarioId, nuevaPassword, solicitanteEsSuperAdmin) {
   const pass = String(nuevaPassword ?? "").trim();
 
-  if (!pass || pass.length < 4)
-    return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: "La contraseña debe tener al menos 4 caracteres" };
+  if (!contrasenaValida(pass))
+    return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: MENSAJE_CONTRASENA };
 
   const usuario = await Usuario.findByPk(usuarioId);
   if (!usuario || usuario.eliminado_en)

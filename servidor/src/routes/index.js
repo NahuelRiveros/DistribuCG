@@ -2,7 +2,6 @@ import { Router } from "express";
 import { sequelize } from "../database/sequelize.js"; // 👈 IMPORTANTE
 
 import { authRouter } from "./usuarios/auth_router.js";
-import { adminUsuariosRouter } from "./usuarios/admin_usuarios_router.js";
 import { catalogosRouter } from "./sistema/catalogos_router.js";
 import { staffRouter } from "./usuarios/staff_router.js";
 import { permisosRouter } from "./usuarios/permisos_router.js";
@@ -53,7 +52,6 @@ router.use(verificarSuscripcion);
  * 🔽 TUS ROUTES
  */
 router.use("/catalogos", catalogosRouter);
-router.use("/admin/usuarios", adminUsuariosRouter);
 router.use("/auth", authRouter);
 router.use("/staff", staffRouter);
 router.use("/permisos", permisosRouter);                // ← roles y permisos del personal
