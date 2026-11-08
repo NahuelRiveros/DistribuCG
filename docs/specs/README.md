@@ -54,3 +54,5 @@ test("USU-02: login con email o nombre de usuario, sin distinguir mayúsculas", 
 | --- | --- |
 | `USU` | [core/usuarios.md](core/usuarios.md) |
 | `PER` | [core/permisos.md](core/permisos.md) |
+| `PAN` | [core/panel.md](core/panel.md) |
+| `SIS` | [core/sistema.md](core/sistema.md) |
