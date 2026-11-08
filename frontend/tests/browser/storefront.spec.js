@@ -672,8 +672,9 @@ test("comprador adjunta el comprobante de transferencia, ve el rechazo y lo abre
   await page.goto("/distribuidora/mis-pedidos");
   const pago = page.getByRole("region", { name: "Pago por transferencia" });
   await expect(pago.getByText("Motivo: No se lee el importe")).toBeVisible();
-  await pago.getByText("Ver datos para transferir").click();
+  // Los datos para transferir y los productos ya están desplegados: no hace falta abrirlos.
   await expect(pago.getByText("$ 6.000,00")).toBeVisible();
+  await expect(page.getByText(/^Entrega:/).first()).toBeVisible();
   // Un tipo de archivo no admitido se avisa sin llegar al servidor.
   await pago.getByLabel("Adjuntar comprobante").setInputFiles({ name: "notas.txt", mimeType: "text/plain", buffer: Buffer.from("hola") });
   await expect(pago.getByRole("alert")).toContainText("Elegí una foto (JPG, PNG o WEBP) o un PDF.");

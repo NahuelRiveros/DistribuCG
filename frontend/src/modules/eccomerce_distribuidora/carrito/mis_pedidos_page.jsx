@@ -49,7 +49,7 @@ export default function MisPedidosPage() {
           <div><h2 className="font-bold">Pedido #{nota.id}</h2><p className="text-xs text-slate-500">{new Date(nota.fecha_alta).toLocaleString("es-AR")}</p></div>
           <OrderSummary order={nota} />
         </div>
-        <details className="border-t pt-3"><summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold">Ver productos y entrega</summary>
+        <details open className="border-t pt-3"><summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold">Ver productos y entrega</summary>
           <ul className="space-y-2 text-sm">{nota.items?.map((item) => <li className="flex flex-wrap justify-between gap-2" key={item.id}><span>{item.cantidad} × {item.nombre_producto}{item.variedad_nombre ? " (" + item.variedad_nombre + ")" : ""}</span><span>{money(item.subtotal)}</span></li>)}</ul>
           <p className="mt-3 break-words text-sm">Entrega: {[nota.direccion, nota.localidad, nota.departamento, nota.provincia, nota.codigo_postal].filter(Boolean).join(", ")}</p>
           {nota.notas && <p className="mt-2 whitespace-pre-wrap break-words text-sm">Observaciones: {nota.notas}</p>}

@@ -145,7 +145,6 @@ export default function NotaPedidoPage() {
         <p className="text-sm text-slate-600">{config.labels.orderNotice}</p>
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
           <PagoTransferencia
-            datosAbiertos
             nota={{
               estado: "pendiente",
               estado_pago: "pendiente",

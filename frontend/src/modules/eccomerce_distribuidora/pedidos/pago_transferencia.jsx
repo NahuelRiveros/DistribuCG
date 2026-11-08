@@ -117,9 +117,9 @@ function SubirComprobante({ notaId, onSubido }) {
 
 /**
  * Pago del comprador: datos para transferir, comprobantes enviados y subida.
- * `datosAbiertos` muestra los datos desplegados (pantalla de pedido recién enviado).
+ * Los datos arrancan desplegados: es lo que el comprador viene a buscar.
  */
-export default function PagoTransferencia({ nota, comprobantes = [], onSubido, datosAbiertos = false }) {
+export default function PagoTransferencia({ nota, comprobantes = [], onSubido }) {
   if (nota.estado === "cancelada" && !comprobantes.length) return null;
   const saldo = Math.round((Number(nota.total) - Number(nota.monto_pagado || 0)) * 100) / 100;
   const pagado = nota.estado_pago === "pagado";
@@ -128,7 +128,7 @@ export default function PagoTransferencia({ nota, comprobantes = [], onSubido, d
     <h3 className="font-bold">Pago por transferencia</h3>
     {pagado
       ? <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">Recibimos tu pago. ¡Gracias!</p>
-      : nota.estado !== "cancelada" && <details open={datosAbiertos} className="group">
+      : nota.estado !== "cancelada" && <details open className="group">
         <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold">Ver datos para transferir</summary>
         <div className="space-y-2 pt-1">
           <p className="text-sm text-slate-600">Transferí el saldo y adjuntá el comprobante: lo revisamos y te avisamos por mail.</p>
