@@ -59,7 +59,7 @@ gestionar, sin ver lo que no le corresponde, en computadora y en celular.
 | --- | --- | --- |
 | PAN-20 | El inicio saluda por el nombre, muestra el resumen del negocio de cada rubro activo y un acceso a cada pantalla permitida, agrupados como el menú. | ✅ `storefront.spec.js` › "supervisor entra al panel desde el navbar y ve dashboard y menú de su rol" |
 | PAN-21 | Si el resumen no carga, se ofrece reintentar y el resto del inicio sigue funcionando. | ✅ `storefront.spec.js` › "vendedor ve solo pedidos; cliente no tiene panel; error del resumen ofrece reintentar" |
-| PAN-22 | Lo que muestra el resumen depende del rol y lo filtra el servidor (por ejemplo, las ventas solo con "Ver ventas y saldos"). El detalle está en la spec del rubro. | ✅ `checkout.integration.mjs` › "panel: resumen por rol, ventas en hora de Argentina…" |
+| PAN-22 | Lo que muestra el resumen depende del rol y lo filtra el servidor (por ejemplo, las ventas solo con "Ver ventas y saldos"). El detalle de la distribuidora está en [pedidos.md](../eccomerce_distribuidora/pedidos.md) (PED-70 a PED-74). | ✅ `checkout.integration.mjs` › "panel: resumen por rol, ventas en hora de Argentina…" |
 
 ## Configuración
 

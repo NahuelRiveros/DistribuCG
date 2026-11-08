@@ -56,3 +56,9 @@ test("USU-02: login con email o nombre de usuario, sin distinguir mayúsculas", 
 | `PER` | [core/permisos.md](core/permisos.md) |
 | `PAN` | [core/panel.md](core/panel.md) |
 | `SIS` | [core/sistema.md](core/sistema.md) |
+| `PED` | [eccomerce_distribuidora/pedidos.md](eccomerce_distribuidora/pedidos.md) |
+| `COB` | [eccomerce_distribuidora/cobros.md](eccomerce_distribuidora/cobros.md) |
+| `CAR` | [eccomerce_distribuidora/carrito.md](eccomerce_distribuidora/carrito.md) |
+| `PRE` | [eccomerce_distribuidora/precios.md](eccomerce_distribuidora/precios.md) |
+| `CAT` | [eccomerce_distribuidora/catalogo.md](eccomerce_distribuidora/catalogo.md) |
+| `CLI` | [eccomerce_distribuidora/clientes.md](eccomerce_distribuidora/clientes.md) |
