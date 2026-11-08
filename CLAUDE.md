@@ -100,6 +100,8 @@ No hay package.json raíz ni workspaces; cada paquete instala sus dependencias.
 | Integración PostgreSQL | `npm --prefix servidor run test:integration` |
 | Navegador | `npm --prefix frontend run test:e2e` |
 | Precios de demostración (escribe en la base del `.env`; nunca en `gc_dist`) | `npm --prefix servidor run seed:precios-demo` (lo corre el usuario). Con `CATALOGO_DEMO_AL_INICIAR=true` lo hace el arranque (`seed/catalogo_demo.js`) |
+| Subir fotos del catálogo del cliente a Cloudinary (escribe `seed/imagenes_catalogo.json`) | `npm --prefix servidor run imagenes:subir -- "<carpeta con _indice.json>"` (lo corre el usuario; usa sus claves). Con `IMAGENES_CATALOGO_AL_INICIAR=true` el arranque asigna esas fotos por `cod_ref` a los artículos sin foto (`seed/imagenes_catalogo.js`) |
+| Dar de baja el catálogo inicial de demostración (sin `--confirmar` solo cuenta) | `npm --prefix servidor run catalogo:retirar-demo -- --confirmar` (lo corre el usuario; escribe en la base del `.env`) |
 | Revisar los `.env` (solo nombres, sin valores) | `npm --prefix servidor run env:verificar` (lo corre el usuario; lee sus `.env`) |
 
 Un solo test: `node --test --test-name-pattern="carrito" servidor/tests/ux_rules.test.mjs`;

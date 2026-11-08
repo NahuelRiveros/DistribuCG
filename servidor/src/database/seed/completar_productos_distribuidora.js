@@ -16,9 +16,8 @@ function imagenValida(valor) {
   }
 }
 
-/** Solo crea artículos inactivos. La copia del nombre de marca la resuelve el servicio. */
-export async function completarProductos(modelos, catalogo, transaction, resolverMarca) {
-  const { CategoriaDistribuidora, MarcaDistribuidora, MarcaCategoriaDistribuidora, ProductoDistribuidora } = modelos;
+/** "Familia › Categoría" de cada lista del catálogo → categoría vigente de la base (o null). */
+async function resolverRutas(CategoriaDistribuidora, catalogo, transaction) {
   const categorias = await CategoriaDistribuidora.findAll({
     where: { fecha_baja: null }, attributes: ["id", "nombre", "slug", "padre_id"], raw: true, transaction,
   });
@@ -33,7 +32,43 @@ export async function completarProductos(modelos, catalogo, transaction, resolve
     const categoria = porNombre.get(identidad(raiz.id, nombre)) ?? porSlug.get(slug(`${familia} ${nombre}`));
     return categoria?.padre_id === raiz.id ? categoria : null;
   }
-  const rutas = new Map(Object.keys(catalogo).map((ruta) => [ruta, resolverCategoria(ruta)]));
+  return new Map(Object.keys(catalogo).map((ruta) => [ruta, resolverCategoria(ruta)]));
+}
+
+/**
+ * Da de baja (no borra) los artículos vigentes del catálogo inicial: los pedidos viejos
+ * los siguen mostrando. Respeta los que tienen una presentación con código interno,
+ * porque esos ya son del catálogo real del cliente aunque se llamen igual.
+ */
+export async function retirarProductos(modelos, catalogo, transaction, { aplicar = false } = {}) {
+  const { CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora } = modelos;
+  const rutas = await resolverRutas(CategoriaDistribuidora, catalogo, transaction);
+  const ids = [...new Set([...rutas.values()].filter(Boolean).map((c) => c.id))];
+  if (!ids.length) return { retirados: 0, conservados: 0 };
+  const buscados = new Set(Object.entries(catalogo).flatMap(([ruta, productos]) => {
+    const categoria = rutas.get(ruta);
+    return categoria ? productos.map((p) => identidad(categoria.id, formatearNombre(p.nombre))) : [];
+  }));
+  const vigentes = await ProductoDistribuidora.findAll({
+    where: { categoria_id: ids, fecha_baja: null }, attributes: ["id", "nombre", "categoria_id"], raw: true, transaction,
+  });
+  const candidatos = vigentes.filter((p) => buscados.has(identidad(p.categoria_id, p.nombre)));
+  if (!candidatos.length) return { retirados: 0, conservados: 0 };
+  const conCodigo = await VariedadDistribuidora.findAll({
+    where: { producto_id: candidatos.map((p) => p.id), fecha_baja: null }, attributes: ["producto_id", "cod_ref"], raw: true, transaction,
+  });
+  const delCliente = new Set(conCodigo.filter((v) => v.cod_ref?.trim()).map((v) => v.producto_id));
+  const retirar = candidatos.filter((p) => !delCliente.has(p.id)).map((p) => p.id);
+  if (aplicar && retirar.length) {
+    await ProductoDistribuidora.update({ activo: false, fecha_baja: new Date() }, { where: { id: retirar, fecha_baja: null }, transaction });
+  }
+  return { retirados: retirar.length, conservados: delCliente.size };
+}
+
+/** Solo crea artículos inactivos. La copia del nombre de marca la resuelve el servicio. */
+export async function completarProductos(modelos, catalogo, transaction, resolverMarca) {
+  const { CategoriaDistribuidora, MarcaDistribuidora, MarcaCategoriaDistribuidora, ProductoDistribuidora } = modelos;
+  const rutas = await resolverRutas(CategoriaDistribuidora, catalogo, transaction);
   const ids = [...new Set([...rutas.values()].filter(Boolean).map((c) => c.id))];
   const marcas = await MarcaDistribuidora.findAll({ attributes: ["id", "clave"], raw: true, transaction });
   const porMarca = new Map(marcas.map((m) => [m.clave, m]));

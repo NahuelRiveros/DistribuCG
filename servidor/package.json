@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test tests/ux_rules.test.mjs tests/despliegue.test.mjs tests/seed_distribuidora.test.mjs tests/super_admin.test.mjs",
+    "test": "node --test tests/ux_rules.test.mjs tests/despliegue.test.mjs tests/seed_distribuidora.test.mjs tests/super_admin.test.mjs tests/imagenes_catalogo.test.mjs",
     "env:verificar": "node ../scripts/verificar_env.mjs",
     "test:integration": "node --test tests/checkout.integration.mjs",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "seed:distribuidora": "node src/database/seed/actualizar_catalogo_distribuidora.js",
     "seed:precios-demo": "node src/database/seed/aplicar_precios_demo.js",
+    "imagenes:subir": "node src/database/seed/subir_imagenes_catalogo.js",
+    "catalogo:retirar-demo": "node src/database/seed/retirar_productos_demo.js",
     "admin:verificar": "node src/database/seed/verificar_super_admin.js"
   },
   "keywords": [],
