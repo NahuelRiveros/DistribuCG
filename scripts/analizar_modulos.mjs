@@ -36,8 +36,8 @@ const { projectModules } = await import(
 const MODULOS = {
   eccomerce_distribuidora: {
     frontend: ["modules/eccomerce_distribuidora", "config/navbar_config/eccomerce_distribuidora_dropdown.js"],
-    backendModels: ["models/distribuidora"],
-    backendCapas: ["services/distribuidora", "controllers/distribuidora", "routes/distribuidora"],
+    backendModels: ["modulos/eccomerce_distribuidora/models"],
+    backendCapas: ["modulos/eccomerce_distribuidora"],
   },
 };
 

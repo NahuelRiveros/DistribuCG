@@ -117,10 +117,10 @@ export const env = {
 
   // ── Catálogo de demostración ─────────────────────────────────────
   // true = en cada arranque completa el catálogo del seed y pone precios inventados
-  // (ver database/seed/catalogo_demo.js). Nunca se aplica en el esquema gc_dist.
+  // (ver modulos/eccomerce_distribuidora/seed/catalogo_demo.js). Nunca se aplica en el esquema gc_dist.
   CATALOGO_DEMO_AL_INICIAR: String(process.env.CATALOGO_DEMO_AL_INICIAR || "").toLowerCase() === "true",
   // true = en cada arranque pone la foto de Cloudinary a los artículos sin foto, por su código
-  // interno (ver database/seed/imagenes_catalogo.js). Vale para prueba y producción.
+  // interno (ver modulos/eccomerce_distribuidora/seed/imagenes_catalogo.js). Vale para prueba y producción.
   IMAGENES_CATALOGO_AL_INICIAR: String(process.env.IMAGENES_CATALOGO_AL_INICIAR || "").toLowerCase() === "true",
 
   // ── Seed: usuario super admin ────────────────────────────────────

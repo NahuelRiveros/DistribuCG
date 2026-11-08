@@ -205,7 +205,7 @@ de esa repetición: no hubo cambios.
 
 ## Productos iniciales (20/10/2026)
 
-`servidor/src/database/seed/seed_productos_distribuidora.js` contiene
+`servidor/src/modulos/eccomerce_distribuidora/seed/seed_productos_distribuidora.js` contiene
 `PRODUCTOS_INICIALES`, una selección ampliable de 254 artículos de 21 familias,
 72 categorías y 118 marcas ya presentes en los seeds de clasificación. No es un
 inventario completo de las 434 marcas ni confirma el surtido del cliente.
@@ -347,7 +347,7 @@ por HTTPS (respuesta correcta y tipo de contenido de imagen).
 
 El catálogo actual contiene **524 productos**, **21 familias**, **149 categorías** y **200 marcas**. Se conservaron los 350 artículos anteriores y se agregaron 174 fichas revisadas del catálogo público de Disco. Las 174 imágenes nuevas respondieron por HTTPS con contenido y firma de imagen válidos. Cada producto conserva su ficha de origen en `fuente_url`.
 
-Los datos están en `servidor/src/database/seed/productos_distribuidora/`: un archivo JavaScript por familia y un `index.js` con las importaciones explícitas. El README de esa carpeta explica cómo agregar productos. `seed_productos_distribuidora.js` conserva la ejecución y reexporta la lista completa; el comando manual y la condición de tabla vacía no cambian.
+Los datos están en `servidor/src/modulos/eccomerce_distribuidora/seed/productos_distribuidora/`: un archivo JavaScript por familia y un `index.js` con las importaciones explícitas. El README de esa carpeta explica cómo agregar productos. `seed_productos_distribuidora.js` conserva la ejecución y reexporta la lista completa; el comando manual y la condición de tabla vacía no cambian.
 
 Las pruebas exigen al menos 400 productos y verifican que todos los archivos de familia estén incluidos, que no haya rutas duplicadas o fuera de su familia, que las marcas sean válidas y que repetir la carga no modifique datos. No se ejecutó el seed sobre la base del cliente.
 

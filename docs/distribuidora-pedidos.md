@@ -106,7 +106,7 @@ Cada acción del personal pide un permiso de `permisos_config.js`; el servidor l
 
 ## Avisos por correo
 
-`services/distribuidora/avisos_pedido_service.js` envía, siempre después de confirmar la transacción:
+`modulos/eccomerce_distribuidora/services/avisos_pedido_service.js` envía, siempre después de confirmar la transacción:
 
 | Evento | Destinatarios | Contenido |
 | --- | --- | --- |

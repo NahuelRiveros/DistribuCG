@@ -15,17 +15,7 @@ import { verificarSuscripcion } from "../middleware/suscripcion_middleware.js";
 
 import { uploadRouter } from "./upload_router.js";
 
-// Módulo eccomerce_distribuidora — catálogo tipo supermercado + nota de
-// pedido. Todo montado bajo /distribuidora/*.
-import { catalogosDistribuidoraRouter } from "./distribuidora/catalogos_distribuidora_router.js";
-import { productoDistribuidoraRouter } from "./distribuidora/producto_distribuidora_router.js";
-import { carritoDistribuidoraRouter } from "./distribuidora/carrito_distribuidora_router.js";
-import { notaPedidoRouter } from "./distribuidora/nota_pedido_router.js";
-import { perfilClienteRouter } from "./distribuidora/perfil_cliente_router.js";
-import { importacionDistribuidoraRouter } from "./distribuidora/importacion_distribuidora_router.js";
-import { panelDistribuidoraRouter } from "./distribuidora/panel_distribuidora_router.js";
-import { marcasDistribuidoraRouter } from "./distribuidora/marcas_distribuidora_router.js";
-import { listasPrecioRouter } from "./distribuidora/listas_precio_router.js";
+import { modulosActivos } from "../modulos/index.js";
 
 const router = Router();
 
@@ -75,15 +65,9 @@ router.use("/banner", bannerAnuncioRouter);           // ← cinta de anuncios (
 
 router.use("/upload",    uploadRouter);                 // ← subida genérica de imágenes (Cloudinary)
 
-// ── eccomerce_distribuidora ────────────────────────────────────────────────
-router.use("/distribuidora/catalogos",    catalogosDistribuidoraRouter); // ← /categorias (jerárquicas)
-router.use("/distribuidora/productos",    productoDistribuidoraRouter);  // ← productos + variedades (precio/stock propio)
-router.use("/distribuidora/carrito",      carritoDistribuidoraRouter);   // ← "nota de pedido" en construcción
-router.use("/distribuidora/notas-pedido", notaPedidoRouter);             // ← pedidos ya enviados (inmutables)
-router.use("/distribuidora/mi-perfil",    perfilClienteRouter);           // ← CUIT/dirección — se pide recién al enviar el primer pedido
-router.use("/distribuidora/importacion",  importacionDistribuidoraRouter); // ← carga masiva de productos desde Excel/CSV
-router.use("/distribuidora/panel",        panelDistribuidoraRouter);      // ← resumen del panel de gestión
-router.use("/distribuidora/marcas",       marcasDistribuidoraRouter);     // ← marcas y dónde se ofrecen
-router.use("/distribuidora/listas-precio", listasPrecioRouter);          // ← listas de precios regionales (solo admin)
+// Rutas de cada módulo de rubro activo (ver su modulo.js).
+for (const modulo of modulosActivos) {
+  for (const [ruta, routerModulo] of modulo.rutas) router.use(ruta, routerModulo);
+}
 
 export default router;

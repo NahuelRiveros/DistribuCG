@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { asignarImagenesCatalogo, leerImagenesCatalogo } from "../src/database/seed/imagenes_catalogo.js";
-import { retirarProductos } from "../src/database/seed/completar_productos_distribuidora.js";
+import { asignarImagenesCatalogo, leerImagenesCatalogo } from "../src/modulos/eccomerce_distribuidora/seed/imagenes_catalogo.js";
+import { retirarProductos } from "../src/modulos/eccomerce_distribuidora/seed/completar_productos_distribuidora.js";
 
 // Modelo en memoria: findAll/update con where de igualdad, listas (IN) y null.
 function modelo(filas) {

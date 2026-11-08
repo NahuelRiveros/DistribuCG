@@ -2,11 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { runInNewContext } from "node:vm";
-import { completarProductos } from "../src/database/seed/completar_productos_distribuidora.js";
-import { PRODUCTOS_INICIALES } from "../src/database/seed/seed_productos_distribuidora.js";
-import { PRODUCTOS_POR_FAMILIA } from "../src/database/seed/productos_distribuidora/index.js";
+import { completarProductos } from "../src/modulos/eccomerce_distribuidora/seed/completar_productos_distribuidora.js";
+import { PRODUCTOS_INICIALES } from "../src/modulos/eccomerce_distribuidora/seed/seed_productos_distribuidora.js";
+import { PRODUCTOS_POR_FAMILIA } from "../src/modulos/eccomerce_distribuidora/seed/productos_distribuidora/index.js";
 import { claveMarca } from "../src/services/common/formato_nombre.js";
-import { completarFamilias, completarMarcas } from "../src/database/seed/completar_catalogo_distribuidora.js";
+import { completarFamilias, completarMarcas } from "../src/modulos/eccomerce_distribuidora/seed/completar_catalogo_distribuidora.js";
 
 // Repositorios en memoria: las pruebas no conectan ni modifican la base del .env.
 function catalogoInicial({ categorias = [], marcas = [], asociaciones = [], productos = [] } = {}) {
@@ -260,7 +260,7 @@ test("productos: propaga errores de persistencia para que el llamador revierta l
 test("productos: toda la selección usa rutas y marcas del catálogo real y se puede repetir", async () => {
   // Lee solo las constantes de los seeds antiguos, sin importar su conexión/.env.
   async function leerLista(archivo, constante) {
-    const contenido = await readFile(new URL(`../src/database/seed/${archivo}`, import.meta.url), "utf8");
+    const contenido = await readFile(new URL(`../src/modulos/eccomerce_distribuidora/seed/${archivo}`, import.meta.url), "utf8");
     const literal = contenido.match(new RegExp(`export const ${constante} = (\\{[\\s\\S]*?\\n\\});`))?.[1];
     assert(literal, `Falta ${constante}`);
     return runInNewContext(`(${literal})`, Object.create(null), { timeout: 1000 });
@@ -291,7 +291,7 @@ test("productos: toda la selección usa rutas y marcas del catálogo real y se p
 });
 
 test("productos: todos los archivos por familia están incluidos una sola vez en el índice", async () => {
-  const carpeta = new URL("../src/database/seed/productos_distribuidora/", import.meta.url);
+  const carpeta = new URL("../src/modulos/eccomerce_distribuidora/seed/productos_distribuidora/", import.meta.url);
   const archivos = (await readdir(carpeta)).filter((nombre) => nombre.endsWith(".js") && nombre !== "index.js");
   const catalogos = Object.values(PRODUCTOS_POR_FAMILIA);
   assert.equal(archivos.length, catalogos.length);

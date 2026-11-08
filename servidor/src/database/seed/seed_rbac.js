@@ -1,4 +1,5 @@
 import { Rol, ModuloNegocio, Modulo, RolPermiso, UsuarioRol } from "../../models/index.js";
+import { modulosActivos } from "../../modulos/index.js";
 import { sequelize } from "../sequelize.js";
 
 /**
@@ -45,11 +46,8 @@ export async function seed_rbac() {
 
   // Módulos de negocio (gate real de licencia, ver requireModuloHabilitado) —
   // findOrCreate no pisa el habilitado si un cliente ya lo togleó antes.
-  const modulosNegocio = [
-    { codigo: "eccomerce_distribuidora", descripcion: "Distribuidora",          habilitado: true },
-  ];
-  for (const modulo of modulosNegocio) {
-    await ModuloNegocio.findOrCreate({ where: { codigo: modulo.codigo }, defaults: modulo });
+  for (const { codigo, descripcion } of modulosActivos) {
+    await ModuloNegocio.findOrCreate({ where: { codigo }, defaults: { codigo, descripcion, habilitado: true } });
   }
 
   // Secciones del panel de gestión de roles — reflejan las áreas reales de la app (routes/)

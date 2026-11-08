@@ -64,12 +64,17 @@ frontend/src/
   config/                          configuración visual y funcional
 servidor/src/
   app.js, server.js                app y arranque con bootstrap/seed
-  routes/ -> controllers/ -> services/  capas agrupadas por dominio
-  services/common/                reglas compartidas y utilidades
-  models/                         modelos y relaciones actuales
-  database/                       conexión, bootstrap y seeds
+  routes/ -> controllers/ -> services/  capas del CORE (usuarios, permisos, sistema, home, ubicación)
+  services/common/                reglas compartidas y utilidades del core (carrito, mails, paginación)
+  models/                         modelos y relaciones del core
+  database/                       conexión, bootstrap y seeds del core
   middleware/                     autenticación, roles y módulos
   configuracion_servidor/env.js    configuración de entorno
+  modulos/index.js                módulos de rubro instalados (el core solo recorre esta lista)
+  modulos/eccomerce_distribuidora/
+    modulo.js                     manifiesto: modelos en orden, rutas, arranque y seed
+    models/index.js               modelos y relaciones del rubro (re-exporta los del core)
+    routes/ controllers/ services/ seed/   todo lo del rubro
 servidor/tests/                    node:test y PostgreSQL local
 frontend/tests/browser/           Playwright con API simulada
 ```

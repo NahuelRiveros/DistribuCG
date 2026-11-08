@@ -15,25 +15,26 @@ for (const clave of ["SMTP_USER", "SMTP_PASS", "CLAVE_API_BREVO", "CORREO_REMITE
 const ownedSchema = "codex_ux_test_" + randomUUID().replaceAll("-", "");
 process.env.DB_SCHEMA = ownedSchema;
 const { sequelize, DB_SCHEMA } = await import("../src/database/sequelize.js");
-const models = await import("../src/models/index.js");
+const models = await import("../src/modulos/eccomerce_distribuidora/models/index.js");
 const { registrarCliente, login, loginConGoogle } = await import("../src/services/usuarios/auth_service.js");
-const { obtenerCarrito, agregarItem, fusionarCarrito, actualizarCantidad, vaciarCarrito } = await import("../src/services/distribuidora/carrito_distribuidora_service.js");
-const { crearNotaPedido, cambiarEstado, cancelarPropia, registrarPago, anularPago, listarTodas } = await import("../src/services/distribuidora/nota_pedido_service.js");
+const { obtenerCarrito, agregarItem, fusionarCarrito, actualizarCantidad, vaciarCarrito } = await import("../src/modulos/eccomerce_distribuidora/services/carrito_distribuidora_service.js");
+const { crearNotaPedido, cambiarEstado, cancelarPropia, registrarPago, anularPago, listarTodas } = await import("../src/modulos/eccomerce_distribuidora/services/nota_pedido_service.js");
 const { createResetToken } = await import("../src/services/common/auth_tokens.js");
 const { resetPassword } = await import("../src/services/usuarios/password_recovery_service.js");
 const { env } = await import("../src/configuracion_servidor/env.js");
-const { guardarPerfil, obtenerPerfil } = await import("../src/services/distribuidora/perfil_cliente_service.js");
-const { validarDatosCliente } = await import("../src/services/common/datos_cliente.js");
+const { guardarPerfil, obtenerPerfil } = await import("../src/modulos/eccomerce_distribuidora/services/perfil_cliente_service.js");
+const { validarDatosCliente } = await import("../src/modulos/eccomerce_distribuidora/services/datos_cliente.js");
 // Como el controlador: guardarPerfil recibe datos ya validados y normalizados.
 const guardarValidado = (usuario_id, body) => { const { datos, error } = validarDatosCliente(body); if (error) throw new Error(error); return guardarPerfil(usuario_id, datos); };
-const { crear_indice_busqueda_productos, aplicar_ajustes_puntuales, TABLAS_RETIRADAS } = await import("../src/database/bootstrap.js");
-const { obtenerResumenPanel } = await import("../src/services/distribuidora/panel_distribuidora_service.js");
-const productos = await import("../src/services/distribuidora/producto_distribuidora_service.js");
-const { armarListaCarga } = await import("../src/services/distribuidora/lista_carga_service.js");
-const { validarVariedad } = await import("../src/services/common/articulo_rules.js");
-const categoriasSrv = await import("../src/services/distribuidora/catalogos_distribuidora_service.js");
-const marcasSrv = await import("../src/services/distribuidora/marcas_distribuidora_service.js");
-const listasSrv = await import("../src/services/distribuidora/listas_precio_service.js");
+const { aplicar_ajustes_puntuales, TABLAS_RETIRADAS } = await import("../src/database/bootstrap.js");
+const { crear_indice_busqueda_productos } = await import("../src/modulos/eccomerce_distribuidora/arranque.js");
+const { obtenerResumenPanel } = await import("../src/modulos/eccomerce_distribuidora/services/panel_distribuidora_service.js");
+const productos = await import("../src/modulos/eccomerce_distribuidora/services/producto_distribuidora_service.js");
+const { armarListaCarga } = await import("../src/modulos/eccomerce_distribuidora/services/lista_carga_service.js");
+const { validarVariedad } = await import("../src/modulos/eccomerce_distribuidora/services/articulo_rules.js");
+const categoriasSrv = await import("../src/modulos/eccomerce_distribuidora/services/catalogos_distribuidora_service.js");
+const marcasSrv = await import("../src/modulos/eccomerce_distribuidora/services/marcas_distribuidora_service.js");
+const listasSrv = await import("../src/modulos/eccomerce_distribuidora/services/listas_precio_service.js");
 const { sincronizarPermisos } = await import("../src/services/usuarios/permisos_service.js");
 const { permisosEfectivos } = await import("../../permisos_config.js");
 // Usuario con los permisos que le darían esos roles (asignados = lo tildado en el panel).
@@ -225,7 +226,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     });
     await t.test("HTTP: cliente no gestiona notas y el supervisor sí, con sus permisos", async () => {
       const express = (await import("express")).default;
-      const { notaPedidoRouter } = await import("../src/routes/distribuidora/nota_pedido_router.js");
+      const { notaPedidoRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/nota_pedido_router.js");
       const app = express();
       app.use(express.json());
       app.use("/notas", notaPedidoRouter);
@@ -257,7 +258,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       } finally { await new Promise((resolve) => server.close(resolve)); }
     });
     await t.test("avisos: pedido nuevo al equipo y al comprador una sola vez; estados y cancelación; Brevo caído no frena el pedido", async () => {
-      const { esperarAvisos } = await import("../src/services/distribuidora/avisos_pedido_service.js");
+      const { esperarAvisos } = await import("../src/modulos/eccomerce_distribuidora/services/avisos_pedido_service.js");
       const { mailConfigured } = await import("../src/services/common/mail_service.js");
       assert.equal(mailConfigured(), false, "las pruebas arrancan sin ningún correo real configurado");
       const previo = { ...env };
@@ -324,8 +325,8 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     await t.test("comprobantes: archivo real y privado, rechazo, aceptación con cobro, anulación y permisos", async () => {
       const { cloudinary } = await import("../src/configuracion_servidor/cloudinary.js");
       const { Writable } = await import("node:stream");
-      const comprobantes = await import("../src/services/distribuidora/comprobantes_service.js");
-      const { listarPropias } = await import("../src/services/distribuidora/nota_pedido_service.js");
+      const comprobantes = await import("../src/modulos/eccomerce_distribuidora/services/comprobantes_service.js");
+      const { listarPropias } = await import("../src/modulos/eccomerce_distribuidora/services/nota_pedido_service.js");
       const { orderConfig } = await import("../../order_config.js");
       const originales = { subir: cloudinary.uploader.upload_stream, borrar: cloudinary.uploader.destroy, enlace: cloudinary.utils.private_download_url };
       const subidas = [];
@@ -404,7 +405,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
 
         // HTTP: el vendedor no cobra, el archivo grande se corta antes de leerse y el id privado no sale.
         const express = (await import("express")).default;
-        const { notaPedidoRouter } = await import("../src/routes/distribuidora/nota_pedido_router.js");
+        const { notaPedidoRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/nota_pedido_router.js");
         const app = express();
         app.use(express.json());
         app.use("/notas", notaPedidoRouter);
@@ -482,7 +483,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
 
       // HTTP con los permisos leídos de la base: el repositor edita artículos pero no precios ni permisos.
       const express = (await import("express")).default;
-      const { productoDistribuidoraRouter } = await import("../src/routes/distribuidora/producto_distribuidora_router.js");
+      const { productoDistribuidoraRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/producto_distribuidora_router.js");
       const { permisosRouter } = await import("../src/routes/usuarios/permisos_router.js");
       const app = express();
       app.use(express.json());
@@ -904,7 +905,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.deepEqual((await models.ModuloNegocio.findAll()).map((m) => m.codigo), ["eccomerce_distribuidora"]);
     });
     await t.test("precios de demostración: precio a los cargados sin precio, activa y repone stock, sin repetir", async () => {
-      const { aplicarPreciosDemo } = await import("../src/database/seed/precios_demo_distribuidora.js");
+      const { aplicarPreciosDemo } = await import("../src/modulos/eccomerce_distribuidora/seed/precios_demo_distribuidora.js");
       const familia = await models.CategoriaDistribuidora.create({ nombre: "Demo", slug: "demo" });
       const categoria = await models.CategoriaDistribuidora.create({ nombre: "Demo Hija", slug: "demo-hija", padre_id: familia.id });
       const [sinPrecio1, sinPrecio2, conPrecio, deBaja, sinStock] = await models.ProductoDistribuidora.bulkCreate([
@@ -940,8 +941,8 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.deepEqual(await aplicarPreciosDemo({ modelos: models, esquema: DB_SCHEMA }), { productos: 0, ofertas: 0, activados: 0, con_stock: 0 });
     });
     await t.test("arranque con catálogo de demostración: carga el seed con precios, repetible y nunca en producción", async () => {
-      const { seed_catalogo_demo } = await import("../src/database/seed/catalogo_demo.js");
-      const { PRODUCTOS_INICIALES } = await import("../src/database/seed/seed_productos_distribuidora.js");
+      const { seed_catalogo_demo } = await import("../src/modulos/eccomerce_distribuidora/seed/catalogo_demo.js");
+      const { PRODUCTOS_INICIALES } = await import("../src/modulos/eccomerce_distribuidora/seed/seed_productos_distribuidora.js");
       assert.equal(await seed_catalogo_demo({ esquema: "gc_dist" }), null);
       const primera = await seed_catalogo_demo();
       assert.ok(primera.productos >= Object.values(PRODUCTOS_INICIALES).flat().length);

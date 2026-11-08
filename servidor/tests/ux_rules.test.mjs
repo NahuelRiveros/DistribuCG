@@ -11,16 +11,16 @@ import { enviarEmail, mailConfigured } from "../src/services/common/mail_service
 import {
   escapar, mailCambioEstadoCliente, mailCancelacionClienteEquipo, mailComprobanteNuevoEquipo, mailComprobanteRechazadoCliente,
   mailPedidoNuevoEquipo, mailPedidoRecibidoCliente,
-} from "../src/services/distribuidora/avisos_pedido_plantillas.js";
-import { detectarFormatoComprobante } from "../src/services/common/comprobante_rules.js";
+} from "../src/modulos/eccomerce_distribuidora/services/avisos_pedido_plantillas.js";
+import { detectarFormatoComprobante } from "../src/modulos/eccomerce_distribuidora/services/comprobante_rules.js";
 import { arcaConfig, credencialesArca, estadoArca } from "../src/configuracion_servidor/arca.js";
 import { armarComprobante, desglosarIva, documentoReceptor } from "../src/services/facturacion/arca_comprobante.js";
 import { safeReturnTo } from "../../frontend/src/controls/acceso/return_to.js";
 import { readGuestCart, mergeGuestItems } from "../../frontend/src/controls/carrito/guest_storage.js";
 import { filtrarNavbarPorRol } from "../../frontend/src/controls/layout/navbar/navbar_permissions.js";
 import { clasificarIdentificador, esNombreUsuarioValido } from "../src/services/common/nombre_usuario.js";
-import { celularValido, datosClienteCompletos, validarDatosCliente } from "../src/services/common/datos_cliente.js";
-import { normalizeRows } from "../src/services/distribuidora/importacion/normalize.js";
+import { celularValido, datosClienteCompletos, validarDatosCliente } from "../src/modulos/eccomerce_distribuidora/services/datos_cliente.js";
+import { normalizeRows } from "../src/modulos/eccomerce_distribuidora/services/importacion/normalize.js";
 import { formatearNombre } from "../src/services/common/formato_nombre.js";
 import { indexarCategorias, construirOpcionesCategoria } from "../../frontend/src/modules/eccomerce_distribuidora/utils/categoria_jerarquia.js";
 
@@ -318,7 +318,7 @@ test("bultos y sueltos: 23 paquetes en cajas de 20 son 1 caja + 3 paquetes", asy
 });
 
 test("ficha del artículo valida precio, IVA, stock, unidades y código de barras", async () => {
-  const { validarVariedad } = await import("../src/services/common/articulo_rules.js");
+  const { validarVariedad } = await import("../src/modulos/eccomerce_distribuidora/services/articulo_rules.js");
   const ok = validarVariedad({ precio: "1500.5", iva_porcentaje: "10.5", controla_stock: true, cantidad: "482", stock_minimo: "50", unidad_medida: "paquete", unidad_bulto: "CAJA", unidades_por_bulto: "20", cod_ref: " 000519 ", codigo_barras: "7790 040 001230", extra: "x" });
   assert.deepEqual(ok.datos, { precio: 1500.5, precio_anterior: null, iva_porcentaje: 10.5, controla_stock: true, cantidad: 482, stock_minimo: 50, unidad_medida: "PAQUETE", unidad_bulto: "CAJA", unidades_por_bulto: 20, cod_ref: "000519", codigo_barras: "7790040001230" });
   assert.equal(validarVariedad({ precio: 10, controla_stock: false, cantidad: 99 }).datos.cantidad, 0, "sin control de stock no guarda cantidad");
@@ -330,7 +330,7 @@ test("ficha del artículo valida precio, IVA, stock, unidades y código de barra
 });
 
 test("lista de carga acepta ids de pedidos válidos y limita la cantidad", async () => {
-  const { leerIdsPedidos, MAX_PEDIDOS_LISTA_CARGA } = await import("../src/services/distribuidora/lista_carga_service.js");
+  const { leerIdsPedidos, MAX_PEDIDOS_LISTA_CARGA } = await import("../src/modulos/eccomerce_distribuidora/services/lista_carga_service.js");
   assert.deepEqual(leerIdsPedidos("12, 15,15,x,-3,0"), [12, 15]);
   assert.throws(() => leerIdsPedidos(""), /al menos un pedido/);
   assert.throws(() => leerIdsPedidos(Array.from({ length: MAX_PEDIDOS_LISTA_CARGA + 1 }, (_, i) => i + 1).join(",")), /hasta/);
@@ -384,7 +384,7 @@ test("nombres del catálogo: mayúscula por palabra sin romper códigos, unidade
 });
 
 test("importación: el código de barras se limpia de espacios y se valida (6 a 14 números)", async () => {
-  const { normalizeRows } = await import("../src/services/distribuidora/importacion/normalize.js");
+  const { normalizeRows } = await import("../src/modulos/eccomerce_distribuidora/services/importacion/normalize.js");
   const parsed = { columns: [{ key: "a" }, { key: "b" }, { key: "c" }, { key: "d" }], rows: [
     { number: 2, values: ["000519", "Esponjas surtidas", "1200", "7790 040 001230"] },
     { number: 3, values: ["002982", "Lavandina", "950", "77-90"] },
@@ -400,7 +400,7 @@ test("importación: el código de barras se limpia de espacios y se valida (6 a 
 });
 
 test("precios de demostración: fijos por producto, en el rango de la familia, ~20 % en oferta y nunca en producción", async () => {
-  const { precioDemo, esquemaPermiteDemo, RANGOS_FAMILIA } = await import("../src/database/seed/precios_demo_distribuidora.js");
+  const { precioDemo, esquemaPermiteDemo, RANGOS_FAMILIA } = await import("../src/modulos/eccomerce_distribuidora/seed/precios_demo_distribuidora.js");
   assert.deepEqual(precioDemo(37, "Golosinas"), precioDemo(37, "Golosinas"));
   const [min, max] = RANGOS_FAMILIA.Golosinas;
   let ofertas = 0;
