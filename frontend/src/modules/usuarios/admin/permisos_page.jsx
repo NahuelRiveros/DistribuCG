@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Lock, Plus, Trash2 } from "lucide-react";
 import { useAuth } from "../../../auth/auth_context.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
 import ConfirmDialog from "../../../controls/ui/confirm_dialog.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";

@@ -1,6 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
-
-const ToastContext = createContext(null);
+import { useCallback, useMemo, useState } from "react";
+import { ToastContext } from "./use_toast.js";
 
 const STYLES = {
   success: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -48,17 +47,4 @@ export function ToastProvider({ children }) {
       </div>
     </ToastContext.Provider>
   );
-}
-
-// Fallback a console.* si se usa fuera del provider — nunca rompe la UI.
-export function useToast() {
-  const ctx = useContext(ToastContext);
-  if (ctx) return ctx;
-
-  return {
-    success: console.log,
-    error: console.error,
-    warning: console.warn,
-    info: console.info,
-  };
 }

@@ -10,7 +10,7 @@ import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
 import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
 import ConfirmDialog from "../../../controls/ui/confirm_dialog.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import { cantidadConUnidad, describirBulto, textoBultos } from "../../../../../unidades_config.js";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getProductos, cambiarEstadoProducto, eliminarProducto } from "../api/producto_distribuidora_api.js";

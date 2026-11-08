@@ -13,7 +13,7 @@ import "./index.css"
 // Cada módulo de rubro puede aportar un proveedor (ej. su carrito) alrededor del router.
 const app = pantallasActivas
   .flatMap((pantallas) => (pantallas.Proveedor ? [pantallas.Proveedor] : []))
-  .reduceRight((hijos, Proveedor) => React.createElement(Proveedor, null, hijos), <RouterProvider router={router} />);
+  .reduceRight((hijos, Proveedor) => <Proveedor>{hijos}</Proveedor>, <RouterProvider router={router} />);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

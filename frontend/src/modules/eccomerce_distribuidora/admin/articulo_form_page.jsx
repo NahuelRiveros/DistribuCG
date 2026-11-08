@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
 import ConfirmDialog from "../../../controls/ui/confirm_dialog.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import { safeReturnTo } from "../../../controls/acceso/return_to.js";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getProducto, crearProducto, actualizarProducto } from "../api/producto_distribuidora_api.js";

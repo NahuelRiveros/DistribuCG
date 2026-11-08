@@ -110,6 +110,7 @@ No hay package.json raíz ni workspaces; cada paquete instala sus dependencias.
 | Reglas unitarias | `npm --prefix servidor test` |
 | Integración PostgreSQL | `npm --prefix servidor run test:integration` |
 | Navegador | `npm --prefix frontend run test:e2e` |
+| **Todo, con salida resumida** | `node scripts/verificar.mjs` (tests del servidor, lint y build); `--rapido` (sin build), `--completo` (más integración y Playwright), `--detalle` (salida completa de lo que falle) |
 | Precios de demostración (escribe en la base del `.env`; nunca en `gc_dist`) | `npm --prefix servidor run seed:precios-demo` (lo corre el usuario). Con `CATALOGO_DEMO_AL_INICIAR=true` lo hace el arranque (`seed/catalogo_demo.js`) |
 | Subir fotos del catálogo del cliente a Cloudinary (escribe `seed/imagenes_catalogo.json`) | `npm --prefix servidor run imagenes:subir -- "<carpeta con _indice.json>"` (lo corre el usuario; usa sus claves). Con `IMAGENES_CATALOGO_AL_INICIAR=true` el arranque asigna esas fotos por `cod_ref` a los artículos sin foto (`seed/imagenes_catalogo.js`) |
 | Dar de baja el catálogo inicial de demostración (sin `--confirmar` solo cuenta) | `npm --prefix servidor run catalogo:retirar-demo -- --confirmar` (lo corre el usuario; escribe en la base del `.env`) |
@@ -121,6 +122,12 @@ en Playwright, `npm --prefix frontend run test:e2e -- --project=desktop -g "text
 
 No hay Vitest, MSW ni Supertest configurados, ni lint de backend.
 No anunciar que se ejecutó una suite inexistente.
+
+Para ahorrar tokens: verificar con `node scripts/verificar.mjs` (o filtrando la salida a totales y fallas)
+en vez de leer la salida completa, y correr solo lo afectado mientras se trabaja. Lo pesado lo corre GitHub
+Actions en cada push (`.github/workflows/verificar.yml`: servidor con PostgreSQL propio, lint, build y
+Playwright). El hook `.githooks/pre-commit` corre `--rapido` antes de cada commit; se activa una vez por copia
+del repo con `git config core.hooksPath .githooks`.
 Los scripts unitarios y de integración apuntan a archivos concretos: al agregar otro test,
 actualizar el script correspondiente o ejecutarlo explícitamente con `node --test`.
 

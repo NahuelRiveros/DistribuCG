@@ -7,7 +7,7 @@ import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
 import AyudaTooltip from "../../../controls/ui/ayuda_tooltip.jsx";
 import ConfirmDialog from "../../../controls/ui/confirm_dialog.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import { getListasPrecio, eliminarListaPrecio } from "../api/listas_precio_api.js";
 import { RUTA_LISTAS } from "../utils/rutas_articulo.js";
 

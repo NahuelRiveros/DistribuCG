@@ -6,7 +6,7 @@ import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
 import ConfirmDialog from "../../../controls/ui/confirm_dialog.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import AyudaTooltip from "../../../controls/ui/ayuda_tooltip.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import { safeReturnTo } from "../../../controls/acceso/return_to.js";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getMarca, crearMarca, actualizarMarca } from "../api/marcas_distribuidora_api.js";

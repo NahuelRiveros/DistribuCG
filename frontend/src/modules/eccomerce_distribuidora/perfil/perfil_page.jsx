@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { UserCircle, Check } from "lucide-react";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import { getMiPerfil, guardarMiPerfil } from "../api/perfil_cliente_api.js";
 import PerfilCampos from "./perfil_campos.jsx";
 import { problemaFiscal } from "../../../../../fiscal_config.js";

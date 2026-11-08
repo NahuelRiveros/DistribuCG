@@ -7,7 +7,7 @@ import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
 import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
 import ConfirmDialog from "../../../controls/ui/confirm_dialog.jsx";
 import AyudaTooltip from "../../../controls/ui/ayuda_tooltip.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import { getCategorias, crearCategoria, actualizarCategoria, eliminarCategoria, fusionarCategoria, moverCategorias } from "../api/categoria_distribuidora_api.js";
 import { indexarCategorias, construirOpcionesCategoria, slugify } from "../utils/categoria_jerarquia.js";
 import { NombreModal, DestinoModal } from "./categorias_modales.jsx";

@@ -12,7 +12,7 @@ import AyudaTooltip from "../../../controls/ui/ayuda_tooltip.jsx";
 import Modal from "../../../controls/ui/modal.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import ConfirmDialog from "../../../controls/ui/confirm_dialog.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getResumenMarcas, unificarMarcas, eliminarMarca } from "../api/marcas_distribuidora_api.js";
 import { construirOpcionesCategoria } from "../utils/categoria_jerarquia.js";

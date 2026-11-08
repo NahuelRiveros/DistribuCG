@@ -9,7 +9,7 @@ import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
 import AyudaTooltip from "../../../controls/ui/ayuda_tooltip.jsx";
 import Modal from "../../../controls/ui/modal.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import { getListaPrecio, getPreciosDeLista, guardarPreciosDeLista, importarPreciosDeLista } from "../api/listas_precio_api.js";
 import { formatearPrecio } from "../utils/precio_iva.js";
 import { RUTA_LISTAS } from "../utils/rutas_articulo.js";

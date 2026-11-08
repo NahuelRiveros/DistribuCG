@@ -6,7 +6,7 @@ import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
 import SelectField from "../../../controls/ui/select_field.jsx";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";
 import AyudaTooltip from "../../../controls/ui/ayuda_tooltip.jsx";
-import { useToast } from "../../../controls/toast/toast_context.jsx";
+import { useToast } from "../../../controls/toast/use_toast.js";
 import { getProvincias, getDepartamentos, getLocalidades } from "../../../api/ubicacion_api.js";
 import { getListaPrecio, crearListaPrecio, actualizarListaPrecio } from "../api/listas_precio_api.js";
 import { RUTA_LISTAS } from "../utils/rutas_articulo.js";
