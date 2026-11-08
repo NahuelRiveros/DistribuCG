@@ -28,6 +28,11 @@ mantenga cientos de artículos sin errores, a mano o importando una planilla.
 | CAT-01 | El catálogo tiene dos niveles: Familia › Categoría. Una planilla con más niveles se aplana a dos al importar. | ✅ `checkout.integration.mjs` › "familias y categorías: dos niveles, mover en lote y fusionar sin perder artículos"; `ux_rules.test.mjs` › "familias y categorías: la importación aplana a dos niveles…" |
 | CAT-02 | Se pueden mover categorías en lote y fusionar dos sin perder artículos. | ✅ mismo test que CAT-01; `storefront.spec.js` › "familias y categorías: dos columnas, búsqueda global, alta y fusión" |
 | CAT-03 | Borrar una familia o categoría es darla de baja: no se reactiva sola al arrancar. | ✅ `seed_distribuidora.test.mjs` › "seed: respeta bajas de familias y categorías sin reactivarlas" |
+| CAT-04 | Tocar una categoría (su nombre o su "N artículos") la despliega ahí mismo, debajo, con sus artículos; tocarla de nuevo la cierra. Una sola abierta por vez. | ✅ `storefront.spec.js` › "CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y permite agregar uno ahí mismo" |
+| CAT-05 | Cada artículo muestra nombre, código, precio General, stock y "Inactivo" si lo está (se ven todos, como los cuenta el contador). Tocarlo abre su ficha, y "Volver" regresa a la categoría abierta. | ✅ `storefront.spec.js` › "CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y permite agregar uno ahí mismo" |
+| CAT-06 | En la categoría abierta, "+ Artículo en <categoría>" abre la ficha nueva con la familia y la categoría ya elegidas. | ✅ `storefront.spec.js` › "CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y permite agregar uno ahí mismo" |
+| CAT-07 | Los artículos se piden recién al abrir la categoría, de a 10, con "Ver más"; hay cargando, error con reintentar y vacía con el botón para agregar. | ✅ `storefront.spec.js` › "CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y permite agregar uno ahí mismo" |
+| CAT-08 | La dirección guarda la categoría abierta: al recargar o volver atrás sigue abierta. | ✅ `storefront.spec.js` › "CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y permite agregar uno ahí mismo" |
 
 ### Marcas
 

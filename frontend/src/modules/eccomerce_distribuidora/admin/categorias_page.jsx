@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowLeft, ChevronRight, Combine, Edit2, FolderInput, FolderTree, Package, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, ChevronUp, Combine, Edit2, FolderInput, FolderTree, Package, Plus, Trash2 } from "lucide-react";
 import SearchField from "../../../controls/ui/search_field.jsx";
 import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
 import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
@@ -12,6 +12,7 @@ import { getCategorias, crearCategoria, actualizarCategoria, eliminarCategoria, 
 import { indexarCategorias, construirOpcionesCategoria, slugify } from "../utils/categoria_jerarquia.js";
 import { NombreModal, DestinoModal } from "./categorias_modales.jsx";
 import { rutaFichaArticulo } from "../utils/rutas_articulo.js";
+import ArticulosDeCategoria from "./articulos_de_categoria.jsx";
 
 const BOTON = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60";
 const ICONO = "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-40";
@@ -32,8 +33,8 @@ const AYUDA = {
 /**
  * Familias y categorías en dos columnas (Familia › Categoría): a la izquierda las
  * familias, a la derecha las categorías de la elegida. Pensado para miles de
- * categorías: los artículos no se listan acá (eso es Artículos, paginado en el
- * servidor) y la búsqueda corre sobre el listado ya cargado, sin pedidos extra.
+ * categorías: los artículos de una categoría se piden recién al desplegarla y de a
+ * 10 (CAT-04), y la búsqueda corre sobre el listado ya cargado, sin pedidos extra.
  */
 export default function CategoriasDistribuidoraPage() {
   const toast = useToast();
@@ -42,6 +43,7 @@ export default function CategoriasDistribuidoraPage() {
   const q = params.get("q") ?? "";
   const familiaId = Number(params.get("familia")) || null;
   const filtro = params.get("filtro") ?? "";
+  const categoriaAbierta = Number(params.get("categoria")) || null;
   const [modal, setModal] = useState(null);
   const [errorModal, setErrorModal] = useState("");
   const [seleccion, setSeleccion] = useState(() => new Set());
@@ -59,7 +61,7 @@ export default function CategoriasDistribuidoraPage() {
   }
   function abrirFamilia(id, filtroInicial = "") {
     setSeleccion(new Set());
-    navegar({ familia: id, q: null, filtro: filtroInicial || null });
+    navegar({ familia: id, q: null, filtro: filtroInicial || null, categoria: null });
   }
   function cerrarModal() { setModal(null); setErrorModal(""); }
 
@@ -144,7 +146,8 @@ export default function CategoriasDistribuidoraPage() {
           <DetalleFamilia
             key={familiaValida.id} familia={familiaValida} indice={indice} filtro={filtro} onFiltro={(f) => navegar({ filtro: f || null })}
             seleccion={seleccion} setSeleccion={setSeleccion} ocupado={accion.isPending}
-            onVolver={() => navegar({ familia: null, filtro: null })}
+            onVolver={() => navegar({ familia: null, filtro: null, categoria: null })}
+            categoriaAbierta={categoriaAbierta} onAlternarCategoria={(id) => navegar({ categoria: id === categoriaAbierta ? null : id })}
             onCrear={crearEnFamilia}
             onRenombrar={(item) => setModal({ tipo: "renombrar", item })}
             onFusionar={(item) => setModal({ tipo: "fusionar", item })}
@@ -253,7 +256,7 @@ function ListaFamilias({ indice, actual, oculta, onAbrir }) {
   );
 }
 
-function DetalleFamilia({ familia, indice, filtro, onFiltro, seleccion, setSeleccion, ocupado, onVolver, onCrear, onRenombrar, onFusionar, onEliminar, onMover }) {
+function DetalleFamilia({ familia, indice, filtro, onFiltro, seleccion, setSeleccion, ocupado, onVolver, categoriaAbierta, onAlternarCategoria, onCrear, onRenombrar, onFusionar, onEliminar, onMover }) {
   const [nueva, setNueva] = useState("");
   const todas = indice.categoriasDe.get(familia.id);
   const palabras = sinAcentos(filtro).split(/\s+/).filter(Boolean);
@@ -331,20 +334,27 @@ function DetalleFamilia({ familia, indice, filtro, onFiltro, seleccion, setSelec
             {visibles.map((c) => {
               const total = indice.totalDe.get(c.id);
               const sinHijas = !indice.hijosDe.has(c.id);
+              const abierta = categoriaAbierta === c.id;
               return (
-                <li key={c.id} className={`flex items-center gap-2 px-2 py-1 sm:px-4 ${seleccion.has(c.id) ? "bg-(--kt-turquoise-soft)" : ""}`}>
+                <li key={c.id} className={seleccion.has(c.id) ? "bg-(--kt-turquoise-soft)" : ""}>
+                <div className="flex items-center gap-2 px-2 py-1 sm:px-4">
                   <label className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">
                     <span className="sr-only">Elegir {c.nombre}</span>
                     <input type="checkbox" checked={seleccion.has(c.id)} onChange={() => alternar(c.id)} className="h-5 w-5" />
                   </label>
-                  <div className="min-w-0 flex-1 py-2">
-                    <p className="font-semibold break-words text-(--kt-ink)">{nombreEnFamilia(c)}</p>
-                    <Link to={rutaArticulos(c.id)} className="text-xs font-semibold text-(--kt-teal-700) underline-offset-2 hover:underline">{plural(total, "artículo", "artículos")}</Link>
-                  </div>
+                  {/* CAT-04: el nombre y el contador despliegan los artículos acá mismo. */}
+                  <button type="button" aria-expanded={abierta} onClick={() => onAlternarCategoria(c.id)} className="min-w-0 flex-1 py-2 text-left">
+                    <span className="block font-semibold break-words text-(--kt-ink)">{nombreEnFamilia(c)}</span>
+                    <span className="flex items-center gap-1 text-xs font-semibold text-(--kt-teal-700)">
+                      {plural(total, "artículo", "artículos")} {abierta ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
+                    </span>
+                  </button>
                   <button type="button" onClick={() => onRenombrar(c)} className={ICONO} aria-label={`Renombrar ${c.nombre}`} title="Renombrar"><Edit2 size={18} /></button>
                   <button type="button" onClick={() => onFusionar(c)} className={ICONO} aria-label={`Fusionar ${c.nombre}`} title="Fusionar con otra"><Combine size={18} /></button>
                   <button type="button" onClick={() => onEliminar(c)} disabled={total > 0 || !sinHijas} className={ICONO} aria-label={`Eliminar ${c.nombre}`}
                     title={total > 0 ? "Tiene artículos: fusionala con otra para no perderlos" : "Eliminar"}><Trash2 size={18} /></button>
+                </div>
+                {abierta && <ArticulosDeCategoria categoria={c} nombre={nombreEnFamilia(c)} volver={`/distribuidora/admin/categorias?familia=${familia.id}&categoria=${c.id}`} />}
                 </li>
               );
             })}

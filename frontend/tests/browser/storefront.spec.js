@@ -1005,3 +1005,59 @@ test("PAN-04: sin permiso para una pantalla, quien tiene panel va al inicio con 
   await expect(page).not.toHaveURL(/\/panel|\/admin/);
   await expect(page.getByText("No tenés permiso para ver esa pantalla")).toHaveCount(0);
 });
+
+test("CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y permite agregar uno ahí mismo", async ({ page }) => {
+  await entrarComo(page, ["supervisor"]);
+  await page.route("**/api/distribuidora/catalogos/categorias**", (route) => route.fulfill({ json: { ok: true, data: CATEGORIAS } }));
+  const pedidos = [];
+  let falloGalletas = true;
+  await page.route("**/api/distribuidora/productos?**", (route) => {
+    const url = new URL(route.request().url());
+    const categoria = Number(url.searchParams.get("categoria"));
+    const pagina = Number(url.searchParams.get("pagina") || 1);
+    pedidos.push({ categoria, pagina, por_pagina: Number(url.searchParams.get("por_pagina")) });
+    // Falla (también el reintento automático) hasta que se toca "Reintentar".
+    if (categoria === 3 && falloGalletas) return route.fulfill({ status: 503, json: { ok: false, mensaje: "Servidor despertando" } });
+    if (categoria !== 2) return route.fulfill({ json: { ok: true, data: [], total: 0, pagina: 1, total_paginas: 0 } });
+    const desde = (pagina - 1) * 10;
+    const data = Array.from({ length: 10 }, (_, i) => ({
+      id: 100 + desde + i, nombre: `Galletita ${desde + i + 1}`, activo: desde + i !== 1,
+      variedades: [{ id: 500 + desde + i, cod_ref: `GA-${desde + i + 1}`, precio: 1200, controla_stock: true, cantidad: 24, unidad_medida: "PAQUETE", unidades_por_bulto: 12, unidad_bulto: "CAJA" }],
+    }));
+    return route.fulfill({ json: { ok: true, data, total: 40, pagina, total_paginas: 4 } });
+  });
+  await page.goto("/distribuidora/admin/categorias?familia=1");
+  // Antes de abrir una categoría no se piden artículos.
+  expect(pedidos).toHaveLength(0);
+  await page.getByRole("button", { name: /^Galletitas \d/ }).click();
+  const lista = page.getByRole("region", { name: "Artículos de Galletitas" });
+  await expect(lista.getByRole("link", { name: /Galletita 1\b/ })).toBeVisible();
+  await expect(lista.getByRole("listitem")).toHaveCount(10);
+  await expect(lista.getByRole("listitem").filter({ hasText: "Galletita 2" })).toContainText("Inactivo");
+  await expect(lista.getByRole("listitem").first()).toContainText("GA-1");
+  await expect(lista.getByRole("listitem").first()).toContainText("2 cajas");
+  expect(pedidos[0]).toEqual({ categoria: 2, pagina: 1, por_pagina: 10 });
+  await expect(page).toHaveURL(/familia=1&categoria=2/);
+  await noOverflow(page);
+
+  await lista.getByRole("button", { name: "Ver más" }).click();
+  await expect(lista.getByRole("listitem")).toHaveCount(20);
+
+  // Volver desde la ficha deja la categoría abierta.
+  await expect(lista.getByRole("link", { name: "Artículo en Galletitas" })).toHaveAttribute("href", /\/distribuidora\/admin\/productos\/nuevo\?volver=.*categoria%3D2.*&familia=2$/);
+  await page.reload();
+  await expect(page.getByRole("region", { name: "Artículos de Galletitas" })).toBeVisible();
+
+  // Una sola abierta: abrir otra cierra la anterior. Vacía ofrece agregar; un error ofrece reintentar.
+  await page.getByRole("button", { name: /^Galletas \d/ }).click();
+  await expect(page.getByRole("region", { name: "Artículos de Galletitas" })).toHaveCount(0);
+  const galletas = page.getByRole("region", { name: "Artículos de Galletas" });
+  await expect(galletas.getByRole("alert")).toContainText("No se pudieron cargar los artículos");
+  falloGalletas = false;
+  await galletas.getByRole("button", { name: "Reintentar" }).click();
+  await expect(galletas).toContainText("Todavía no hay artículos en Galletas");
+  await expect(galletas.getByRole("link", { name: "Artículo en Galletas" })).toBeVisible();
+  await page.getByRole("button", { name: /^Galletas \d/ }).click();
+  await expect(galletas).toHaveCount(0);
+  await expect(page).not.toHaveURL(/categoria=/);
+});
