@@ -33,13 +33,18 @@ jobs:
       DB_USER: postgres
       DB_PASS: postgres_ci
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: servidor/package-lock.json
+          cache-dependency-path: |
+            servidor/package-lock.json
+            frontend/package-lock.json
       - run: npm --prefix servidor ci
+      # Los tests del servidor también prueban archivos del frontend (menús, permisos),
+      # que importan librerías del frontend como lucide-react.
+      - run: npm --prefix frontend ci
       - name: Tests del servidor
         run: npm --prefix servidor test
       - name: Integración con PostgreSQL
@@ -49,10 +54,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm --prefix frontend ci
