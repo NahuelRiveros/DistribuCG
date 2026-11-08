@@ -8,7 +8,7 @@ import { permisosEfectivos, tienePermiso } from "../../../permisos_config.js";
 
 // Roles y permisos en una sola consulta (antes era solo la de roles): se lee en cada
 // pedido autenticado, así que un cambio de permisos rige sin volver a iniciar sesión.
-async function rolesYPermisos(usuario_id) {
+export async function rolesYPermisos(usuario_id) {
   const filas = await sequelize.query(`
     SELECT r.codigo AS rol, p.codigo AS permiso
     FROM usuario_rol ur

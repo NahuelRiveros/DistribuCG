@@ -2,7 +2,7 @@
 
 | Estado | Pedido por | Fecha | Spec del módulo |
 | --- | --- | --- | --- |
-| Borrador | Dueño del proyecto | 2026-11-08 | [core/sistema.md](../core/sistema.md) |
+| Aprobada | Dueño del proyecto | 2026-11-08 | [core/sistema.md](../core/sistema.md) |
 
 ## Por qué
 

@@ -59,6 +59,7 @@ equipo lo lleve de "Recibido" a "Entregado" sin perder nada en el camino: stock,
 | PED-16 | La lista de la gestión se actualiza sola cada 30 segundos y al terminar cada acción. | ⚠️ sin test |
 | PED-17 | Ver pide "Ver pedidos" y cambiar estados, "Cambiar estados"; el servidor lo controla en cada acción. | ✅ `checkout.integration.mjs` › "HTTP: cliente no gestiona notas y el supervisor sí, con sus permisos" |
 | PED-18 | Cada pedido se puede bajar como planilla de Excel con cliente, CUIT o DNI, condición frente al IVA y factura sugerida, entrega, fecha y detalle. Pide "Ver pedidos". | ⚠️ sin test |
+| PED-19 | Cada pedido muestra un botón principal con el próximo paso ("Confirmar pedido", "Empezar preparación", "Marcar como entregado"); "Cancelar pedido" va aparte, en rojo, y volver atrás o reabrir, en "Más opciones". | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) (hoy: un botón "Pasar a …" por cada cambio, mezclando avanzar y volver) |
 
 ### Stock
 
@@ -67,6 +68,10 @@ equipo lo lleve de "Recibido" a "Entregado" sin perder nada en el camino: stock,
 | PED-20 | Al pasar a Confirmado se descuenta el stock de las presentaciones que controlan stock. Si no alcanza, la confirmación se rechaza diciendo qué falta. | ✅ `checkout.integration.mjs` › "stock: confirmar descuenta, sin stock no confirma y los pedidos viejos no devuelven" |
 | PED-21 | El stock vuelve si el pedido sale de los estados que lo descuentan (vuelve a Recibido o se cancela). | ✅ mismo test que PED-20 |
 | PED-22 | Los pedidos de antes de este sistema de stock no devuelven nada al cancelarse: nunca descontaron. | ✅ mismo test que PED-20 |
+| PED-23 | Aceptar un comprobante que deja el pedido cobrado por completo lo pasa solo de Recibido o Confirmado a En preparación (confirma y descuenta stock en el mismo paso). Con un pago parcial, solo registra el cobro. | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) |
+| PED-24 | Si al aceptar el comprobante falta stock, el cobro se registra igual y el pedido no avanza, con el aviso de qué falta. | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) |
+| PED-25 | El avance automático queda en el historial con el motivo "Pago aceptado" y al comprador le llega un solo correo. | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) |
+| PED-26 | Los pedidos sin comprobante (efectivo o a cuenta) se confirman a mano con "Confirmar pedido". | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) |
 
 ### Lo que hace el comprador
 
@@ -133,6 +138,7 @@ equipo lo lleve de "Recibido" a "Entregado" sin perder nada en el camino: stock,
 | 2026-10 | PED-07, PED-08 | Mínimo de compra con la lista del cliente; reparto o retiro con costo por localidad o "a convenir" (relevamiento, puntos 5 y 7). | Cliente |
 | 2026-10 | PED-20 | El stock se descuenta al Confirmar, no al enviar (relevamiento, punto 8). | Cliente |
 | 2026-10 | PED-31 | El comprador cancela solo en Recibido y no edita: "Cancelar y volver a armar" (relevamiento, punto 10). | Cliente |
+| 2026-11-08 | PED-19, PED-23, PED-26 | Botón principal con el próximo paso; aceptar el comprobante por el total pasa el pedido solo a En preparación; sin comprobante se confirma a mano. Se mantienen los estados Confirmado y En preparación. Se descartaron dejar el estado sin cambios al aceptar, pasar solo a Confirmado, exigir cobro para confirmar y unir los dos estados. | Dueño del proyecto |
 
 ## Preguntas abiertas
 

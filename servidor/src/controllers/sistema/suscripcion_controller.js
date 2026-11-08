@@ -6,6 +6,7 @@ import {
   extenderSuscripcion,
   fijarFechaVencimiento,
   registrarPago,
+  procesarPagoAprobado,
   historialPagos,
 } from "../../services/sistema/software_suscripcion_service.js";
 import {
@@ -89,28 +90,18 @@ export async function webhookController(req, res) {
       return res.sendStatus(200);
     }
 
-    // ── Pago aprobado ── extender suscripción 30 días
-    const hoy  = new Date();
-    const hasta = new Date(hoy);
-    hasta.setDate(hasta.getDate() + 30);
-
-    const [saveResult, extResult] = await Promise.allSettled([
-      registrarPago({
-        mpPaymentId:    paymentId,
-        mpPreferenceId: pago.external_reference,
-        monto:          pago.monto,
-        estado:         "aprobado",
-        detalle:        pago.detalle,
-        desde:          hoy.toISOString().slice(0, 10),
-        hasta:          hasta.toISOString().slice(0, 10),
-      }),
-      extenderSuscripcion(30),
-    ]);
-
-    if (saveResult.status === "rejected") {
-      console.log("  ℹ  Pago duplicado ignorado:", paymentId);
-    } else {
+    // ── Pago aprobado ── 30 días, una sola vez aunque MercadoPago avise de nuevo (SIS-04)
+    const resultado = await procesarPagoAprobado({
+      mpPaymentId:    paymentId,
+      mpPreferenceId: pago.external_reference,
+      monto:          pago.monto,
+      detalle:        pago.detalle,
+    });
+    if (resultado.extendida) {
+      invalidarCacheSuscripcion(); // el bloqueo se levanta en el momento
       console.log(`  ✅ Suscripción extendida 30 días por pago ${paymentId}`);
+    } else {
+      console.log("  ℹ  Pago ya registrado, aviso repetido ignorado:", paymentId);
     }
 
     return res.sendStatus(200);

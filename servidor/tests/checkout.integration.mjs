@@ -16,6 +16,8 @@ process.env.DB_SSL = "false";
 for (const clave of ["SMTP_USER", "SMTP_PASS", "CLAVE_API_BREVO", "CORREO_REMITENTE"]) process.env[clave] = "";
 const ownedSchema = "codex_ux_test_" + randomUUID().replaceAll("-", "");
 process.env.DB_SCHEMA = ownedSchema;
+// Las tablas de la suscripción viven en public en producción; acá, en el schema temporal.
+process.env.ESQUEMA_SUSCRIPCION = ownedSchema;
 const { sequelize, DB_SCHEMA } = await import("../src/database/sequelize.js");
 const models = await import("../src/modulos/eccomerce_distribuidora/models/index.js");
 const { registrarCliente, login, loginConGoogle } = await import("../src/services/usuarios/auth_service.js");
@@ -521,6 +523,20 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       } finally { await new Promise((resolve) => server.close(resolve)); }
       assert.ok(await permisosSrv.eliminarRol(repositor.id));
       assert.equal(await models.RolPermiso.count({ where: { rol_id: repositor.id } }), 0);
+    });
+    await t.test("SIS-04: el mismo pago avisado varias veces por MercadoPago extiende la suscripción una sola vez", async () => {
+      const sus = await import("../src/services/sistema/software_suscripcion_service.js");
+      await sus.setupTablas();
+      await sus.crearSuscripcionInicial();
+      const enUnMes = new Date(); enUnMes.setDate(enUnMes.getDate() + 30);
+      await sus.fijarFechaVencimiento(enUnMes.toISOString().slice(0, 10));
+      const pago = { mpPaymentId: "mp-123", mpPreferenceId: "pref-1", monto: 10000, detalle: {} };
+      const resultados = [];
+      for (let i = 0; i < 3; i++) resultados.push(await sus.procesarPagoAprobado(pago));
+      assert.deepEqual(resultados.map((r) => r.extendida), [true, false, false]);
+      const [{ cantidad }] = await sequelize.query(`SELECT count(*)::int AS cantidad FROM "${DB_SCHEMA}".software_pago`, { type: (await import("sequelize")).QueryTypes.SELECT });
+      assert.equal(cantidad, 1);
+      assert.equal((await sus.obtenerEstado()).fecha_vencimiento, resultados[0].nuevo_vencimiento, "un solo período sumado");
     });
     await t.test("PER-20: el personal necesita 8 caracteres al crearse o cambiar la contraseña; las viejas siguen sirviendo", async () => {
       const { crearStaff, cambiarPasswordStaff } = await import("../src/services/usuarios/admin_staff_service.js");

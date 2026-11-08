@@ -450,3 +450,28 @@ test("precios de demostración: fijos por producto, en el rango de la familia, ~
   assert.equal(esquemaPermiteDemo("gc_dist"), false);
   assert.equal(esquemaPermiteDemo("gc_dist_test"), true);
 });
+test("SIS-01: 10 días de gracia después del vencimiento; recién al día 11 queda vencido", async () => {
+  const { calcularEstado } = await import("../src/services/sistema/software_suscripcion_service.js");
+  const hoy = new Date(2026, 10, 20);
+  const dias = (n) => { const d = new Date(hoy); d.setDate(d.getDate() + n); return d; };
+  assert.equal(calcularEstado(dias(11), hoy).estado, "activo");
+  assert.equal(calcularEstado(dias(5), hoy).estado, "aviso");
+  assert.equal(calcularEstado(dias(-1), hoy).estado, "gracia");
+  assert.equal(calcularEstado(dias(-10), hoy).estado, "gracia");
+  assert.equal(calcularEstado(dias(-10), hoy).bloqueado, false);
+  assert.deepEqual([calcularEstado(dias(-11), hoy).estado, calcularEstado(dias(-11), hoy).bloqueado], ["vencido", true]);
+});
+test("SIS-05: con el plan vencido se bloquea al personal (no al super admin, clientes ni visitantes); ver, ingresar y pagar siempre pasan", async () => {
+  const { debeBloquear } = await import("../src/middleware/suscripcion_middleware.js");
+  const pedido = (cambios) => ({ bloqueado: true, metodo: "POST", ruta: "/distribuidora/productos", roles: ["vendedor"], ...cambios });
+  assert.equal(debeBloquear(pedido({})), true);
+  assert.equal(debeBloquear(pedido({ roles: ["admin"] })), true, "el admin también: tiene que pagar");
+  assert.equal(debeBloquear(pedido({ roles: ["cliente", "supervisor"] })), true);
+  assert.equal(debeBloquear(pedido({ roles: ["super_admin"] })), false);
+  assert.equal(debeBloquear(pedido({ roles: ["cliente"] })), false, "la tienda sigue vendiendo");
+  assert.equal(debeBloquear(pedido({ roles: [] })), false, "visitante");
+  assert.equal(debeBloquear(pedido({ metodo: "GET" })), false);
+  assert.equal(debeBloquear(pedido({ ruta: "/auth/login" })), false);
+  assert.equal(debeBloquear(pedido({ ruta: "/suscripcion/crear-pago" })), false);
+  assert.equal(debeBloquear(pedido({ bloqueado: false })), false);
+});

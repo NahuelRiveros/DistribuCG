@@ -4,11 +4,11 @@
  * Gestión de la suscripción mensual al software DistribuCG.
  * Una sola fila en software_suscripcion por instalación.
  *
- * Ciclo de vida:
+ * Ciclo de vida (spec: docs/specs/core/sistema.md, SIS-01):
  *   activo   → más de 10 días antes del vencimiento
  *   aviso    → 1-10 días antes (últimos días del mes)
- *   gracia   → 0 a -10 días (del 1 al 10 del mes siguiente)
- *   vencido  → más de 10 días después del vencimiento (bloqueo suave)
+ *   gracia   → hasta 10 días después (se cobra a mes vencido: del 1 al 10 del mes siguiente)
+ *   vencido  → más de 10 días después del vencimiento: se bloquea el panel (SIS-05)
  */
 
 import { sequelize } from "../../database/sequelize.js";
@@ -16,13 +16,20 @@ import { QueryTypes } from "sequelize";
 import { env } from "../../configuracion_servidor/env.js";
 
 const DIAS_AVISO  = 10;   // días previos al vencimiento → aviso
-const DIAS_GRACIA = 3;    // días de gracia después del vencimiento (solo UI, no bloquea)
+const DIAS_GRACIA = 10;   // días después del vencimiento antes de bloquear
+
+// En producción las tablas viven en public, compartidas por la instalación; los tests usan su schema temporal.
+function esquema() {
+  const valor = process.env.ESQUEMA_SUSCRIPCION || "public";
+  if (!/^[a-z][a-z0-9_]*$/.test(valor)) throw new Error(`ESQUEMA_SUSCRIPCION inválido ("${valor}")`);
+  return `"${valor}"`;
+}
 
 // ── Setup inicial (se llama UNA VEZ por instalación) ────────────────────────
 
 export async function setupTablas() {
   await sequelize.query(`
-    CREATE TABLE IF NOT EXISTS public.software_suscripcion (
+    CREATE TABLE IF NOT EXISTS ${esquema()}.software_suscripcion (
       id                SERIAL PRIMARY KEY,
       cliente_nombre    VARCHAR(200) NOT NULL DEFAULT 'Gym',
       plan_nombre       VARCHAR(100) NOT NULL DEFAULT 'Plan Mensual',
@@ -35,7 +42,7 @@ export async function setupTablas() {
   `);
 
   await sequelize.query(`
-    CREATE TABLE IF NOT EXISTS public.software_pago (
+    CREATE TABLE IF NOT EXISTS ${esquema()}.software_pago (
       id                SERIAL PRIMARY KEY,
       mp_payment_id     VARCHAR(100) UNIQUE,
       mp_preference_id  VARCHAR(300),
@@ -53,7 +60,7 @@ export async function setupTablas() {
 
 export async function crearSuscripcionInicial() {
   const existe = await sequelize.query(
-    `SELECT id FROM public.software_suscripcion LIMIT 1`,
+    `SELECT id FROM ${esquema()}.software_suscripcion LIMIT 1`,
     { type: QueryTypes.SELECT }
   );
   if (existe.length > 0) {
@@ -65,7 +72,7 @@ export async function crearSuscripcionInicial() {
   const venc = primerDiaSiguiente(hoy);
 
   await sequelize.query(
-    `INSERT INTO public.software_suscripcion
+    `INSERT INTO ${esquema()}.software_suscripcion
        (cliente_nombre, plan_nombre, precio, fecha_inicio, fecha_vencimiento)
      VALUES (:cliente, 'Plan Mensual', :precio, :inicio, :venc)`,
     {
@@ -86,7 +93,7 @@ export async function crearSuscripcionInicial() {
 
 export async function obtenerEstado() {
   const rows = await sequelize.query(
-    `SELECT * FROM public.software_suscripcion ORDER BY id LIMIT 1`,
+    `SELECT * FROM ${esquema()}.software_suscripcion ORDER BY id LIMIT 1`,
     { type: QueryTypes.SELECT }
   );
 
@@ -117,10 +124,10 @@ export async function obtenerEstado() {
 
 // ── Extender suscripción después de un pago aprobado ────────────────────────
 
-export async function extenderSuscripcion(dias = 30) {
+export async function extenderSuscripcion(dias = 30, { transaction } = {}) {
   const rows = await sequelize.query(
-    `SELECT id, fecha_vencimiento FROM public.software_suscripcion ORDER BY id LIMIT 1`,
-    { type: QueryTypes.SELECT }
+    `SELECT id, fecha_vencimiento FROM ${esquema()}.software_suscripcion ORDER BY id LIMIT 1 FOR UPDATE`,
+    { type: QueryTypes.SELECT, transaction }
   );
   if (!rows.length) return { ok: false, mensaje: "Sin suscripción" };
 
@@ -137,13 +144,14 @@ export async function extenderSuscripcion(dias = 30) {
   const nuevaFechaStr = nuevaFecha.toISOString().slice(0, 10);
 
   await sequelize.query(
-    `UPDATE public.software_suscripcion
+    `UPDATE ${esquema()}.software_suscripcion
      SET fecha_vencimiento = :venc,
          actualizado_en    = NOW()
      WHERE id = :id`,
     {
       replacements: { venc: nuevaFechaStr, id: s.id },
       type: QueryTypes.UPDATE,
+      transaction,
     }
   );
 
@@ -156,13 +164,13 @@ export async function extenderSuscripcion(dias = 30) {
 export async function registrarPago({ mpPaymentId, mpPreferenceId, monto, estado, detalle, desde, hasta }) {
   // Evitar duplicados (MP puede reenviar el webhook)
   const existe = await sequelize.query(
-    `SELECT id FROM public.software_pago WHERE mp_payment_id = :pid LIMIT 1`,
+    `SELECT id FROM ${esquema()}.software_pago WHERE mp_payment_id = :pid LIMIT 1`,
     { replacements: { pid: String(mpPaymentId) }, type: QueryTypes.SELECT }
   );
   if (existe.length > 0) return { ok: false, codigo: "DUPLICADO" };
 
   await sequelize.query(
-    `INSERT INTO public.software_pago
+    `INSERT INTO ${esquema()}.software_pago
        (mp_payment_id, mp_preference_id, monto, estado, detalle, periodo_desde, periodo_hasta)
      VALUES (:pid, :pref, :monto, :estado, :detalle, :desde, :hasta)`,
     {
@@ -182,17 +190,47 @@ export async function registrarPago({ mpPaymentId, mpPreferenceId, monto, estado
   return { ok: true };
 }
 
+/**
+ * Pago aprobado por MercadoPago (SIS-04): se anota y se extienden 30 días en una sola transacción,
+ * y solo si el pago es nuevo. MercadoPago avisa el mismo pago varias veces: los avisos repetidos
+ * no suman nada.
+ */
+export async function procesarPagoAprobado({ mpPaymentId, mpPreferenceId, monto, detalle }) {
+  return sequelize.transaction(async (transaction) => {
+    const hoy = new Date();
+    const hasta = new Date(hoy);
+    hasta.setDate(hasta.getDate() + 30);
+    const [filas] = await sequelize.query(
+      `INSERT INTO ${esquema()}.software_pago
+         (mp_payment_id, mp_preference_id, monto, estado, detalle, periodo_desde, periodo_hasta)
+       VALUES (:pid, :pref, :monto, 'aprobado', :detalle, :desde, :hasta)
+       ON CONFLICT (mp_payment_id) DO NOTHING
+       RETURNING id`,
+      {
+        replacements: {
+          pid: String(mpPaymentId), pref: mpPreferenceId || null, monto: Number(monto),
+          detalle: JSON.stringify(detalle || {}), desde: hoy.toISOString().slice(0, 10), hasta: hasta.toISOString().slice(0, 10),
+        },
+        transaction,
+      }
+    );
+    if (!filas.length) return { extendida: false };
+    const extension = await extenderSuscripcion(30, { transaction });
+    return { extendida: extension.ok, nuevo_vencimiento: extension.nuevo_vencimiento };
+  });
+}
+
 // ── Fijar fecha de vencimiento exacta ────────────────────────────────────────
 
 export async function fijarFechaVencimiento(fecha) {
   const rows = await sequelize.query(
-    `SELECT id FROM public.software_suscripcion ORDER BY id LIMIT 1`,
+    `SELECT id FROM ${esquema()}.software_suscripcion ORDER BY id LIMIT 1`,
     { type: QueryTypes.SELECT }
   );
   if (!rows.length) return { ok: false, mensaje: "Sin suscripción" };
 
   await sequelize.query(
-    `UPDATE public.software_suscripcion
+    `UPDATE ${esquema()}.software_suscripcion
      SET fecha_vencimiento = :fecha,
          actualizado_en    = NOW()
      WHERE id = :id`,
@@ -208,7 +246,7 @@ export async function fijarFechaVencimiento(fecha) {
 export async function historialPagos(limit = 12) {
   return sequelize.query(
     `SELECT id, mp_payment_id, monto, estado, periodo_desde, periodo_hasta, creado_en
-     FROM public.software_pago
+     FROM ${esquema()}.software_pago
      ORDER BY creado_en DESC
      LIMIT :limit`,
     { replacements: { limit }, type: QueryTypes.SELECT }
@@ -217,8 +255,8 @@ export async function historialPagos(limit = 12) {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function calcularEstado(fechaVencimiento) {
-  const hoy  = new Date();
+export function calcularEstado(fechaVencimiento, ahora = new Date()) {
+  const hoy  = new Date(ahora);
   hoy.setHours(0, 0, 0, 0);
   const venc = new Date(fechaVencimiento);
   venc.setHours(0, 0, 0, 0);

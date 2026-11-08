@@ -2,7 +2,7 @@
 
 | Estado | Pedido por | Fecha | Spec del módulo |
 | --- | --- | --- | --- |
-| Borrador | Dueño del proyecto | 2026-11-08 | [core/panel.md](../core/panel.md) |
+| Aprobada | Dueño del proyecto | 2026-11-08 | [core/panel.md](../core/panel.md) |
 
 ## Por qué
 
