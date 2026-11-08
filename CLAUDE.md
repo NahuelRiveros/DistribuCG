@@ -22,7 +22,8 @@ de esos rubros.
   archivo. Decide qué tablas crea el bootstrap; no cambiarlo como un simple ajuste visual.
 - `client_config.js`: cliente activo, acceso público y políticas del carrito.
 - `order_config.js`: estados, transiciones, stock por estado y comprobantes de cobro.
-- `permisos_config.js`: lista de permisos del personal (`pedidos.ver`, `cobros.gestionar`, `precios.editar`…),
+- `permisos_config.js`: lista de permisos del personal: los del core acá y los de cada rubro en
+  `modulos_compartidos/<rubro>/permisos.js` (`pedidos.ver`, `cobros.gestionar`, `precios.editar`…),
   sus grupos, dependencias (`requiere`) y los roles que los reciben al aparecer (`porDefecto`). Qué rol tiene
   cada permiso vive en la base (`rol_permiso`) y se edita en `/admin/permisos`. `admin` y `super_admin` tienen
   todos siempre. El rol `staff` se renombró a `supervisor` (`renombrarStaffASupervisor` en `seed_rbac.js`).
