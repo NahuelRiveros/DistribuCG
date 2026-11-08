@@ -890,10 +890,12 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       await assert.rejects(listasSrv.importarPreciosDeLista(lista.id, [{ cod_ref: "LQA-1", precio: 1 }, { cod_ref: "NO-EXISTE", precio: 2 }]), /NO-EXISTE/);
       assert.equal((await listasSrv.listarPreciosDeLista(lista.id, { solo_especiales: true })).filas.find((f) => f.variedad_id === vYerba.id).precio, 1200);
     });
-    await t.test("arranque: borra las tablas de gym y kinesiología y sus módulos, sin tocar la distribuidora", async () => {
+    await t.test("arranque: borra las tablas de los rubros retirados y sus módulos, sin tocar la distribuidora", async () => {
       const { QueryTypes } = await import("sequelize");
-      for (const tabla of ["alumno", "ejercicio", "patologia"]) await sequelize.query('CREATE TABLE "' + DB_SCHEMA + '"."' + tabla + '" (id serial PRIMARY KEY)');
-      await models.ModuloNegocio.bulkCreate([{ codigo: "gym", descripcion: "Gym", habilitado: true }, { codigo: "kinesiologia", descripcion: "Kinesiología", habilitado: true }]);
+      for (const tabla of ["alumno", "ejercicio", "patologia", "producto", "producto_tienda"]) await sequelize.query('CREATE TABLE "' + DB_SCHEMA + '"."' + tabla + '" (id serial PRIMARY KEY)');
+      // carrito_item apunta a producto_tienda: el CASCADE no debe trabar el borrado.
+      await sequelize.query('CREATE TABLE "' + DB_SCHEMA + '".carrito_item (id serial PRIMARY KEY, producto_id int REFERENCES "' + DB_SCHEMA + '".producto_tienda(id))');
+      await models.ModuloNegocio.bulkCreate(["gym", "kinesiologia", "stock", "eccomerce_indumentaria"].map((codigo) => ({ codigo, descripcion: codigo, habilitado: true })));
       await aplicar_ajustes_puntuales();
       await aplicar_ajustes_puntuales(); // corre en cada arranque: la segunda vez no falla
       const tablas = (await sequelize.query("SELECT table_name::text AS nombre FROM information_schema.tables WHERE table_schema = :schema", { replacements: { schema: DB_SCHEMA }, type: QueryTypes.SELECT })).map((x) => x.nombre);

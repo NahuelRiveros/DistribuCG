@@ -82,10 +82,10 @@ async function crear_schema() {
   console.log(`✅ Schema "${DB_SCHEMA}" listo`);
 }
 
-// Tablas de gimnasio, kinesiología y seguimiento de ejercicios: esos módulos se sacaron
-// del proyecto (DistribuCG es solo distribuidora). Nombres fijos, solo en nuestro schema;
-// IF EXISTS las hace idempotentes, así que corre en cada arranque sin costo.
-// Primero las que dependen de otras.
+// Tablas de gimnasio, kinesiología, seguimiento de ejercicios, stock/kiosco e
+// indumentaria: esos módulos se sacaron del proyecto (DistribuCG es solo distribuidora).
+// Nombres fijos, solo en nuestro schema; IF EXISTS las hace idempotentes, así que corre
+// en cada arranque sin costo. Primero las que dependen de otras.
 export const TABLAS_RETIRADAS = [
   "recordatorio_kinesiologia", "sesion_kinesiologia", "ficha_kinesiologica",
   "paciente_patologia", "paciente_kinesiologia", "patologia",
@@ -93,8 +93,11 @@ export const TABLAS_RETIRADAS = [
   "test_funcional", "test_fuerza", "registro_sesion_kinesiologia",
   "registro_ejercicio", "asignacion_profesional", "ejercicio", "grupo_muscular", "tipo_ejercicio",
   "ingreso", "alumno_estado_log", "membresia", "alumno", "plan_tipo", "alumno_estado",
+  "movimiento_stock", "producto", "categoria_producto",
+  "carrito_item", "carrito", "stock", "producto_tienda",
+  "talle", "color", "marca", "categoria", "envio_opcion", "condicion_iva",
 ];
-export const MODULOS_RETIRADOS = ["gym", "kinesiologia"];
+export const MODULOS_RETIRADOS = ["gym", "kinesiologia", "stock", "eccomerce_indumentaria"];
 
 /**
  * Ajustes que `sync({ alter: true })` no resuelve solo. Cada uno es idempotente
