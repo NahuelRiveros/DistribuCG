@@ -46,8 +46,6 @@ export async function seed_rbac() {
   // Módulos de negocio (gate real de licencia, ver requireModuloHabilitado) —
   // findOrCreate no pisa el habilitado si un cliente ya lo togleó antes.
   const modulosNegocio = [
-    { codigo: "stock",                  descripcion: "Kiosco y stock",          habilitado: true },
-    { codigo: "eccomerce_indumentaria", descripcion: "Tienda de indumentaria",  habilitado: true },
     { codigo: "eccomerce_distribuidora", descripcion: "Distribuidora",          habilitado: true },
   ];
   for (const modulo of modulosNegocio) {
@@ -57,7 +55,6 @@ export async function seed_rbac() {
   // Secciones del panel de gestión de roles — reflejan las áreas reales de la app (routes/)
   const modulos = [
     { codigo: "usuarios",     descripcion: "Usuarios y staff",               orden: 2 },
-    { codigo: "stock",        descripcion: "Kiosco y stock",                 orden: 5 },
     { codigo: "home",         descripcion: "Contenido del home",             orden: 9 },
     { codigo: "suscripcion",  descripcion: "Suscripción del software",       orden: 10 },
   ];

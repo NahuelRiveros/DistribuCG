@@ -246,7 +246,7 @@ test("carrito invitado combina variantes sin superar stock y descarta almacenami
   assert.equal(readGuestCart({ getItem: () => JSON.stringify({ key: "k", items: [], updatedAt: 0 }) }, "key"), null);
 });
 test("navbar filtra árboles por rol y módulo, sin acoplarse a un rubro", () => {
-  for (const modulo of ["stock", "eccomerce_indumentaria", "eccomerce_distribuidora"]) {
+  for (const modulo of ["eccomerce_distribuidora", "otro_rubro"]) {
     const config = { links: [{ to: "/", label: "Inicio" }], dropdowns: [{ id: modulo, items: [{ label: "Gestión", children: [{ to: "/admin", roles: ["admin"], modulo, requiereAuth: true }] }] }] };
     assert.equal(filtrarNavbarPorRol(config, null, { [modulo]: true }).dropdowns.length, 0);
     assert.equal(filtrarNavbarPorRol(config, { roles: ["admin"] }, { [modulo]: true }).dropdowns.length, 1);

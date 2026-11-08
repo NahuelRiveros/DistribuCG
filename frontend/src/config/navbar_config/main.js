@@ -2,15 +2,12 @@ import { Home, HelpCircle, Phone } from "lucide-react";
 import { accountLinks } from "./account.js";
 import { brandConfig } from "../brand_config.js";
 import { projectModules } from "../gate_config.js";
-import { catalogConfig } from "../catalog_config.js";
-import CartIcon from "../../controls/carrito/cart_icon.jsx";
 import CarritoDistribuidoraIcon from "../../modules/eccomerce_distribuidora/carrito/carrito_icon.jsx";
 
-import { eccomerceIndumentariaDropdown } from "./eccomerce_indumentaria_dropdown.js";
 import { eccomerceDistribuidoraCatalogoLink } from "./eccomerce_distribuidora_dropdown.js";
 import { panelGestionLink } from "./panel_gestion.js";
 
-// Un archivo por dropdown (eccomerce_indumentaria_dropdown.js, admin_dropdown.js,
+// Un archivo por dropdown (admin_dropdown.js,
 // super_admin_dropdown.js) — cada uno dueño de todo su árbol, sin
 // importarse cosas entre sí. Este archivo solo ensambla: agrega el import
 // y una línea de spread en `dropdowns`, nunca copia ítems de otro archivo.
@@ -21,7 +18,7 @@ import { panelGestionLink } from "./panel_gestion.js";
 // `extras` son componentes que se renderizan en la barra, junto al login/user
 // box — así controls/layout/navbar.jsx no necesita importar directamente
 // módulos opcionales (ej. carrito). Cada componente decide por su cuenta si
-// se muestra o no (CartIcon se auto-oculta si cartConfig.enableCart es false).
+// se muestra o no.
 //
 // DOS GATES, uno arriba del otro:
 //   1. gate_config.js (el gate maestro) decide si el módulo EXISTE en este
@@ -37,7 +34,7 @@ import { panelGestionLink } from "./panel_gestion.js";
 // habilitados) NO llevan `modulo:` — tienen que seguir accesibles aunque
 // todo lo demás esté apagado, para poder volver a prenderlo.
 export const navbar_config = {
-  extras: [CartIcon, CarritoDistribuidoraIcon],
+  extras: [CarritoDistribuidoraIcon],
   accountLinks,
 
   brand: {
@@ -67,7 +64,5 @@ export const navbar_config = {
     panelGestionLink,
   ],
 
-  dropdowns: [
-    ...(catalogConfig.enabled ? [eccomerceIndumentariaDropdown] : []),
-  ],
+  dropdowns: [],
 };

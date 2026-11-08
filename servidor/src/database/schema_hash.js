@@ -26,9 +26,9 @@ const RUTAS_A_HASHEAR = [
   path.resolve(__dirname, "./bootstrap.js"),
 ];
 
-// proyecto_futuro/ y _scaffold/ no se sincronizan nunca (ver
-// sincronizar_modelos) — cambios ahí no deben invalidar el cache.
-const IGNORAR = new Set(["proyecto_futuro", "_scaffold"]);
+// _scaffold/ no se sincroniza nunca (ver sincronizar_modelos) — cambios ahí
+// no deben invalidar el cache.
+const IGNORAR = new Set(["_scaffold"]);
 
 function archivosJs(dir) {
   const resultado = [];

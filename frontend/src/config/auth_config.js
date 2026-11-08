@@ -1,6 +1,6 @@
 import { clientConfig } from "../../../client_config.js";
 import { projectModules } from "./gate_config.js";
-const tienda = projectModules.eccomerce_distribuidora || projectModules.eccomerce_indumentaria;
+const tienda = projectModules.eccomerce_distribuidora;
 export const authConfig = {
   storageKey: "token", ...clientConfig.auth,
   defaultDestination: projectModules.eccomerce_distribuidora ? "/distribuidora/catalogo" : "/",

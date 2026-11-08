@@ -4,11 +4,9 @@ import { projectModules } from "../configuracion_servidor/gate_config.js";
 import { calcularHashEsquema } from "./schema_hash.js";
 import { sincronizarMarcasLegado } from "../services/distribuidora/marcas_distribuidora_service.js";
 import {
-  Sexo, TipoDocumento, TipoPersona, Rol, Modulo, CategoriaProducto, HomeArea,
-  Permiso, Persona, Producto, HomeContenido, RolPermiso, Usuario,
-  UsuarioRol, MovimientoStock, ModuloNegocio, BannerAnuncio, HomeTexto, HomePilar, HomeContacto,
-  Categoria, Marca, Talle, Color, ProductoTienda, Stock, EnvioOpcion, CondicionIva,
-  Carrito, CarritoItem,
+  Sexo, TipoDocumento, TipoPersona, Rol, Modulo, HomeArea,
+  Permiso, Persona, HomeContenido, RolPermiso, Usuario,
+  UsuarioRol, ModuloNegocio, BannerAnuncio, HomeTexto, HomePilar, HomeContacto,
   CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora, MarcaDistribuidora, MarcaCategoriaDistribuidora,
   ListaPrecio, ListaPrecioLocalidad, ListaPrecioItem,
   CarritoDistribuidora, CarritoDistribuidoraItem, NotaPedido, NotaPedidoItem, NotaPedidoPago, NotaPedidoComprobante,
@@ -114,16 +112,9 @@ export async function aplicar_ajustes_puntuales() {
 
 async function sincronizar_modelos() {
   // Agrupado por rubro/módulo — mismos nombres que projectModules en
-  // frontend/src/config/gate_config.js y que MODULOS en
-  // scripts/analizar_modulos.mjs, para que los tres archivos se lean juntos.
-  //
-  // Regla de orden: MODELOS_COMPARTIDOS va siempre primero (todo lo demás
-  // depende de Persona/Usuario/Rol/Home). Dentro de cada lista de rubro el
-  // orden interno importa (respeta sus propias FK, ver comentarios). Entre
-  // listas de rubros distintos el orden no importa — son independientes —
-  // con una sola excepción: MODELOS_PRODUCTOS antes que MODELOS_CARRITO,
-  // porque carrito_item → producto_tienda/stock (misma vertical
-  // eccomerce_indumentaria, separadas en dos listas nomás por prolijidad).
+  // gate_config.js. MODELOS_COMPARTIDOS va siempre primero (todo lo demás
+  // depende de Persona/Usuario/Rol/Home); dentro de cada lista el orden
+  // respeta sus FK (ver comentarios).
 
   const MODELOS_COMPARTIDOS = [
     // catálogos sin dependencias externas
@@ -140,31 +131,8 @@ async function sincronizar_modelos() {
     UsuarioRol, // usuario_rol → usuario, rol
   ];
 
-  // módulo "stock" (carpeta models/kiosco/) — backend completo pero sin
-  // pantalla propia en el frontend todavía, ver gate_config.js.
-  const MODELOS_STOCK = [
-    CategoriaProducto, // catálogo propio
-    Producto,          // producto → categoria_producto
-    MovimientoStock,   // movimiento_stock → producto, usuario
-  ];
-
-  // módulo eccomerce_indumentaria — catálogo de tienda online
-  const MODELOS_PRODUCTOS = [
-    // Categoria es auto-referenciada, sync({alter:true}) la resuelve sola
-    // con la FK ya declarada en el modelo
-    Categoria, Marca, Talle, Color, EnvioOpcion, CondicionIva,
-    ProductoTienda, // producto_tienda → categoria, marca
-    Stock,          // stock → producto_tienda, talle, color
-  ];
-
-  // módulo eccomerce_indumentaria — carrito (depende de MODELOS_PRODUCTOS)
-  const MODELOS_CARRITO = [
-    Carrito,     // carrito → usuario
-    CarritoItem, // carrito_item → carrito, producto_tienda, stock
-  ];
-
   // módulo eccomerce_distribuidora — catálogo tipo supermercado + nota de
-  // pedido. Tablas propias, sin depender de productos/ ni carrito/ (indumentaria).
+  // pedido.
   const MODELOS_DISTRIBUIDORA = [
     OperacionCarrito,
     ImportacionCatalogo,
@@ -190,12 +158,9 @@ async function sincronizar_modelos() {
   // Mismo gate que decide navbar/rutas del lado del frontend
   // (frontend/src/config/gate_config.js, ver navbar_config/main.js) — acá
   // decide qué tablas se crean. Un módulo en `false` no sincroniza sus
-  // modelos: con solo distribuidora activa no se crean las tablas de
-  // stock ni de indumentaria. MODELOS_COMPARTIDOS va siempre.
+  // modelos. MODELOS_COMPARTIDOS va siempre.
   const modelos_en_orden = [
     ...MODELOS_COMPARTIDOS,
-    ...(projectModules.stock ? MODELOS_STOCK : []),
-    ...(projectModules.eccomerce_indumentaria ? [...MODELOS_PRODUCTOS, ...MODELOS_CARRITO] : []),
     ...(projectModules.eccomerce_distribuidora ? MODELOS_DISTRIBUIDORA : []),
   ];
 

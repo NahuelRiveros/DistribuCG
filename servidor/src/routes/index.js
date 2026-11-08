@@ -7,27 +7,16 @@ import { catalogosRouter } from "./sistema/catalogos_router.js";
 import { staffRouter } from "./usuarios/staff_router.js";
 import { permisosRouter } from "./usuarios/permisos_router.js";
 import { suscripcionRouter } from "./sistema/suscripcion_router.js";
-import { stockRouter } from "./stock/stock_router.js";
 import { homeRouter } from "./home/home_router.js";
 import { modulosRouter } from "./sistema/modulos_router.js";
 import { ubicacionRouter } from "./ubicacion/ubicacion_router.js";
 import { bannerAnuncioRouter } from "./sistema/banner_anuncio_router.js";
 import { verificarSuscripcion } from "../middleware/suscripcion_middleware.js";
 
-// Módulo eccomerce_indumentaria (fase 1: catálogo, productos, carrito, upload
-// — ver modules/eccomerce_indumentaria/CHANGELOG.md en el frontend). catalogosRouter tiene
-// alias porque ya existe uno propio en ./sistema/catalogos_router.js
-// (catálogos genéricos tipo_documento/sexo) — ambos cuelgan de /catalogos
-// pero en subrutas distintas, no chocan.
-import { catalogosRouter as catalogosProductosRouter } from "./productos/catalogos_router.js";
-import { productoRouter } from "./productos/producto_router.js";
-import { carritoRouter } from "./carrito/carrito_router.js";
 import { uploadRouter } from "./upload_router.js";
 
 // Módulo eccomerce_distribuidora — catálogo tipo supermercado + nota de
-// pedido. Todo montado bajo /distribuidora/* para no compartir espacio de
-// rutas con /catalogos, /productos, /carrito de eccomerce_indumentaria
-// (son verticales separadas a propósito, ver frontend CHANGELOG del módulo).
+// pedido. Todo montado bajo /distribuidora/*.
 import { catalogosDistribuidoraRouter } from "./distribuidora/catalogos_distribuidora_router.js";
 import { productoDistribuidoraRouter } from "./distribuidora/producto_distribuidora_router.js";
 import { carritoDistribuidoraRouter } from "./distribuidora/carrito_distribuidora_router.js";
@@ -79,16 +68,11 @@ router.use("/auth", authRouter);
 router.use("/staff", staffRouter);
 router.use("/permisos", permisosRouter);                // ← roles y permisos del personal
 router.use("/suscripcion", suscripcionRouter);       // ← plan del software
-router.use("/stock", stockRouter);                   // ← productos y movimientos de stock
 router.use("/home",  homeRouter);                     // ← contenido configurable del home (GET público)
 router.use("/modulos", modulosRouter);                // ← gestión de módulos de negocio habilitados
 router.use("/ubicacion", ubicacionRouter);            // ← provincia/departamento/localidad (público, sin auth)
 router.use("/banner", bannerAnuncioRouter);           // ← cinta de anuncios (GET público, gestión solo super_admin)
 
-// ── eccomerce_indumentaria (fase 1) ───────────────────────────────────────
-router.use("/catalogos", catalogosProductosRouter);   // ← categorías/marcas/talles/colores/envío/IVA
-router.use("/productos", productoRouter);              // ← catálogo de productos + stock bajo + CSV
-router.use("/carrito",   carritoRouter);                // ← carrito de compras
 router.use("/upload",    uploadRouter);                 // ← subida genérica de imágenes (Cloudinary)
 
 // ── eccomerce_distribuidora ────────────────────────────────────────────────

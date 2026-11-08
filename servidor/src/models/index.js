@@ -27,11 +27,6 @@ import { RolPermiso }      from "./usuario/rol_permiso.js";
 import { Permiso }         from "./usuario/permiso.js";
 import { Modulo }          from "./usuario/modulo.js";
 
-// ── kiosco/ — productos y stock ───────────────────────────────────────────────
-import { Producto }         from "./kiosco/producto.js";
-import { CategoriaProducto } from "./kiosco/categoria_producto.js";
-import { MovimientoStock }  from "./kiosco/movimiento_stock.js";
-
 // ── home/ — contenido configurable del home (imágenes/videos en Cloudinary) ──
 import { HomeArea }         from "./home/home_area.js";
 import { HomeContenido }    from "./home/home_contenido.js";
@@ -43,25 +38,8 @@ import { HomeContacto }     from "./home/home_contacto.js";
 import { ModuloNegocio }    from "./sistema/modulo_negocio.js";
 import { BannerAnuncio }    from "./sistema/banner_anuncio.js";
 
-// ── productos/ — catálogo de la tienda online (módulo eccomerce_indumentaria) ─
-// "ProductoTienda" (tabla producto_tienda), no "Producto" — ya existe ese
-// nombre para el kiosco (models/kiosco/producto.js, módulo stock), dominio distinto.
-import { Categoria }        from "./productos/categoria.js";
-import { Marca }             from "./productos/marca.js";
-import { Talle }             from "./productos/talle.js";
-import { Color }             from "./productos/color.js";
-import { ProductoTienda }    from "./productos/producto.js";
-import { Stock }             from "./productos/stock.js";
-import { EnvioOpcion }       from "./productos/envio_opcion.js";
-import { CondicionIva }      from "./productos/condicion_iva.js";
-
-// ── carrito/ — carrito de compras (módulo eccomerce_indumentaria) ────────────
-import { Carrito }           from "./carrito/carrito.js";
-import { CarritoItem }       from "./carrito/carrito_item.js";
-
 // ── distribuidora/ — catálogo tipo supermercado + nota de pedido (módulo
-// eccomerce_distribuidora). Tablas propias, sin relación con productos/ ni
-// carrito/ (indumentaria) — dos verticales de e-commerce separadas a propósito.
+// eccomerce_distribuidora).
 import { CategoriaDistribuidora }   from "./distribuidora/categoria_distribuidora.js";
 import { ProductoDistribuidora }    from "./distribuidora/producto_distribuidora.js";
 import { MarcaDistribuidora, MarcaCategoriaDistribuidora } from "./distribuidora/marca_distribuidora.js";
@@ -108,44 +86,9 @@ aplicarRelaciones([
   { tipo: "belongsToMany", from: Rol,     to: Permiso, through: RolPermiso, foreignKey: "rol_id",     otherKey: "permiso_id", as: "permisos" },
   { tipo: "belongsToMany", from: Permiso, to: Rol,     through: RolPermiso, foreignKey: "permiso_id", otherKey: "rol_id",     as: "roles" },
 
-  // ─── Producto ↔ MovimientoStock (1:N) ───────────────────────────────────
-  { tipo: "hasMany",   from: Producto,        to: MovimientoStock, foreignKey: "producto_id", as: "movimientos" },
-  { tipo: "belongsTo", from: MovimientoStock, to: Producto,        foreignKey: "producto_id", as: "producto" },
-  { tipo: "belongsTo", from: MovimientoStock, to: Usuario,         foreignKey: "registrado_por_id", as: "registrado_por" },
-
-  // ─── Producto ↔ CategoriaProducto (N:1) ─────────────────────────────────
-  { tipo: "hasMany",   from: CategoriaProducto, to: Producto,          foreignKey: "categoria_id", as: "productos" },
-  { tipo: "belongsTo", from: Producto,          to: CategoriaProducto, foreignKey: "categoria_id", as: "categoria" },
-
   // ─── HomeArea ↔ HomeContenido (1:N) ──────────────────────────────────────
   { tipo: "hasMany",   from: HomeArea,      to: HomeContenido, foreignKey: "area_id", as: "contenidos" },
   { tipo: "belongsTo", from: HomeContenido, to: HomeArea,      foreignKey: "area_id", as: "area" },
-
-  // ─── Categoria ↔ Categoria (jerárquica, padre/subcategorías) ────────────
-  { tipo: "belongsTo", from: Categoria, to: Categoria, foreignKey: "padre_id", as: "padre" },
-  { tipo: "hasMany",   from: Categoria, to: Categoria, foreignKey: "padre_id", as: "subcategorias" },
-
-  // ─── ProductoTienda ↔ Categoria / Marca ──────────────────────────────────
-  { tipo: "belongsTo", from: ProductoTienda, to: Categoria, foreignKey: "categoria_id", as: "categoria" },
-  { tipo: "hasMany",   from: Categoria,      to: ProductoTienda, foreignKey: "categoria_id", as: "productos" },
-  { tipo: "belongsTo", from: ProductoTienda, to: Marca,     foreignKey: "marca_id",     as: "marca" },
-  { tipo: "hasMany",   from: Marca,          to: ProductoTienda, foreignKey: "marca_id", as: "productos" },
-
-  // ─── Stock ↔ ProductoTienda / Talle / Color (una fila = una variante) ───
-  { tipo: "belongsTo", from: Stock,          to: ProductoTienda, foreignKey: "producto_id", as: "producto" },
-  { tipo: "hasMany",   from: ProductoTienda, to: Stock,          foreignKey: "producto_id", as: "variantes" },
-  { tipo: "belongsTo", from: Stock, to: Talle, foreignKey: "talle_id", as: "talle" },
-  { tipo: "belongsTo", from: Stock, to: Color, foreignKey: "color_id", as: "color" },
-
-  // ─── Carrito ↔ Usuario (1:1) ─────────────────────────────────────────────
-  { tipo: "belongsTo", from: Carrito, to: Usuario, foreignKey: "usuario_id", as: "usuario" },
-  { tipo: "hasOne",    from: Usuario, to: Carrito, foreignKey: "usuario_id", as: "carrito" },
-
-  // ─── CarritoItem ↔ Carrito / ProductoTienda / Stock ─────────────────────
-  { tipo: "belongsTo", from: CarritoItem, to: Carrito,       foreignKey: "carrito_id",  as: "carrito" },
-  { tipo: "hasMany",   from: Carrito,     to: CarritoItem,   foreignKey: "carrito_id",  as: "items" },
-  { tipo: "belongsTo", from: CarritoItem, to: ProductoTienda, foreignKey: "producto_id", as: "producto" },
-  { tipo: "belongsTo", from: CarritoItem, to: Stock,          foreignKey: "stock_id",    as: "variante" },
 
   // ─── CategoriaDistribuidora ↔ CategoriaDistribuidora (jerárquica) ───────
   { tipo: "belongsTo", from: CategoriaDistribuidora, to: CategoriaDistribuidora, foreignKey: "padre_id", as: "padre" },
@@ -211,11 +154,8 @@ export {
   Sexo, TipoDocumento, TipoPersona,
   Rol, Modulo, Permiso, RolPermiso,
   Persona, Usuario, UsuarioRol,
-  Producto, MovimientoStock, CategoriaProducto,
   HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto,
   ModuloNegocio, BannerAnuncio,
-  Categoria, Marca, Talle, Color, ProductoTienda, Stock, EnvioOpcion, CondicionIva,
-  Carrito, CarritoItem,
   CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora, MarcaDistribuidora, MarcaCategoriaDistribuidora,
   ListaPrecio, ListaPrecioLocalidad, ListaPrecioItem,
   CarritoDistribuidora, CarritoDistribuidoraItem, NotaPedido, NotaPedidoItem, NotaPedidoPago, NotaPedidoComprobante,

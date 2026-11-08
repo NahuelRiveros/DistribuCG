@@ -12,10 +12,10 @@ del usuario tienen prioridad; no volver a pedir una autorización ya otorgada.
 
 Distribuidora con catálogo, presentaciones de productos, carrito invitado y de cuenta,
 notas de pedido, cobros manuales e importación de productos.
-El proyecto es solo distribuidora: gimnasio y kinesiología se eliminaron (código, seeds y
-tablas). El bootstrap borra sus tablas viejas en cada arranque (`TABLAS_RETIRADAS` en
-`database/bootstrap.js`); no volver a agregar código de esos rubros. Quedan, apagados,
-`eccomerce_indumentaria` y `stock`: su presencia no significa que estén activos.
+El proyecto es solo distribuidora: gimnasio, kinesiología, indumentaria, stock/kiosco y
+`proyecto_futuro` se eliminaron. El bootstrap borra las tablas viejas de los rubros retirados
+en cada arranque (`TABLAS_RETIRADAS` en `database/bootstrap.js`); no volver a agregar código
+de esos rubros.
 
 - `gate_config.js`: módulos de la instalación; solo `eccomerce_distribuidora` está activo.
   Frontend y servidor (`configuracion_servidor/gate_config.js`) re-exportan este mismo
@@ -69,7 +69,6 @@ servidor/src/
   models/                         modelos y relaciones actuales
   database/                       conexión, bootstrap y seeds
   middleware/                     autenticación, roles y módulos
-  validator/                      validadores manuales de body (sin Zod)
   configuracion_servidor/env.js    configuración de entorno
 servidor/tests/                    node:test y PostgreSQL local
 frontend/tests/browser/           Playwright con API simulada
@@ -82,7 +81,7 @@ El resumen del inicio sale de `GET /api/distribuidora/panel/resumen`, filtrado p
 
 No existen `servidor/src/nucleo/`, `models_v2/`, ni `frontend/src/components/ui/`
 en esta instalación. No copiar imports o fixtures del gimnasio suponiendo que existen.
-No trabajar sobre `proyecto_futuro/`, `sin_usar/` o scaffolds sin verificar sus consumidores.
+Las carpetas `_scaffold/` son moldes para crear módulos nuevos: la app no las usa.
 
 ## Comandos reales (desde la raíz)
 

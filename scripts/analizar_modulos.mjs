@@ -34,29 +34,10 @@ const { projectModules } = await import(
 
 // codigo (igual a la key de projectModules / a requireModuloHabilitado en el backend) → carpetas
 const MODULOS = {
-  eccomerce_indumentaria: {
-    frontend: [
-      "modules/eccomerce_indumentaria",
-      "config/navbar_config/eccomerce_indumentaria_dropdown.js",
-      "config/catalog_config.js",
-      "config/cart_config.js",
-      "controls/carrito",
-    ],
-    backendModels: ["models/productos", "models/carrito"],
-    backendCapas: [
-      "services/productos", "controllers/productos", "routes/productos",
-      "services/carrito", "controllers/carrito", "routes/carrito",
-    ],
-  },
   eccomerce_distribuidora: {
     frontend: ["modules/eccomerce_distribuidora", "config/navbar_config/eccomerce_distribuidora_dropdown.js"],
     backendModels: ["models/distribuidora"],
     backendCapas: ["services/distribuidora", "controllers/distribuidora", "routes/distribuidora"],
-  },
-  stock: {
-    frontend: [], // sin UI todavía — ver comentario en gate_config.js
-    backendModels: ["models/kiosco"],
-    backendCapas: ["services/stock", "controllers/stock", "routes/stock"],
   },
 };
 
