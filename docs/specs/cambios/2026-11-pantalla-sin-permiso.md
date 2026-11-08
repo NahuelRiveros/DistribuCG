@@ -2,7 +2,7 @@
 
 | Estado | Pedido por | Fecha | Spec del módulo |
 | --- | --- | --- | --- |
-| Aprobada | Dueño del proyecto | 2026-11-08 | [core/panel.md](../core/panel.md) |
+| Hecha | Dueño del proyecto | 2026-11-08 | [core/panel.md](../core/panel.md) |
 
 ## Por qué
 
@@ -13,7 +13,7 @@ permiso) aparece en la portada de la tienda y no entiende qué pasó.
 
 | Código | Requisito | Estado |
 | --- | --- | --- |
-| PAN-04 | Si la persona tiene panel, va al inicio del panel y ve el aviso "No tenés permiso para ver esa pantalla". Si no tiene panel (un cliente), va a la portada de la tienda, como hoy. | 🚧 |
+| PAN-04 | Si la persona tiene panel, va al inicio del panel y ve el aviso "No tenés permiso para ver esa pantalla". Si no tiene panel (un cliente), va a la portada de la tienda, como hoy. | ✅ |
 
 **Fuera de alcance:** pedirle el permiso al admin desde el aviso; cambiar qué pasa sin sesión (va a
 ingresar, PAN-03).
@@ -29,11 +29,11 @@ ingresar, PAN-03).
 
 ## Tareas
 
-1. [ ] Tests de navegador (fallan al principio): un vendedor que abre `/distribuidora/admin/productos` termina
+1. [x] Tests de navegador (fallan al principio): un vendedor que abre `/distribuidora/admin/productos` termina
    en `/panel` con el aviso; un cliente que abre la misma dirección termina en la portada, sin aviso.
-2. [ ] Frontend: `protected_route.jsx` y el aviso en `panel_inicio_page.jsx`.
-3. [ ] `node scripts/verificar.mjs --completo` en verde y revisión visual en escritorio y celular.
-4. [ ] Pasar PAN-04 a ✅ en la spec del módulo y marcar este cambio como hecho.
+2. [x] Frontend: `protected_route.jsx` y el aviso en `panel_inicio_page.jsx`.
+3. [x] `node scripts/verificar.mjs --completo` en verde y revisión visual en escritorio y celular.
+4. [x] Pasar PAN-04 a ✅ en la spec del módulo y marcar este cambio como hecho.
 
 ## Riesgos
 

@@ -40,7 +40,7 @@ gestionar, sin ver lo que no le corresponde, en computadora y en celular.
 | PAN-01 | Entra al panel quien puede ver al menos una de sus pantallas. Solo a esas personas les aparece "Panel de gestión" en el menú de la tienda. | ✅ `ux_rules.test.mjs` › "panel de gestión: cada uno ve las secciones de sus permisos y el cliente no entra"; `storefront.spec.js` › "supervisor entra al panel desde el navbar…" |
 | PAN-02 | Un cliente no ve el enlace y, si escribe la dirección `/panel`, no entra. | ✅ `storefront.spec.js` › "vendedor ve solo pedidos; cliente no tiene panel…" |
 | PAN-03 | Sin sesión, cualquier pantalla del panel lleva a ingresar y, después, vuelve a esa pantalla (USU-08). | ✅ `ux_rules.test.mjs` › "redirecciones internas conservan filtros…" (la redirección desde el panel: ⚠️) |
-| PAN-04 | Quien abre una pantalla del panel sin el permiso que pide, pero tiene panel, va al inicio del panel con el aviso "No tenés permiso para ver esa pantalla". Quien no tiene panel (un cliente) va a la portada de la tienda. | 🚧 [cambio 2026-11-pantalla-sin-permiso](../cambios/2026-11-pantalla-sin-permiso.md) (hoy: siempre a la portada, sin aviso) |
+| PAN-04 | Quien abre una pantalla del panel sin el permiso que pide, pero tiene panel, va al inicio del panel con el aviso "No tenés permiso para ver esa pantalla". Quien no tiene panel (un cliente) va a la portada de la tienda. | ✅ `storefront.spec.js` › "PAN-04: sin permiso para una pantalla, quien tiene panel va al inicio con un aviso; el cliente, a la portada" |
 
 ### Menú
 

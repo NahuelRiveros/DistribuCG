@@ -2,6 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/auth_context.jsx";
 import { authLink } from "./return_to.js";
 import { cumpleAcceso } from "./acceso.js";
+import { accesoPanel } from "../../config/navbar_config/panel_gestion.js";
 
 /**
  * Protege rutas según autenticación, roles y permisos (ver acceso.js).
@@ -14,7 +15,7 @@ import { cumpleAcceso } from "./acceso.js";
  * Comportamiento:
  *   - Cargando auth  → muestra spinner
  *   - Sin sesión     → redirige a /login
- *   - Sin rol        → redirige a / (home)
+ *   - Sin permiso    → al inicio del panel con un aviso si tiene panel; si no, a / (PAN-04)
  *   - OK             → renderiza children
  */
 export default function ProtectedRoute({ children, roles = [], permisos = [], todos = false }) {
@@ -38,8 +39,12 @@ export default function ProtectedRoute({ children, roles = [], permisos = [], to
     return <Navigate to={authLink("/login", location.pathname + location.search + location.hash)} replace />;
   }
 
-  // Autenticado pero sin el rol o permiso pedido → ir al inicio
-  if (!cumpleAcceso(usuario, { roles, permisos, todos })) return <Navigate to="/" replace />;
+  // Autenticado pero sin el rol o permiso pedido: quien tiene panel va a su inicio con el aviso
+  // (un enlace viejo o un permiso quitado); el cliente, a la portada de la tienda.
+  if (!cumpleAcceso(usuario, { roles, permisos, todos })) {
+    const tienePanel = cumpleAcceso(usuario, accesoPanel) && location.pathname !== "/panel";
+    return <Navigate to={tienePanel ? "/panel" : "/"} state={tienePanel ? { sinPermiso: true } : undefined} replace />;
+  }
 
   return children;
 }

@@ -1,5 +1,5 @@
-import { Suspense } from "react";
-import { Link } from "react-router-dom";
+import { Suspense, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/auth_context.jsx";
 import { usePanelGrupos } from "../../controls/layout/panel/use_panel_grupos.js";
 import { pantallasActivas } from "../pantallas_modulos.jsx";
@@ -8,9 +8,17 @@ import { pantallasActivas } from "../pantallas_modulos.jsx";
 export default function PanelInicioPage() {
   const { usuario } = useAuth();
   const secciones = usePanelGrupos().filter((grupo) => grupo.titulo);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // PAN-04: el aviso llega en el estado de la navegación y se borra, así aparece una vez por intento.
+  const [sinPermiso] = useState(Boolean(location.state?.sinPermiso));
+  useEffect(() => {
+    if (location.state?.sinPermiso) navigate(location.pathname, { replace: true, state: null });
+  }, [location, navigate]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-4 sm:p-8">
+      {sinPermiso && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">No tenés permiso para ver esa pantalla. Si la necesitás, pedíselo a un administrador.</p>}
       <div>
         <h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Hola{usuario?.nombre ? `, ${usuario.nombre}` : ""}</h1>
         <p className="text-sm text-(--kt-ink-soft)">Este es el resumen de tu negocio y todo lo que podés gestionar.</p>

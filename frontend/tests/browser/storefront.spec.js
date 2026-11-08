@@ -989,3 +989,19 @@ test("home comercial: permite reintentar si falla el catálogo", async ({ page }
   await expect(page.getByRole("complementary", { name: "Promociones destacadas" })).toHaveCount(0);
   await noOverflow(page);
 });
+
+test("PAN-04: sin permiso para una pantalla, quien tiene panel va al inicio con un aviso; el cliente, a la portada", async ({ page }) => {
+  await entrarComo(page, ["vendedor"], { pedidos: PEDIDOS_SIN_MONTOS, stock: null });
+  await page.goto("/distribuidora/admin/productos");
+  await expect(page).toHaveURL(/\/panel$/);
+  await expect(page.getByRole("status").filter({ hasText: "No tenés permiso para ver esa pantalla" })).toBeVisible();
+  // El aviso es por cada intento: al volver a entrar al inicio ya no está.
+  await page.reload();
+  await expect(page.getByText("No tenés permiso para ver esa pantalla")).toHaveCount(0);
+
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+  await entrarComo(page, ["cliente"]);
+  await page.goto("/distribuidora/admin/productos");
+  await expect(page).not.toHaveURL(/\/panel|\/admin/);
+  await expect(page.getByText("No tenés permiso para ver esa pantalla")).toHaveCount(0);
+});
