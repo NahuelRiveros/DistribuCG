@@ -34,7 +34,7 @@ Las notas anteriores a este cambio no tienen historial retrospectivo inventado. 
 | `frontend/src/config/theme_config.js` | Colores mediante tokens; CSS mantiene valores de base |
 | `frontend/src/config/home_config.js` | Contenido comercial de cada cliente |
 | `frontend/src/config/navbar_config/` | Enlaces y grupos según sesión, rol y módulo |
-| `frontend/src/config/storefront_config.js` | Rutas y textos comerciales del pedido |
+| `frontend/src/modules/eccomerce_distribuidora/storefront_config.js` | Rutas y textos comerciales del pedido |
 | `frontend/src/config/auth_config.js` | Textos y destinos de acceso |
 | `frontend/src/controls/ui/` | Campos, cantidades, búsqueda, paginación, botones y modales |
 | `frontend/src/controls/carrito/` | Persistencia invitada y sincronización mediante adapter |

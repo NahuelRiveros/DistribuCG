@@ -1,16 +1,16 @@
 import { LayoutDashboard } from "lucide-react";
-import { projectModules } from "../gate_config.js";
-import { eccomerceDistribuidoraAdminDropdown } from "./eccomerce_distribuidora_dropdown.js";
+import { modulosActivos } from "../../modules/modulos_activos.js";
 import { adminDropdown } from "./admin_dropdown.js";
 import { superAdminDropdown } from "./super_admin_dropdown.js";
 
 // Panel de gestión: todo lo que maneja el personal y el cliente nunca toca.
 // Igual que main.js, este archivo solo ensambla: cada grupo reutiliza los ítems
-// (con sus roles y `modulo`) del archivo dueño de ese menú, sin copiarlos.
+// (con sus roles y `modulo`) del archivo dueño de ese menú, sin copiarlos. Los
+// grupos de cada rubro vienen de su modulo.js.
 const aplanar = (items) => items.flatMap((item) => item.children ?? [item]);
 
 const gruposDeSecciones = [
-  ...(projectModules.eccomerce_distribuidora ? [{ id: "distribuidora", titulo: "Distribuidora", items: eccomerceDistribuidoraAdminDropdown.items }] : []),
+  ...modulosActivos.flatMap((modulo) => modulo.menu?.panel ?? []),
   { id: "admin", titulo: "Admin", items: aplanar(adminDropdown.items) },
   { id: "sistema", titulo: "Sistema", items: superAdminDropdown.items },
 ];

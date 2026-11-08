@@ -1,8 +1,4 @@
-import { ClipboardList, UserCircle } from "lucide-react";
-import { projectModules } from "../gate_config.js";
-export const accountLinks = [
-  ...(projectModules.eccomerce_distribuidora ? [
-    { label: "Mis pedidos", to: "/distribuidora/mis-pedidos", requiereAuth: true, modulo: "eccomerce_distribuidora", icon: ClipboardList },
-    { label: "Mis datos", to: "/perfil", requiereAuth: true, modulo: "eccomerce_distribuidora", icon: UserCircle },
-  ] : []),
-];
+import { modulosActivos } from "../../modules/modulos_activos.js";
+
+// Links de "Mi cuenta": los aporta cada módulo de rubro (ver su modulo.js).
+export const accountLinks = modulosActivos.flatMap((modulo) => modulo.menu?.cuenta ?? []);

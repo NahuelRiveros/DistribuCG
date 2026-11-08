@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ProductCard from "../../../controls/catalog/product_card.jsx";
 import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
-import { storefrontConfig as config } from "../../../config/storefront_config.js";
+import { storefrontConfig as config } from "../storefront_config.js";
 import { formatearPrecio } from "../utils/precio_iva.js";
 import { describirBulto } from "../../../../../unidades_config.js";
 export default function ProductoCard({ producto }) {

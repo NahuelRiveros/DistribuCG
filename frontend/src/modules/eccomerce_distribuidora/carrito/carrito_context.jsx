@@ -3,7 +3,7 @@ import { createContext, useContext, useMemo } from "react";
 import { useAuth } from "../../../auth/auth_context.jsx";
 import { usePersistentCart } from "../../../controls/carrito/use_persistent_cart.js";
 import { detectarAlertas } from "../../../controls/carrito/validations/cart_staleness.js";
-import { storefrontConfig } from "../../../config/storefront_config.js";
+import { storefrontConfig } from "../storefront_config.js";
 import { getProducto } from "../api/producto_distribuidora_api.js";
 import { getCarrito, addCarritoItem, updateCarritoItem, removeCarritoItem, clearCarrito, mergeCarrito } from "../api/carrito_distribuidora_api.js";
 const Context = createContext(null);

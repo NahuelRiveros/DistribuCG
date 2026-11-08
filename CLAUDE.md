@@ -53,13 +53,17 @@ Express 5, Sequelize 6 y PostgreSQL en el servidor. Zod no está instalado en el
 
 ```text
 frontend/src/
-  app/router.jsx, app/routes/       rutas por módulo
+  app/router.jsx, app/routes/       rutas del core (las del rubro las aporta su módulo)
   auth/                            sesión y permisos de interfaz
   api/                             cliente HTTP y APIs comunes
   controls/                        controles compartidos, layout, carrito, pedidos
   controls/layout/panel/           marco del panel de gestión (/panel): menú lateral por rol
   controls/ui/                     campos, modal, data_grid, confirm_dialog
-  modules/eccomerce_distribuidora/  pantallas y API de distribuidora
+  modules/usuarios, panel, home     pantallas del core
+  modules/modulos_activos.js        registro de rubros: datos (menús, footer, login); lo leen los tests de Node
+  modules/pantallas_modulos.jsx     registro de rubros: rutas, proveedor, ícono del navbar, resumen del panel, inicio
+  modules/eccomerce_distribuidora/  todo el rubro: modulo.js (datos), modulo_pantallas.jsx, rutas.jsx,
+                                    menu.js, storefront_config.js, pantallas y API
   hooks/                           hooks compartidos
   config/                          configuración visual y funcional
 servidor/src/
@@ -81,7 +85,9 @@ frontend/tests/browser/           Playwright con API simulada
 
 Dos marcos en `app/router.jsx`: la tienda (`AppLayout`, navbar y footer) y el panel de gestión
 (`PanelLayout`). Todo lo que maneja el personal va en `app/routes/panel.routes.jsx` y su menú se arma en
-`config/navbar_config/panel_gestion.js` reutilizando los ítems (roles y `modulo`) de cada dropdown.
+`config/navbar_config/panel_gestion.js` reutilizando los ítems (roles y `modulo`) de cada dropdown; los
+grupos de un rubro salen de `menu.panel` de su `modulo.js`. El core nunca importa archivos de un rubro:
+los recibe de los dos registros de `modules/` (frontend) y de `servidor/src/modulos/index.js`.
 El resumen del inicio sale de `GET /api/distribuidora/panel/resumen`, filtrado por rol en el servidor.
 
 No existen `servidor/src/nucleo/`, `models_v2/`, ni `frontend/src/components/ui/`

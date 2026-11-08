@@ -1,10 +1,9 @@
-import { Home, HelpCircle, Phone } from "lucide-react";
+import { Home } from "lucide-react";
 import { accountLinks } from "./account.js";
 import { brandConfig } from "../brand_config.js";
-import { projectModules } from "../gate_config.js";
-import CarritoDistribuidoraIcon from "../../modules/eccomerce_distribuidora/carrito/carrito_icon.jsx";
+import { modulosActivos } from "../../modules/modulos_activos.js";
+import { pantallasActivas } from "../../modules/pantallas_modulos.jsx";
 
-import { eccomerceDistribuidoraCatalogoLink } from "./eccomerce_distribuidora_dropdown.js";
 import { panelGestionLink } from "./panel_gestion.js";
 
 // Un archivo por dropdown (admin_dropdown.js,
@@ -34,7 +33,7 @@ import { panelGestionLink } from "./panel_gestion.js";
 // habilitados) NO llevan `modulo:` — tienen que seguir accesibles aunque
 // todo lo demás esté apagado, para poder volver a prenderlo.
 export const navbar_config = {
-  extras: [CarritoDistribuidoraIcon],
+  extras: pantallasActivas.flatMap((pantallas) => pantallas.extrasNavbar ?? []),
   accountLinks,
 
   brand: {
@@ -55,10 +54,7 @@ export const navbar_config = {
 
   links: [
     { label: "Inicio", to: "/", exact: true, icon: Home },
-    ...(projectModules.eccomerce_distribuidora ? [eccomerceDistribuidoraCatalogoLink,
-      { label: "Cómo pedir", to: "/#como-pedir", icon: HelpCircle },
-      { label: "Contacto", to: "/#contacto", icon: Phone },
-    ] : []),
+    ...modulosActivos.flatMap((modulo) => modulo.menu?.links ?? []),
     // "Distribuidora · Gestión", "Admin" y "Sistema" viven en el panel (/panel),
     // con su menú lateral; ver panel_gestion.js.
     panelGestionLink,

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../auth/auth_context.jsx";
 import { orderConfig } from "../../../config/order_config.js";
-import { storefrontConfig } from "../../../config/storefront_config.js";
+import { storefrontConfig } from "../storefront_config.js";
 import OrderSummary from "../../../controls/pedidos/order_summary.jsx";
 import { money } from "../../../controls/pedidos/order_format.js";
 import ErrorBanner from "../../../controls/ui/error_banner.jsx";

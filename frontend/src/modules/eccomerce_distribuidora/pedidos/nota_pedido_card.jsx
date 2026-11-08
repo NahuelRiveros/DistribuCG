@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { orderConfig, ESTADOS } from "../../../config/order_config.js";
-import { storefrontConfig } from "../../../config/storefront_config.js";
+import { storefrontConfig } from "../storefront_config.js";
 import OrderSummary from "../../../controls/pedidos/order_summary.jsx";
 import { money } from "../../../controls/pedidos/order_format.js";
 import OfflinePaymentForm from "../../../controls/pedidos/offline_payment_form.jsx";

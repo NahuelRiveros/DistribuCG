@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Package, HelpCircle, ShoppingCart, ClipboardList, UserCircle, Phone, Undo2, Scale } from "lucide-react";
+import { ArrowRight, Phone, Undo2, Scale } from "lucide-react";
 import { footer_config } from "../../config/footer_config.js";
-import { storefrontConfig } from "../../config/storefront_config.js";
+import { tiendaActiva } from "../../modules/modulos_activos.js";
 import { moduloHabilitado } from "../config/modulos_config.js";
 import { iconoHome } from "../config/home_iconos.js";
 import { useAuth } from "../../auth/auth_context.jsx";
@@ -37,7 +37,7 @@ export default function Footer() {
 
   // Solo tiene sentido en un deploy con la tienda prendida — en un cliente
   // que solo use el panel (sin tienda) este bloque no debería aparecer.
-  const comercioActivo = storefrontConfig.enabled;
+  const comercioActivo = Boolean(tiendaActiva);
 
   return (
     <footer className="kt-body relative overflow-hidden bg-(--kt-night) text-white">
@@ -62,7 +62,7 @@ export default function Footer() {
               <p className="mt-1 text-sm text-slate-300">Catálogo completo, precios y stock siempre al día.</p>
             </div>
             <Link
-              to={storefrontConfig.catalogPath}
+              to={tiendaActiva.catalogo}
               className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-(--kt-accent-comercial) px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-(--kt-accent-comercial-hover)"
             >
               Ver catálogo <ArrowRight size={16} />
@@ -92,11 +92,7 @@ export default function Footer() {
           {/* ── Comprar — accesos reales a la tienda, no solo texto ── */}
           {comercioActivo && (
             <FooterColumn label="Comprar">
-              <FooterLink to={storefrontConfig.catalogPath} icon={Package}>Catálogo</FooterLink>
-              <FooterLink to="/#como-pedir" icon={HelpCircle}>Cómo pedir</FooterLink>
-              <FooterLink to={storefrontConfig.cartPath} icon={ShoppingCart}>Mi carrito</FooterLink>
-              <FooterLink to={storefrontConfig.ordersPath} icon={ClipboardList}>Mis pedidos</FooterLink>
-              <FooterLink to={storefrontConfig.profilePath} icon={UserCircle}>Mi perfil</FooterLink>
+              {tiendaActiva.linksFooter.map((link) => <FooterLink key={link.to} to={link.to} icon={link.icon}>{link.label}</FooterLink>)}
             </FooterColumn>
           )}
 
@@ -119,7 +115,7 @@ export default function Footer() {
 
             {comercioActivo && (
               <p className="mt-4 text-xs leading-5 text-slate-400">
-                {storefrontConfig.labels.orderNotice}
+                {tiendaActiva.aviso}
               </p>
             )}
 

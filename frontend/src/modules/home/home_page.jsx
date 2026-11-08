@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useHomeContent } from "../../hooks/use_home_content.js";
@@ -5,10 +6,10 @@ import { useHomeConfig } from "../../hooks/use_home_config.js";
 import { iconoHome } from "../../controls/config/home_iconos.js";
 import { brandConfig } from "../../config/brand_config.js";
 import { logoConfig } from "../../config/logo_config.js";
-import { storefrontConfig } from "../../config/storefront_config.js";
+import { tiendaActiva } from "../modulos_activos.js";
+import { pantallasActivas } from "../pantallas_modulos.jsx";
 import { HOME_TEXTOS_DEFAULT, HOME_COMO_PEDIR, HOME_PILARES, HOME_CONTACTOS } from "../../config/home_config.js";
 import HomeCarousel from "./home_carousel.jsx";
-import HomeTienda from "./home_tienda.jsx";
 
 const esPlaceholder = (v) => /^\[.*\]$/.test(String(v ?? "").trim());
 
@@ -27,7 +28,9 @@ export default function HomePage() {
 
   return (
     <div className="kt-body min-h-screen bg-white text-(--kt-ink)">
-      <HomeTienda texto={texto} textos={HOME_TEXTOS_DEFAULT} />
+      {pantallasActivas.map(({ codigo, InicioTienda }) => InicioTienda && (
+        <Suspense key={codigo} fallback={null}><InicioTienda texto={texto} textos={HOME_TEXTOS_DEFAULT} /></Suspense>
+      ))}
 
       {/* ── CÓMO PEDIR — 3 pasos, secuencia real (por eso la numeración) ── */}
       {HOME_COMO_PEDIR.length > 0 && (
@@ -185,7 +188,7 @@ export default function HomePage() {
           <p className="mt-6 text-base text-white/85">
             {texto("footer_cta_texto", brandConfig.tagline)}
           </p>
-          {storefrontConfig.enabled && <Link to={storefrontConfig.catalogPath} className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-(--kt-petrol)">Ver catálogo <ArrowRight size={18} aria-hidden="true" /></Link>}
+          {tiendaActiva && <Link to={tiendaActiva.catalogo} className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-(--kt-petrol)">Ver catálogo <ArrowRight size={18} aria-hidden="true" /></Link>}
         </div>
       </section>
 

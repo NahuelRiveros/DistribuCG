@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../../auth/auth_context.jsx";
 import { useCarritoDistribuidora } from "./carrito_context.jsx";
-import { storefrontConfig as config } from "../../../config/storefront_config.js";
+import { storefrontConfig as config } from "../storefront_config.js";
 import { authLink } from "../../../controls/acceso/return_to.js";
 import CartItem from "../../../controls/carrito/cart_item.jsx";
 import ActionButton from "../../../controls/ui/action_button.jsx";

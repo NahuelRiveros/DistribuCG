@@ -1,6 +1,5 @@
-import { storefrontConfig } from "../storefront_config.js";
+import { storefrontConfig } from "./storefront_config.js";
 import {
-  ShoppingBag,
   LayoutGrid,
   Package,
   ClipboardList,
@@ -12,20 +11,11 @@ import {
   Truck,
 } from "lucide-react";
 
-// Un link de primer nivel + dos dropdowns para el mismo módulo — mismas
-// reglas que adminDropdown y los demás dropdowns en sus archivos hermanos,
-// todos dueños de su propio árbol acá adentro. El gate maestro
-// (projectModules.eccomerce_distribuidora, de gate_config.js) se aplica en
-// main.js, no acá.
-//
-// Separados por audiencia y función (antes vivían los tres juntos en un
-// solo dropdown "Tienda", más un grupo "Administrar" adentro):
-//   - eccomerceDistribuidoraCatalogoLink ("Productos"): link directo, un
-//     solo destino no amerita un dropdown de un ítem.
-//   - eccomerceDistribuidoraDropdown ("Pedidos"): el pedido en curso del
-//     cliente y su historial.
-//   - eccomerceDistribuidoraAdminDropdown ("Distribuidora · Gestión"):
-//     equipo gestionando catálogo y pedidos recibidos.
+// Menús del módulo, mismas reglas que adminDropdown. Los usa modulo.js; el gate
+// maestro (gate_config.js) se aplica en modules/modulos_activos.js, no acá.
+//   - eccomerceDistribuidoraCatalogoLink ("Productos"): link directo al catálogo.
+//   - eccomerceDistribuidoraAdminDropdown ("Distribuidora · Gestión"): equipo
+//     gestionando catálogo y pedidos recibidos (grupo del panel).
 
 // "Productos" — link directo al catálogo (mismo filtro roles/modulo que
 // un ítem de dropdown, ver navbar_permissions.js: aplica igual a `links`).
@@ -36,30 +26,6 @@ export const eccomerceDistribuidoraCatalogoLink = {
   modulo: "eccomerce_distribuidora",
   // Cualquier usuario con sesión compra; sin catálogo público, alcanza con requiereAuth.
   icon: LayoutGrid,
-};
-
-// "Pedidos" — el pedido en curso del cliente y su historial.
-export const eccomerceDistribuidoraDropdown = {
-  id: "eccomerce_distribuidora",
-  labelNoAuth: "Pedidos",
-  labelAuth: "Pedidos",
-  icon: ShoppingBag,
-  items: [
-    {
-      label: "Carrito",
-      to: "/distribuidora/carrito",
-      requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
-      icon: ShoppingBag,
-    },
-    {
-      label: "Mis pedidos",
-      to: "/distribuidora/mis-pedidos",
-      requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
-      icon: ClipboardList,
-    },
-  ],
 };
 
 // "Distribuidora · Gestión" — catálogo, precios y pedidos recibidos. Cada ítem

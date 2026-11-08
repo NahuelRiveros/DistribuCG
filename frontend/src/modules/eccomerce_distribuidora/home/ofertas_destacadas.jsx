@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, BadgePercent } from "lucide-react";
-import { storefrontConfig as config } from "../../../config/storefront_config.js";
+import { storefrontConfig as config } from "../storefront_config.js";
 import HomeCarousel from "../../home/home_carousel.jsx";
 import TrazoAnimado from "../../home/trazo_animado.jsx";
 import ProductoCard from "../productos/producto_card.jsx";

@@ -1,5 +1,5 @@
-import { clientConfig } from "../../../client_config.js";
-import { projectModules } from "./gate_config.js";
+import { clientConfig } from "../../../../client_config.js";
+import { projectModules } from "../../config/gate_config.js";
 export const storefrontConfig = {
   ...clientConfig.distribuidora, enabled: projectModules.eccomerce_distribuidora,
   storageKey: `${clientConfig.id}:distribuidora:guest:v1`,

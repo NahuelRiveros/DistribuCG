@@ -5,7 +5,7 @@ import { Package, ShoppingBag, Tag, ArrowLeft } from "lucide-react";
 import { getProducto } from "../api/producto_distribuidora_api.js";
 import { useAuth } from "../../../auth/auth_context.jsx";
 import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
-import { storefrontConfig as config } from "../../../config/storefront_config.js";
+import { storefrontConfig as config } from "../storefront_config.js";
 import { formatearPrecio } from "../utils/precio_iva.js";
 import { cantidadConUnidad, describirBulto, textoBultos } from "../../../../../unidades_config.js";
 import StockBadge from "../../../controls/catalog/stock_badge.jsx";

@@ -1,8 +1,8 @@
+import { Suspense } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/auth_context.jsx";
-import { projectModules } from "../../config/gate_config.js";
 import { usePanelGrupos } from "../../controls/layout/panel/use_panel_grupos.js";
-import ResumenDistribuidora from "../eccomerce_distribuidora/panel/resumen_distribuidora.jsx";
+import { pantallasActivas } from "../pantallas_modulos.jsx";
 
 /** Inicio del panel: el resumen del negocio y un acceso a cada pantalla que el rol permite. */
 export default function PanelInicioPage() {
@@ -16,7 +16,9 @@ export default function PanelInicioPage() {
         <p className="text-sm text-(--kt-ink-soft)">Este es el resumen de tu negocio y todo lo que podés gestionar.</p>
       </div>
 
-      {projectModules.eccomerce_distribuidora && <ResumenDistribuidora />}
+      {pantallasActivas.map(({ codigo, ResumenPanel }) => ResumenPanel && (
+        <Suspense key={codigo} fallback={null}><ResumenPanel /></Suspense>
+      ))}
 
       <section aria-labelledby="panel-accesos" className="space-y-4">
         <h2 id="panel-accesos" className="text-lg font-bold text-(--kt-ink)">Accesos</h2>

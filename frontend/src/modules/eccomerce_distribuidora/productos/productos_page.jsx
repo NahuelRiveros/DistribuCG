@@ -5,7 +5,7 @@ import { BadgePercent, SlidersHorizontal } from "lucide-react";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getProductos } from "../api/producto_distribuidora_api.js";
 import { useAuth } from "../../../auth/auth_context.jsx";
-import { storefrontConfig as config } from "../../../config/storefront_config.js";
+import { storefrontConfig as config } from "../storefront_config.js";
 import SearchField from "../../../controls/ui/search_field.jsx";
 import Pagination from "../../../controls/ui/pagination.jsx";
 import Modal from "../../../controls/ui/modal.jsx";
