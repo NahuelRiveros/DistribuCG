@@ -524,6 +524,38 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.ok(await permisosSrv.eliminarRol(repositor.id));
       assert.equal(await models.RolPermiso.count({ where: { rol_id: repositor.id } }), 0);
     });
+    await t.test("PED-23 a PED-25: aceptar el comprobante por el total pasa el pedido solo a En preparación; parcial no avanza; sin stock cobra y avisa", async () => {
+      const comprobantes = await import("../src/modulos/eccomerce_distribuidora/services/comprobantes_service.js");
+      // Comprobantes cargados directo: este test no necesita Cloudinary.
+      const comprobanteDe = (nota) => models.NotaPedidoComprobante.create({ nota_pedido_id: nota.id, public_id: "x", resource_type: "image", formato: "pdf", tamano: 1, subido_por: id });
+
+      const stockAntes = (await variant.reload()).cantidad;
+      const nota = await pedirAna(product, variant, 2);
+      const r = await comprobantes.aceptarComprobante(nota.id, (await comprobanteDe(nota)).id, { usuario_id: id, monto: Number(nota.total) });
+      assert.deepEqual(r.avance, { avanzo: true, estado: "en_curso" });
+      await nota.reload();
+      assert.deepEqual([nota.estado, nota.estado_pago, nota.stock_descontado], ["en_curso", "pagado", true]);
+      assert.equal((await variant.reload()).cantidad, stockAntes - 2, "se confirmó: descontó el stock");
+      const historial = await models.NotaPedidoEstadoLog.findAll({ where: { nota_pedido_id: nota.id }, order: [["id", "ASC"]] });
+      assert.deepEqual(historial.map((h) => [h.anterior, h.nuevo, h.motivo, h.usuario_id]), [
+        ["pendiente", "confirmado", "Pago aceptado", id], ["confirmado", "en_curso", "Pago aceptado", id]]);
+
+      // Un pago parcial solo registra el cobro.
+      const parcial = await pedirAna(product, variant, 2);
+      const rp = await comprobantes.aceptarComprobante(parcial.id, (await comprobanteDe(parcial)).id, { usuario_id: id, monto: 1 });
+      assert.equal(rp.avance.avanzo, false);
+      assert.deepEqual([(await parcial.reload()).estado, parcial.estado_pago], ["pendiente", "parcial"]);
+
+      // Sin stock: el cobro queda registrado y el pedido no avanza, con el motivo.
+      await escasa.update({ cantidad: 3 });
+      const escasaNota = await pedirAna(productoEscaso, escasa, 3);
+      await escasa.update({ cantidad: 1 });
+      const rs = await comprobantes.aceptarComprobante(escasaNota.id, (await comprobanteDe(escasaNota)).id, { usuario_id: id, monto: Number(escasaNota.total) });
+      assert.equal(rs.avance.avanzo, false);
+      assert.match(rs.avance.motivo, /No hay stock suficiente.*hay 1, el pedido lleva 3/);
+      assert.deepEqual([(await escasaNota.reload()).estado, escasaNota.estado_pago, escasaNota.stock_descontado], ["pendiente", "pagado", false]);
+      assert.equal((await escasa.reload()).cantidad, 1, "no tocó el stock");
+    });
     await t.test("SIS-04: el mismo pago avisado varias veces por MercadoPago extiende la suscripción una sola vez", async () => {
       const sus = await import("../src/services/sistema/software_suscripcion_service.js");
       await sus.setupTablas();

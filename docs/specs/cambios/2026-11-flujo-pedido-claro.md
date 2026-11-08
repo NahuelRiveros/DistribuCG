@@ -2,7 +2,7 @@
 
 | Estado | Pedido por | Fecha | Spec del módulo |
 | --- | --- | --- | --- |
-| Aprobada | Dueño del proyecto | 2026-11-08 | [eccomerce_distribuidora/pedidos.md](../eccomerce_distribuidora/pedidos.md) |
+| Hecha | Dueño del proyecto | 2026-11-08 | [eccomerce_distribuidora/pedidos.md](../eccomerce_distribuidora/pedidos.md) |
 
 ## Por qué
 
@@ -15,11 +15,11 @@
 
 | Código | Requisito | Estado |
 | --- | --- | --- |
-| PED-19 | Cada pedido muestra **un botón principal** con el próximo paso: Recibido → "Confirmar pedido"; Confirmado → "Empezar preparación"; En preparación → "Marcar como entregado". "Cancelar pedido" va aparte, en rojo, y pide motivo. Volver un paso atrás o reabrir un cancelado van dentro de "Más opciones", con su nombre ("Volver a Recibido", "Reabrir pedido"). "Exportar Excel" pasa a ser secundario. | 🚧 |
-| PED-23 | Al **aceptar un comprobante** que deja el pedido **cobrado por completo**, si el pedido está en Recibido o Confirmado, pasa solo a **En preparación**: se confirma (descuenta stock, PED-20) y empieza la preparación en un solo paso. Con un pago parcial, solo se registra el cobro y el pedido no cambia. | 🚧 |
-| PED-24 | Si al aceptar el comprobante no alcanza el stock, el cobro se registra igual y el pedido se queda en su estado, con el aviso "Cobro registrado, pero no se pudo confirmar: falta stock de …". | 🚧 |
-| PED-25 | El paso automático queda en el historial como dos cambios (a Confirmado y a En preparación) con el motivo "Pago aceptado", a nombre de quien aceptó el comprobante; al comprador le llega **un solo correo**, el de En preparación. | 🚧 |
-| PED-26 | Los pedidos sin comprobante (efectivo al entregar o a cuenta) se siguen confirmando a mano con "Confirmar pedido". | 🚧 |
+| PED-19 | Cada pedido muestra **un botón principal** con el próximo paso: Recibido → "Confirmar pedido"; Confirmado → "Empezar preparación"; En preparación → "Marcar como entregado". "Cancelar pedido" va aparte, en rojo, y pide motivo. Volver un paso atrás o reabrir un cancelado van dentro de "Más opciones", con su nombre ("Volver a Recibido", "Reabrir pedido"). "Exportar Excel" pasa a ser secundario. | ✅ |
+| PED-23 | Al **aceptar un comprobante** que deja el pedido **cobrado por completo**, si el pedido está en Recibido o Confirmado, pasa solo a **En preparación**: se confirma (descuenta stock, PED-20) y empieza la preparación en un solo paso. Con un pago parcial, solo se registra el cobro y el pedido no cambia. | ✅ |
+| PED-24 | Si al aceptar el comprobante no alcanza el stock, el cobro se registra igual y el pedido se queda en su estado, con el aviso "Cobro registrado, pero no se pudo confirmar: falta stock de …". | ✅ |
+| PED-25 | El paso automático queda en el historial como dos cambios (a Confirmado y a En preparación) con el motivo "Pago aceptado", a nombre de quien aceptó el comprobante; al comprador le llega **un solo correo**, el de En preparación. | ✅ |
+| PED-26 | Los pedidos sin comprobante (efectivo al entregar o a cuenta) se siguen confirmando a mano con "Confirmar pedido". | ✅ |
 
 **Se mantiene:** los cinco estados y sus pasos permitidos (tabla "Estados" de la spec), entregar a cuenta
 (PED-14), el motivo obligatorio al volver o cancelar (PED-11) y el correo en cada cambio (PED-50).
@@ -38,15 +38,15 @@
 
 ## Tareas
 
-1. [ ] Tests (fallan al principio):
+1. [x] Tests (fallan al principio):
    - Servidor: comprobante por el total en Recibido → En preparación con stock descontado; en Confirmado → En
      preparación; pago parcial → sin cambio; sin stock → cobro registrado y pedido sin cambio, con el aviso;
      historial con dos cambios y un solo correo; reintento de aceptar no repite nada.
    - Navegador: botón principal correcto en cada estado; "Volver a …" solo en "Más opciones"; cancelar pide motivo.
-2. [ ] Servidor: `comprobantes_service.js` (aceptar y avanzar) usando las mismas reglas de `nota_pedido_service.js`.
-3. [ ] Frontend: botones de `nota_pedido_card.jsx` y el mensaje de PED-24.
-4. [ ] `node scripts/verificar.mjs --completo` en verde y revisión visual en escritorio y celular.
-5. [ ] Pasar PED-19 y PED-23 a PED-26 a ✅ en la spec del módulo y marcar este cambio como hecho.
+2. [x] Servidor: `comprobantes_service.js` (aceptar y avanzar) usando las mismas reglas de `nota_pedido_service.js`.
+3. [x] Frontend: botones de `nota_pedido_card.jsx` y el mensaje de PED-24.
+4. [x] `node scripts/verificar.mjs --completo` en verde y revisión visual en escritorio y celular.
+5. [x] Pasar PED-19 y PED-23 a PED-26 a ✅ en la spec del módulo y marcar este cambio como hecho.
 
 ## Riesgos
 

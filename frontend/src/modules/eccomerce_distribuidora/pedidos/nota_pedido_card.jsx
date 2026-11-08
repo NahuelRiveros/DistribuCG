@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { orderConfig, ESTADOS } from "../../../config/order_config.js";
+import { accionesDeEstado, orderConfig, ESTADOS } from "../../../config/order_config.js";
 import { storefrontConfig } from "../storefront_config.js";
 import OrderSummary from "../../../controls/pedidos/order_summary.jsx";
 import { money } from "../../../controls/pedidos/order_format.js";
@@ -22,11 +22,12 @@ export default function NotaPedidoCard({ nota, operatorId, puedeCobrar = false, 
   const [amount, setAmount] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
   const balance = Math.round((Number(nota.total) - Number(nota.monto_pagado || 0)) * 100) / 100;
   const paymentKey = storefrontConfig.storageKey + ":payment:" + operatorId + ":" + nota.id;
   let pendingPayment = false;
   try { pendingPayment = !!sessionStorage.getItem(paymentKey); } catch { /* formulario informa el error al guardar */ }
-  function prepare(next) { setAction(next); setReason(""); setAmount(next.receipt ? String(balance) : ""); setError(""); }
+  function prepare(next) { setAction(next); setReason(""); setAmount(next.receipt ? String(balance) : ""); setError(""); setAviso(""); }
   async function confirm(event) {
     event.preventDefault(); if (busy) return;
     // El campo no usa React Hook Form, así que `required` no frena el envío: se valida acá.
@@ -34,7 +35,11 @@ export default function NotaPedidoCard({ nota, operatorId, puedeCobrar = false, 
     setBusy(true); setError("");
     try {
       if (action.payment) await onAnularPago(nota.id, action.payment.id, reason);
-      else if (action.receipt === "aceptar") await onAceptarComprobante(nota.id, action.comprobante.id, Number(amount));
+      else if (action.receipt === "aceptar") {
+        const respuesta = await onAceptarComprobante(nota.id, action.comprobante.id, Number(amount));
+        // PED-24: el cobro quedó, pero el pedido no pudo avanzar (por ejemplo, falta stock).
+        if (respuesta?.avance?.motivo) setAviso(respuesta.mensaje);
+      }
       else if (action.receipt === "rechazar") await onRechazarComprobante(nota.id, action.comprobante.id, reason);
       else await onCambiarEstado(nota.id, action.state, { motivo: reason || null, expectedState: action.previous });
       setAction(null);
@@ -47,6 +52,7 @@ export default function NotaPedidoCard({ nota, operatorId, puedeCobrar = false, 
   }
   const needsReason = action && (action.payment || action.receipt === "rechazar" || orderConfig.reasonRequired.includes(action.previous + ":" + action.state));
   const pendientes = nota.comprobantes?.filter((c) => c.estado === "pendiente").length ?? 0;
+  const acciones = puedeCambiarEstado ? accionesDeEstado(nota.estado) : { siguiente: null, cancelar: false, otras: [] };
   const tituloModal = action?.payment ? "Anular registro de cobro" : action?.receipt === "aceptar" ? "Aceptar comprobante" : action?.receipt === "rechazar" ? "Rechazar comprobante" : "Confirmar cambio de estado";
   const textoModal = action?.payment ? "Se anulará el registro de " + money(action.payment.monto) + ". Esta acción no realiza una devolución de dinero."
     : action?.receipt === "aceptar" ? "Registrá el importe que viste acreditado en la cuenta. Queda como cobro por transferencia."
@@ -64,6 +70,7 @@ export default function NotaPedidoCard({ nota, operatorId, puedeCobrar = false, 
     </button>
     {open && <div id={id} className="space-y-4 border-t border-slate-200 p-4">
       {!action && <ErrorBanner message={error} />}
+      {aviso && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{aviso}</p>}
       <div className="space-y-1 rounded-xl bg-slate-50 p-3 text-sm">
         <p className="font-semibold">Datos de entrega</p>
         <p className="break-words">{[nota.direccion, nota.localidad, nota.departamento, nota.provincia].filter(Boolean).join(", ")}{nota.codigo_postal ? " · CP " + nota.codigo_postal : ""}</p>
@@ -76,10 +83,15 @@ export default function NotaPedidoCard({ nota, operatorId, puedeCobrar = false, 
         <span className="min-w-0 break-words">{item.cantidad} × {item.nombre_producto}{item.variedad_nombre ? " (" + item.variedad_nombre + ")" : ""}</span>
         <span>{money(item.subtotal)}</span>
       </li>)}</ul>
-      <div className="flex flex-wrap gap-2">
-        {puedeCambiarEstado && (orderConfig.transitions[nota.estado] || []).map((state) => <ActionButton key={state} disabled={busy} onClick={() => prepare({ state, previous: nota.estado })}>Pasar a {ESTADOS[state].label.toLowerCase()}</ActionButton>)}
-        <ActionButton disabled={busy} onClick={exportFile}>Exportar Excel</ActionButton>
+      <div className="flex flex-wrap items-start gap-2">
+        {acciones.siguiente && <ActionButton disabled={busy} className="w-full sm:w-auto" onClick={() => prepare({ state: acciones.siguiente.estado, previous: nota.estado })}>{acciones.siguiente.label}</ActionButton>}
+        {acciones.cancelar && <button type="button" disabled={busy} onClick={() => prepare({ state: "cancelada", previous: nota.estado })} className="min-h-11 rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50">Cancelar pedido</button>}
+        <button type="button" disabled={busy} onClick={exportFile} className="min-h-11 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">Exportar Excel</button>
       </div>
+      {acciones.otras.length > 0 && <details className="text-sm">
+        <summary className="min-h-11 cursor-pointer content-center font-semibold text-slate-600">Más opciones</summary>
+        <div className="flex flex-wrap gap-2 pt-2">{acciones.otras.map((otra) => <button type="button" key={otra.estado} disabled={busy} onClick={() => prepare({ state: otra.estado, previous: nota.estado })} className="min-h-11 rounded-xl border border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">{otra.label}</button>)}</div>
+      </details>}
       {nota.comprobantes?.length > 0 && <section className="space-y-3" aria-label="Comprobantes de transferencia">
         <h3 className="font-bold">Comprobantes de transferencia{pendientes ? ` · ${pendientes} para revisar` : ""}</h3>
         <ListaComprobantes notaId={nota.id} comprobantes={nota.comprobantes} acciones={(c) => {

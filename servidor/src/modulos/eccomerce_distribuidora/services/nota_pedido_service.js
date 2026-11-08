@@ -198,6 +198,29 @@ async function ajustarStockPorEstado(nota, estado, t) {
   return nota.stock_descontado;
 }
 
+/**
+ * Pago aceptado (PED-23): un pedido cobrado por completo que está en Recibido o Confirmado pasa a
+ * En preparación, con las mismas reglas de stock que la confirmación manual. Corre en un savepoint
+ * de `t`: si falta stock (PED-24) se deshace solo el avance y el cobro queda registrado.
+ */
+export async function avanzarPorPagoBloqueado(nota, usuario_id, t) {
+  if (nota.estado_pago !== "pagado" || !["pendiente", "confirmado"].includes(nota.estado)) return { avanzo: false };
+  try {
+    await sequelize.transaction({ transaction: t }, async (savepoint) => {
+      for (const estado of nota.estado === "pendiente" ? ["confirmado", "en_curso"] : ["en_curso"]) {
+        const stock_descontado = await ajustarStockPorEstado(nota, estado, savepoint);
+        await NotaPedidoEstadoLog.create({ nota_pedido_id: nota.id, usuario_id, anterior: nota.estado, nuevo: estado, motivo: "Pago aceptado" }, { transaction: savepoint });
+        await nota.update({ estado, stock_descontado, fecha_mod: new Date() }, { transaction: savepoint });
+      }
+    });
+    return { avanzo: true, estado: "en_curso" };
+  } catch (error) {
+    if (error.codigo !== "STOCK_INSUFICIENTE") throw error;
+    await nota.reload({ transaction: t });
+    return { avanzo: false, motivo: error.message };
+  }
+}
+
 export async function cambiarEstado(id, estado, { usuario_id, motivo = null, expectedState } = {}) {
   if (motivo != null && (typeof motivo !== "string" || motivo.length > 500)) throw cartError("El motivo puede tener hasta 500 caracteres.");
   let cambio = false;

@@ -36,9 +36,13 @@ export async function enlaceComprobanteController(req, res) {
 export async function aceptarComprobanteController(req, res) {
   try {
     if (!esId(req.params.id) || !esId(req.params.comprobanteId)) return noEncontrado(res, "Comprobante no encontrado");
-    const nota = await aceptarComprobante(Number(req.params.id), Number(req.params.comprobanteId), { usuario_id: req.user.usuario_id, monto: req.body?.monto });
-    if (!nota) return noEncontrado(res, "Comprobante no encontrado");
-    return res.json({ ok: true, mensaje: "Comprobante aceptado y cobro registrado", data: nota });
+    const resultado = await aceptarComprobante(Number(req.params.id), Number(req.params.comprobanteId), { usuario_id: req.user.usuario_id, monto: req.body?.monto });
+    if (!resultado) return noEncontrado(res, "Comprobante no encontrado");
+    const { nota, avance } = resultado;
+    const mensaje = avance.avanzo ? "Pago aceptado: el pedido pasó a En preparación."
+      : avance.motivo ? `Cobro registrado, pero no se pudo confirmar. ${avance.motivo}`
+      : "Comprobante aceptado y cobro registrado.";
+    return res.json({ ok: true, mensaje, data: nota, avance });
   } catch (error) {
     return responderError(res, error, "aceptar comprobante", "Error interno al aceptar el comprobante");
   }

@@ -6,8 +6,8 @@ import { NotaPedido, NotaPedidoComprobante } from "../models/index.js";
 import { cartError } from "../../../services/common/cart_rules.js";
 import { detectarFormatoComprobante } from "./comprobante_rules.js";
 import { subirArchivoPrivado, eliminarArchivoPrivado, enlaceArchivoPrivado } from "../../../services/common/upload_service.js";
-import { centavosDeImporte, cobrarPedidoBloqueado } from "./nota_pedido_service.js";
-import { avisarComprobanteNuevo, avisarComprobanteRechazado } from "./avisos_pedido_service.js";
+import { avanzarPorPagoBloqueado, centavosDeImporte, cobrarPedidoBloqueado } from "./nota_pedido_service.js";
+import { avisarCambioEstado, avisarComprobanteNuevo, avisarComprobanteRechazado } from "./avisos_pedido_service.js";
 
 const CARPETA = "distribucg/comprobantes";
 const SEGUNDOS_ENLACE = 300;
@@ -73,18 +73,23 @@ async function comprobanteParaRevisar(nota_pedido_id, comprobante_id, t) {
 }
 
 /**
- * Aceptar = registrar el cobro por transferencia y marcar el comprobante, todo junto.
- * El estado "pendiente" del comprobante, leído con lock, evita cobrar dos veces el mismo.
+ * Aceptar = registrar el cobro por transferencia, marcar el comprobante y, si el pedido quedó
+ * cobrado, hacerlo avanzar a En preparación (PED-23), todo junto. El estado "pendiente" del
+ * comprobante, leído con lock, evita cobrar dos veces el mismo.
  */
 export async function aceptarComprobante(nota_pedido_id, comprobante_id, { usuario_id, monto }) {
   const cents = centavosDeImporte(monto);
-  return sequelize.transaction(async (t) => {
+  const resultado = await sequelize.transaction(async (t) => {
     const { pedido, comprobante } = await comprobanteParaRevisar(nota_pedido_id, comprobante_id, t);
     if (!comprobante) return null;
     const { pago, nota } = await cobrarPedidoBloqueado(pedido, { cents, metodo: "transferencia", notaTexto: `Comprobante #${comprobante.id}`, usuario_id }, t);
     await comprobante.update({ estado: "aceptado", pago_id: pago.id, revisado_por: usuario_id, revisado_en: new Date(), motivo_rechazo: null }, { transaction: t });
-    return nota;
+    const avance = await avanzarPorPagoBloqueado(nota, usuario_id, t);
+    return { nota, avance };
   });
+  // Un solo correo con el estado final, después de confirmar (PED-25).
+  if (resultado?.avance.avanzo) avisarCambioEstado(resultado.nota.id, { nuevo: resultado.avance.estado, motivo: null });
+  return resultado;
 }
 
 export async function rechazarComprobante(nota_pedido_id, comprobante_id, { usuario_id, motivo }) {

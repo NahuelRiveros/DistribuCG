@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createResetToken, verifyResetToken, passwordVersion } from "../src/services/common/auth_tokens.js";
 import { validQuantity, validateSnapshot } from "../src/services/common/cart_rules.js";
-import { orderConfig, receiptProblem, transitionProblem } from "../../order_config.js";
+import { accionesDeEstado, orderConfig, receiptProblem, transitionProblem } from "../../order_config.js";
 import { CODIGOS_PERMISO, dependientesDe, permisosConfig, permisosEfectivos, tienePermiso } from "../../permisos_config.js";
 import { cumpleAcceso } from "../../frontend/src/controls/acceso/acceso.js";
 import { cuitValido, dniValido, fiscalConfig, normalizarDocumento, problemaFiscal, tipoFacturaSugerida } from "../../fiscal_config.js";
@@ -474,4 +474,11 @@ test("SIS-05: con el plan vencido se bloquea al personal (no al super admin, cli
   assert.equal(debeBloquear(pedido({ ruta: "/auth/login" })), false);
   assert.equal(debeBloquear(pedido({ ruta: "/suscripcion/crear-pago" })), false);
   assert.equal(debeBloquear(pedido({ bloqueado: false })), false);
+});
+test("PED-19: cada estado tiene un botón principal con el próximo paso; volver atrás y reabrir van aparte, con su nombre", () => {
+  assert.deepEqual(accionesDeEstado("pendiente"), { siguiente: { estado: "confirmado", label: "Confirmar pedido" }, cancelar: true, otras: [] });
+  assert.deepEqual(accionesDeEstado("confirmado"), { siguiente: { estado: "en_curso", label: "Empezar preparación" }, cancelar: true, otras: [{ estado: "pendiente", label: "Volver a Recibido" }] });
+  assert.deepEqual(accionesDeEstado("en_curso"), { siguiente: { estado: "entregado", label: "Marcar como entregado" }, cancelar: true, otras: [{ estado: "confirmado", label: "Volver a Confirmado" }] });
+  assert.deepEqual(accionesDeEstado("entregado"), { siguiente: null, cancelar: false, otras: [{ estado: "en_curso", label: "Volver a En preparación" }] });
+  assert.deepEqual(accionesDeEstado("cancelada"), { siguiente: null, cancelar: false, otras: [{ estado: "pendiente", label: "Reabrir pedido" }] });
 });

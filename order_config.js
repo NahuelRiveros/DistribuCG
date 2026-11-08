@@ -34,6 +34,30 @@ export const orderConfig = {
     { value: "otro", label: "Otro medio" },
   ],
 };
+// El paso que la gestión hace normalmente desde cada estado: es el botón principal (PED-19).
+const PROXIMO_PASO = {
+  pendiente: { estado: "confirmado", label: "Confirmar pedido" },
+  confirmado: { estado: "en_curso", label: "Empezar preparación" },
+  en_curso: { estado: "entregado", label: "Marcar como entregado" },
+};
+
+/**
+ * Reparte los cambios permitidos de un estado en botones: el próximo paso (principal), cancelar
+ * (aparte) y el resto (volver atrás o reabrir), que van en "Más opciones" para no tocarlos sin querer.
+ */
+export function accionesDeEstado(estado) {
+  const permitidos = orderConfig.transitions[estado] ?? [];
+  const siguiente = PROXIMO_PASO[estado] && permitidos.includes(PROXIMO_PASO[estado].estado) ? PROXIMO_PASO[estado] : null;
+  return {
+    siguiente,
+    cancelar: permitidos.includes("cancelada"),
+    otras: permitidos.filter((destino) => destino !== siguiente?.estado && destino !== "cancelada").map((destino) => ({
+      estado: destino,
+      label: estado === "cancelada" ? "Reabrir pedido" : "Volver a " + orderConfig.states[destino].label,
+    })),
+  };
+}
+
 export function transitionProblem(from, to, reason, paymentState) {
   if (from === to) return null;
   if (!orderConfig.transitions[from]?.includes(to)) return "Ese cambio de estado no está permitido.";

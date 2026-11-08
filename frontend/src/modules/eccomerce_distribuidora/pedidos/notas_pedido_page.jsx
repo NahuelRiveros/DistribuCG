@@ -28,7 +28,7 @@ export default function NotasPedidoDistribuidoraPage() {
     setParams((current) => { const next = new URLSearchParams(current); if (value) next.set(key, value); else next.delete(key); if (key !== "pagina") next.delete("pagina"); return next; }, { replace: true });
   }
   async function mutate(fn, ...args) {
-    try { await fn(...args); } finally { await query.refetch(); }
+    try { return await fn(...args); } finally { await query.refetch(); }
   }
   const data = query.data;
   return <main className="min-h-screen bg-slate-50 px-3 py-6 sm:p-8">

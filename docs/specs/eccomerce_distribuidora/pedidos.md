@@ -59,7 +59,7 @@ equipo lo lleve de "Recibido" a "Entregado" sin perder nada en el camino: stock,
 | PED-16 | La lista de la gestión se actualiza sola cada 30 segundos y al terminar cada acción. | ⚠️ sin test |
 | PED-17 | Ver pide "Ver pedidos" y cambiar estados, "Cambiar estados"; el servidor lo controla en cada acción. | ✅ `checkout.integration.mjs` › "HTTP: cliente no gestiona notas y el supervisor sí, con sus permisos" |
 | PED-18 | Cada pedido se puede bajar como planilla de Excel con cliente, CUIT o DNI, condición frente al IVA y factura sugerida, entrega, fecha y detalle. Pide "Ver pedidos". | ⚠️ sin test |
-| PED-19 | Cada pedido muestra un botón principal con el próximo paso ("Confirmar pedido", "Empezar preparación", "Marcar como entregado"); "Cancelar pedido" va aparte, en rojo, y volver atrás o reabrir, en "Más opciones". | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) (hoy: un botón "Pasar a …" por cada cambio, mezclando avanzar y volver) |
+| PED-19 | Cada pedido muestra un botón principal con el próximo paso ("Confirmar pedido", "Empezar preparación", "Marcar como entregado"); "Cancelar pedido" va aparte, en rojo, y volver atrás o reabrir, en "Más opciones". | ✅ `ux_rules.test.mjs` › "PED-19: cada estado tiene un botón principal…"; `storefront.spec.js` › "staff gestiona notas y registra cobros…" |
 
 ### Stock
 
@@ -68,10 +68,10 @@ equipo lo lleve de "Recibido" a "Entregado" sin perder nada en el camino: stock,
 | PED-20 | Al pasar a Confirmado se descuenta el stock de las presentaciones que controlan stock. Si no alcanza, la confirmación se rechaza diciendo qué falta. | ✅ `checkout.integration.mjs` › "stock: confirmar descuenta, sin stock no confirma y los pedidos viejos no devuelven" |
 | PED-21 | El stock vuelve si el pedido sale de los estados que lo descuentan (vuelve a Recibido o se cancela). | ✅ mismo test que PED-20 |
 | PED-22 | Los pedidos de antes de este sistema de stock no devuelven nada al cancelarse: nunca descontaron. | ✅ mismo test que PED-20 |
-| PED-23 | Aceptar un comprobante que deja el pedido cobrado por completo lo pasa solo de Recibido o Confirmado a En preparación (confirma y descuenta stock en el mismo paso). Con un pago parcial, solo registra el cobro. | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) |
-| PED-24 | Si al aceptar el comprobante falta stock, el cobro se registra igual y el pedido no avanza, con el aviso de qué falta. | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) |
-| PED-25 | El avance automático queda en el historial con el motivo "Pago aceptado" y al comprador le llega un solo correo. | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) |
-| PED-26 | Los pedidos sin comprobante (efectivo o a cuenta) se confirman a mano con "Confirmar pedido". | 🚧 [cambio 2026-11-flujo-pedido-claro](../cambios/2026-11-flujo-pedido-claro.md) |
+| PED-23 | Aceptar un comprobante que deja el pedido cobrado por completo lo pasa solo de Recibido o Confirmado a En preparación (confirma y descuenta stock en el mismo paso). Con un pago parcial, solo registra el cobro. | ✅ `checkout.integration.mjs` › "PED-23 a PED-25: aceptar el comprobante por el total pasa el pedido solo a En preparación…" |
+| PED-24 | Si al aceptar el comprobante falta stock, el cobro se registra igual y el pedido no avanza, con el aviso de qué falta. | ✅ mismo test que PED-23; `storefront.spec.js` › "gestión revisa comprobantes…" (el aviso en pantalla) |
+| PED-25 | El avance automático queda en el historial con el motivo "Pago aceptado" y al comprador le llega un solo correo. | ✅ mismo test que PED-23 (historial); el correo único: ⚠️ sin test |
+| PED-26 | Los pedidos sin comprobante (efectivo o a cuenta) se confirman a mano con "Confirmar pedido". | ✅ `storefront.spec.js` › "staff gestiona notas y registra cobros…" ("Confirmar pedido" a mano) |
 
 ### Lo que hace el comprador
 

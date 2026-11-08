@@ -586,10 +586,17 @@ test("staff gestiona notas y registra cobros con historial en cualquier pantalla
   await expect(page.getByRole("heading", { name: "Notas de pedido", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Pedido #123/ }).click();
   await noOverflow(page);
-  await page.getByRole("button", { name: "Pasar a confirmado" }).click();
+  // PED-19: un botón principal con el próximo paso; volver atrás queda en "Más opciones".
+  await expect(page.getByRole("button", { name: /^Pasar a/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Cancelar pedido" })).toBeVisible();
+  await page.getByRole("button", { name: "Confirmar pedido", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("Recibido → Confirmado");
   await page.getByRole("button", { name: "Confirmar cambio", exact: true }).click();
   await expect(page.getByRole("region", { name: "Historial de estados" })).toContainText("Recibido → Confirmado");
+  await expect(page.getByRole("button", { name: "Empezar preparación", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Volver a Recibido" })).toBeHidden();
+  await page.getByText("Más opciones", { exact: true }).click();
+  await expect(page.getByRole("button", { name: "Volver a Recibido" })).toBeVisible();
   await page.getByLabel(/^Importe recibido/).fill("1000");
   await page.getByLabel("Referencia u observación (opcional)").fill("Recibo 001");
   await page.getByRole("button", { name: "Registrar cobro recibido", exact: true }).click();
@@ -705,7 +712,12 @@ test("gestión revisa comprobantes: staff acepta con el importe o rechaza con mo
     if (url.pathname.endsWith("/todas")) { filtros.push(url.searchParams.get("comprobante")); return route.fulfill({ json: { ok: true, data: [pedido], page: 1, totalPages: 1, total: 1 } }); }
     const body = route.request().postDataJSON();
     acciones.push({ ruta: url.pathname.replace("/api/distribuidora/notas-pedido", ""), body });
-    if (url.pathname.endsWith("/1/aceptar")) { Object.assign(pedido.comprobantes[0], { estado: "aceptado" }); Object.assign(pedido, { monto_pagado: body.monto, estado_pago: "parcial" }); }
+    if (url.pathname.endsWith("/1/aceptar")) {
+      Object.assign(pedido.comprobantes[0], { estado: "aceptado" }); Object.assign(pedido, { monto_pagado: body.monto, estado_pago: "parcial" });
+      // PED-24: el cobro queda, pero el pedido no puede avanzar por falta de stock.
+      const motivo = "No hay stock suficiente para confirmar. Yerba 1 kg: hay 1, el pedido lleva 3.";
+      return route.fulfill({ json: { ok: true, data: pedido, avance: { avanzo: false, motivo }, mensaje: "Cobro registrado, pero no se pudo confirmar. " + motivo } });
+    }
     if (url.pathname.endsWith("/2/rechazar")) Object.assign(pedido.comprobantes[1], { estado: "rechazado", motivo_rechazo: body.motivo });
     return route.fulfill({ json: { ok: true, data: pedido } });
   });
@@ -722,6 +734,7 @@ test("gestión revisa comprobantes: staff acepta con el importe o rechaza con mo
   await dialogo.getByRole("button", { name: "Aceptar y registrar cobro" }).click();
   await expect(dialogo).toBeHidden();
   expect(acciones[0]).toEqual({ ruta: "/400/comprobantes/1/aceptar", body: { monto: 2500 } });
+  await expect(page.getByRole("status").filter({ hasText: "no se pudo confirmar" })).toContainText("hay 1, el pedido lleva 3");
   await seccion.getByRole("listitem").filter({ hasText: "otro-pago.png" }).getByRole("button", { name: "Rechazar" }).click();
   await dialogo.getByRole("button", { name: "Rechazar comprobante" }).click();
   await expect(dialogo.getByRole("alert")).toContainText("Indicá el motivo");
@@ -787,6 +800,8 @@ test("familias y categorías: dos columnas, búsqueda global, alta y fusión", a
   await dialogo.getByRole("button", { name: "Fusionar" }).click();
   await expect.poll(() => envios.length).toBe(2);
   expect(envios[1]).toMatchObject({ metodo: "POST", url: "/api/distribuidora/catalogos/categorias/3/fusionar", body: { destino_id: 2 } });
+  // Buscar con el diálogo todavía cerrándose a veces no mostraba el resultado.
+  await expect(dialogo).toBeHidden();
 
   // La búsqueda recorre todas las familias y abre la que corresponde.
   await page.getByRole("searchbox", { name: "Buscar familia o categoría" }).fill("lavand");

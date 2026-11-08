@@ -29,11 +29,11 @@ arranca y responde de forma segura.
 
 | Código | Regla | Estado |
 | --- | --- | --- |
-| SIS-01 | Cada instalación tiene una suscripción con fecha de vencimiento. Su estado es: **activo** (faltan más de 10 días), **aviso** (faltan de 1 a 10), **gracia** (venció hace 10 días o menos) o **vencido** (más de 10). | 🚧 [cambio 2026-11-suscripcion-bloqueo-y-pagos](../cambios/2026-11-suscripcion-bloqueo-y-pagos.md) (hoy: 3 días de gracia) |
+| SIS-01 | Cada instalación tiene una suscripción con fecha de vencimiento. Su estado es: **activo** (faltan más de 10 días), **aviso** (faltan de 1 a 10), **gracia** (venció hace 10 días o menos) o **vencido** (más de 10). | ✅ `ux_rules.test.mjs` › "SIS-01: 10 días de gracia después del vencimiento…" |
 | SIS-02 | Desde "aviso", el admin ve en el panel una franja con el estado y un acceso para pagar. | ⚠️ sin test |
 | SIS-03 | El admin paga con MercadoPago el precio mensual configurado. Un pago aprobado extiende la suscripción 30 días; antes de extender, el servidor confirma el pago consultando a MercadoPago (no le cree al aviso que llega). | ⚠️ sin test |
-| SIS-04 | Un mismo pago extiende la suscripción una sola vez, aunque MercadoPago avise varias veces. | ❌ hoy cada aviso repetido vuelve a sumar 30 días · 🚧 [cambio 2026-11-suscripcion-bloqueo-y-pagos](../cambios/2026-11-suscripcion-bloqueo-y-pagos.md) |
-| SIS-05 | Con el plan vencido, el personal (admin incluido) no puede crear ni modificar nada desde el panel, con el aviso "Plan vencido. Renovalo para registrar nuevos datos."; sí puede ver, ingresar y pagar. La tienda sigue funcionando para los clientes y los visitantes. El super admin nunca se bloquea. | ❌ hoy deja pasar a cualquiera con sesión · 🚧 [cambio 2026-11-suscripcion-bloqueo-y-pagos](../cambios/2026-11-suscripcion-bloqueo-y-pagos.md) |
+| SIS-04 | Un mismo pago extiende la suscripción una sola vez, aunque MercadoPago avise varias veces. | ✅ `checkout.integration.mjs` › "SIS-04: el mismo pago avisado varias veces por MercadoPago extiende la suscripción una sola vez" |
+| SIS-05 | Con el plan vencido, el personal (admin incluido) no puede crear ni modificar nada desde el panel, con el aviso "Plan vencido. Renovalo para registrar nuevos datos."; sí puede ver, ingresar y pagar. La tienda sigue funcionando para los clientes y los visitantes. El super admin nunca se bloquea. | ✅ `ux_rules.test.mjs` › "SIS-05: con el plan vencido se bloquea al personal…" |
 | SIS-06 | Si no se puede consultar el estado de la suscripción, no se bloquea nada: un problema técnico no frena el negocio. | ⚠️ sin test |
 | SIS-07 | El estado se consulta como mucho cada 5 minutos, para no despertar la base en cada pedido. | ⚠️ sin test |
 | SIS-08 | El super admin ve el estado y el historial de pagos, extiende días o fija una fecha. El dueño del software puede hacer lo mismo sin ingresar, con la clave secreta del servidor. | ⚠️ sin test |
@@ -72,7 +72,7 @@ arranca y responde de forma segura.
 | Qué | Dónde | Valor actual |
 | --- | --- | --- |
 | Precio mensual del software | variable `SOFTWARE_PRECIO` del servidor | `[COMPLETAR: confirmar en Render]` |
-| Días de aviso y de gracia | `services/sistema/software_suscripcion_service.js` | 10 de aviso · 3 de gracia (pasa a 10, SIS-01) |
+| Días de aviso y de gracia | `services/sistema/software_suscripcion_service.js` | 10 de aviso · 10 de gracia |
 | Cada cuánto se revisa la suscripción | `middleware/suscripcion_middleware.js` | 5 minutos |
 | Clave secreta del dueño del software | variable `SEED_SECRET` (header `x-seed-token`) | — |
 | Qué módulos existen | `gate_config.js` | Distribuidora |
@@ -92,8 +92,6 @@ arranca y responde de forma segura.
 - **Módulos habilitados sin caché:** cada pedido a la API de la distribuidora consulta la base para saber si
   el módulo está prendido. Con Neon o Supabase gratis eso suma consultas que no hacen falta: conviene
   guardarlo en memoria unos minutos, como ya se hace con la suscripción.
-- **Comentario desactualizado:** el encabezado de `software_suscripcion_service.js` dice 10 días de gracia y
-  el código usa 3. Se corrige con SIS-01 (10 días).
 
 ## Decisiones
 

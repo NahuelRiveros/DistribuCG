@@ -2,7 +2,7 @@
 
 | Estado | Pedido por | Fecha | Spec del módulo |
 | --- | --- | --- | --- |
-| Aprobada | Dueño del proyecto | 2026-11-08 | [core/sistema.md](../core/sistema.md) |
+| Hecha | Dueño del proyecto | 2026-11-08 | [core/sistema.md](../core/sistema.md) |
 
 ## Por qué
 
@@ -15,9 +15,9 @@
 
 | Código | Requisito | Estado |
 | --- | --- | --- |
-| SIS-01 | La gracia dura 10 días después del vencimiento; recién después el estado pasa a "vencido". | 🚧 |
-| SIS-04 | Un pago aprobado extiende 30 días una sola vez: si MercadoPago lo vuelve a avisar, no suma nada. Al extender, el bloqueo se levanta en el momento (sin esperar 5 minutos). | 🚧 |
-| SIS-05 | Con el plan vencido, a quien tiene un rol del personal (admin incluido) se le rechaza crear, modificar o borrar, con el aviso "Plan vencido. Renovalo para registrar nuevos datos.". Pasa siempre: ver, ingresar, salir, pagar y todo lo del super admin. Clientes y visitantes no se bloquean (carrito, pedidos, perfil, registro). | 🚧 |
+| SIS-01 | La gracia dura 10 días después del vencimiento; recién después el estado pasa a "vencido". | ✅ |
+| SIS-04 | Un pago aprobado extiende 30 días una sola vez: si MercadoPago lo vuelve a avisar, no suma nada. Al extender, el bloqueo se levanta en el momento (sin esperar 5 minutos). | ✅ |
+| SIS-05 | Con el plan vencido, a quien tiene un rol del personal (admin incluido) se le rechaza crear, modificar o borrar, con el aviso "Plan vencido. Renovalo para registrar nuevos datos.". Pasa siempre: ver, ingresar, salir, pagar y todo lo del super admin. Clientes y visitantes no se bloquean (carrito, pedidos, perfil, registro). | ✅ |
 
 **Fuera de alcance:** cambiar el precio o el período (30 días), avisarle al personal que no es admin
 antes del vencimiento, y la caché de "Módulos habilitados" (mejora técnica anotada en la spec).
@@ -41,15 +41,15 @@ antes del vencimiento, y la caché de "Módulos habilitados" (mejora técnica an
 
 ## Tareas
 
-1. [ ] Tests (fallan al principio):
+1. [x] Tests (fallan al principio):
    - Unitarios: estados con 10 días de gracia (día 1, día 10 y día 11 después del vencimiento);
      `debeBloquear` (personal bloqueado, admin bloqueado, super admin libre, cliente y visitante libres,
      GET libre, pagar libre, plan al día sin bloqueo).
    - Integración, en el schema temporal: el mismo pago avisado tres veces extiende 30 días una sola vez.
-2. [ ] Servidor: `software_suscripcion_service.js` (gracia, pago idempotente, schema configurable),
+2. [x] Servidor: `software_suscripcion_service.js` (gracia, pago idempotente, schema configurable),
    `suscripcion_middleware.js` (`debeBloquear`), webhook en `suscripcion_controller.js`.
-3. [ ] `node scripts/verificar.mjs --completo` en verde.
-4. [ ] Pasar SIS-01, SIS-04 y SIS-05 a ✅ en la spec del módulo y marcar este cambio como hecho.
+3. [x] `node scripts/verificar.mjs --completo` en verde.
+4. [x] Pasar SIS-01, SIS-04 y SIS-05 a ✅ en la spec del módulo y marcar este cambio como hecho.
 
 ## Riesgos
 
