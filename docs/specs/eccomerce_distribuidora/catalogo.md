@@ -33,6 +33,10 @@ mantenga cientos de artículos sin errores, a mano o importando una planilla.
 | CAT-06 | En la categoría abierta, "+ Artículo en <categoría>" abre la ficha nueva con la familia y la categoría ya elegidas. | ✅ `storefront.spec.js` › "CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y permite agregar uno ahí mismo" |
 | CAT-07 | Los artículos se piden recién al abrir la categoría, de a 10, con "Ver más"; hay cargando, error con reintentar y vacía con el botón para agregar. | ✅ `storefront.spec.js` › "CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y permite agregar uno ahí mismo" |
 | CAT-08 | La dirección guarda la categoría abierta: al recargar o volver atrás sigue abierta. | ✅ `storefront.spec.js` › "CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y permite agregar uno ahí mismo" |
+| CAT-13 | En la ficha del artículo el campo se llama "Categoría" y solo ofrece categorías: un artículo nunca va directo en la familia. | ✅ `storefront.spec.js` › "CAT-13, CAT-14 y CAT-16: la ficha solo ofrece categorías, agrupadas por familia"; `ux_rules.test.mjs` › "CAT-13 y CAT-14: …" |
+| CAT-14 | La lista se agrupa por familia (título) con sus categorías y su cantidad de artículos; se busca por familia o categoría y, elegida, se lee "Familia › Categoría". | ✅ `storefront.spec.js` › "CAT-13, CAT-14 y CAT-16: la ficha solo ofrece categorías, agrupadas por familia"; `ux_rules.test.mjs` › "CAT-13 y CAT-14: …" |
+| CAT-15 | El servidor rechaza crear o guardar un artículo en una familia o en una categoría dada de baja. | ✅ `ux_rules.test.mjs` › "CAT-15: un artículo solo puede ir en una categoría activa con familia"; `checkout.integration.mjs` › "permisos: sincronización sin pisar el panel…" |
+| CAT-16 | Un artículo viejo que quedó en una familia abre su ficha con el campo vacío y un aviso para elegirle categoría. El "+ Artículo" de la familia abre la ficha sin categoría elegida. | ✅ `storefront.spec.js` › "CAT-13, CAT-14 y CAT-16: la ficha solo ofrece categorías, agrupadas por familia" |
 
 ### Marcas
 
@@ -95,6 +99,7 @@ mantenga cientos de artículos sin errores, a mano o importando una planilla.
 
 | Fecha | Regla | Decisión | Quién |
 | --- | --- | --- | --- |
+| 2026-11-08 | CAT-13 | El artículo solo puede ir en una categoría (Familia › Categoría), nunca directo en la familia. | Dueño del proyecto |
 
 ## Preguntas abiertas
 

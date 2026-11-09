@@ -22,7 +22,8 @@ import { clasificarIdentificador, esNombreUsuarioValido } from "../src/services/
 import { celularValido, datosClienteCompletos, validarDatosCliente } from "../src/modulos/eccomerce_distribuidora/services/datos_cliente.js";
 import { normalizeRows } from "../src/modulos/eccomerce_distribuidora/services/importacion/normalize.js";
 import { formatearNombre } from "../src/services/common/formato_nombre.js";
-import { indexarCategorias, construirOpcionesCategoria } from "../../frontend/src/modules/eccomerce_distribuidora/utils/categoria_jerarquia.js";
+import { indexarCategorias, construirOpcionesCategoria, construirOpcionesArticulo } from "../../frontend/src/modules/eccomerce_distribuidora/utils/categoria_jerarquia.js";
+import { categoriaAdmiteArticulos } from "../src/modulos/eccomerce_distribuidora/services/articulo_rules.js";
 
 test("primer pedido exige nombre, apellido, celular, datos fiscales y de entrega", () => {
   const completos = { nombre: "Gise", apellido: "Google", celular: "11 2345-6789", condicion_iva: "responsable_inscripto", cuit: "20-12345678-6", direccion: "Calle 1", provincia: "Buenos Aires", localidad: "La Plata" };
@@ -395,6 +396,29 @@ test("familias y categorías: la importación aplana a dos niveles y el índice 
   assert.deepEqual(indice.categoriasDe.get(1).map((c) => c.id), [2, 3]);
   assert.deepEqual(construirOpcionesCategoria(categorias, { soloFamilias: true }).map((o) => o.label), ["Almacén", "Limpieza"]);
   assert.equal(construirOpcionesCategoria(categorias)[1].label, "Almacén › Galletitas");
+});
+
+test("CAT-13 y CAT-14: la categoría del artículo se elige solo entre categorías, agrupadas por familia", () => {
+  const categorias = [
+    { id: 1, nombre: "Almacén", padre_id: null, cantidad_productos: 2 },
+    { id: 2, nombre: "Galletitas", padre_id: 1, cantidad_productos: 1 },
+    { id: 3, nombre: "Dulces", padre_id: 2, cantidad_productos: 5 },
+    { id: 4, nombre: "Limpieza", padre_id: null, cantidad_productos: 0 },
+    { id: 5, nombre: "Lavandinas", padre_id: 4 },
+  ];
+  const opciones = construirOpcionesArticulo(categorias);
+  assert.deepEqual(opciones.map((o) => o.value), [2, 3, 5], "las familias no se ofrecen");
+  assert.deepEqual(opciones[0], { value: 2, label: "Galletitas", grupo: "Almacén", hint: "1 artículo", buscar: "Almacén › Galletitas", seleccion: "Almacén › Galletitas" });
+  assert.equal(opciones[1].label, "Galletitas › Dulces");
+  assert.equal(opciones[2].hint, "0 artículos");
+  assert.deepEqual(construirOpcionesArticulo([]), []);
+});
+
+test("CAT-15: un artículo solo puede ir en una categoría activa con familia", () => {
+  assert.equal(categoriaAdmiteArticulos({ id: 2, padre_id: 1, fecha_baja: null }), true);
+  assert.equal(categoriaAdmiteArticulos({ id: 1, padre_id: null, fecha_baja: null }), false, "familia");
+  assert.equal(categoriaAdmiteArticulos({ id: 2, padre_id: 1, fecha_baja: "2026-11-01" }), false, "dada de baja");
+  assert.equal(categoriaAdmiteArticulos(null), false, "no existe");
 });
 
 test("nombres del catálogo: mayúscula por palabra sin romper códigos, unidades ni palabras cortas", () => {

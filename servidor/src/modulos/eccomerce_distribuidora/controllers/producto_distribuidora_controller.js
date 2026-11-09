@@ -1,6 +1,6 @@
 import {
   listarProductos, obtenerProductoPorId, crearProductoConVariedad, actualizarProductoConVariedad, cambiarEstadoProducto, eliminarProducto,
-  ajustarPreciosMasivo, cambiaPrecios, errorSinPermisoPrecios,
+  ajustarPreciosMasivo, cambiaPrecios, errorSinPermisoPrecios, errorCategoriaDeArticulo,
 } from "../services/producto_distribuidora_service.js";
 import { tienePermiso } from "../../../../../permisos_config.js";
 import { validarVariedad, FILTROS_STOCK } from "../services/articulo_rules.js";
@@ -58,8 +58,10 @@ export async function crearProductoController(req, res) {
   try {
     const { categoria_id, nombre } = req.body ?? {};
     if (!categoria_id || !nombre?.trim()) {
-      return res.status(400).json({ ok: false, mensaje: "Elegí la familia y escribí el nombre del artículo." });
+      return res.status(400).json({ ok: false, mensaje: "Elegí la categoría y escribí el nombre del artículo." });
     }
+    const errorCategoria = await errorCategoriaDeArticulo(categoria_id);
+    if (errorCategoria) return res.status(400).json({ ok: false, codigo: "CATEGORIA_INVALIDA", mensaje: errorCategoria });
     const { datos, error } = validarVariedad(req.body);
     if (error) return res.status(400).json({ ok: false, mensaje: error });
     // Un artículo nuevo sin permiso de precios se carga en $0 y lo completa quien sí lo tiene.
@@ -79,8 +81,10 @@ export async function crearProductoController(req, res) {
 export async function actualizarProductoController(req, res) {
   try {
     if (!req.body?.categoria_id || !req.body?.nombre?.trim()) {
-      return res.status(400).json({ ok: false, mensaje: "Elegí la familia y escribí el nombre del artículo." });
+      return res.status(400).json({ ok: false, mensaje: "Elegí la categoría y escribí el nombre del artículo." });
     }
+    const errorCategoria = await errorCategoriaDeArticulo(req.body.categoria_id);
+    if (errorCategoria) return res.status(400).json({ ok: false, codigo: "CATEGORIA_INVALIDA", mensaje: errorCategoria });
     const { datos, error } = validarVariedad(req.body);
     if (error) return res.status(400).json({ ok: false, mensaje: error });
     const producto = await actualizarProductoConVariedad(req.params.id, req.body, datos, { sinPermisoPrecios: sinPermisoPrecios(req) });

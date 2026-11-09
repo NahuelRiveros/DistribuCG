@@ -8,7 +8,7 @@ import { useToast } from "../../../controls/toast/use_toast.js";
 import { safeReturnTo } from "../../../controls/acceso/return_to.js";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getProducto, crearProducto, actualizarProducto } from "../api/producto_distribuidora_api.js";
-import { construirOpcionesCategoria } from "../utils/categoria_jerarquia.js";
+import { construirOpcionesArticulo } from "../utils/categoria_jerarquia.js";
 import { RUTA_ARTICULOS as ARTICULOS } from "../utils/rutas_articulo.js";
 import ProductoForm from "./producto_form.jsx";
 
@@ -31,7 +31,7 @@ export default function ArticuloFormPage() {
 
   const producto = useQuery({ queryKey: ["gestion-articulo", Number(id)], queryFn: () => getProducto(id), enabled: editando, retry: false });
   const categorias = useQuery({ queryKey: ["gestion-categorias"], queryFn: getCategorias, staleTime: 60_000 });
-  const opcionesCategoria = useMemo(() => construirOpcionesCategoria(categorias.data ?? []), [categorias.data]);
+  const opcionesCategoria = useMemo(() => construirOpcionesArticulo(categorias.data ?? []), [categorias.data]);
 
   const blocker = useBlocker(({ currentLocation, nextLocation }) => sucio && !guardado.current && currentLocation.pathname !== nextLocation.pathname);
   useEffect(() => {

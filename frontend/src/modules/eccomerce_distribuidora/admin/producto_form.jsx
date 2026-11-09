@@ -33,8 +33,11 @@ export default function ProductoForm({ onCancelar, onGuardar, onCambio, producto
   // Sin "precios.editar" se ve el precio pero no se cambia; un artículo nuevo arranca en $0.
   const puedeCambiarPrecios = tienePermiso(usuario, "precios.editar");
   const [pestana, setPestana] = useState("general");
+  // Solo valen categorías (CAT-13): si el artículo quedó en una familia, o llega una familia por la dirección, el campo arranca vacío.
+  const esCategoria = (id) => id != null && opcionesCategoria.some((o) => String(o.value) === String(id));
+  const familiaSinCategoria = productoEditar && !esCategoria(productoEditar.categoria_id) ? productoEditar.categoria?.nombre ?? "una familia" : null;
   const [inicial] = useState(() => ({
-    categoria_id: productoEditar?.categoria_id ?? categoriaInicial ?? "",
+    categoria_id: [productoEditar?.categoria_id, categoriaInicial].find((id) => id != null && esCategoria(id)) ?? "",
     nombre: productoEditar?.nombre ?? "", marca_id: productoEditar?.marca_id ?? null, marca: productoEditar?.marca ?? "", descripcion: productoEditar?.descripcion ?? "",
     imagen_url: productoEditar?.imagen_url ?? "", activo: productoEditar?.activo ?? true,
     cod_ref: v?.cod_ref ?? "", codigo_barras: v?.codigo_barras ?? "",
@@ -83,7 +86,10 @@ export default function ProductoForm({ onCancelar, onGuardar, onCambio, producto
         <ErrorBanner message={error} />
 
         <div role="tabpanel" hidden={pestana !== "general"} className="space-y-4">
-          <ComboboxField label="Familia / categoría" required options={opcionesCategoria} value={d.categoria_id} onChange={set("categoria_id")} placeholder="Escribí para buscar, ej: galletitas" helperText="Elegí la más específica: Familia › Categoría." />
+          {familiaSinCategoria && !d.categoria_id && (
+            <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">Estaba en la familia {familiaSinCategoria} sin categoría: elegí una para guardarlo.</p>
+          )}
+          <ComboboxField label="Categoría" required options={opcionesCategoria} value={d.categoria_id} onChange={set("categoria_id")} placeholder="Buscá, ej: galletitas" helperText="Cada artículo va en una categoría dentro de su familia." />
           <InputField label="Descripción del artículo" required hideMessage value={d.nombre} onChange={set("nombre")} placeholder="Ej: 9 de Oro Agridulce 20x200g" />
           <div className="grid gap-3 sm:grid-cols-2">
             <InputField label="Código" hideMessage value={d.cod_ref} onChange={set("cod_ref")} placeholder="Ej: 000519" tooltip="El código del artículo en tu sistema de gestión. Se busca y se imprime en la lista de carga." />

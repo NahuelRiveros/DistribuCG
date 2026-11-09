@@ -326,7 +326,7 @@ async function gestionArticulos(page) {
     pedidos.push(Object.fromEntries(url.searchParams));
     return route.fulfill({ json: { ok: true, data: [ARTICULO], total: 1, pagina: 1, total_paginas: 1 } });
   });
-  await page.route("**/api/distribuidora/catalogos/categorias", (route) => route.fulfill({ json: { ok: true, data: [{ id: 3, nombre: "Galletitas en gral", padre_id: null }] } }));
+  await page.route("**/api/distribuidora/catalogos/categorias", (route) => route.fulfill({ json: { ok: true, data: [{ id: 1, nombre: "Almacén", padre_id: null, cantidad_productos: 0 }, { id: 3, nombre: "Galletitas en gral", padre_id: 1, cantidad_productos: 1 }] } }));
   return { pedidos, guardados };
 }
 test("rol sin permiso de precios: carga artículos en $0 y no ve ajustes, listas ni importación", async ({ page }) => {
@@ -340,7 +340,7 @@ test("rol sin permiso de precios: carga artículos en $0 y no ve ajustes, listas
   await expect(page.getByRole("link", { name: "Listas de precios" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Importar productos" })).toHaveCount(0);
   await page.goto("/distribuidora/admin/productos/nuevo");
-  await page.getByRole("combobox", { name: /^Familia/ }).fill("galle");
+  await page.getByRole("combobox", { name: /^Categoría/ }).fill("galle");
   await page.getByRole("option", { name: /Galletitas en gral/ }).click();
   await page.getByRole("tab", { name: /Precios/ }).click();
   await expect(page.getByLabel(/^Precio de venta/)).toBeDisabled();
@@ -453,7 +453,7 @@ test("artículos: tabla con código, bultos y stock bajo; filtros en la direcci�
   await ficha.getByRole("button", { name: "Guardar artículo" }).click();
   // Sin familia ni precio no se envía: queda en la pestaña con datos faltantes.
   await expect(ficha.getByRole("tab", { name: /Datos generales/ })).toHaveAttribute("aria-selected", "true");
-  await ficha.getByRole("combobox", { name: /^Familia/ }).fill("galle");
+  await ficha.getByRole("combobox", { name: /^Categoría/ }).fill("galle");
   await ficha.getByRole("option", { name: /Galletitas en gral/ }).click();
   await ficha.getByRole("button", { name: "Guardar artículo" }).click();
   await expect(ficha.getByRole("tab", { name: /Precios/ })).toHaveAttribute("aria-selected", "true");
@@ -875,6 +875,7 @@ test("marcas: lista con dónde se ofrece, unificar y alta en página propia", as
   await page.getByLabel(/^Nombre de la marca/).fill("Molinos");
   await page.getByRole("button", { name: "Guardar marca" }).click();
   await expect(page.getByText("Elegí al menos una familia o categoría donde se ofrece.")).toBeVisible();
+  await page.getByRole("button", { name: "Abrir Almacén" }).click();
   await page.getByRole("checkbox", { name: /Galletitas en gral/ }).check();
   await noOverflow(page);
   await page.getByRole("button", { name: "Guardar marca" }).click();
@@ -889,7 +890,7 @@ test("marca en la ficha: lista de su categoría, sin duplicar y alta en el momen
   // Sin categoría no se elige marca; con categoría, la lista trae las suyas y no duplica.
   const marca = page.getByRole("combobox", { name: /^Marca/ });
   await expect(marca).toBeDisabled();
-  await page.getByRole("combobox", { name: /^Familia/ }).fill("galle");
+  await page.getByRole("combobox", { name: /^Categoría/ }).fill("galle");
   await page.getByRole("option", { name: /Galletitas en gral/ }).click();
   await marca.click();
   await expect(page.getByRole("option", { name: "Bagley" })).toBeVisible();
@@ -1060,4 +1061,35 @@ test("CAT-04 a CAT-08: la categoría se despliega con sus artículos, de a 10, y
   await page.getByRole("button", { name: /^Galletas \d/ }).click();
   await expect(galletas).toHaveCount(0);
   await expect(page).not.toHaveURL(/categoria=/);
+});
+
+test("CAT-13, CAT-14 y CAT-16: la ficha solo ofrece categorías, agrupadas por familia", async ({ page }) => {
+  await entrarComo(page, ["supervisor"]);
+  await page.route("**/api/distribuidora/catalogos/categorias**", (route) => route.fulfill({ json: { ok: true, data: CATEGORIAS } }));
+  // Artículo viejo cargado directo en la familia Almacén.
+  await page.route("**/api/distribuidora/productos/77", (route) => route.fulfill({ json: { ok: true, data: {
+    id: 77, nombre: "Yerba Suelta", activo: true, categoria_id: 1, categoria: { id: 1, nombre: "Almacén" },
+    variedades: [{ id: 770, precio: 900, iva_porcentaje: 21, unidad_medida: "UNIDAD", unidades_por_bulto: 1, unidad_bulto: "CAJA" }],
+  } } }));
+
+  // Una familia que llega por la dirección no se precarga: no es una categoría.
+  await page.goto("/distribuidora/admin/productos/nuevo?familia=1");
+  const campo = page.getByRole("combobox", { name: /^Categoría/ });
+  await expect(campo).toHaveValue("");
+  await campo.click();
+  const lista = page.getByRole("listbox", { name: "Categoría" });
+  await expect(lista.getByText("Almacén", { exact: true })).toBeVisible();
+  await expect(lista.getByText("Limpieza", { exact: true })).toBeVisible();
+  await expect(lista.getByRole("option")).toHaveText([/^Galletas/, /^Galletitass*40 artículos$/, /^Lavandinass*0 artículos$/]);
+  await expect(lista.getByRole("option", { name: /^Almacén/ })).toHaveCount(0);
+  // Buscar por la familia trae sus categorías; elegida, se lee la ruta completa.
+  await campo.fill("limpieza");
+  await expect(lista.getByRole("option")).toHaveText([/^Lavandinas/]);
+  await lista.getByRole("option", { name: /Lavandinas/ }).click();
+  await expect(campo).toHaveValue("Limpieza › Lavandinas");
+  await noOverflow(page);
+
+  await page.goto("/distribuidora/admin/productos/77");
+  await expect(page.getByRole("status").filter({ hasText: "Estaba en la familia Almacén sin categoría: elegí una para guardarlo." })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: /^Categoría/ })).toHaveValue("");
 });

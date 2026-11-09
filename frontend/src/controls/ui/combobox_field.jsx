@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 
 const sinAcentos = (texto) => String(texto ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
@@ -8,7 +8,8 @@ const sinAcentos = (texto) => String(texto ?? "").normalize("NFD").replace(/[̀-
  * no se puede recorrer. Muestra hasta `maxResultados` coincidencias; `onChange`
  * recibe el value elegido o "" al limpiar.
  * Opciones: { value, label, hint?, grupo? } (las de un mismo `grupo` van seguidas y
- * llevan un título). `onTextoChange` avisa lo que se escribe (para buscar en el
+ * llevan un título; `buscar` es el texto en que se busca si no alcanza el label y
+ * `seleccion` lo que se lee una vez elegida). `onTextoChange` avisa lo que se escribe (para buscar en el
  * servidor), `opcionExtra(texto)` agrega una opción al final (ej. "+ Crear…") y
  * `etiquetaSeleccionada` muestra un valor que no está entre las opciones cargadas.
  */
@@ -24,14 +25,14 @@ export default function ComboboxField({
   const [activo, setActivo] = useState(0);
 
   const seleccionada = options.find((o) => String(o.value) === String(value ?? ""));
-  const indice = useMemo(() => options.map((o) => ({ ...o, buscar: sinAcentos(o.label) })), [options]);
+  const indice = useMemo(() => options.map((o) => ({ ...o, buscar: sinAcentos(o.buscar ?? o.label) })), [options]);
   const coincidencias = useMemo(() => {
     const palabras = sinAcentos(texto).split(/\s+/).filter(Boolean);
     const todas = palabras.length ? indice.filter((o) => palabras.every((p) => o.buscar.includes(p))) : indice;
     const extra = abierto ? opcionExtra?.(texto.trim()) : null;
     return { total: todas.length, visibles: [...todas.slice(0, maxResultados), ...(extra ? [extra] : [])] };
   }, [indice, texto, maxResultados, opcionExtra, abierto]);
-  const textoSeleccionado = seleccionada?.label ?? (value ? (etiquetaSeleccionada ?? String(value)) : "");
+  const textoSeleccionado = seleccionada?.seleccion ?? seleccionada?.label ??(value ? (etiquetaSeleccionada ?? String(value)) : "");
   const cambiarTexto = (nuevo) => { setTexto(nuevo); onTextoChange?.(nuevo); };
 
   function abrir() {
@@ -92,13 +93,16 @@ export default function ComboboxField({
           {coincidencias.visibles.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">Sin coincidencias</li>}
           {coincidencias.visibles.map((o, i) => [
             o.grupo && o.grupo !== coincidencias.visibles[i - 1]?.grupo && (
-              <li key={`grupo-${o.grupo}`} role="presentation" className="px-3 pt-2 pb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">{o.grupo}</li>
+              <li key={`grupo-${o.grupo}`} role="presentation" className="sticky top-0 z-10 border-y border-slate-100 bg-slate-50 px-3 py-1.5 text-xs font-bold tracking-wider text-(--kt-ink-soft) uppercase first:border-t-0">{o.grupo}</li>
             ),
             <li key={o.value} id={`${id}-op-${i}`} role="option" aria-selected={String(o.value) === String(value ?? "")}
               onMouseDown={(e) => e.preventDefault()} onClick={() => elegir(o)} onMouseEnter={() => setActivo(i)}
-              className={`flex min-h-11 cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm ${i === activo ? "bg-(--kt-turquoise-soft)" : ""} ${String(o.value) === String(value ?? "") ? "font-semibold" : ""}`}>
-              <span className="min-w-0 break-words">{o.label}</span>
-              {o.hint && <span className="shrink-0 text-xs text-slate-500">{o.hint}</span>}
+              className={`flex min-h-11 cursor-pointer items-center justify-between gap-3 py-2 pr-3 text-sm ${o.grupo ? "pl-6" : "pl-3"} ${i === activo ? "bg-(--kt-turquoise-soft)" : ""} ${String(o.value) === String(value ?? "") ? "font-semibold text-(--kt-ink)" : "text-slate-700"}`}>
+              <span className="flex min-w-0 items-center gap-2 break-words">
+                {String(o.value) === String(value ?? "") && <Check aria-hidden="true" size={14} className="shrink-0 text-(--kt-teal-700)" />}
+                {o.label}
+              </span>
+              {o.hint && <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{o.hint}</span>}
             </li>,
           ])}
           {coincidencias.total > coincidencias.visibles.length && (

@@ -502,16 +502,23 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
         const rafa = await registrarCliente({ nombre: "Rafa", apellido: "Repone", email: "rafa@example.test", password: "Clave1234" });
         await models.UsuarioRol.create({ usuario_id: rafa.usuario_id, rol_id: repositor.id });
         const headers = { Authorization: "Bearer " + (await login({ identificador: "rafa@example.test", password: "Clave1234" })).token, "Content-Type": "application/json" };
-        const fideos = await models.ProductoDistribuidora.create({ categoria_id: category.id, nombre: "Fideos Permisos" });
+        const secos = await models.CategoriaDistribuidora.create({ nombre: "Fideos Secos", slug: "almacen-fideos-secos", padre_id: category.id });
+        const fideos = await models.ProductoDistribuidora.create({ categoria_id: secos.id, nombre: "Fideos Permisos" });
         await models.VariedadDistribuidora.create({ producto_id: fideos.id, nombre: null, precio: 300 });
-        const ficha = (cambios) => JSON.stringify({ categoria_id: category.id, nombre: "Fideos Permisos", precio: 300, precio_anterior: null, ...cambios });
+        const ficha = (cambios) => JSON.stringify({ categoria_id: secos.id, nombre: "Fideos Permisos", precio: 300, precio_anterior: null, ...cambios });
         const conPrecioNuevo = await fetch(`${url}/productos/${fideos.id}`, { method: "PUT", headers, body: ficha({ precio: 350 }) });
         assert.equal(conPrecioNuevo.status, 403);
         assert.match((await conPrecioNuevo.json()).mensaje, /permiso para cambiar precios/);
         assert.equal(Number((await models.VariedadDistribuidora.findOne({ where: { producto_id: fideos.id } })).precio), 300, "nada se guardó");
         assert.equal((await fetch(`${url}/productos/${fideos.id}`, { method: "PUT", headers, body: ficha({ descripcion: "Moño 500 g" }) })).status, 200);
-        assert.equal((await fetch(`${url}/productos`, { method: "POST", headers, body: JSON.stringify({ categoria_id: category.id, nombre: "Nuevo Sin Precio", precio: 0 }) })).status, 201);
-        assert.equal((await fetch(`${url}/productos`, { method: "POST", headers, body: JSON.stringify({ categoria_id: category.id, nombre: "Nuevo Con Precio", precio: 10 }) })).status, 403);
+        assert.equal((await fetch(`${url}/productos`, { method: "POST", headers, body: JSON.stringify({ categoria_id: secos.id, nombre: "Nuevo Sin Precio", precio: 0 }) })).status, 201);
+        // CAT-15: un artículo no puede ir directo en la familia, ni al crearlo ni al guardarlo.
+        const enFamilia = await fetch(`${url}/productos`, { method: "POST", headers, body: JSON.stringify({ categoria_id: category.id, nombre: "En La Familia", precio: 0 }) });
+        assert.equal(enFamilia.status, 400);
+        assert.deepEqual(await enFamilia.json(), { ok: false, codigo: "CATEGORIA_INVALIDA", mensaje: "Elegí una categoría: el artículo no puede ir directo en la familia." });
+        assert.equal((await fetch(`${url}/productos/${fideos.id}`, { method: "PUT", headers, body: ficha({ categoria_id: category.id }) })).status, 400);
+        assert.equal(await models.ProductoDistribuidora.count({ where: { nombre: "En La Familia" } }), 0);
+        assert.equal((await fetch(`${url}/productos`, { method: "POST", headers, body: JSON.stringify({ categoria_id: secos.id, nombre: "Nuevo Con Precio", precio: 10 }) })).status, 403);
         assert.equal((await fetch(`${url}/productos/ajustar-precios`, { method: "POST", headers, body: JSON.stringify({ porcentaje: 10, producto_id: fideos.id }) })).status, 403);
         assert.equal((await fetch(`${url}/permisos`, { headers })).status, 403);
         // Al darle el permiso desde el panel, rige en el pedido siguiente, sin volver a iniciar sesión.

@@ -71,3 +71,24 @@ export function construirOpcionesCategoria(categorias, { soloFamilias = false } 
     hint: `${totalDe.get(c.id)} art.`,
   }));
 }
+
+/**
+ * Opciones para la categoría de un artículo (CAT-13, CAT-14): solo categorías, nunca la familia sola,
+ * agrupadas bajo el nombre de su familia. `buscar` suma la familia para que "naturales" las encuentre
+ * todas; `seleccion` es lo que se lee una vez elegida ("Alimentos Naturales › Avena").
+ */
+export function construirOpcionesArticulo(categorias) {
+  const { familias, categoriasDe, rutaDe, porId } = indexarCategorias(categorias);
+  return familias.flatMap((f) => categoriasDe.get(f.id).map((c) => {
+    const ruta = rutaDe.get(c.id);
+    const cantidad = porId.get(c.id).cantidad_productos ?? 0;
+    return {
+      value: c.id,
+      label: ruta.slice(f.nombre.length + 3),
+      grupo: f.nombre,
+      hint: `${cantidad} ${cantidad === 1 ? "artículo" : "artículos"}`,
+      buscar: ruta,
+      seleccion: ruta,
+    };
+  }));
+}

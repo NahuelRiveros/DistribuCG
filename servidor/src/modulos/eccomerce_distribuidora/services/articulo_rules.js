@@ -1,5 +1,12 @@
 import { UNIDADES, MAX_UNIDADES_POR_BULTO } from "../../../../../unidades_config.js";
 
+export const MENSAJE_SOLO_CATEGORIA = "Elegí una categoría: el artículo no puede ir directo en la familia.";
+
+/** CAT-15: un artículo va en una categoría activa con familia, nunca en la familia sola. */
+export function categoriaAdmiteArticulos(categoria) {
+  return Boolean(categoria) && categoria.padre_id != null && !categoria.fecha_baja;
+}
+
 const texto = (v) => String(v ?? "").trim();
 const entero = (v, def) => (v === undefined || v === null || v === "" ? def : Number(v));
 

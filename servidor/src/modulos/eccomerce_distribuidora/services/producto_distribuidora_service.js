@@ -4,6 +4,7 @@ import { ProductoDistribuidora, CategoriaDistribuidora, VariedadDistribuidora } 
 import { normalizarPaginacion, armarPaginacion } from "../../../services/common/pagination.js";
 import { formatearNombre } from "../../../services/common/formato_nombre.js";
 import { resolverMarcaDeArticulo } from "./marcas_distribuidora_service.js";
+import { categoriaAdmiteArticulos, MENSAJE_SOLO_CATEGORIA } from "./articulo_rules.js";
 
 // fecha_alta viaja acá para que el admin pueda auditar cuándo se cargó cada
 // producto (columna DATEONLY ya existente en el modelo, antes no se
@@ -138,6 +139,14 @@ export async function obtenerProductoPorId(id, { soloActivos = true } = {}) {
     attributes: ATTR_LISTADO,
     include: INCLUDE_LISTADO,
   });
+}
+
+/** Mensaje de error si `categoria_id` no admite artículos (CAT-15); null si está bien. */
+export async function errorCategoriaDeArticulo(categoria_id) {
+  const id = Number(categoria_id);
+  if (!Number.isInteger(id) || id <= 0) return MENSAJE_SOLO_CATEGORIA;
+  const categoria = await CategoriaDistribuidora.findByPk(id, { attributes: ["id", "padre_id", "fecha_baja"] });
+  return categoriaAdmiteArticulos(categoria) ? null : MENSAJE_SOLO_CATEGORIA;
 }
 
 export async function crearProducto(payload, { transaction } = {}) {

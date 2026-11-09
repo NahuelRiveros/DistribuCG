@@ -77,7 +77,7 @@ export default function MarcaField({ categoriaId, value, nombre, onChange }) {
       <ComboboxField
         label="Marca" options={opciones} value={value ?? ""} onChange={elegir} disabled={!categoriaId || creando}
         onTextoChange={setTexto} opcionExtra={opcionExtra} etiquetaSeleccionada={nombre ?? undefined}
-        vacioLabel={categoriaId ? "Sin marca" : "Elegí primero la familia o categoría"}
+        vacioLabel={categoriaId ? "Sin marca" : "Elegí primero la categoría"}
         placeholder={(propias.data ?? []).length ? "Elegí o escribí para buscar" : "Escribí la marca"}
         helperText={creando ? "Creando la marca…" : categoriaId && propias.isSuccess && propias.data.length === 0 ? "Esta categoría todavía no tiene marcas: escribí para buscar o crear una." : undefined}
       />
