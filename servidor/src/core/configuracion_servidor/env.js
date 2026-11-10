@@ -68,12 +68,12 @@ export const env = {
   MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN || "",
 
   // URL COMPLETA del backend en Render (para que MP envíe el webhook).
-  // Ejemplo: "https://distribucg.onrender.com"
+  // Ejemplo: "https://mi-proyecto.onrender.com"
   // En local: dejar vacío (el webhook no llegará, pero el flujo funciona).
   RENDER_APP_URL: process.env.RENDER_APP_URL || "",
 
   // URL COMPLETA del frontend en Vercel (para la redirección post-pago de MP).
-  // Ejemplo: "https://distribu-cg.vercel.app"
+  // Ejemplo: "https://mi-proyecto.vercel.app"
   VERCEL_FRONTEND_URL: process.env.VERCEL_FRONTEND_URL || (esProduccion ? deploymentConfig.frontendUrl : "http://localhost:5173"),
 
   // ── Plan del software ──────────────────────────────────────────
