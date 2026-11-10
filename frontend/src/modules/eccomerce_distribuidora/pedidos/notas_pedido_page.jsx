@@ -19,7 +19,7 @@ import NotaPedidoCard from "./nota_pedido_card.jsx";
 export default function NotasPedidoDistribuidoraPage() {
   const { usuario } = useAuth();
   const [params, setParams] = useSearchParams();
-  const filters = { q: params.get("q") || "", estado: params.get("estado") || "", estado_pago: params.get("estado_pago") || "", comprobante: params.get("comprobante") || "", pagina: Math.max(1, parseInt(params.get("pagina"), 10) || 1) };
+  const filters = { q: params.get("q") || "", estado: params.get("estado") || "", estado_pago: params.get("estado_pago") || "", comprobante: params.get("comprobante") || "", cliente: params.get("cliente") || "", pagina: Math.max(1, parseInt(params.get("pagina"), 10) || 1) };
   // El servidor es quien autoriza; esto solo evita mostrar acciones que van a fallar.
   const puedeCobrar = tienePermiso(usuario, "cobros.gestionar");
   const puedeCambiarEstado = tienePermiso(usuario, "pedidos.gestionar");
@@ -43,10 +43,17 @@ export default function NotasPedidoDistribuidoraPage() {
         <SelectField name="payment-state" label="Estado del cobro" placeholder="Todos los cobros" value={filters.estado_pago} onChange={(e) => filter("estado_pago", e.target.value)} options={Object.entries(ESTADOS_PAGO).map(([value, s]) => ({ value, label: s.label }))} />
         <SelectField name="receipt-state" label="Comprobante" placeholder="Todos" value={filters.comprobante} onChange={(e) => filter("comprobante", e.target.value)} options={FILTROS_COMPROBANTE} />
       </div>
+      {filters.cliente && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-2 text-sm" role="status">
+          <span>Pedidos de <strong>{params.get("cliente_nombre") || "un cliente"}</strong></span>
+          <button type="button" className="min-h-11 rounded-lg px-3 font-semibold text-teal-800 hover:bg-teal-100"
+            onClick={() => setParams((current) => { const next = new URLSearchParams(current); next.delete("cliente"); next.delete("cliente_nombre"); next.delete("pagina"); return next; }, { replace: true })}>Ver todos los pedidos</button>
+        </div>
+      )}
       {query.isError && <ErrorBanner message={query.error.response?.data?.mensaje || "No se pudieron actualizar los pedidos. Reintentá con Actualizar."} />}
       {query.isPending && <p role="status">Cargando pedidos…</p>}
       {data && <p className="text-sm text-slate-500" role="status">{data.total} pedidos · Actualización automática cada 30 segundos</p>}
-      {data?.data.length === 0 && <p className="rounded-xl border border-dashed p-8 text-center">{filters.q || filters.estado || filters.estado_pago || filters.comprobante ? "No hay pedidos con estos filtros." : "Todavía no llegaron pedidos."}</p>}
+      {data?.data.length === 0 && <p className="rounded-xl border border-dashed p-8 text-center">{filters.q || filters.estado || filters.estado_pago || filters.comprobante || filters.cliente ? "No hay pedidos con estos filtros." : "Todavía no llegaron pedidos."}</p>}
       {data?.data.map((nota) => <NotaPedidoCard key={nota.id} nota={nota} operatorId={usuario?.usuario_id} puedeCobrar={puedeCobrar} puedeCambiarEstado={puedeCambiarEstado} onAceptarComprobante={(...args) => mutate(aceptarComprobante, ...args)} onRechazarComprobante={(...args) => mutate(rechazarComprobante, ...args)} onCambiarEstado={(...args) => mutate(cambiarEstadoNotaPedido, ...args)} onRegistrarPago={(...args) => mutate(registrarPagoNotaPedido, ...args)} onAnularPago={(...args) => mutate(anularPagoNotaPedido, ...args)} onExportar={exportarNotaPedido} />)}
       <Pagination page={data?.page || filters.pagina} pages={data?.totalPages || 0} total={data?.total || 0} disabled={query.isFetching} onChange={(p) => filter("pagina", String(p))} />
     </div>

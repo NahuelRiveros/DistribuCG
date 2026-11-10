@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { keyText } from "./normalize.js";
+export const MENSAJE_IMPORTACION_SOLO_CATEGORIA = "Indicá familia y categoría (ej: Almacén > Galletitas): un artículo nuevo no puede ir directo en la familia.";
 export const hash = (v) => createHash("sha256").update(JSON.stringify(v)).digest("hex");
 export const groupKey = (...parts) => JSON.stringify(parts.map(keyText));
 export const variantSnapshot = (v) => hash([v.id, v.producto_id, v.nombre, String(v.precio), String(v.iva_porcentaje), v.cantidad, v.controla_stock, v.cod_ref, v.fecha_baja]);
@@ -56,6 +57,8 @@ export function buildPlan(rows, settings, catalog) {
     if (variant && settings.mode === "create") return { row: row.row, value, action: "skip", message: "Ya existe: modo solo crear." };
     if (!variant && settings.mode === "update") return { row: row.row, value, action: "skip", message: "No existe: modo solo actualizar." };
     if (!variant && (!value.producto_nombre || !value.categoria)) return error("Para crear faltan nombre o categoría (podés indicar una categoría predeterminada).");
+    // CAT-17: como en la ficha (CAT-15), un artículo nuevo no puede quedar directo en la familia.
+    if (!variant && !value.categoria.includes(" > ")) return error(MENSAJE_IMPORTACION_SOLO_CATEGORIA);
     const vat = variant
       ? settings.updateFields.includes("iva_porcentaje") && value.iva_porcentaje != null ? value.iva_porcentaje : Number(variant.iva_porcentaje)
       : value.iva_porcentaje ?? settings.defaultVat;

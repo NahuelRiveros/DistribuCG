@@ -16,6 +16,7 @@ import { importacionDistribuidoraRouter } from "./routes/importacion_distribuido
 import { panelDistribuidoraRouter } from "./routes/panel_distribuidora_router.js";
 import { marcasDistribuidoraRouter } from "./routes/marcas_distribuidora_router.js";
 import { listasPrecioRouter } from "./routes/listas_precio_router.js";
+import { clientesDistribuidoraRouter } from "./routes/clientes_distribuidora_router.js";
 import { arranque_distribuidora } from "./arranque.js";
 import { seed_distribuidora } from "./seed/index.js";
 
@@ -57,6 +58,7 @@ export const moduloDistribuidora = {
     ["/distribuidora/panel", panelDistribuidoraRouter],             // resumen del panel de gestión
     ["/distribuidora/marcas", marcasDistribuidoraRouter],           // marcas y dónde se ofrecen
     ["/distribuidora/listas-precio", listasPrecioRouter],           // listas de precios regionales
+    ["/distribuidora/clientes", clientesDistribuidoraRouter],       // listado de clientes con datos completos
   ],
 
   arranque: arranque_distribuidora,

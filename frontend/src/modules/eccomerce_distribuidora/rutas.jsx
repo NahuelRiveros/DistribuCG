@@ -16,6 +16,7 @@ const NotasPedidoDistribuidoraPage = lazy(() => import("./pedidos/notas_pedido_p
 const ImportacionDistribuidoraPage = lazy(() => import("./admin/importacion_page.jsx"));
 const ArticulosPage = lazy(() => import("./admin/articulos_page.jsx"));
 const ListaCargaPage = lazy(() => import("./pedidos/lista_carga_page.jsx"));
+const ClientesPage = lazy(() => import("./admin/clientes_page.jsx"));
 import { protegida } from "../../app/routes/route_helpers.jsx";
 
 // Catálogo público y carrito invitado configurables por instalación. Cualquier
@@ -24,6 +25,7 @@ import { protegida } from "../../app/routes/route_helpers.jsx";
 const CATALOGO = { permisos: ["productos.editar"] };
 const PRECIOS = { permisos: ["precios.editar"] };
 const PEDIDOS = { permisos: ["pedidos.ver"] };
+const CLIENTES = { permisos: ["clientes.ver"] };
 // La importación escribe artículos y precios: necesita los dos permisos.
 const IMPORTAR = { permisos: ["productos.editar", "precios.editar"], todos: true };
 
@@ -60,4 +62,5 @@ export const eccomerceDistribuidoraAdminRoutes = [
   { path: "/distribuidora/admin/lista-carga", element: protegida(<ListaCargaPage />, PEDIDOS) },
   { path: "/distribuidora/admin/importar", element: protegida(<ImportacionDistribuidoraPage />, IMPORTAR) },
   { path: "/distribuidora/admin/notas-pedido", element: protegida(<NotasPedidoDistribuidoraPage />, PEDIDOS) },
+  { path: "/distribuidora/admin/clientes", element: protegida(<ClientesPage />, CLIENTES) },
 ];

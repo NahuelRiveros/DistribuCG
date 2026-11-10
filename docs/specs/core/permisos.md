@@ -33,7 +33,7 @@ Todos están en `permisos_config.js`: un bloque CORE y uno por rubro.
 | `contenido.editar` | Contenido de la tienda | Home, cinta de anuncios e imágenes | nadie | — |
 | `usuarios.gestionar` | Equipo | Altas, bajas, contraseñas y rol del personal | nadie | — |
 | `permisos.gestionar` | Equipo | Crear roles y elegir sus permisos | nadie | — |
-| `pedidos.ver` … `precios.editar` | Pedidos, Cobros, Catálogo | Los 6 de la distribuidora | ver la spec del rubro | — |
+| `pedidos.ver` … `clientes.ver` | Pedidos, Cobros, Catálogo, Clientes | Los 7 de la distribuidora | ver la spec del rubro | — |
 
 ## Reglas
 

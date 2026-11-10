@@ -2,7 +2,7 @@
 
 | Estado | Pedido por | Fecha | Spec del módulo |
 | --- | --- | --- | --- |
-| Borrador | Cliente | 2026-11-08 | [eccomerce_distribuidora/clientes.md](../eccomerce_distribuidora/clientes.md) |
+| Hecha (CLI-14 a confirmar) | Cliente | 2026-11-08 | [eccomerce_distribuidora/clientes.md](../eccomerce_distribuidora/clientes.md) |
 
 ## Por qué
 
@@ -13,10 +13,10 @@ un listado de sus clientes, con los datos completos, para tenerlos a mano (conta
 
 | Código | Requisito | Estado |
 | --- | --- | --- |
-| CLI-11 | En el panel hay una pantalla "Clientes" con los clientes que tienen los datos completos (nombre, apellido, celular, condición frente al IVA, CUIT o DNI, dirección, provincia y localidad). Muestra además razón social y email si los tiene. | 🚧 |
-| CLI-12 | Se busca por nombre, apellido, razón social, CUIT/DNI o email, y se filtra por localidad. Muestra hasta 50 por página. | 🚧 |
-| CLI-13 | Desde un cliente se llega a sus pedidos (la gestión de notas filtrada por ese cliente). | 🚧 |
-| CLI-14 | Ver el listado pide un permiso propio, y el servidor lo controla. Los clientes con datos incompletos no aparecen. | 🚧 · ❓ ver pregunta 1 |
+| CLI-11 | En el panel hay una pantalla "Clientes" con los clientes que tienen los datos completos (nombre, apellido, celular, condición frente al IVA, CUIT o DNI, dirección, provincia y localidad). Muestra además razón social y email si los tiene. | ✅ |
+| CLI-12 | Se busca por nombre, apellido, razón social, CUIT/DNI o email, y se filtra por localidad. Muestra hasta 50 por página. | ✅ |
+| CLI-13 | Desde un cliente se llega a sus pedidos (la gestión de notas filtrada por ese cliente). | ✅ |
+| CLI-14 | Ver el listado pide un permiso propio, y el servidor lo controla. Los clientes con datos incompletos no aparecen. | ✅ · ❓ de entrada solo admin (ver pregunta 1) |
 
 **Fuera de alcance:** editar los datos de un cliente desde el panel (los cambia el cliente en "Mis datos"),
 exportar el listado a Excel, y un listado de los clientes con datos incompletos.
@@ -36,12 +36,12 @@ exportar el listado a Excel, y un listado de los clientes con datos incompletos.
 
 ## Tareas
 
-1. [ ] Tests (fallan al principio): solo aparecen los completos; búsqueda y filtro; sin el permiso responde
+1. [x] Tests (fallan al principio): solo aparecen los completos; búsqueda y filtro; sin el permiso responde
    403; paginación; el enlace a sus pedidos.
-2. [ ] Servidor: ruta, controlador y servicio en `modulos/eccomerce_distribuidora/`; permiso nuevo.
-3. [ ] Frontend: pantalla, ítem del menú del panel y filtro por cliente en la gestión de notas.
-4. [ ] `node scripts/verificar.mjs --completo` en verde y revisión visual en escritorio y celular.
-5. [ ] Pasar CLI-11 a CLI-14 a ✅ en la spec del módulo y marcar este cambio como hecho.
+2. [x] Servidor: ruta, controlador y servicio en `modulos/eccomerce_distribuidora/`; permiso nuevo.
+3. [x] Frontend: pantalla, ítem del menú del panel y filtro por cliente en la gestión de notas.
+4. [x] `node scripts/verificar.mjs --completo` en verde y revisión visual en escritorio y celular.
+5. [x] Pasar CLI-11 a CLI-14 a ✅ en la spec del módulo y marcar este cambio como hecho.
 
 ## Riesgos
 
@@ -57,4 +57,12 @@ exportar el listado a Excel, y un listado de los clientes con datos incompletos.
    (b) el mismo permiso nuevo, pero de entrada solo el admin (los demás, si se lo tildás en el panel);
    (c) sin permiso nuevo: lo ve quien tiene "Ver pedidos". Recomendación: (a). El vendedor ya ve esos
    mismos datos en cada pedido, y con un permiso propio se lo podés sacar a quien quieras.
-   **Respuesta:**
+   **Respuesta:** ⏳ Esperando al cliente. Mientras tanto se programó como (b): de entrada solo admin; si elige
+   (a) o (c), se tilda "Ver clientes" a esos roles en Roles y permisos, sin cambiar código.
+
+## Decisiones
+
+| Fecha | Decisión | Quién |
+| --- | --- | --- |
+| 2026-11-10 | Programar el listado sin esperar CLI-14, con el permiso de entrada solo para admin (lo más reservado). | Dueño del proyecto |
+| 2026-11-10 | "Datos completos" se filtra en la misma consulta paginada (campos cargados); la validación fina (CUIT con dígito verificador) ya la hace el formulario al guardar. | Dueño del proyecto |

@@ -1093,3 +1093,58 @@ test("CAT-13, CAT-14 y CAT-16: la ficha solo ofrece categorías, agrupadas por f
   await expect(page.getByRole("status").filter({ hasText: "Estaba en la familia Almacén sin categoría: elegí una para guardarlo." })).toBeVisible();
   await expect(page.getByRole("combobox", { name: /^Categoría/ })).toHaveValue("");
 });
+test("CLI-11 a CLI-13: el admin ve los clientes, busca, filtra por localidad y llega a sus pedidos", async ({ page }) => {
+  await entrarComo(page, ["admin"]);
+  const carla = { usuario_id: 21, nombre: "Carla", apellido: "Completa", email: "carla@example.test", celular: "3487 45-6789", razon_social: "Almacén Carla", condicion_iva: "consumidor_final", cuit: "30111222", direccion: "Mitre 50", provincia: "Buenos Aires", localidad: "Zárate", codigo_postal: null, cantidad_pedidos: 3 };
+  const nuevo = { ...carla, usuario_id: 22, nombre: "Beto", apellido: "Nuevo", razon_social: null, email: null, localidad: "Campana", condicion_iva: "responsable_inscripto", cuit: "20-12345678-6", cantidad_pedidos: 0 };
+  const pedidos = [];
+  await page.route("**/api/distribuidora/clientes**", (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    pedidos.push(Object.fromEntries(params));
+    const q = (params.get("q") || "").toLowerCase();
+    const data = [carla, nuevo].filter((c) => (!q || `${c.nombre} ${c.apellido}`.toLowerCase().includes(q)) && (!params.get("localidad") || c.localidad === params.get("localidad")));
+    return route.fulfill({ json: { ok: true, data, localidades: ["Campana", "Zárate"], total: data.length, totalPages: data.length ? 1 : 0, page: 1, limit: 50 } });
+  });
+  const filtrosPedidos = [];
+  await page.route("**/api/distribuidora/notas-pedido/todas**", (route) => {
+    filtrosPedidos.push(new URL(route.request().url()).searchParams.get("cliente"));
+    return route.fulfill({ json: { ok: true, total: 0, totalPages: 0, page: 1, data: [] } });
+  });
+  await page.goto("/distribuidora/admin/clientes");
+  await expect(page.getByRole("heading", { name: "Clientes", exact: true })).toBeVisible();
+  const lista = page.getByRole("list", { name: "Listado de clientes" });
+  await expect(lista.getByRole("listitem")).toHaveCount(2);
+  await expect(lista.getByText("Almacén Carla")).toBeVisible();
+  await expect(lista.getByText("Consumidor Final · 30111222")).toBeVisible();
+  await expect(lista.getByText("Mitre 50, Zárate, Buenos Aires")).toBeVisible();
+  await expect(lista.getByText("Todavía sin pedidos")).toBeVisible();
+  await noOverflow(page);
+
+  await page.getByRole("searchbox", { name: "Buscar clientes" }).fill("carla");
+  await expect(lista.getByRole("listitem")).toHaveCount(1);
+  expect(pedidos.at(-1).q).toBe("carla");
+  await page.getByLabel("Localidad").selectOption("Campana");
+  await expect(page.getByText("No hay clientes con estos filtros.")).toBeVisible();
+  await page.getByLabel("Localidad").selectOption("Zárate");
+  await page.getByRole("link", { name: "Ver sus 3 pedidos" }).click();
+
+  await expect(page).toHaveURL(/\/distribuidora\/admin\/notas-pedido\?cliente=21/);
+  await expect(page.getByText("Pedidos de Carla Completa")).toBeVisible();
+  await expect.poll(() => filtrosPedidos.at(-1)).toBe("21");
+  await page.getByRole("button", { name: "Ver todos los pedidos" }).click();
+  await expect(page.getByText("Pedidos de Carla Completa")).toHaveCount(0);
+  await expect.poll(() => filtrosPedidos.at(-1)).toBeFalsy();
+});
+test("CLI-14: sin el permiso tildado, el supervisor no tiene Clientes en el menú", async ({ page }) => {
+  await entrarComo(page, ["supervisor"], { ...RESUMEN_PANEL, pedidos: PEDIDOS_SIN_MONTOS });
+  await page.goto("/panel");
+  const menu = await menuPanel(page);
+  await expect(menu.getByRole("link", { name: "Notas de pedido" })).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Clientes" })).toHaveCount(0);
+});
+test("CLI-11: sin clientes con datos completos, lo explica", async ({ page }) => {
+  await entrarComo(page, ["admin"]);
+  await page.route("**/api/distribuidora/clientes**", (route) => route.fulfill({ json: { ok: true, data: [], localidades: [], total: 0, totalPages: 0, page: 1, limit: 50 } }));
+  await page.goto("/distribuidora/admin/clientes");
+  await expect(page.getByText("Todavía no hay clientes con los datos completos.")).toBeVisible();
+});

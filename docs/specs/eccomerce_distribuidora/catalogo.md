@@ -37,6 +37,7 @@ mantenga cientos de artículos sin errores, a mano o importando una planilla.
 | CAT-14 | La lista se agrupa por familia (título) con sus categorías y su cantidad de artículos; se busca por familia o categoría y, elegida, se lee "Familia › Categoría". | ✅ `storefront.spec.js` › "CAT-13, CAT-14 y CAT-16: la ficha solo ofrece categorías, agrupadas por familia"; `ux_rules.test.mjs` › "CAT-13 y CAT-14: …" |
 | CAT-15 | El servidor rechaza crear o guardar un artículo en una familia o en una categoría dada de baja. | ✅ `ux_rules.test.mjs` › "CAT-15: un artículo solo puede ir en una categoría activa con familia"; `checkout.integration.mjs` › "permisos: sincronización sin pisar el panel…" |
 | CAT-16 | Un artículo viejo que quedó en una familia abre su ficha con el campo vacío y un aviso para elegirle categoría. El "+ Artículo" de la familia abre la ficha sin categoría elegida. | ✅ `storefront.spec.js` › "CAT-13, CAT-14 y CAT-16: la ficha solo ofrece categorías, agrupadas por familia" |
+| CAT-17 | La importación tampoco crea artículos directo en una familia: esa fila queda con error y pide "Familia > Categoría". Las que actualizan artículos existentes siguen igual. | ✅ `ux_rules.test.mjs` › "CAT-17: la importación no crea artículos directo en una familia…" |
 
 ### Marcas
 
@@ -100,6 +101,7 @@ mantenga cientos de artículos sin errores, a mano o importando una planilla.
 | Fecha | Regla | Decisión | Quién |
 | --- | --- | --- | --- |
 | 2026-11-08 | CAT-13 | El artículo solo puede ir en una categoría (Familia › Categoría), nunca directo en la familia. | Dueño del proyecto |
+| 2026-11-10 | CAT-17 | La importación aplica la misma regla, sin crear categorías automáticas ([cambio](../cambios/2026-11-importacion-solo-categoria.md)). | Dueño del proyecto |
 
 ## Preguntas abiertas
 

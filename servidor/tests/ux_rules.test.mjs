@@ -21,6 +21,7 @@ import { filtrarNavbarPorRol } from "../../frontend/src/controls/layout/navbar/n
 import { clasificarIdentificador, esNombreUsuarioValido } from "../src/services/common/nombre_usuario.js";
 import { celularValido, datosClienteCompletos, validarDatosCliente } from "../src/modulos/eccomerce_distribuidora/services/datos_cliente.js";
 import { normalizeRows } from "../src/modulos/eccomerce_distribuidora/services/importacion/normalize.js";
+import { buildPlan, MENSAJE_IMPORTACION_SOLO_CATEGORIA } from "../src/modulos/eccomerce_distribuidora/services/importacion/plan.js";
 import { formatearNombre } from "../src/services/common/formato_nombre.js";
 import { indexarCategorias, construirOpcionesCategoria, construirOpcionesArticulo } from "../../frontend/src/modules/eccomerce_distribuidora/utils/categoria_jerarquia.js";
 import { categoriaAdmiteArticulos } from "../src/modulos/eccomerce_distribuidora/services/articulo_rules.js";
@@ -274,6 +275,8 @@ test("panel de gestión: cada uno ve las secciones de sus permisos y el cliente 
   const admin = menu(usuario(["admin"]));
   assert.deepEqual(admin.admin, ["/admin/staffManager", "/admin/permisos", "/admin/home-config", "/admin/anuncios"]);
   assert.ok(admin.distribuidora.includes("/distribuidora/admin/listas-precio"));
+  assert.ok(admin.distribuidora.includes("/distribuidora/admin/clientes"), "CLI-14: admin ve Clientes");
+  assert.ok(menu(usuario(["vendedor"], ["clientes.ver"])).distribuidora.includes("/distribuidora/admin/clientes"), "o quien tenga el permiso tildado");
   assert.ok(Object.keys(menu(usuario(["super_admin"]))).includes("sistema"));
   assert.deepEqual(menu(usuario(["cliente"])), {});
   assert.equal(accesoPanel.roles.includes("cliente"), false);
@@ -289,7 +292,7 @@ test("PER-33: todos los permisos en permisos_config.js, con la misma lista de si
   const { existsSync } = await import("node:fs");
   assert.equal(existsSync(new URL("../../modulos_compartidos", import.meta.url)), false, "sin segundo archivo de permisos");
   // Si un código cambiara, el arranque borraría lo tildado en el panel (PER-31).
-  assert.deepEqual(permisosConfig.grupos.map((g) => g.codigo), ["pedidos", "cobros", "catalogo", "contenido", "equipo"]);
+  assert.deepEqual(permisosConfig.grupos.map((g) => g.codigo), ["pedidos", "cobros", "catalogo", "clientes", "contenido", "equipo"]);
   assert.deepEqual(permisosConfig.permisos.map((p) => [p.codigo, p.grupo, p.porDefecto, p.requiere ?? []]), [
     ["pedidos.ver", "pedidos", ["supervisor", "vendedor"], []],
     ["pedidos.gestionar", "pedidos", ["supervisor", "vendedor"], ["pedidos.ver"]],
@@ -297,6 +300,7 @@ test("PER-33: todos los permisos en permisos_config.js, con la misma lista de si
     ["ventas.ver", "cobros", [], []],
     ["productos.editar", "catalogo", ["supervisor"], []],
     ["precios.editar", "catalogo", ["supervisor"], []],
+    ["clientes.ver", "clientes", [], []],
     ["contenido.editar", "contenido", [], []],
     ["usuarios.gestionar", "equipo", [], []],
     ["permisos.gestionar", "equipo", [], []],
@@ -396,6 +400,21 @@ test("familias y categorías: la importación aplana a dos niveles y el índice 
   assert.deepEqual(indice.categoriasDe.get(1).map((c) => c.id), [2, 3]);
   assert.deepEqual(construirOpcionesCategoria(categorias, { soloFamilias: true }).map((o) => o.label), ["Almacén", "Limpieza"]);
   assert.equal(construirOpcionesCategoria(categorias)[1].label, "Almacén › Galletitas");
+});
+
+test("CAT-17: la importación no crea artículos directo en una familia, pero sigue actualizando los existentes", () => {
+  const settings = { identity: "sku", mode: "upsert", updateFields: ["precio"], priceType: "gross", defaultVat: 21 };
+  const catalogo = {
+    categories: [{ id: 1, nombre: "Almacén", padre_id: null }, { id: 2, nombre: "Galletitas", padre_id: 1 }],
+    products: [{ id: 10, nombre: "Viejo", categoria_id: 1, activo: true, fecha_baja: null }],
+    variants: [{ id: 100, producto_id: 10, nombre: null, precio: "50", iva_porcentaje: "21", cantidad: 0, controla_stock: false, cod_ref: "V1", fecha_baja: null }],
+  };
+  const fila = (row, cod_ref, categoria) => ({ row, action: "ok", value: { cod_ref, producto_nombre: "Art " + cod_ref, variedad_nombre: null, categoria, importe: 100 } });
+  const [enFamilia, enCategoria, existente] = buildPlan([fila(2, "N1", "Almacén"), fila(3, "N2", "Almacén > Galletitas"), fila(4, "V1", "Almacén")], settings, catalogo);
+  assert.equal(enFamilia.action, "error");
+  assert.equal(enFamilia.message, MENSAJE_IMPORTACION_SOLO_CATEGORIA);
+  assert.equal(enCategoria.action, "create");
+  assert.equal(existente.action, "update");
 });
 
 test("CAT-13 y CAT-14: la categoría del artículo se elige solo entre categorías, agrupadas por familia", () => {
@@ -518,4 +537,13 @@ test("USU-06 y USU-09: sesión de 30 días para clientes y 24 h para el personal
   assert.equal(sesionVigente("cliente", ["cliente", "vendedor"]), false);
   assert.equal(sesionVigente("personal", ["vendedor"]), true);
   assert.equal(sesionVigente(undefined, ["vendedor"]), true, "las sesiones de antes (sin tipo) siguen hasta vencer");
+});
+
+test("CLI-14: ver clientes es un permiso propio que de entrada no tiene ningún rol del personal", () => {
+  const permiso = permisosConfig.permisos.find((p) => p.codigo === "clientes.ver");
+  assert.ok(permiso, "existe el permiso");
+  assert.deepEqual(permiso.porDefecto, []);
+  assert.ok(permisosConfig.grupos.some((g) => g.codigo === permiso.grupo));
+  assert.equal(tienePermiso({ roles: ["supervisor"], permisos: permisosEfectivos(["supervisor"], ["pedidos.ver", "cobros.gestionar"]) }, "clientes.ver"), false);
+  assert.equal(tienePermiso({ roles: ["admin"], permisos: permisosEfectivos(["admin"], []) }, "clientes.ver"), true);
 });

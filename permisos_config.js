@@ -17,6 +17,7 @@ const RUBRO_DISTRIBUIDORA = {
     { codigo: "pedidos", nombre: "Pedidos" },
     { codigo: "cobros", nombre: "Cobros" },
     { codigo: "catalogo", nombre: "Catálogo" },
+    { codigo: "clientes", nombre: "Clientes" },
   ],
   permisos: [
     { codigo: "pedidos.ver", grupo: "pedidos", nombre: "Ver pedidos", descripcion: "Notas de pedido, comprobantes, lista de carga, exportar y resumen del panel.", porDefecto: ["supervisor", "vendedor"] },
@@ -26,6 +27,8 @@ const RUBRO_DISTRIBUIDORA = {
     { codigo: "ventas.ver", grupo: "cobros", nombre: "Ver ventas y saldos", descripcion: "Ventas del día y del mes y saldo por cobrar en el inicio del panel.", porDefecto: [] },
     { codigo: "productos.editar", grupo: "catalogo", nombre: "Editar artículos y stock", descripcion: "Artículos, familias, categorías, marcas y stock.", porDefecto: ["supervisor"] },
     { codigo: "precios.editar", grupo: "catalogo", nombre: "Cambiar precios", descripcion: "Precios de los artículos, ajuste masivo, listas de precios e importación.", porDefecto: ["supervisor"] },
+    // CLI-14 sin respuesta del cliente: de entrada solo admin (lo más reservado); se tilda en el panel a quien corresponda.
+    { codigo: "clientes.ver", grupo: "clientes", nombre: "Ver clientes", descripcion: "Listado de clientes con sus datos de contacto, facturación y entrega.", porDefecto: [] },
   ],
 };
 

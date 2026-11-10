@@ -9,6 +9,7 @@ import {
   Tag,
   Tags,
   Truck,
+  Users,
 } from "lucide-react";
 
 // Menús del módulo, mismas reglas que adminDropdown. Los usa modulo.js; el gate
@@ -93,6 +94,15 @@ export const eccomerceDistribuidoraAdminDropdown = {
       modulo: "eccomerce_distribuidora",
       permisos: ["pedidos.ver"],
       icon: Truck,
+    },
+    {
+      // CLI-11: datos de contacto, facturación y entrega; permiso propio por ser datos personales.
+      label: "Clientes",
+      to: "/distribuidora/admin/clientes",
+      requiereAuth: true,
+      modulo: "eccomerce_distribuidora",
+      permisos: ["clientes.ver"],
+      icon: Users,
     },
   ],
 };

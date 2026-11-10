@@ -1085,6 +1085,56 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.deepEqual({ sin_precio, ocultos }, { sin_precio: 0, ocultos: 0 });
       assert.deepEqual(await seed_catalogo_demo(), { productos: 0, ofertas: 0, activados: 0, con_stock: 0 });
     });
+    await t.test("CLI-11 a CLI-14: listado de clientes con datos completos, búsqueda, sus pedidos y permiso propio", async () => {
+      const { listarClientes } = await import("../src/modulos/eccomerce_distribuidora/services/clientes_distribuidora_service.js");
+      const carla = await registrarCliente({ nombre: "Carla", apellido: "Completa", email: "carla@example.test", password: "Clave1234" });
+      const beto = await registrarCliente({ nombre: "Beto", apellido: "Incompleto", email: "beto@example.test", password: "Clave1234" });
+      await guardarValidado(carla.usuario_id, { nombre: "Carla", apellido: "Completa", celular: "3487 45-6789", cuit: "30111222", razon_social: "Almacén Carla", condicion_iva: "consumidor_final", direccion: "Mitre 50", provincia: "Buenos Aires", departamento: null, localidad: "Zárate", codigo_postal: null });
+      const ids = (r) => r.data.map((c) => c.usuario_id);
+      // CLI-11: el registrado sin datos de entrega no aparece; el completo sí, con sus datos.
+      assert.deepEqual(ids(await listarClientes({ q: "Incompleto" })), []);
+      const [fila] = (await listarClientes({ q: "Completa" })).data;
+      assert.equal(fila.usuario_id, carla.usuario_id);
+      assert.deepEqual([fila.razon_social, fila.cuit, fila.localidad, fila.cantidad_pedidos], ["Almacén Carla", "30111222", "Zárate", 0]);
+      // CLI-12: por razón social, documento, email y localidad.
+      assert.deepEqual(ids(await listarClientes({ q: "almacén carla" })), [carla.usuario_id]);
+      assert.deepEqual(ids(await listarClientes({ q: "30.111.222" })), [carla.usuario_id]);
+      assert.ok(ids(await listarClientes({ q: "ana@example.test" })).includes(id));
+      const enZarate = await listarClientes({ localidad: "Zárate" });
+      assert.deepEqual(ids(enZarate), [carla.usuario_id]);
+      assert.ok(enZarate.localidades.includes("Zárate"));
+      assert.equal(enZarate.limit, 50);
+      // CLI-13: la cantidad de pedidos coincide con lo que trae la gestión filtrada por ese cliente.
+      const pedidosAna = await models.NotaPedido.count({ where: { usuario_id: id } });
+      assert.equal((await listarClientes({ q: "ana@example.test" })).data[0].cantidad_pedidos, pedidosAna);
+      assert.equal((await listarTodas({ cliente: id })).total, pedidosAna);
+      assert.equal((await listarTodas({ cliente: carla.usuario_id })).total, 0);
+      assert.equal((await listarTodas({ cliente: beto.usuario_id })).total, 0);
+
+      // CLI-14: permiso propio, controlado en el servidor; de entrada ningún rol del personal lo tiene.
+      const express = (await import("express")).default;
+      const { clientesDistribuidoraRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/clientes_distribuidora_router.js");
+      const app = express();
+      app.use("/clientes", clientesDistribuidoraRouter);
+      const server = await new Promise((resolve) => { const instance = app.listen(0, "127.0.0.1", () => resolve(instance)); });
+      try {
+        const url = "http://127.0.0.1:" + server.address().port + "/clientes";
+        const pedir = async () => fetch(url, { headers: { Authorization: "Bearer " + (await login({ identificador: "carla@example.test", password: "Clave1234" })).token } });
+        assert.equal((await fetch(url)).status, 401);
+        assert.equal((await pedir()).status, 403, "un cliente no ve el listado");
+        const rolDe = async (codigo) => (await models.Rol.findOrCreate({ where: { codigo }, defaults: { codigo, descripcion: codigo } }))[0];
+        const supervisor = await models.UsuarioRol.create({ usuario_id: carla.usuario_id, rol_id: (await rolDe("supervisor")).id });
+        assert.equal((await pedir()).status, 403, "sin el permiso tildado, el supervisor tampoco");
+        await supervisor.destroy();
+        await models.UsuarioRol.create({ usuario_id: carla.usuario_id, rol_id: (await rolDe("admin")).id });
+        const respuesta = await pedir();
+        assert.equal(respuesta.status, 200);
+        const cuerpo = await respuesta.json();
+        assert.equal(cuerpo.ok, true);
+        assert.ok(cuerpo.data.some((c) => c.usuario_id === carla.usuario_id));
+        assert.ok(!cuerpo.data.some((c) => c.usuario_id === beto.usuario_id));
+      } finally { await new Promise((resolve) => server.close(resolve)); }
+    });
   } finally {
     if (created) {
       assert.equal(DB_SCHEMA, ownedSchema);

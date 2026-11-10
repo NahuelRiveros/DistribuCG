@@ -121,8 +121,11 @@ export async function listarPropias(usuario_id) {
   });
 }
 
-export async function listarTodas({ q, estado, estado_pago, comprobante, pagina, por_pagina } = {}) {
+export async function listarTodas({ q, estado, estado_pago, comprobante, cliente, pagina, por_pagina } = {}) {
   const where = {};
+  // CLI-13: los pedidos de un cliente, desde el listado de clientes.
+  const clienteId = Number(cliente);
+  if (Number.isInteger(clienteId) && clienteId > 0) where.usuario_id = clienteId;
   if (estado && orderConfig.states[estado]) where.estado = estado;
   if (["pendiente", "parcial", "pagado"].includes(estado_pago)) where.estado_pago = estado_pago;
   if (Object.hasOwn(FILTROS_COMPROBANTE, comprobante)) where.id = FILTROS_COMPROBANTE[comprobante];
