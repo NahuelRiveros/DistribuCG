@@ -1088,7 +1088,9 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     await t.test("CLI-11 a CLI-14: listado de clientes con datos completos, búsqueda, sus pedidos y permiso propio", async () => {
       const { listarClientes } = await import("../src/modulos/eccomerce_distribuidora/services/clientes_distribuidora_service.js");
       const carla = await registrarCliente({ nombre: "Carla", apellido: "Completa", email: "carla@example.test", password: "Clave1234" });
-      const beto = await registrarCliente({ nombre: "Beto", apellido: "Incompleto", email: "beto@example.test", password: "Clave1234" });
+      // Email propio: beto@example.test ya lo registró otra prueba y el registro devolvería "duplicado".
+      const beto = await registrarCliente({ nombre: "Beto", apellido: "Incompleto", email: "beto.incompleto@example.test", password: "Clave1234" });
+      assert.ok(carla.usuario_id && beto.usuario_id, "los dos se registraron");
       await guardarValidado(carla.usuario_id, { nombre: "Carla", apellido: "Completa", celular: "3487 45-6789", cuit: "30111222", razon_social: "Almacén Carla", condicion_iva: "consumidor_final", direccion: "Mitre 50", provincia: "Buenos Aires", departamento: null, localidad: "Zárate", codigo_postal: null });
       const ids = (r) => r.data.map((c) => c.usuario_id);
       // CLI-11: el registrado sin datos de entrega no aparece; el completo sí, con sus datos.
