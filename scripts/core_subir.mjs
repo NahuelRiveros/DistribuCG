@@ -24,7 +24,8 @@ const subir = args.includes("--subir");
 const mensajeIdx = args.indexOf("-m");
 
 const git = (params, opciones = {}) => execFileSync("git", params, { cwd: RAIZ, encoding: "utf8", ...opciones }).trim();
-const gitCore = (params) => git(params, { env: { ...process.env, GIT_DIR: GIT_CORE, GIT_WORK_TREE: RAIZ } });
+// safecrlf apagado: sin el aviso "LF will be replaced by CRLF" por cada archivo (el contenido no cambia).
+const gitCore = (params) => git(["-c", "core.safecrlf=false", ...params], { env: { ...process.env, GIT_DIR: GIT_CORE, GIT_WORK_TREE: RAIZ } });
 
 if (!fs.existsSync(GIT_CORE)) {
   gitCore(["init", "-q", "-b", "main"]);
