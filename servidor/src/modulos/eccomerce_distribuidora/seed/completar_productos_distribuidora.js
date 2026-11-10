@@ -1,4 +1,4 @@
-import { formatearNombre, claveMarca } from "../../../services/common/formato_nombre.js";
+import { formatearNombre, claveMarca } from "../../../core/services/common/formato_nombre.js";
 
 const clave = (texto) => String(texto).trim().replace(/\s+/g, " ")
   .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");

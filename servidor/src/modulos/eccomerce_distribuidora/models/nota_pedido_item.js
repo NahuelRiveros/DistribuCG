@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { defineModel } from "../../../models/common/define_model.js";
+import { defineModel } from "../../../core/models/common/define_model.js";
 
 /**
  * Línea de una nota de pedido — denormaliza nombre/variedad/precio para que

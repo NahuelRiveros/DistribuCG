@@ -1,15 +1,15 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardList, Mail, MapPin, Phone, Users } from "lucide-react";
-import { useAuth } from "../../../auth/auth_context.jsx";
-import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
-import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import SearchField from "../../../controls/ui/search_field.jsx";
-import SelectField from "../../../controls/ui/select_field.jsx";
-import Pagination from "../../../controls/ui/pagination.jsx";
-import { tienePermiso } from "../../../../../permisos_config.js";
-import { condicionIva } from "../../../../../fiscal_config.js";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
+import AdminSpinner from "../../../core/controls/ui/admin_spinner.jsx";
+import AdminEmptyState from "../../../core/controls/ui/admin_empty_state.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import SearchField from "../../../core/controls/ui/search_field.jsx";
+import SelectField from "../../../core/controls/ui/select_field.jsx";
+import Pagination from "../../../core/controls/ui/pagination.jsx";
+import { tienePermiso } from "../../../../../core/permisos_config.js";
+import { condicionIva } from "../../../../../core/fiscal_config.js";
 import { getClientes } from "../api/clientes_api.js";
 
 const BOTON = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60";

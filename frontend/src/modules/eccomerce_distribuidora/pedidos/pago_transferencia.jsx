@@ -1,10 +1,10 @@
 import { useId, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Check, Copy, FileText, Upload } from "lucide-react";
-import { clientConfig } from "../../../../../client_config.js";
-import { orderConfig, receiptProblem, ESTADOS_COMPROBANTE, TIPOS_COMPROBANTE } from "../../../config/order_config.js";
-import { money } from "../../../controls/pedidos/order_format.js";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
+import { clientConfig } from "../../../../../proyecto/client_config.js";
+import { orderConfig, receiptProblem, ESTADOS_COMPROBANTE, TIPOS_COMPROBANTE } from "../config/order_config.js";
+import { money } from "./controles/order_format.js";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
 import { getEnlaceComprobante, subirComprobante } from "../api/nota_pedido_api.js";
 
 const fecha = (valor) => new Date(valor).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });

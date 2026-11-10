@@ -1,5 +1,5 @@
 import { DataTypes, Op } from "sequelize";
-import { defineModel } from "../../../models/common/define_model.js";
+import { defineModel } from "../../../core/models/common/define_model.js";
 
 /**
  * Categorías del catálogo de distribuidora, jerárquicas (padre_id null =

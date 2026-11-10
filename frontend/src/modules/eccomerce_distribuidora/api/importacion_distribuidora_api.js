@@ -1,4 +1,4 @@
-import { http } from "../../../api/http.js";
+import { http } from "../../../core/api/http.js";
 const base = "/distribuidora/importacion";
 async function upload(path, file, opciones, mapeo, key) {
   const form = new FormData(); form.append("archivo", file);

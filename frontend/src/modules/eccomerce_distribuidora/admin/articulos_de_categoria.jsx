@@ -1,8 +1,8 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ChevronRight, Plus } from "lucide-react";
-import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
-import { cantidadConUnidad, textoBultos } from "../../../../../unidades_config.js";
+import AdminSpinner from "../../../core/controls/ui/admin_spinner.jsx";
+import { cantidadConUnidad, textoBultos } from "../../../../../rubros/eccomerce_distribuidora/unidades_config.js";
 import { getProductos } from "../api/producto_distribuidora_api.js";
 import { formatearPrecio } from "../utils/precio_iva.js";
 import { RUTA_ARTICULOS, rutaFichaArticulo } from "../utils/rutas_articulo.js";

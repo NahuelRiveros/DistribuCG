@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import bcrypt from "bcrypt";
-import { diagnosticarSuperAdmin } from "../src/services/common/diagnostico_super_admin.js";
+import { diagnosticarSuperAdmin } from "../src/core/services/common/diagnostico_super_admin.js";
 
 const config = { SUPERADMIN_EMAIL: "admin@example.test", SUPERADMIN_DNI: "12345678", SUPERADMIN_PASSWORD: "ClaveInicial123" };
 const hash = await bcrypt.hash(config.SUPERADMIN_PASSWORD, 4);

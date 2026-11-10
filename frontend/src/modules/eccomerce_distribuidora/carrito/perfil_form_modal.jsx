@@ -1,10 +1,10 @@
 import { useState } from "react";
-import Modal from "../../../controls/ui/modal.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import ActionButton from "../../../controls/ui/action_button.jsx";
+import Modal from "../../../core/controls/ui/modal.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import ActionButton from "../../../core/controls/ui/action_button.jsx";
 import { guardarMiPerfil } from "../api/perfil_cliente_api.js";
 import PerfilCampos from "../perfil/perfil_campos.jsx";
-import { problemaFiscal } from "../../../../../fiscal_config.js";
+import { problemaFiscal } from "../../../../../core/fiscal_config.js";
 export default function PerfilFormModal({ onClose, onGuardado, perfil = {} }) {
   const [data, setData] = useState({
     nombre: perfil?.nombre ?? "", apellido: perfil?.apellido ?? "", celular: perfil?.celular ?? "",

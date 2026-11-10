@@ -1,5 +1,5 @@
-import { sequelize } from "../../../database/sequelize.js";
-import { projectModules } from "../../../configuracion_servidor/gate_config.js";
+import { sequelize } from "../../../core/database/sequelize.js";
+import { projectModules } from "../../../core/configuracion_servidor/gate_config.js";
 import { CategoriaDistribuidora } from "../models/index.js";
 import { completarFamilias } from "./completar_catalogo_distribuidora.js";
 

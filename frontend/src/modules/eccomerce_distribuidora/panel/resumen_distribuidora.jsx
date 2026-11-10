@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ClipboardCheck, ClipboardList, PackageX, Timer, TrendingUp, Wallet } from "lucide-react";
-import { useAuth } from "../../../auth/auth_context.jsx";
-import { ESTADOS } from "../../../config/order_config.js";
-import { CODIGOS_PERMISO, tienePermiso } from "../../../../../permisos_config.js";
-import { money } from "../../../controls/pedidos/order_format.js";
-import AdminStatCard from "../../../controls/ui/admin_stat_card.jsx";
-import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
-import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
+import { ESTADOS } from "../config/order_config.js";
+import { CODIGOS_PERMISO, tienePermiso } from "../../../../../core/permisos_config.js";
+import { money } from "../pedidos/controles/order_format.js";
+import AdminStatCard from "../../../core/controls/ui/admin_stat_card.jsx";
+import AdminSpinner from "../../../core/controls/ui/admin_spinner.jsx";
+import AdminEmptyState from "../../../core/controls/ui/admin_empty_state.jsx";
 import { getResumenPanel } from "../api/panel_api.js";
 
 const fecha = (valor) => new Date(valor).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });

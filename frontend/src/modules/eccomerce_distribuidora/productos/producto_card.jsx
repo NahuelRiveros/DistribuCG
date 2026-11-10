@@ -1,9 +1,9 @@
 import { useState } from "react";
-import ProductCard from "../../../controls/catalog/product_card.jsx";
+import ProductCard from "../../../core/controls/catalog/product_card.jsx";
 import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
 import { storefrontConfig as config } from "../storefront_config.js";
 import { formatearPrecio } from "../utils/precio_iva.js";
-import { describirBulto } from "../../../../../unidades_config.js";
+import { describirBulto } from "../../../../../rubros/eccomerce_distribuidora/unidades_config.js";
 export default function ProductoCard({ producto }) {
   const { addItem } = useCarritoDistribuidora();
   const [busy, setBusy] = useState(false);

@@ -1,4 +1,4 @@
-import { orderConfig } from "../../../../../order_config.js";
+import { orderConfig } from "../../../../../rubros/eccomerce_distribuidora/order_config.js";
 
 // Se reconoce el archivo por sus primeros bytes, no por el nombre ni el tipo que
 // declara el navegador: un .exe renombrado a .pdf no pasa.

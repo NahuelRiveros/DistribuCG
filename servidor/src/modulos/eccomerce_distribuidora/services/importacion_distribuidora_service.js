@@ -1,8 +1,8 @@
 import { Op } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../../database/sequelize.js";
+import { sequelize, DB_SCHEMA } from "../../../core/database/sequelize.js";
 import { Usuario, ImportacionCatalogo as Job, ImportacionCatalogoLote as Batch } from "../models/index.js";
-import { catalogImportConfig as config } from "../../../../../catalog_import_config.js";
-import { readImportFile } from "../../../services/common/importacion/read_file.js";
+import { catalogImportConfig as config } from "../../../../../rubros/eccomerce_distribuidora/catalog_import_config.js";
+import { readImportFile } from "../../../core/services/common/importacion/read_file.js";
 import { validateSettings, normalizeRows, importError } from "./importacion/normalize.js";
 import { buildPlan, summarize, hash } from "./importacion/plan.js";
 import { loadCatalog, applyPlan } from "./importacion/catalog_repository.js";

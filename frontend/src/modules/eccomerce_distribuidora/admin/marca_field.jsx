@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import ComboboxField from "../../../controls/ui/combobox_field.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
+import ComboboxField from "../../../core/controls/ui/combobox_field.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
 import { listarMarcas, crearMarca } from "../api/marcas_distribuidora_api.js";
 import { claveMarca } from "../utils/marcas.js";
 

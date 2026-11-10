@@ -1,10 +1,10 @@
-import { createApp } from "./app.js";
-import { sequelize } from "./database/sequelize.js";
-import { bootstrap_database } from "./database/bootstrap.js";
-import { seed_database } from "./database/seed/index.js";
-import "./models/index.js";
-import { env } from "./configuracion_servidor/env.js";
-import { deploymentConfig } from "../../deployment_config.js";
+import { createApp } from "./core/app.js";
+import { sequelize } from "./core/database/sequelize.js";
+import { bootstrap_database } from "./core/database/bootstrap.js";
+import { seed_database } from "./core/database/seed/index.js";
+import "./core/models/index.js";
+import { env } from "./core/configuracion_servidor/env.js";
+import { deploymentConfig } from "../../proyecto/deployment_config.js";
 
 async function main() {
   console.log(`🚀 Iniciando ${deploymentConfig.nombre} [${env.NODE_ENV}]...`);

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { obtenerMiPerfilController, guardarMiPerfilController } from "../controllers/perfil_cliente_controller.js";
-import { requireAuth } from "../../../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../middleware/modulo_middleware.js";
+import { requireAuth } from "../../../core/middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 export const perfilClienteRouter = Router();
 perfilClienteRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));

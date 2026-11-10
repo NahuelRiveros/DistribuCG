@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Edit2, ListOrdered, Plus, Tags, Trash2 } from "lucide-react";
-import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
-import AdminEmptyState from "../../../controls/ui/admin_empty_state.jsx";
-import AyudaTooltip from "../../../controls/ui/ayuda_tooltip.jsx";
-import ConfirmDialog from "../../../controls/ui/confirm_dialog.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import { useToast } from "../../../controls/toast/use_toast.js";
+import AdminSpinner from "../../../core/controls/ui/admin_spinner.jsx";
+import AdminEmptyState from "../../../core/controls/ui/admin_empty_state.jsx";
+import AyudaTooltip from "../../../core/controls/ui/ayuda_tooltip.jsx";
+import ConfirmDialog from "../../../core/controls/ui/confirm_dialog.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import { useToast } from "../../../core/controls/toast/use_toast.js";
 import { getListasPrecio, eliminarListaPrecio } from "../api/listas_precio_api.js";
 import { RUTA_LISTAS } from "../utils/rutas_articulo.js";
 

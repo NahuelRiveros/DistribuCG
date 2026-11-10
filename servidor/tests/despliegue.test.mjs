@@ -5,14 +5,14 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolverApiUrl } from "../../frontend/src/api/api_url.js";
+import { resolverApiUrl } from "../../frontend/src/core/api/api_url.js";
 
 // Sin base: BD_URL vacía y ninguna prueba pide /health?bd=1.
 process.env.NODE_ENV = "test";
 process.env.BD_URL = "";
 process.env.CORS_ORIGIN = ` "https://tienda.vercel.app/" , http://localhost:5173 `;
-const { createApp, parsearOrigenes } = await import("../src/app.js");
-const { limpiarValor } = await import("../src/configuracion_servidor/env.js");
+const { createApp, parsearOrigenes } = await import("../src/core/app.js");
+const { limpiarValor } = await import("../src/core/configuracion_servidor/env.js");
 
 async function conServidor(probar) {
   const servidor = createApp().listen(0);
@@ -80,7 +80,7 @@ test("CORS acepta la tienda configurada aunque tenga / final y rechaza otros con
 });
 
 test("producción permite el frontend de DistribuCG por defecto y muestra la identidad correcta", () => {
-  const appJs = new URL("../src/app.js", import.meta.url).href;
+  const appJs = new URL("../src/core/app.js", import.meta.url).href;
   const script = `
     import assert from 'node:assert/strict';
     const { createApp } = await import(${JSON.stringify(appJs)});
@@ -106,7 +106,7 @@ test("producción permite el frontend de DistribuCG por defecto y muestra la ide
 });
 
 test("BD_URL con solo el host frena el arranque con un mensaje claro y sin mostrar el valor", () => {
-  const sequelizeJs = new URL("../src/database/sequelize.js", import.meta.url).href;
+  const sequelizeJs = new URL("../src/core/database/sequelize.js", import.meta.url).href;
   const arrancar = (BD_URL) =>
     spawnSync(process.execPath, ["--input-type=module", "-e", `await import(${JSON.stringify(sequelizeJs)})`], {
       encoding: "utf8",

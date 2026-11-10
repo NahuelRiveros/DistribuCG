@@ -2,7 +2,7 @@ import {
   listarProductos, obtenerProductoPorId, crearProductoConVariedad, actualizarProductoConVariedad, cambiarEstadoProducto, eliminarProducto,
   ajustarPreciosMasivo, cambiaPrecios, errorSinPermisoPrecios, errorCategoriaDeArticulo,
 } from "../services/producto_distribuidora_service.js";
-import { tienePermiso } from "../../../../../permisos_config.js";
+import { tienePermiso } from "../../../../../core/permisos_config.js";
 import { validarVariedad, FILTROS_STOCK } from "../services/articulo_rules.js";
 import { listaDeUsuario, aplicarListaAProductos, idsProductosEnOferta, preciosEnListas } from "../services/listas_precio_service.js";
 

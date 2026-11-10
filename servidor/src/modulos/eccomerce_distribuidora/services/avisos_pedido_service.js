@@ -1,7 +1,7 @@
 import { QueryTypes } from "sequelize";
-import { sequelize } from "../../../database/sequelize.js";
-import { permisosConfig } from "../../../../../permisos_config.js";
-import { enviarEmail, mailConfigured } from "../../../services/common/mail_service.js";
+import { sequelize } from "../../../core/database/sequelize.js";
+import { permisosConfig } from "../../../../../core/permisos_config.js";
+import { enviarEmail, mailConfigured } from "../../../core/services/common/mail_service.js";
 import { NotaPedido, NotaPedidoItem, Persona, Usuario } from "../models/index.js";
 import {
   mailCambioEstadoCliente, mailCancelacionClienteEquipo, mailComprobanteNuevoEquipo, mailComprobanteRechazadoCliente,

@@ -3,16 +3,16 @@ import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Package, ShoppingBag, Tag, ArrowLeft } from "lucide-react";
 import { getProducto } from "../api/producto_distribuidora_api.js";
-import { useAuth } from "../../../auth/auth_context.jsx";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
 import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
 import { storefrontConfig as config } from "../storefront_config.js";
 import { formatearPrecio } from "../utils/precio_iva.js";
-import { cantidadConUnidad, describirBulto, textoBultos } from "../../../../../unidades_config.js";
-import StockBadge from "../../../controls/catalog/stock_badge.jsx";
-import QuantityInput from "../../../controls/ui/quantity_input.jsx";
-import ActionButton from "../../../controls/ui/action_button.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
+import { cantidadConUnidad, describirBulto, textoBultos } from "../../../../../rubros/eccomerce_distribuidora/unidades_config.js";
+import StockBadge from "../../../core/controls/catalog/stock_badge.jsx";
+import QuantityInput from "../../../core/controls/ui/quantity_input.jsx";
+import ActionButton from "../../../core/controls/ui/action_button.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import AdminSpinner from "../../../core/controls/ui/admin_spinner.jsx";
 
 /**
  * Mismo criterio de marketing que la card del catálogo (ver product_card.jsx):

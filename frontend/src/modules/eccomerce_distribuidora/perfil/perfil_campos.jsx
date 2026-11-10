@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import InputField from "../../../controls/ui/input_field.jsx";
-import SelectField from "../../../controls/ui/select_field.jsx";
-import { getProvincias, getDepartamentos, getLocalidades } from "../../../api/ubicacion_api.js";
+import InputField from "../../../core/controls/ui/input_field.jsx";
+import SelectField from "../../../core/controls/ui/select_field.jsx";
+import { getProvincias, getDepartamentos, getLocalidades } from "../../../core/api/ubicacion_api.js";
 import { OPCIONES_CONDICION_IVA } from "./perfil_constantes.js";
-import { condicionIva as datosCondicion } from "../../../../../fiscal_config.js";
+import { condicionIva as datosCondicion } from "../../../../../core/fiscal_config.js";
 
 // Si el valor guardado no aparece en la lista vigente (perfil viejo con un
 // nombre que ya no coincide, ej. "CABA" antes de pasar a los datos oficiales

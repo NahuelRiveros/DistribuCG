@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { defineModel } from "../../../models/common/define_model.js";
+import { defineModel } from "../../../core/models/common/define_model.js";
 export const ImportacionCatalogo = defineModel("ImportacionCatalogo", {
   id: { type: DataTypes.UUID, primaryKey: true },
   usuario_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: "usuario", key: "id" } },

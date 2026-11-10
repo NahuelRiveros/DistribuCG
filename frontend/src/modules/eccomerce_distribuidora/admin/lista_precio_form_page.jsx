@@ -2,12 +2,12 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, X } from "lucide-react";
-import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
-import SelectField from "../../../controls/ui/select_field.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import AyudaTooltip from "../../../controls/ui/ayuda_tooltip.jsx";
-import { useToast } from "../../../controls/toast/use_toast.js";
-import { getProvincias, getDepartamentos, getLocalidades } from "../../../api/ubicacion_api.js";
+import AdminSpinner from "../../../core/controls/ui/admin_spinner.jsx";
+import SelectField from "../../../core/controls/ui/select_field.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import AyudaTooltip from "../../../core/controls/ui/ayuda_tooltip.jsx";
+import { useToast } from "../../../core/controls/toast/use_toast.js";
+import { getProvincias, getDepartamentos, getLocalidades } from "../../../core/api/ubicacion_api.js";
 import { getListaPrecio, crearListaPrecio, actualizarListaPrecio } from "../api/listas_precio_api.js";
 import { RUTA_LISTAS } from "../utils/rutas_articulo.js";
 

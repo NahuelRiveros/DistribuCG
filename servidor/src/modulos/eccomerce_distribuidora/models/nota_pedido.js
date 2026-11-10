@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { defineModel } from "../../../models/common/define_model.js";
+import { defineModel } from "../../../core/models/common/define_model.js";
 
 /**
  * Snapshot de productos, precios y entrega al enviar la nota.

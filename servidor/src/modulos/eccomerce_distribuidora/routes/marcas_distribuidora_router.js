@@ -3,8 +3,8 @@ import {
   listarMarcasController, resumenMarcasController, obtenerMarcaController, crearMarcaController,
   actualizarMarcaController, unificarMarcasController, eliminarMarcaController,
 } from "../controllers/marcas_distribuidora_controller.js";
-import { requireAuth, requirePermiso } from "../../../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../middleware/modulo_middleware.js";
+import { requireAuth, requirePermiso } from "../../../core/middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 // Gestión de marcas: solo personal de catálogo (mismos roles que artículos y categorías).
 export const marcasDistribuidoraRouter = Router();

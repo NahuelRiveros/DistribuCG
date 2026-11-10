@@ -1,4 +1,4 @@
-import { http } from "../../../api/http.js";
+import { http } from "../../../core/api/http.js";
 
 export async function getProductos(params = {}, options = {}) {
   const { data } = await http.get("/distribuidora/productos", { params, ...options });

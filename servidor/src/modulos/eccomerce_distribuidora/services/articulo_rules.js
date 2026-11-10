@@ -1,4 +1,4 @@
-import { UNIDADES, MAX_UNIDADES_POR_BULTO } from "../../../../../unidades_config.js";
+import { UNIDADES, MAX_UNIDADES_POR_BULTO } from "../../../../../rubros/eccomerce_distribuidora/unidades_config.js";
 
 export const MENSAJE_SOLO_CATEGORIA = "Elegí una categoría: el artículo no puede ir directo en la familia.";
 

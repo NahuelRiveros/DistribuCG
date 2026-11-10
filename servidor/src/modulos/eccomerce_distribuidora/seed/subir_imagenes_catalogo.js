@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { cloudinary } from "../../../configuracion_servidor/cloudinary.js";
+import { cloudinary } from "../../../core/configuracion_servidor/cloudinary.js";
 import { ARCHIVO_IMAGENES, leerImagenesCatalogo } from "./imagenes_catalogo.js";
 
 // Ejecutar desde la raíz: npm --prefix servidor run imagenes:subir -- "<carpeta con _indice.json>"

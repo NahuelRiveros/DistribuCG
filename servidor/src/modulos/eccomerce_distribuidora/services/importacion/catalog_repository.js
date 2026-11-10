@@ -3,7 +3,7 @@ import { CategoriaDistribuidora as Category, ProductoDistribuidora as Product, V
 import { groupKey, categoryPaths, hash } from "./plan.js";
 import { keyText } from "./normalize.js";
 import { asegurarMarcasPorNombre, asociarSiFalta } from "../marcas_distribuidora_service.js";
-import { claveMarca } from "../../../../services/common/formato_nombre.js";
+import { claveMarca } from "../../../../core/services/common/formato_nombre.js";
 const unique = (rows) => [...new Map(rows.map((r) => [r.id, r])).values()];
 const chunks = (array, size = 500) => Array.from({ length: Math.ceil(array.length / size) }, (_, i) => array.slice(i * size, (i + 1) * size));
 async function readChunks(Model, values, condition, transaction) {

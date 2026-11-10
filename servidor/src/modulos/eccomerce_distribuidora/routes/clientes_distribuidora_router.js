@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { listarClientesController } from "../controllers/clientes_distribuidora_controller.js";
-import { requireAuth, requirePermiso } from "../../../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../middleware/modulo_middleware.js";
+import { requireAuth, requirePermiso } from "../../../core/middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 export const clientesDistribuidoraRouter = Router();
 clientesDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));

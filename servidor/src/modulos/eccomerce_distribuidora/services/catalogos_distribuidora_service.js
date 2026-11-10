@@ -1,8 +1,8 @@
 import { Op } from "sequelize";
-import { sequelize } from "../../../database/sequelize.js";
+import { sequelize } from "../../../core/database/sequelize.js";
 import { CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora, CarritoDistribuidoraItem } from "../models/index.js";
-import { crearCrudService } from "../../../services/common/crud_service.js";
-import { formatearNombre } from "../../../services/common/formato_nombre.js";
+import { crearCrudService } from "../../../core/services/common/crud_service.js";
+import { formatearNombre } from "../../../core/services/common/formato_nombre.js";
 
 /**
  * Catálogo de categorías de distribuidora (jerárquicas). Mismo patrón que

@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import InputField from "../../../controls/ui/input_field.jsx";
-import SelectField from "../../../controls/ui/select_field.jsx";
-import ComboboxField from "../../../controls/ui/combobox_field.jsx";
+import InputField from "../../../core/controls/ui/input_field.jsx";
+import SelectField from "../../../core/controls/ui/select_field.jsx";
+import ComboboxField from "../../../core/controls/ui/combobox_field.jsx";
 import MarcaField from "./marca_field.jsx";
 import PreciosEnListas from "./precios_en_listas.jsx";
-import ImageUploadField from "../../../controls/ui/image_upload_field.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import { UNIDADES, cantidadConUnidad, describirBulto, textoBultos } from "../../../../../unidades_config.js";
+import ImageUploadField from "../../../core/controls/ui/image_upload_field.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import { UNIDADES, cantidadConUnidad, describirBulto, textoBultos } from "../../../../../rubros/eccomerce_distribuidora/unidades_config.js";
 import { formatearPrecio, precioSinIva } from "../utils/precio_iva.js";
-import { useAuth } from "../../../auth/auth_context.jsx";
-import { tienePermiso } from "../../../../../permisos_config.js";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
+import { tienePermiso } from "../../../../../core/permisos_config.js";
 
 const PESTANAS = [
   { id: "general", label: "Datos generales" },

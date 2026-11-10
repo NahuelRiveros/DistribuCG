@@ -1,4 +1,4 @@
-import { orderConfig } from "../../../../../order_config.js";
+import { orderConfig } from "../../../../../rubros/eccomerce_distribuidora/order_config.js";
 import { Router } from "express";
 import multer from "multer";
 import {
@@ -10,8 +10,8 @@ import {
   subirComprobanteController, enlaceComprobanteController, aceptarComprobanteController, rechazarComprobanteController,
 } from "../controllers/comprobantes_controller.js";
 import { listaCargaController } from "../controllers/lista_carga_controller.js";
-import { requireAuth, requirePermiso } from "../../../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../middleware/modulo_middleware.js";
+import { requireAuth, requirePermiso } from "../../../core/middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 // El tipo real se comprueba por contenido en el servicio; acá solo se corta lo que excede el tamaño.
 const subida = multer({ storage: multer.memoryStorage(), limits: { fileSize: orderConfig.receipts.maxBytes, files: 1, fields: 2 } });

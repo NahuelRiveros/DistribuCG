@@ -1,6 +1,6 @@
-import { orderConfig } from "../../../../../order_config.js";
+import { orderConfig } from "../../../../../rubros/eccomerce_distribuidora/order_config.js";
 import ExcelJS from "exceljs";
-import { condicionIva, tipoFacturaSugerida } from "../../../../../fiscal_config.js";
+import { condicionIva, tipoFacturaSugerida } from "../../../../../core/fiscal_config.js";
 import {
   crearNotaPedido, listarPropias, listarTodas, obtenerDetalle,
   cambiarEstado, cancelarPropia, registrarPago, anularPago,

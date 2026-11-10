@@ -3,8 +3,8 @@ import {
   fusionarCarritoController, obtenerCarritoController, agregarItemController,
   actualizarCantidadController, eliminarItemController, vaciarCarritoController,
 } from "../controllers/carrito_distribuidora_controller.js";
-import { requireAuth } from "../../../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../middleware/modulo_middleware.js";
+import { requireAuth } from "../../../core/middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 export const carritoDistribuidoraRouter = Router();
 carritoDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));

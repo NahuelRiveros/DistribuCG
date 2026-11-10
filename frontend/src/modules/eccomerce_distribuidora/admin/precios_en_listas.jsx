@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "../../../auth/auth_context.jsx";
-import { tienePermiso } from "../../../../../permisos_config.js";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
+import { tienePermiso } from "../../../../../core/permisos_config.js";
 import { getPreciosEnListas } from "../api/producto_distribuidora_api.js";
 import { formatearPrecio } from "../utils/precio_iva.js";
 import { RUTA_LISTAS } from "../utils/rutas_articulo.js";

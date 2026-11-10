@@ -1,8 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo } from "react";
-import { useAuth } from "../../../auth/auth_context.jsx";
-import { usePersistentCart } from "../../../controls/carrito/use_persistent_cart.js";
-import { detectarAlertas } from "../../../controls/carrito/validations/cart_staleness.js";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
+import { usePersistentCart } from "../../../core/controls/carrito/use_persistent_cart.js";
+import { detectarAlertas } from "../../../core/controls/carrito/validations/cart_staleness.js";
 import { storefrontConfig } from "../storefront_config.js";
 import { getProducto } from "../api/producto_distribuidora_api.js";
 import { getCarrito, addCarritoItem, updateCarritoItem, removeCarritoItem, clearCarrito, mergeCarrito } from "../api/carrito_distribuidora_api.js";

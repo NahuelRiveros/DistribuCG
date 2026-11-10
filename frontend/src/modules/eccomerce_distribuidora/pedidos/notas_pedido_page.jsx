@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { useAuth } from "../../../auth/auth_context.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import SearchField from "../../../controls/ui/search_field.jsx";
-import SelectField from "../../../controls/ui/select_field.jsx";
-import Pagination from "../../../controls/ui/pagination.jsx";
-import ActionButton from "../../../controls/ui/action_button.jsx";
-import { ESTADOS, ESTADOS_PAGO } from "../../../config/order_config.js";
-import { tienePermiso } from "../../../../../permisos_config.js";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import SearchField from "../../../core/controls/ui/search_field.jsx";
+import SelectField from "../../../core/controls/ui/select_field.jsx";
+import Pagination from "../../../core/controls/ui/pagination.jsx";
+import ActionButton from "../../../core/controls/ui/action_button.jsx";
+import { ESTADOS, ESTADOS_PAGO } from "../config/order_config.js";
+import { tienePermiso } from "../../../../../core/permisos_config.js";
 import {
   getTodasLasNotasPedido, cambiarEstadoNotaPedido, registrarPagoNotaPedido, anularPagoNotaPedido, exportarNotaPedido,
   aceptarComprobante, rechazarComprobante,

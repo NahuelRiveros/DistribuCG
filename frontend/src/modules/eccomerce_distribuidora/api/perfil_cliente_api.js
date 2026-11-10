@@ -1,4 +1,4 @@
-import { http } from "../../../api/http.js";
+import { http } from "../../../core/api/http.js";
 
 export async function getMiPerfil() {
   const { data } = await http.get("/distribuidora/mi-perfil");

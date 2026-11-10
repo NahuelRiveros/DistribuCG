@@ -18,19 +18,19 @@ const ownedSchema = "codex_ux_test_" + randomUUID().replaceAll("-", "");
 process.env.DB_SCHEMA = ownedSchema;
 // Las tablas de la suscripción viven en public en producción; acá, en el schema temporal.
 process.env.ESQUEMA_SUSCRIPCION = ownedSchema;
-const { sequelize, DB_SCHEMA } = await import("../src/database/sequelize.js");
+const { sequelize, DB_SCHEMA } = await import("../src/core/database/sequelize.js");
 const models = await import("../src/modulos/eccomerce_distribuidora/models/index.js");
-const { registrarCliente, login, loginConGoogle } = await import("../src/services/usuarios/auth_service.js");
+const { registrarCliente, login, loginConGoogle } = await import("../src/core/services/usuarios/auth_service.js");
 const { obtenerCarrito, agregarItem, fusionarCarrito, actualizarCantidad, vaciarCarrito } = await import("../src/modulos/eccomerce_distribuidora/services/carrito_distribuidora_service.js");
 const { crearNotaPedido, cambiarEstado, cancelarPropia, registrarPago, anularPago, listarTodas } = await import("../src/modulos/eccomerce_distribuidora/services/nota_pedido_service.js");
-const { createResetToken } = await import("../src/services/common/auth_tokens.js");
-const { resetPassword } = await import("../src/services/usuarios/password_recovery_service.js");
-const { env } = await import("../src/configuracion_servidor/env.js");
+const { createResetToken } = await import("../src/core/services/common/auth_tokens.js");
+const { resetPassword } = await import("../src/core/services/usuarios/password_recovery_service.js");
+const { env } = await import("../src/core/configuracion_servidor/env.js");
 const { guardarPerfil, obtenerPerfil } = await import("../src/modulos/eccomerce_distribuidora/services/perfil_cliente_service.js");
 const { validarDatosCliente } = await import("../src/modulos/eccomerce_distribuidora/services/datos_cliente.js");
 // Como el controlador: guardarPerfil recibe datos ya validados y normalizados.
 const guardarValidado = (usuario_id, body) => { const { datos, error } = validarDatosCliente(body); if (error) throw new Error(error); return guardarPerfil(usuario_id, datos); };
-const { aplicar_ajustes_puntuales, TABLAS_RETIRADAS } = await import("../src/database/bootstrap.js");
+const { aplicar_ajustes_puntuales, TABLAS_RETIRADAS } = await import("../src/core/database/bootstrap.js");
 const { crear_indice_busqueda_productos } = await import("../src/modulos/eccomerce_distribuidora/arranque.js");
 const { obtenerResumenPanel } = await import("../src/modulos/eccomerce_distribuidora/services/panel_distribuidora_service.js");
 const productos = await import("../src/modulos/eccomerce_distribuidora/services/producto_distribuidora_service.js");
@@ -39,8 +39,8 @@ const { validarVariedad } = await import("../src/modulos/eccomerce_distribuidora
 const categoriasSrv = await import("../src/modulos/eccomerce_distribuidora/services/catalogos_distribuidora_service.js");
 const marcasSrv = await import("../src/modulos/eccomerce_distribuidora/services/marcas_distribuidora_service.js");
 const listasSrv = await import("../src/modulos/eccomerce_distribuidora/services/listas_precio_service.js");
-const { sincronizarPermisos } = await import("../src/services/usuarios/permisos_service.js");
-const { permisosEfectivos } = await import("../../permisos_config.js");
+const { sincronizarPermisos } = await import("../src/core/services/usuarios/permisos_service.js");
+const { permisosEfectivos } = await import("../../core/permisos_config.js");
 // Usuario con los permisos que le darían esos roles (asignados = lo tildado en el panel).
 const comoUsuario = (roles, asignados = []) => ({ roles, permisos: permisosEfectivos(roles, asignados) });
 test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia y recuperación", async (t) => {
@@ -266,7 +266,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     });
     await t.test("avisos: pedido nuevo al equipo y al comprador una sola vez; estados y cancelación; Brevo caído no frena el pedido", async () => {
       const { esperarAvisos } = await import("../src/modulos/eccomerce_distribuidora/services/avisos_pedido_service.js");
-      const { mailConfigured } = await import("../src/services/common/mail_service.js");
+      const { mailConfigured } = await import("../src/core/services/common/mail_service.js");
       assert.equal(mailConfigured(), false, "las pruebas arrancan sin ningún correo real configurado");
       const previo = { ...env };
       const fetchReal = globalThis.fetch;
@@ -330,11 +330,11 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       }
     });
     await t.test("comprobantes: archivo real y privado, rechazo, aceptación con cobro, anulación y permisos", async () => {
-      const { cloudinary } = await import("../src/configuracion_servidor/cloudinary.js");
+      const { cloudinary } = await import("../src/core/configuracion_servidor/cloudinary.js");
       const { Writable } = await import("node:stream");
       const comprobantes = await import("../src/modulos/eccomerce_distribuidora/services/comprobantes_service.js");
       const { listarPropias } = await import("../src/modulos/eccomerce_distribuidora/services/nota_pedido_service.js");
-      const { orderConfig } = await import("../../order_config.js");
+      const { orderConfig } = await import("../../rubros/eccomerce_distribuidora/order_config.js");
       const originales = { subir: cloudinary.uploader.upload_stream, borrar: cloudinary.uploader.destroy, enlace: cloudinary.utils.private_download_url };
       const subidas = [];
       const borrados = [];
@@ -446,9 +446,9 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       }
     });
     await t.test("permisos: sincronización sin pisar el panel, staff → supervisor, roles nuevos y precios protegidos", async () => {
-      const permisosSrv = await import("../src/services/usuarios/permisos_service.js");
-      const { renombrarStaffASupervisor } = await import("../src/database/seed/seed_rbac.js");
-      const { listarRolesAsignables } = await import("../src/services/usuarios/admin_staff_service.js");
+      const permisosSrv = await import("../src/core/services/usuarios/permisos_service.js");
+      const { renombrarStaffASupervisor } = await import("../src/core/database/seed/seed_rbac.js");
+      const { listarRolesAsignables } = await import("../src/core/services/usuarios/admin_staff_service.js");
       const codigosDe = async (codigo) => (await permisosSrv.listarRolesConPermisos()).find((r) => r.codigo === codigo)?.permisos;
       const vendedor = await models.Rol.findOne({ where: { codigo: "vendedor" } });
 
@@ -491,7 +491,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       // HTTP con los permisos leídos de la base: el repositor edita artículos pero no precios ni permisos.
       const express = (await import("express")).default;
       const { productoDistribuidoraRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/producto_distribuidora_router.js");
-      const { permisosRouter } = await import("../src/routes/usuarios/permisos_router.js");
+      const { permisosRouter } = await import("../src/core/routes/usuarios/permisos_router.js");
       const app = express();
       app.use(express.json());
       app.use("/productos", productoDistribuidoraRouter);
@@ -568,7 +568,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.equal((await escasa.reload()).cantidad, 1, "no tocó el stock");
     });
     await t.test("SIS-04: el mismo pago avisado varias veces por MercadoPago extiende la suscripción una sola vez", async () => {
-      const sus = await import("../src/services/sistema/software_suscripcion_service.js");
+      const sus = await import("../src/core/services/sistema/software_suscripcion_service.js");
       await sus.setupTablas();
       await sus.crearSuscripcionInicial();
       const enUnMes = new Date(); enUnMes.setDate(enUnMes.getDate() + 30);
@@ -582,7 +582,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.equal((await sus.obtenerEstado()).fecha_vencimiento, resultados[0].nuevo_vencimiento, "un solo período sumado");
     });
     await t.test("PER-20: el personal necesita 8 caracteres al crearse o cambiar la contraseña; las viejas siguen sirviendo", async () => {
-      const { crearStaff, cambiarPasswordStaff } = await import("../src/services/usuarios/admin_staff_service.js");
+      const { crearStaff, cambiarPasswordStaff } = await import("../src/core/services/usuarios/admin_staff_service.js");
       const bcrypt = (await import("bcrypt")).default;
       const datos = { email: "vera@example.test", nombre: "Vera", apellido: "Vendedora", documento: "30111222", rol_codigo: "vendedor", solicitanteEsSuperAdmin: false };
       assert.equal((await crearStaff({ ...datos, password: "1234567" })).codigo, "PASSWORD_INVALIDA");
@@ -596,7 +596,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.equal((await login({ identificador: "vera@example.test", password: "abcde" })).ok, true);
     });
     await t.test("PER-13: el arranque borra el rol profesional si nadie lo tiene y lo conserva si alguien sí", async () => {
-      const { retirarRolProfesional } = await import("../src/database/seed/seed_rbac.js");
+      const { retirarRolProfesional } = await import("../src/core/database/seed/seed_rbac.js");
       const crearProfesional = () => models.Rol.findOrCreate({ where: { codigo: "profesional" }, defaults: { descripcion: "Profesional" } }).then(([rol]) => rol);
       await crearProfesional();
       assert.deepEqual(await retirarRolProfesional(), { borrado: true, personas: 0 });
@@ -633,7 +633,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     });
     await t.test("USU-04, USU-06 y USU-09: mensaje genérico, 30 días de sesión para clientes y 24 h para el personal", async () => {
       const jwt = (await import("jsonwebtoken")).default;
-      const { requireAuth } = await import("../src/middleware/auth_middleware.js");
+      const { requireAuth } = await import("../src/core/middleware/auth_middleware.js");
       const sesion = (token) => { const p = jwt.decode(token); return [p.sesion, p.exp - p.iat]; };
       const sole = await registrarCliente({ nombre: "Sole", apellido: "Sesion", email: "sole@example.test", password: "Clave1234" });
       const entrar = () => login({ identificador: "sole@example.test", password: "Clave1234" });

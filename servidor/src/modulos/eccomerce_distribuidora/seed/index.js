@@ -3,7 +3,7 @@ import { seed_marcas_distribuidora } from "./seed_marcas_distribuidora.js";
 import { seed_productos_distribuidora } from "./seed_productos_distribuidora.js";
 import { seed_catalogo_demo } from "./catalogo_demo.js";
 import { seed_imagenes_catalogo } from "./imagenes_catalogo.js";
-import { env } from "../../../configuracion_servidor/env.js";
+import { env } from "../../../core/configuracion_servidor/env.js";
 
 // Corre después del seed del core (roles, permisos, super admin).
 export async function seed_distribuidora() {

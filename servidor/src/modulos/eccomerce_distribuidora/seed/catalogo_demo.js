@@ -10,7 +10,7 @@ import { aplicarPreciosDemo, esquemaPermiteDemo } from "./precios_demo_distribui
  * En el esquema de producción (gc_dist) se saltea con un aviso, sin frenar el arranque.
  */
 export async function seed_catalogo_demo({ esquema } = {}) {
-  const { sequelize, DB_SCHEMA } = await import("../../../database/sequelize.js");
+  const { sequelize, DB_SCHEMA } = await import("../../../core/database/sequelize.js");
   const modelos = await import("../models/index.js");
   const destino = esquema ?? DB_SCHEMA;
   if (!esquemaPermiteDemo(destino)) {

@@ -1,8 +1,8 @@
 import { Op } from "sequelize";
-import { sequelize } from "../../../database/sequelize.js";
+import { sequelize } from "../../../core/database/sequelize.js";
 import { ProductoDistribuidora, CategoriaDistribuidora, VariedadDistribuidora } from "../models/index.js";
-import { normalizarPaginacion, armarPaginacion } from "../../../services/common/pagination.js";
-import { formatearNombre } from "../../../services/common/formato_nombre.js";
+import { normalizarPaginacion, armarPaginacion } from "../../../core/services/common/pagination.js";
+import { formatearNombre } from "../../../core/services/common/formato_nombre.js";
 import { resolverMarcaDeArticulo } from "./marcas_distribuidora_service.js";
 import { categoriaAdmiteArticulos, MENSAJE_SOLO_CATEGORIA } from "./articulo_rules.js";
 

@@ -1,4 +1,4 @@
-import { http } from "../../../api/http.js";
+import { http } from "../../../core/api/http.js";
 
 export async function mergeCarrito(payload) {
   const { data } = await http.post("/distribuidora/carrito/merge", payload);

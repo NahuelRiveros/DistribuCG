@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { defineModel } from "../../../models/common/define_model.js";
+import { defineModel } from "../../../core/models/common/define_model.js";
 export const NotaPedidoEstadoLog = defineModel("NotaPedidoEstadoLog", {
   nota_pedido_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: "nota_pedido", key: "id" } },
   usuario_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: "usuario", key: "id" } },

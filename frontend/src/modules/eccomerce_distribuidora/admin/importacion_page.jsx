@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "../../../auth/auth_context.jsx";
-import { clientConfig } from "../../../../../client_config.js";
-import { catalogImportConfig, suggestMapping } from "../../../config/catalog_import_config.js";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
+import { clientConfig } from "../../../../../proyecto/client_config.js";
+import { catalogImportConfig, suggestMapping } from "../config/catalog_import_config.js";
 import { importApi } from "../api/importacion_distribuidora_api.js";
-import { useImportWizard } from "../../../controls/importacion/use_import_wizard.js";
-import FileOptions from "../../../controls/importacion/file_options.jsx";
-import ColumnMapping from "../../../controls/importacion/column_mapping.jsx";
-import ImportReview from "../../../controls/importacion/import_review.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import ActionButton from "../../../controls/ui/action_button.jsx";
-import Modal from "../../../controls/ui/modal.jsx";
+import { useImportWizard } from "../../../core/controls/importacion/use_import_wizard.js";
+import FileOptions from "../../../core/controls/importacion/file_options.jsx";
+import ColumnMapping from "../../../core/controls/importacion/column_mapping.jsx";
+import ImportReview from "../../../core/controls/importacion/import_review.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import ActionButton from "../../../core/controls/ui/action_button.jsx";
+import Modal from "../../../core/controls/ui/modal.jsx";
 export default function ImportacionDistribuidoraPage() {
   const { usuario } = useAuth();
   const queryClient = useQueryClient();

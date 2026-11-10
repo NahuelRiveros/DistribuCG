@@ -64,7 +64,7 @@ export async function asignarImagenesCatalogo(modelos, imagenes, transaction) {
 export async function seed_imagenes_catalogo() {
   const imagenes = await leerImagenesCatalogo();
   if (!Object.keys(imagenes).length) return null;
-  const { sequelize } = await import("../../../database/sequelize.js");
+  const { sequelize } = await import("../../../core/database/sequelize.js");
   const modelos = await import("../models/index.js");
   const resultado = await sequelize.transaction(async (transaction) => {
     // Mismo bloqueo que las cargas del catálogo: no se cruza con una importación del seed.

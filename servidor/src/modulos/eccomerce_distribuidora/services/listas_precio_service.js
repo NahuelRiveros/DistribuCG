@@ -1,8 +1,8 @@
 import { Op, QueryTypes } from "sequelize";
-import { sequelize } from "../../../database/sequelize.js";
+import { sequelize } from "../../../core/database/sequelize.js";
 import { ListaPrecio, ListaPrecioLocalidad, ListaPrecioItem, PerfilClienteDistribuidora, VariedadDistribuidora } from "../models/index.js";
-import { formatearNombre } from "../../../services/common/formato_nombre.js";
-import { normalizarPaginacion, armarPaginacion } from "../../../services/common/pagination.js";
+import { formatearNombre } from "../../../core/services/common/formato_nombre.js";
+import { normalizarPaginacion, armarPaginacion } from "../../../core/services/common/pagination.js";
 
 /**
  * Listas de precios regionales. Regla del precio para un cliente: si su

@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { orderConfig, receiptProblem } from "../../../../../order_config.js";
-import { tienePermiso } from "../../../../../permisos_config.js";
-import { sequelize } from "../../../database/sequelize.js";
+import { orderConfig, receiptProblem } from "../../../../../rubros/eccomerce_distribuidora/order_config.js";
+import { tienePermiso } from "../../../../../core/permisos_config.js";
+import { sequelize } from "../../../core/database/sequelize.js";
 import { NotaPedido, NotaPedidoComprobante } from "../models/index.js";
-import { cartError } from "../../../services/common/cart_rules.js";
+import { cartError } from "../../../core/services/common/cart_rules.js";
 import { detectarFormatoComprobante } from "./comprobante_rules.js";
-import { subirArchivoPrivado, eliminarArchivoPrivado, enlaceArchivoPrivado } from "../../../services/common/upload_service.js";
+import { subirArchivoPrivado, eliminarArchivoPrivado, enlaceArchivoPrivado } from "../../../core/services/common/upload_service.js";
 import { avanzarPorPagoBloqueado, centavosDeImporte, cobrarPedidoBloqueado } from "./nota_pedido_service.js";
 import { avisarCambioEstado, avisarComprobanteNuevo, avisarComprobanteRechazado } from "./avisos_pedido_service.js";
 

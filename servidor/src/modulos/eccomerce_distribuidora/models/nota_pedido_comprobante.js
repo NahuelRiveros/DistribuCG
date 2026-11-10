@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import { defineModel } from "../../../models/common/define_model.js";
+import { defineModel } from "../../../core/models/common/define_model.js";
 
 /**
  * Comprobante de transferencia que adjunta el comprador. El archivo vive en

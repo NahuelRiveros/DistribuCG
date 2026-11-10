@@ -1,4 +1,4 @@
-import { sequelize } from "../../../database/sequelize.js";
+import { sequelize } from "../../../core/database/sequelize.js";
 import { PerfilClienteDistribuidora, Persona, Usuario } from "../models/index.js";
 import { datosClienteCompletos } from "./datos_cliente.js";
 

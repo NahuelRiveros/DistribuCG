@@ -1,7 +1,7 @@
 import { CarritoDistribuidora, CarritoDistribuidoraItem, ProductoDistribuidora, VariedadDistribuidora, CategoriaDistribuidora } from "../models/index.js";
 import { withCart, idempotent } from "./cart_transaction.js";
-import { cartError, validQuantity } from "../../../services/common/cart_rules.js";
-import { clientConfig } from "../../../../../client_config.js";
+import { cartError, validQuantity } from "../../../core/services/common/cart_rules.js";
+import { clientConfig } from "../../../../../proyecto/client_config.js";
 import { listaDeUsuario, preciosDeLista } from "./listas_precio_service.js";
 export async function obtenerOCrearCarrito(usuario_id) {
   const [cart] = await CarritoDistribuidora.findOrCreate({ where: { usuario_id }, defaults: { usuario_id } });

@@ -1,5 +1,5 @@
-import { catalogImportConfig as config } from "../../../../../../catalog_import_config.js";
-import { formatearNombre } from "../../../../services/common/formato_nombre.js";
+import { catalogImportConfig as config } from "../../../../../../rubros/eccomerce_distribuidora/catalog_import_config.js";
+import { formatearNombre } from "../../../../core/services/common/formato_nombre.js";
 export const importError = (message, status = 400) => Object.assign(new Error(message), { status });
 export const keyText = (v) => String(v ?? "").trim().toLocaleLowerCase("es-AR");
 export function numberValue(raw, decimal, label) {

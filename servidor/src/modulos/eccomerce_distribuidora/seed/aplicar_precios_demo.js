@@ -1,4 +1,4 @@
-import { sequelize, DB_SCHEMA } from "../../../database/sequelize.js";
+import { sequelize, DB_SCHEMA } from "../../../core/database/sequelize.js";
 import * as modelos from "../models/index.js";
 import { aplicarPreciosDemo } from "./precios_demo_distribuidora.js";
 

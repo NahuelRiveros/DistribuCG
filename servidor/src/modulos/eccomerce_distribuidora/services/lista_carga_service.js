@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
-import { sequelize } from "../../../database/sequelize.js";
-import { separarBultos } from "../../../../../unidades_config.js";
+import { sequelize } from "../../../core/database/sequelize.js";
+import { separarBultos } from "../../../../../rubros/eccomerce_distribuidora/unidades_config.js";
 
 export const MAX_PEDIDOS_LISTA_CARGA = 200;
 

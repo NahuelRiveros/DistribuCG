@@ -1,11 +1,11 @@
-import { clientConfig } from "../../../../../client_config.js";
+import { clientConfig } from "../../../../../proyecto/client_config.js";
 import { Router } from "express";
 import {
   listarCategoriasController, crearCategoriaController, actualizarCategoriaController, eliminarCategoriaController,
   fusionarCategoriaController, moverCategoriasController,
 } from "../controllers/catalogos_distribuidora_controller.js";
-import { requireAuth, requirePermiso } from "../../../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../middleware/modulo_middleware.js";
+import { requireAuth, requirePermiso } from "../../../core/middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 export const catalogosDistribuidoraRouter = Router();
 catalogosDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));

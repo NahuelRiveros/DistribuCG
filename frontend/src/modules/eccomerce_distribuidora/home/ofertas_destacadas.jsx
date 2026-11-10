@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, BadgePercent } from "lucide-react";
 import { storefrontConfig as config } from "../storefront_config.js";
-import HomeCarousel from "../../home/home_carousel.jsx";
-import TrazoAnimado from "../../home/trazo_animado.jsx";
+import HomeCarousel from "../../../core/modules/home/home_carousel.jsx";
+import TrazoAnimado from "../../../core/modules/home/trazo_animado.jsx";
 import ProductoCard from "../productos/producto_card.jsx";
 
 // La portada y esta sección comparten una consulta en HomeTienda.

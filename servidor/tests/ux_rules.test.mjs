@@ -1,28 +1,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createResetToken, verifyResetToken, passwordVersion } from "../src/services/common/auth_tokens.js";
-import { validQuantity, validateSnapshot } from "../src/services/common/cart_rules.js";
-import { accionesDeEstado, orderConfig, receiptProblem, transitionProblem } from "../../order_config.js";
-import { CODIGOS_PERMISO, dependientesDe, permisosConfig, permisosEfectivos, tienePermiso } from "../../permisos_config.js";
-import { cumpleAcceso } from "../../frontend/src/controls/acceso/acceso.js";
-import { cuitValido, dniValido, fiscalConfig, normalizarDocumento, problemaFiscal, tipoFacturaSugerida } from "../../fiscal_config.js";
-import { env } from "../src/configuracion_servidor/env.js";
-import { enviarEmail, mailConfigured } from "../src/services/common/mail_service.js";
+import { createResetToken, verifyResetToken, passwordVersion } from "../src/core/services/common/auth_tokens.js";
+import { validQuantity, validateSnapshot } from "../src/core/services/common/cart_rules.js";
+import { accionesDeEstado, orderConfig, receiptProblem, transitionProblem } from "../../rubros/eccomerce_distribuidora/order_config.js";
+import { CODIGOS_PERMISO, dependientesDe, permisosConfig, permisosEfectivos, tienePermiso } from "../../core/permisos_config.js";
+import { cumpleAcceso } from "../../frontend/src/core/controls/acceso/acceso.js";
+import { cuitValido, dniValido, fiscalConfig, normalizarDocumento, problemaFiscal, tipoFacturaSugerida } from "../../core/fiscal_config.js";
+import { env } from "../src/core/configuracion_servidor/env.js";
+import { enviarEmail, mailConfigured } from "../src/core/services/common/mail_service.js";
 import {
   escapar, mailCambioEstadoCliente, mailCancelacionClienteEquipo, mailComprobanteNuevoEquipo, mailComprobanteRechazadoCliente,
   mailPedidoNuevoEquipo, mailPedidoRecibidoCliente,
 } from "../src/modulos/eccomerce_distribuidora/services/avisos_pedido_plantillas.js";
 import { detectarFormatoComprobante } from "../src/modulos/eccomerce_distribuidora/services/comprobante_rules.js";
-import { arcaConfig, credencialesArca, estadoArca } from "../src/configuracion_servidor/arca.js";
-import { armarComprobante, desglosarIva, documentoReceptor } from "../src/services/facturacion/arca_comprobante.js";
-import { safeReturnTo } from "../../frontend/src/controls/acceso/return_to.js";
-import { readGuestCart, mergeGuestItems } from "../../frontend/src/controls/carrito/guest_storage.js";
-import { filtrarNavbarPorRol } from "../../frontend/src/controls/layout/navbar/navbar_permissions.js";
-import { clasificarIdentificador, esNombreUsuarioValido } from "../src/services/common/nombre_usuario.js";
+import { arcaConfig, credencialesArca, estadoArca } from "../src/core/configuracion_servidor/arca.js";
+import { armarComprobante, desglosarIva, documentoReceptor } from "../src/core/services/facturacion/arca_comprobante.js";
+import { safeReturnTo } from "../../frontend/src/core/controls/acceso/return_to.js";
+import { readGuestCart, mergeGuestItems } from "../../frontend/src/core/controls/carrito/guest_storage.js";
+import { filtrarNavbarPorRol } from "../../frontend/src/core/controls/layout/navbar/navbar_permissions.js";
+import { clasificarIdentificador, esNombreUsuarioValido } from "../src/core/services/common/nombre_usuario.js";
 import { celularValido, datosClienteCompletos, validarDatosCliente } from "../src/modulos/eccomerce_distribuidora/services/datos_cliente.js";
 import { normalizeRows } from "../src/modulos/eccomerce_distribuidora/services/importacion/normalize.js";
 import { buildPlan, MENSAJE_IMPORTACION_SOLO_CATEGORIA } from "../src/modulos/eccomerce_distribuidora/services/importacion/plan.js";
-import { formatearNombre } from "../src/services/common/formato_nombre.js";
+import { formatearNombre } from "../src/core/services/common/formato_nombre.js";
 import { indexarCategorias, construirOpcionesCategoria, construirOpcionesArticulo } from "../../frontend/src/modules/eccomerce_distribuidora/utils/categoria_jerarquia.js";
 import { categoriaAdmiteArticulos } from "../src/modulos/eccomerce_distribuidora/services/articulo_rules.js";
 
@@ -257,7 +257,7 @@ test("navbar filtra árboles por rol y módulo, sin acoplarse a un rubro", () =>
 });
 
 test("panel de gestión: cada uno ve las secciones de sus permisos y el cliente no entra", async () => {
-  const { panelGrupos, accesoPanel } = await import("../../frontend/src/config/navbar_config/panel_gestion.js");
+  const { panelGrupos, accesoPanel } = await import("../../frontend/src/core/config/navbar_config/panel_gestion.js");
   const modulos = { eccomerce_distribuidora: true };
   const porDefecto = (rol) => permisosConfig.permisos.filter((p) => p.porDefecto.includes(rol)).map((p) => p.codigo);
   const usuario = (roles, asignados = []) => ({ roles, permisos: permisosEfectivos(roles, asignados) });
@@ -308,13 +308,13 @@ test("PER-33: todos los permisos en permisos_config.js, con la misma lista de si
   assert.equal(permisosConfig.rolesFuera.includes("profesional"), false, "PER-13: sin el rol del gimnasio");
 });
 test("PER-26: la API no tiene /admin/usuarios; el alta del personal pasa por /staff", async () => {
-  const { default: router } = await import("../src/routes/index.js");
+  const { default: router } = await import("../src/core/routes/index.js");
   const atiende = (ruta) => router.stack.filter((capa) => capa.handle?.stack && capa.match(ruta)).length;
   assert.equal(atiende("/admin/usuarios"), 0);
   assert.equal(atiende("/staff"), 1);
 });
 test("PER-20: la contraseña del personal sigue la misma regla que la de los clientes (8 a 72)", async () => {
-  const { contrasenaValida, MENSAJE_CONTRASENA } = await import("../src/services/common/contrasena.js");
+  const { contrasenaValida, MENSAJE_CONTRASENA } = await import("../src/core/services/common/contrasena.js");
   assert.equal(contrasenaValida("1234567"), false);
   assert.equal(contrasenaValida("12345678"), true);
   assert.equal(contrasenaValida("a".repeat(72)), true);
@@ -341,7 +341,7 @@ test("permisos: admin y super admin tienen todo; el resto, solo lo asignado y co
 });
 
 test("bultos y sueltos: 23 paquetes en cajas de 20 son 1 caja + 3 paquetes", async () => {
-  const { separarBultos, describirBulto, textoBultos } = await import("../../unidades_config.js");
+  const { separarBultos, describirBulto, textoBultos } = await import("../../rubros/eccomerce_distribuidora/unidades_config.js");
   assert.deepEqual(separarBultos(23, 20), { bultos: 1, sueltos: 3 });
   assert.deepEqual(separarBultos(40, 20), { bultos: 2, sueltos: 0 });
   assert.deepEqual(separarBultos(7, 1), { bultos: 0, sueltos: 7 }); // sin bulto, todo suelto
@@ -352,7 +352,7 @@ test("bultos y sueltos: 23 paquetes en cajas de 20 son 1 caja + 3 paquetes", asy
   assert.equal(textoBultos(26, lavandina), "2 cajas + 2 botellas");
   assert.equal(textoBultos(12, lavandina), "1 caja");
   assert.equal(textoBultos(5, lavandina), "5 botellas");
-  const { cantidadConUnidad } = await import("../../unidades_config.js");
+  const { cantidadConUnidad } = await import("../../rubros/eccomerce_distribuidora/unidades_config.js");
   assert.deepEqual([cantidadConUnidad(1, "CAJA"), cantidadConUnidad(0, "UNIDAD"), cantidadConUnidad(20, "PAQUETE"), cantidadConUnidad(3, "KG")], ["1 caja", "0 unidades", "20 paquetes", "3 kg"]);
 });
 
@@ -494,7 +494,7 @@ test("precios de demostración: fijos por producto, en el rango de la familia, ~
   assert.equal(esquemaPermiteDemo("gc_dist_test"), true);
 });
 test("SIS-01: 10 días de gracia después del vencimiento; recién al día 11 queda vencido", async () => {
-  const { calcularEstado } = await import("../src/services/sistema/software_suscripcion_service.js");
+  const { calcularEstado } = await import("../src/core/services/sistema/software_suscripcion_service.js");
   const hoy = new Date(2026, 10, 20);
   const dias = (n) => { const d = new Date(hoy); d.setDate(d.getDate() + n); return d; };
   assert.equal(calcularEstado(dias(11), hoy).estado, "activo");
@@ -505,7 +505,7 @@ test("SIS-01: 10 días de gracia después del vencimiento; recién al día 11 qu
   assert.deepEqual([calcularEstado(dias(-11), hoy).estado, calcularEstado(dias(-11), hoy).bloqueado], ["vencido", true]);
 });
 test("SIS-05: con el plan vencido se bloquea al personal (no al super admin, clientes ni visitantes); ver, ingresar y pagar siempre pasan", async () => {
-  const { debeBloquear } = await import("../src/middleware/suscripcion_middleware.js");
+  const { debeBloquear } = await import("../src/core/middleware/suscripcion_middleware.js");
   const pedido = (cambios) => ({ bloqueado: true, metodo: "POST", ruta: "/distribuidora/productos", roles: ["vendedor"], ...cambios });
   assert.equal(debeBloquear(pedido({})), true);
   assert.equal(debeBloquear(pedido({ roles: ["admin"] })), true, "el admin también: tiene que pagar");
@@ -526,7 +526,7 @@ test("PED-19: cada estado tiene un botón principal con el próximo paso; volver
   assert.deepEqual(accionesDeEstado("cancelada"), { siguiente: null, cancelar: false, otras: [{ estado: "pendiente", label: "Reabrir pedido" }] });
 });
 test("USU-06 y USU-09: sesión de 30 días para clientes y 24 h para el personal; la de cliente no vale si ahora es personal", async () => {
-  const { tipoSesion, duracionSesionSegundos, sesionVigente } = await import("../src/services/common/auth_tokens.js");
+  const { tipoSesion, duracionSesionSegundos, sesionVigente } = await import("../src/core/services/common/auth_tokens.js");
   assert.equal(tipoSesion(["cliente"]), "cliente");
   assert.equal(tipoSesion([]), "cliente");
   assert.equal(tipoSesion(["vendedor"]), "personal");

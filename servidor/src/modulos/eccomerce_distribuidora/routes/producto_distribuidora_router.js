@@ -1,12 +1,12 @@
-import { clientConfig } from "../../../../../client_config.js";
+import { clientConfig } from "../../../../../proyecto/client_config.js";
 import { Router } from "express";
 import {
   listarProductosController, obtenerProductoController, crearProductoController,
   actualizarProductoController, cambiarEstadoProductoController, eliminarProductoController,
   ajustarPreciosMasivoController, listarOfertasController, preciosEnListasController,
 } from "../controllers/producto_distribuidora_controller.js";
-import { requireAuth, requirePermiso, optionalAuth } from "../../../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../middleware/modulo_middleware.js";
+import { requireAuth, requirePermiso, optionalAuth } from "../../../core/middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 export const productoDistribuidoraRouter = Router();
 productoDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));

@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { resumenPanelController } from "../controllers/panel_distribuidora_controller.js";
-import { CODIGOS_PERMISO } from "../../../../../permisos_config.js";
-import { requireAuth, requirePermiso } from "../../../middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../middleware/modulo_middleware.js";
+import { CODIGOS_PERMISO } from "../../../../../core/permisos_config.js";
+import { requireAuth, requirePermiso } from "../../../core/middleware/auth_middleware.js";
+import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 export const panelDistribuidoraRouter = Router();
 panelDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));

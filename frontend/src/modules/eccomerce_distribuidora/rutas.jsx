@@ -17,7 +17,7 @@ const ImportacionDistribuidoraPage = lazy(() => import("./admin/importacion_page
 const ArticulosPage = lazy(() => import("./admin/articulos_page.jsx"));
 const ListaCargaPage = lazy(() => import("./pedidos/lista_carga_page.jsx"));
 const ClientesPage = lazy(() => import("./admin/clientes_page.jsx"));
-import { protegida } from "../../app/routes/route_helpers.jsx";
+import { protegida } from "../../core/app/routes/route_helpers.jsx";
 
 // Catálogo público y carrito invitado configurables por instalación. Cualquier
 // usuario con sesión puede comprar; la gestión pide permisos (permisos_config.js),

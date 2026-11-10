@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Modal from "../../../controls/ui/modal.jsx";
-import ActionButton from "../../../controls/ui/action_button.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import TextareaField from "../../../controls/ui/textarea_field.jsx";
+import Modal from "../../../core/controls/ui/modal.jsx";
+import ActionButton from "../../../core/controls/ui/action_button.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import TextareaField from "../../../core/controls/ui/textarea_field.jsx";
 
 export default function CancelarPedidoModal({ nota, busy, error, onClose, onCancelar }) {
   const [motivo, setMotivo] = useState("");

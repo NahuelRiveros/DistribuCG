@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserCircle, Check } from "lucide-react";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
-import AdminSpinner from "../../../controls/ui/admin_spinner.jsx";
-import { useToast } from "../../../controls/toast/use_toast.js";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
+import AdminSpinner from "../../../core/controls/ui/admin_spinner.jsx";
+import { useToast } from "../../../core/controls/toast/use_toast.js";
 import { getMiPerfil, guardarMiPerfil } from "../api/perfil_cliente_api.js";
 import PerfilCampos from "./perfil_campos.jsx";
-import { problemaFiscal } from "../../../../../fiscal_config.js";
+import { problemaFiscal } from "../../../../../core/fiscal_config.js";
 import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
 
 /**

@@ -3,8 +3,8 @@
  * del core para que el módulo importe todo desde acá; el core no conoce
  * estos modelos.
  */
-import { aplicarRelaciones } from "../../../models/common/relaciones.js";
-import { Usuario } from "../../../models/index.js";
+import { aplicarRelaciones } from "../../../core/models/common/relaciones.js";
+import { Usuario } from "../../../core/models/index.js";
 import { ImportacionCatalogo, ImportacionCatalogoLote } from "./importacion_catalogo.js";
 import { NotaPedidoEstadoLog } from "./nota_pedido_estado_log.js";
 import { OperacionCarrito } from "./operacion_carrito.js";
@@ -84,7 +84,7 @@ aplicarRelaciones([
   { tipo: "hasOne",    from: Usuario, to: PerfilClienteDistribuidora, foreignKey: "usuario_id", as: "perfil_distribuidora" },
 ]);
 
-export * from "../../../models/index.js";
+export * from "../../../core/models/index.js";
 export {
   OperacionCarrito,
   NotaPedidoEstadoLog,

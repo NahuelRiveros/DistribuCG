@@ -5,7 +5,7 @@ import { runInNewContext } from "node:vm";
 import { completarProductos } from "../src/modulos/eccomerce_distribuidora/seed/completar_productos_distribuidora.js";
 import { PRODUCTOS_INICIALES } from "../src/modulos/eccomerce_distribuidora/seed/seed_productos_distribuidora.js";
 import { PRODUCTOS_POR_FAMILIA } from "../src/modulos/eccomerce_distribuidora/seed/productos_distribuidora/index.js";
-import { claveMarca } from "../src/services/common/formato_nombre.js";
+import { claveMarca } from "../src/core/services/common/formato_nombre.js";
 import { completarFamilias, completarMarcas } from "../src/modulos/eccomerce_distribuidora/seed/completar_catalogo_distribuidora.js";
 
 // Repositorios en memoria: las pruebas no conectan ni modifican la base del .env.

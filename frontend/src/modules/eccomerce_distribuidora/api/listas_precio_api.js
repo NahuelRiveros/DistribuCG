@@ -1,4 +1,4 @@
-import { http } from "../../../api/http.js";
+import { http } from "../../../core/api/http.js";
 
 const BASE = "/distribuidora/listas-precio";
 

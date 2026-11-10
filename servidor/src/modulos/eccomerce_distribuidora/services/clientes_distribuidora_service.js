@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../../database/sequelize.js";
-import { normalizarPaginacion, armarPaginacion } from "../../../services/common/pagination.js";
+import { sequelize, DB_SCHEMA } from "../../../core/database/sequelize.js";
+import { normalizarPaginacion, armarPaginacion } from "../../../core/services/common/pagination.js";
 
 export const CLIENTES_POR_PAGINA = 50;
 

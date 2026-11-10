@@ -1,5 +1,5 @@
-import { orderConfig } from "../../../../../order_config.js";
-import { env } from "../../../configuracion_servidor/env.js";
+import { orderConfig } from "../../../../../rubros/eccomerce_distribuidora/order_config.js";
+import { env } from "../../../core/configuracion_servidor/env.js";
 
 // Textos de los mails de pedidos. Sin acceso a la base: se prueban en ux_rules.test.mjs.
 

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Modal from "../../../controls/ui/modal.jsx";
-import InputField from "../../../controls/ui/input_field.jsx";
-import ComboboxField from "../../../controls/ui/combobox_field.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
+import Modal from "../../../core/controls/ui/modal.jsx";
+import InputField from "../../../core/controls/ui/input_field.jsx";
+import ComboboxField from "../../../core/controls/ui/combobox_field.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
 
 const BOTON = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60";
 

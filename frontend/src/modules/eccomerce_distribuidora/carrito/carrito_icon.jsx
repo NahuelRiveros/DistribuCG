@@ -1,9 +1,9 @@
 import { ShoppingBag } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useCarritoDistribuidora } from "./carrito_context.jsx";
-import { projectModules } from "../../../config/gate_config.js";
-import { useAuth } from "../../../auth/auth_context.jsx";
-import { moduloHabilitado } from "../../../controls/config/modulos_config.js";
+import { projectModules } from "../../../core/config/gate_config.js";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
+import { moduloHabilitado } from "../../../core/controls/config/modulos_config.js";
 
 export default function CarritoDistribuidoraIcon() {
   const { cantidadItems } = useCarritoDistribuidora();

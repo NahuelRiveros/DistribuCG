@@ -1,6 +1,6 @@
-import { sequelize } from "../../../database/sequelize.js";
+import { sequelize } from "../../../core/database/sequelize.js";
 import { Usuario, CarritoDistribuidora, OperacionCarrito } from "../models/index.js";
-import { cartError, fingerprint } from "../../../services/common/cart_rules.js";
+import { cartError, fingerprint } from "../../../core/services/common/cart_rules.js";
 // Todas las escrituras y el envío toman el MISMO lock, también entre procesos.
 export async function withCart(usuario_id, action) {
   return sequelize.transaction(async (t) => {

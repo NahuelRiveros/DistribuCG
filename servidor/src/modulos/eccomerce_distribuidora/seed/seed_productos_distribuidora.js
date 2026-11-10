@@ -1,4 +1,4 @@
-import { projectModules } from "../../../configuracion_servidor/gate_config.js";
+import { projectModules } from "../../../core/configuracion_servidor/gate_config.js";
 import { completarProductos } from "./completar_productos_distribuidora.js";
 import { PRODUCTOS_INICIALES } from "./productos_distribuidora/index.js";
 
@@ -9,7 +9,7 @@ export { PRODUCTOS_INICIALES };
 export async function seed_productos_distribuidora({ completar = false, transaction } = {}) {
   if (!projectModules.eccomerce_distribuidora) return;
   // Importar la lista para validarla no carga el .env ni abre una conexión.
-  const { sequelize } = await import("../../../database/sequelize.js");
+  const { sequelize } = await import("../../../core/database/sequelize.js");
   const modelos = await import("../models/index.js");
   const { resolverMarcaDeArticulo } = await import("../services/marcas_distribuidora_service.js");
   const ejecutar = async (tx) => {

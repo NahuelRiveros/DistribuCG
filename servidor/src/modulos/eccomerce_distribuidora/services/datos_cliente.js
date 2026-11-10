@@ -1,7 +1,7 @@
 // Datos que hacen falta para enviar un pedido: quién es (nombre, apellido, celular,
 // guardados en persona) y a quién se factura y dónde se entrega (perfil del cliente).
 // No se piden al registrarse: cuentas de Google pueden llegar sin apellido.
-import { normalizarDocumento, problemaFiscal } from "../../../../../fiscal_config.js";
+import { normalizarDocumento, problemaFiscal } from "../../../../../core/fiscal_config.js";
 
 const CELULAR_REGEX = /^[0-9+\-\s()]+$/;
 

@@ -2,16 +2,16 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Search, Package, BadgePercent, ShoppingBasket, Wine, Sparkles, Cookie, Dog, Snowflake, LayoutGrid } from "lucide-react";
-import { useAuth } from "../../../auth/auth_context.jsx";
-import { brandConfig } from "../../../config/brand_config.js";
-import { HOME_TIENDA, HOME_VALOR } from "../../../config/home_config.js";
+import { useAuth } from "../../../core/auth/auth_context.jsx";
+import { brandConfig } from "../../../proyecto/config/brand_config.js";
+import { HOME_TIENDA, HOME_VALOR } from "../../../proyecto/config/home_config.js";
 import { storefrontConfig as config } from "../storefront_config.js";
 import { getProductos, getOfertas } from "../api/producto_distribuidora_api.js";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import ProductoCard from "../productos/producto_card.jsx";
 import OfertasDestacadas from "./ofertas_destacadas.jsx";
 
-import TrazoAnimado from "../../home/trazo_animado.jsx";
+import TrazoAnimado from "../../../core/modules/home/trazo_animado.jsx";
 
 const iconosFamilia = [
   [/almac[eé]n/i, ShoppingBasket], [/bebida|vino|cerveza/i, Wine],

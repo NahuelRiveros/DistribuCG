@@ -1,5 +1,5 @@
-import { sequelize, DB_SCHEMA } from "../../../database/sequelize.js";
-import { projectModules } from "../../../configuracion_servidor/gate_config.js";
+import { sequelize, DB_SCHEMA } from "../../../core/database/sequelize.js";
+import { projectModules } from "../../../core/configuracion_servidor/gate_config.js";
 import { seed_familias_distribuidora } from "./seed_familias_distribuidora.js";
 import { seed_marcas_distribuidora } from "./seed_marcas_distribuidora.js";
 import { seed_productos_distribuidora } from "./seed_productos_distribuidora.js";

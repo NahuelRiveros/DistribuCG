@@ -1,16 +1,16 @@
 import { useId, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { accionesDeEstado, orderConfig, ESTADOS } from "../../../config/order_config.js";
+import { accionesDeEstado, orderConfig, ESTADOS } from "../config/order_config.js";
 import { storefrontConfig } from "../storefront_config.js";
-import OrderSummary from "../../../controls/pedidos/order_summary.jsx";
-import { money } from "../../../controls/pedidos/order_format.js";
-import OfflinePaymentForm from "../../../controls/pedidos/offline_payment_form.jsx";
-import Modal from "../../../controls/ui/modal.jsx";
-import InputField from "../../../controls/ui/input_field.jsx";
-import ActionButton from "../../../controls/ui/action_button.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
+import OrderSummary from "./controles/order_summary.jsx";
+import { money } from "./controles/order_format.js";
+import OfflinePaymentForm from "./controles/offline_payment_form.jsx";
+import Modal from "../../../core/controls/ui/modal.jsx";
+import InputField from "../../../core/controls/ui/input_field.jsx";
+import ActionButton from "../../../core/controls/ui/action_button.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
 import { ListaComprobantes } from "./pago_transferencia.jsx";
-import { condicionIva, tipoFacturaSugerida } from "../../../../../fiscal_config.js";
+import { condicionIva, tipoFacturaSugerida } from "../../../../../core/fiscal_config.js";
 const person = (u) => u?.persona ? [u.persona.nombre, u.persona.apellido].filter(Boolean).join(" ") : "Equipo";
 const date = (value) => new Date(value).toLocaleString("es-AR");
 

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { X, DollarSign } from "lucide-react";
-import InputField from "../../../controls/ui/input_field.jsx";
-import ComboboxField from "../../../controls/ui/combobox_field.jsx";
-import ErrorBanner from "../../../controls/ui/error_banner.jsx";
+import InputField from "../../../core/controls/ui/input_field.jsx";
+import ComboboxField from "../../../core/controls/ui/combobox_field.jsx";
+import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
 import { ajustarPreciosMasivo } from "../api/producto_distribuidora_api.js";
 
 /* ── modal: ajuste de precios (individual por producto, o masivo por

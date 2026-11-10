@@ -1,7 +1,7 @@
 import { QueryTypes } from "sequelize";
-import { sequelize } from "../../../database/sequelize.js";
-import { orderConfig } from "../../../../../order_config.js";
-import { tienePermiso } from "../../../../../permisos_config.js";
+import { sequelize } from "../../../core/database/sequelize.js";
+import { orderConfig } from "../../../../../rubros/eccomerce_distribuidora/order_config.js";
+import { tienePermiso } from "../../../../../core/permisos_config.js";
 
 const ZONA_HORARIA = "America/Argentina/Buenos_Aires";
 const consulta = (sql, replacements) => sequelize.query(sql, { replacements, type: QueryTypes.SELECT });

@@ -1,5 +1,5 @@
 import { QueryTypes } from "sequelize";
-import { sequelize, DB_SCHEMA } from "../../database/sequelize.js";
+import { sequelize, DB_SCHEMA } from "../../core/database/sequelize.js";
 import { sincronizarMarcasLegado } from "./services/marcas_distribuidora_service.js";
 
 // Ajustes que corren en cada arranque DESPUÉS de sincronizar los modelos (necesitan
