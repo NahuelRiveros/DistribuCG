@@ -47,7 +47,7 @@ pedidos una sola vez y validados para que no haya que corregirlos después.
 | --- | --- | --- |
 | Condiciones frente al IVA y qué documento piden | `fiscal_config.js` › `condicionesIva` | 4 condiciones |
 | Datos fiscales de la distribuidora | `fiscal_config.js` › `emisor` | `[COMPLETAR]` (ver pregunta 1) |
-| Provincias, departamentos y localidades | `servidor/src/database/ubicacion/*.json` | Datos fijos de Argentina |
+| Provincias, departamentos y localidades | `servidor/src/core/database/ubicacion/*.json` | Datos fijos de Argentina |
 
 ## Dónde está el código
 

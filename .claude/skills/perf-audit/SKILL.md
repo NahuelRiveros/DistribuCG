@@ -10,7 +10,7 @@ no ejecutar EXPLAIN ANALYZE ni activar logs detallados sobre producción como ex
 
 - Consultas repetidas/N+1, asociaciones que multiplican filas, paginación, atributos y filtros.
 - Pedidos: conservar carga de detalles en lote, transacciones, locks e idempotencia.
-- Pool en servidor/src/database/sequelize.js y tareas periódicas: comprobar uso real.
+- Pool en servidor/src/core/database/sequelize.js y tareas periódicas: comprobar uso real.
   El listado de pedidos ya actualiza cada 30 segundos; medir antes de ajustar esa frecuencia.
 - TanStack Query, invalidaciones y caché: evitar pedidos duplicados sin mostrar saldos obsoletos.
 - Frontend: npm --prefix frontend run build, chunks, carga por ruta y renders del flujo.

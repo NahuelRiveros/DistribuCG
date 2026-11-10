@@ -80,7 +80,7 @@ export const env = {
   // Precio mensual en ARS (sin centavos). Ej: 10000 = $10.000
   SOFTWARE_PRECIO: Number(process.env.SOFTWARE_PRECIO || 0),
   // Nombre visible del cliente / gimnasio en la factura MP.
-  SOFTWARE_CLIENTE: process.env.SOFTWARE_CLIENTE || "DistribuCG",
+  SOFTWARE_CLIENTE: process.env.SOFTWARE_CLIENTE || deploymentConfig.nombre,
 
   // ── Email por API de Brevo (producción en Render) ──────────────
   // Con CLAVE_API_BREVO cargada se usa Brevo y se ignora el SMTP.

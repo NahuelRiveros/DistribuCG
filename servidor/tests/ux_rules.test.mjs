@@ -190,7 +190,7 @@ test("ARCA: sin datos queda apagada, informa solo nombres de lo que falta y lee 
     const apagada = estadoArca();
     assert.equal(apagada.listo, false);
     assert.equal(apagada.ambiente, "homologacion", "sin indicar nada, nunca factura en serio");
-    assert.deepEqual(apagada.faltan, ["ARCA_CUIT_EMISOR", "ARCA_PUNTO_VENTA", "ARCA_CERTIFICADO_PEM", "ARCA_CLAVE_PRIVADA_PEM", "fiscal_config.js → emisor.condicion_iva"]);
+    assert.deepEqual(apagada.faltan, ["ARCA_CUIT_EMISOR", "ARCA_PUNTO_VENTA", "ARCA_CERTIFICADO_PEM", "ARCA_CLAVE_PRIVADA_PEM", "client_config.js → emisorFiscal.condicion_iva"]);
     assert.throws(() => credencialesArca(), /sin configurar/);
 
     Object.assign(env, { ARCA_CUIT_EMISOR: "30-71234567-1", ARCA_PUNTO_VENTA: "3", ARCA_CERTIFICADO_PEM: Buffer.from(SECRETO).toString("base64"), ARCA_CLAVE_PRIVADA_PEM: "no es un pem", ARCA_PRODUCCION: true });

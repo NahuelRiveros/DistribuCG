@@ -19,12 +19,12 @@ programar: cambian con el tiempo.
 | Tipo de factura que corresponde | `tipoFacturaSugerida()` en `fiscal_config.js` | A, B o C según la condición de la distribuidora y la del cliente |
 | Código de condición IVA para ARCA | `codigoArca` en `fiscalConfig.condicionesIva` | Responsable Inscripto 1, Exento 4, Consumidor Final 5, Monotributo 6. Confirmar con `FEParamGetCondicionIvaReceptor` |
 
-**Configuración del servidor**: `servidor/src/configuracion_servidor/arca.js` lee las variables de ARCA,
+**Configuración del servidor**: `servidor/src/core/configuracion_servidor/arca.js` lee las variables de ARCA,
 elige homologación o producción y sus direcciones (WSAA y WSFE), y con `estadoArca()` informa qué falta
 (solo nombres, nunca valores). `credencialesArca()` entrega el certificado y la clave al momento de facturar.
 Todo esto vive **solo en el servidor**: el navegador nunca habla con ARCA, sino con nuestra API.
 
-**Armado de la factura**: `servidor/src/services/facturacion/arca_comprobante.js` convierte un pedido en el
+**Armado de la factura**: `servidor/src/core/services/facturacion/arca_comprobante.js` convierte un pedido en el
 comprobante que se le pide a ARCA (`FeCabReq`/`FeDetReq` de `FECAESolicitar`): tipo A/B/C, documento del
 cliente, condición de IVA, fecha, totales y el IVA desglosado por alícuota al centavo. Está probado
 (`ux_rules.test.mjs`, test "ARCA: arma la factura…") pero **no está integrado**: no llama a ARCA, no guarda

@@ -7,7 +7,7 @@ description: Crea o modifica endpoints REST de DistribuCG con autorización, val
 
 Leer CLAUDE.md y un router/controller/service cercano.
 Para distribuidora usar servidor/src/modulos/eccomerce_distribuidora/{routes,controllers,services}/
-y registrar la ruta en `rutas` de su modulo.js. Las rutas del core van en servidor/src/routes/index.js.
+y registrar la ruta en `rutas` de su modulo.js. Las rutas del core van en servidor/src/core/routes/index.js.
 
 - Ruta: requireModuloHabilitado, requireAuth/optionalAuth y requireRole según el contrato real.
   Catálogo público depende de clientConfig; gestión de pedidos de orderConfig.managementRoles.

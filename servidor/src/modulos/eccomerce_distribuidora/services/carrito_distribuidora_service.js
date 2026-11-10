@@ -63,7 +63,7 @@ async function addToCart(cart, payload, t) {
   if (existing) await existing.update({ cantidad: quantity, precio_unidad: precio }, { transaction: t });
   else {
     const count = await CarritoDistribuidoraItem.count({ where: { carrito_id: cart.id }, transaction: t });
-    if (count >= clientConfig.distribuidora.maxCartLines) throw cartError("Alcanzaste el máximo de productos por pedido.");
+    if (count >= clientConfig.tienda.maxCartLines) throw cartError("Alcanzaste el máximo de productos por pedido.");
     await CarritoDistribuidoraItem.create({ carrito_id: cart.id, producto_id, variedad_id: variant.id, cantidad: quantity, precio_unidad: precio, fecha_alta: new Date() }, { transaction: t });
   }
   await cart.update({ fecha_mod: new Date() }, { transaction: t });
@@ -99,7 +99,7 @@ export async function agregarItem(usuario_id, payload) {
   return withCart(usuario_id, async (cart, t) => { await addToCart(cart, payload, t); return listarItemsCarrito(cart.id, t); });
 }
 export async function fusionarCarrito(usuario_id, { key, items }) {
-  if (!clientConfig.distribuidora.guestCart || !Array.isArray(items) || items.length > clientConfig.distribuidora.maxCartLines) throw cartError("Carrito de visitante inválido");
+  if (!clientConfig.tienda.guestCart || !Array.isArray(items) || items.length > clientConfig.tienda.maxCartLines) throw cartError("Carrito de visitante inválido");
   return withCart(usuario_id, async (cart, t) => {
     await idempotent(usuario_id, "merge:" + key, items, t, async () => {
       for (const item of items) await addToCart(cart, item, t);

@@ -1,5 +1,5 @@
 import { Worker } from "node:worker_threads";
-import { catalogImportConfig as config } from "../../../../../../rubros/eccomerce_distribuidora/catalog_import_config.js";
+import { limitesImportacion as config } from "../../../../../../core/importacion_config.js";
 export function readImportFile(buffer, filename, options) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL("./reader_worker.js", import.meta.url), { workerData: { buffer, filename, options }, resourceLimits: { maxOldGenerationSizeMb: 256 } });

@@ -5,8 +5,8 @@ description: Construye o adapta listados y formularios administrativos de Distri
 
 # Administración de una entidad
 
-Leer CLAUDE.md, la pantalla más cercana y frontend/src/hooks/use_crud_page.js.
-Reutilizar controles de frontend/src/controls/ui/ y servicios comunes del servidor.
+Leer CLAUDE.md, la pantalla más cercana y frontend/src/core/hooks/use_crud_page.js.
+Reutilizar controles de frontend/src/core/controls/ui/ y servicios comunes del servidor.
 
 Definir listado, detalle y operaciones requeridas sin inventar capacidades de borrado.
 Mantener permisos concretos de cada router; los roles de pedidos no son una regla global

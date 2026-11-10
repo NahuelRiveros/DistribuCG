@@ -1,7 +1,7 @@
 import { clientConfig } from "../../../../proyecto/client_config.js";
 import { projectModules } from "../../core/config/gate_config.js";
 export const storefrontConfig = {
-  ...clientConfig.distribuidora, enabled: projectModules.eccomerce_distribuidora,
+  ...clientConfig.tienda, enabled: projectModules.eccomerce_distribuidora,
   storageKey: `${clientConfig.id}:distribuidora:guest:v1`,
   catalogPath: "/distribuidora/catalogo", cartPath: "/distribuidora/carrito", ordersPath: "/distribuidora/mis-pedidos", profilePath: "/perfil",
   labels: {

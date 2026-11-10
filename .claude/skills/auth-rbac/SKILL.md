@@ -5,7 +5,7 @@ description: Modifica login, registro, recuperación de contraseña, sesión y a
 
 # Autenticación y permisos
 
-Leer servidor/src/middleware/auth_middleware.js, services/usuarios/ y
+Leer servidor/src/core/middleware/auth_middleware.js, services/usuarios/ y
 services/common/auth_tokens.js antes de cambiar el contrato.
 
 El middleware verifica JWT HS256, usuario activo/no eliminado, versión de contraseña

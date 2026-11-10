@@ -30,15 +30,15 @@ Las notas anteriores a este cambio no tienen historial retrospectivo inventado. 
 | `gate_config.js` (raíz) | Habilitar módulos por instalación |
 | `client_config.js` (raíz) | Cliente activo, registro público y políticas compartidas de carrito |
 | `order_config.js` (raíz) | Roles de gestión, etiquetas, transiciones, motivos y medios de cobro |
-| `frontend/src/config/brand_config.js` | Logo, nombre, fuentes e identidad por cliente |
-| `frontend/src/config/theme_config.js` | Colores mediante tokens; CSS mantiene valores de base |
-| `frontend/src/config/home_config.js` | Contenido comercial de cada cliente |
-| `frontend/src/config/navbar_config/` | Enlaces y grupos según sesión, rol y módulo |
+| `frontend/src/proyecto/config/brand_config.js` | Logo, nombre, fuentes e identidad por cliente |
+| `frontend/src/proyecto/config/theme_config.js` | Colores mediante tokens; CSS mantiene valores de base |
+| `frontend/src/proyecto/config/home_config.js` | Contenido comercial de cada cliente |
+| `frontend/src/core/config/navbar_config/` | Enlaces y grupos según sesión, rol y módulo |
 | `frontend/src/modules/eccomerce_distribuidora/storefront_config.js` | Rutas y textos comerciales del pedido |
-| `frontend/src/config/auth_config.js` | Textos y destinos de acceso |
-| `frontend/src/controls/ui/` | Campos, cantidades, búsqueda, paginación, botones y modales |
-| `frontend/src/controls/carrito/` | Persistencia invitada y sincronización mediante adapter |
-| `frontend/src/controls/pedidos/` | Resumen de importes y formulario de cobro manual |
+| `frontend/src/core/config/auth_config.js` | Textos y destinos de acceso |
+| `frontend/src/core/controls/ui/` | Campos, cantidades, búsqueda, paginación, botones y modales |
+| `frontend/src/core/controls/carrito/` | Persistencia invitada y sincronización mediante adapter |
+| `frontend/src/modules/eccomerce_distribuidora/pedidos/controles/` | Resumen de importes y formulario de cobro manual |
 
 Para un nuevo cliente se agrega su identidad/contenido/tema y se selecciona su id en `client_config.js`. Mantener nombres internos de estados existentes evita dejar notas antiguas sin interpretar; se pueden cambiar las etiquetas sin migrar datos.
 

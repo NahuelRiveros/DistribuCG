@@ -9,11 +9,12 @@
  *   RENDER_APP_URL       — URL del backend en Render (para el webhook)
  *   VERCEL_FRONTEND_URL  — URL del frontend en Vercel (para redireccionamiento post-pago)
  *   SOFTWARE_PRECIO      — precio mensual en ARS
- *   SOFTWARE_CLIENTE     — nombre del gimnasio
+ *   SOFTWARE_CLIENTE     — nombre del cliente que paga la suscripción
  */
 
 import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
 import { env } from "../../configuracion_servidor/env.js";
+import { deploymentConfig } from "../../../../../proyecto/deployment_config.js";
 
 // ── Cliente MP ───────────────────────────────────────────────────────────────
 
@@ -47,7 +48,7 @@ export async function crearPreferencia({ suscripcionId, monto, clienteNombre }) 
     items: [
       {
         id:         "plan-mensual-software",
-        title:      `DistribuCG — Plan Mensual ${periodoLabel}`,
+        title:      `${deploymentConfig.nombre} — Plan Mensual ${periodoLabel}`,
         description: `Suscripción mensual para ${clienteNombre || env.SOFTWARE_CLIENTE}`,
         quantity:    1,
         unit_price:  Number(precioUsar),

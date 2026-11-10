@@ -59,7 +59,7 @@ export function fechaArca(fecha = new Date()) {
  */
 export function armarComprobante({ nota, items, numero, puntoVenta, fecha = new Date(), condicionEmisor = fiscalConfig.emisor.condicion_iva }) {
   const tipo = tipoFacturaSugerida(nota.condicion_iva, condicionEmisor);
-  if (!tipo) throw new Error("Falta la condición frente al IVA del cliente o de la distribuidora.");
+  if (!tipo) throw new Error("Falta la condición frente al IVA del cliente o de quien factura.");
   if (!Number.isInteger(numero) || numero < 1) throw new Error("Número de comprobante inválido.");
   if (!Number.isInteger(puntoVenta) || puntoVenta < 1) throw new Error("Punto de venta inválido.");
 

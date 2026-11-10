@@ -65,7 +65,7 @@ gestionar, sin ver lo que no le corresponde, en computadora y en celular.
 
 | Qué | Dónde | Valor actual |
 | --- | --- | --- |
-| Grupos e ítems del menú | `frontend/src/config/navbar_config/panel_gestion.js` (core) y `menu.panel` del `modulo.js` de cada rubro | ver tabla "Menú" |
+| Grupos e ítems del menú | `frontend/src/core/config/navbar_config/panel_gestion.js` (core) y `menu.panel` del `modulo.js` de cada rubro | ver tabla "Menú" |
 | Menú achicado | Navegador (`localStorage` › `panel_menu_achicado`) | — |
 
 ## Dónde está el código

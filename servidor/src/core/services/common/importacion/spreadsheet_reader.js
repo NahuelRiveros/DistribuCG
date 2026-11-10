@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { Readable } from "node:stream";
-import { catalogImportConfig as config } from "../../../../../../rubros/eccomerce_distribuidora/catalog_import_config.js";
+import { limitesImportacion as config } from "../../../../../../core/importacion_config.js";
 const fail = (message) => { throw Object.assign(new Error(message), { status: 400 }); };
 export function parseCsv(text, delimiter = "auto") {
   text = text.replace(/^\uFEFF/, "");

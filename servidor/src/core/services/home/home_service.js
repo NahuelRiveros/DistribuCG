@@ -1,5 +1,6 @@
 import { Readable } from "stream";
 import { cloudinary } from "../../configuracion_servidor/cloudinary.js";
+import { deploymentConfig } from "../../../../../proyecto/deployment_config.js";
 import { HomeArea, HomeContenido, HomeTexto, HomePilar, HomeContacto } from "../../models/index.js";
 import { crearCrudService } from "../common/crud_service.js";
 
@@ -16,7 +17,7 @@ const contactosCrud = crearCrudService(HomeContacto, { defaultOrder: [["orden", 
 function subirBufferACloudinary(buffer, { resourceType, area }) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: `distribucg/home/${area}`, resource_type: resourceType },
+      { folder: `${deploymentConfig.carpetaCloudinary}/home/${area}`, resource_type: resourceType },
       (error, result) => (error ? reject(error) : resolve(result))
     );
     Readable.from(buffer).pipe(stream);

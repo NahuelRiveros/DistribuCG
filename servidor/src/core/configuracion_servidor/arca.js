@@ -48,7 +48,7 @@ export function estadoArca() {
   if (!Number.isInteger(puntoVenta) || puntoVenta < 1 || puntoVenta > 99998) faltan.push("ARCA_PUNTO_VENTA");
   if (!env.ARCA_CERTIFICADO_PEM) faltan.push("ARCA_CERTIFICADO_PEM");
   if (!env.ARCA_CLAVE_PRIVADA_PEM) faltan.push("ARCA_CLAVE_PRIVADA_PEM");
-  if (!fiscalConfig.emisor.condicion_iva) faltan.push("fiscal_config.js → emisor.condicion_iva");
+  if (!fiscalConfig.emisor.condicion_iva) faltan.push("client_config.js → emisorFiscal.condicion_iva");
   return { listo: faltan.length === 0, ambiente, faltan };
 }
 

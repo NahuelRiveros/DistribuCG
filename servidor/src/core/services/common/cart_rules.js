@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { clientConfig } from "../../../../../proyecto/client_config.js";
 export const cartError = (message, status = 400, codigo = "CARRITO_INVALIDO") => Object.assign(new Error(message), { status, codigo });
 export function validQuantity(value, stock = null) {
-  if (!Number.isInteger(value) || value < 1 || value > clientConfig.distribuidora.maxQuantity) throw cartError("Ingresá una cantidad entera dentro del límite permitido.");
+  if (!Number.isInteger(value) || value < 1 || value > clientConfig.tienda.maxQuantity) throw cartError("Ingresá una cantidad entera dentro del límite permitido.");
   if (stock != null && value > stock) throw cartError(`Solo quedan ${stock} unidades disponibles.`, 409, "STOCK_INSUFICIENTE");
   return value;
 }

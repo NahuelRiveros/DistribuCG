@@ -25,7 +25,8 @@ desde el panel, sin programar, qué puede hacer cada rol.
 
 ## Permisos que existen
 
-Todos están en `permisos_config.js`: un bloque CORE y uno por rubro.
+Forman una sola lista (`permisosConfig`): los del core se escriben en `core/permisos_config.js` y los de los rubros del
+proyecto en `proyecto/permisos_rubros.js`.
 "De entrada" = quién lo recibe la primera vez que el permiso aparece en la base; después manda el panel.
 
 | Permiso | Grupo | Qué habilita | De entrada | Requiere |
@@ -75,14 +76,14 @@ Todos están en `permisos_config.js`: un bloque CORE y uno por rubro.
 | PER-30 | Al arrancar, la lista de permisos de la base queda igual a la del código. Un permiso nuevo se da a sus roles "de entrada"; lo que se tildó o destildó en el panel no se pisa. | ✅ `checkout.integration.mjs` › "permisos: sincronización sin pisar el panel…" |
 | PER-31 | Un permiso que se saca del código se borra de la base junto con sus asignaciones. Por eso los permisos de un rubro se cuentan aunque el rubro esté apagado. | ✅ mismo test que PER-30 (la parte del rubro apagado: ⚠️) |
 | PER-32 | El rol viejo "staff" se renombra "supervisor" conservando sus personas y permisos. | ✅ mismo test que PER-30 |
-| PER-33 | Todos los permisos (core y rubros) se definen en un solo archivo, `permisos_config.js`, con un bloque CORE y uno por rubro, y la lista no cambia de códigos, grupos, orden ni roles de entrada. | ✅ `ux_rules.test.mjs` › "PER-33: todos los permisos en permisos_config.js…" |
+| PER-33 | Todos los permisos (core y rubros) forman una sola lista: los del core en `core/permisos_config.js` y los de los rubros en `proyecto/permisos_rubros.js`; la lista no cambia de códigos, grupos, orden ni roles de entrada. | ✅ `ux_rules.test.mjs` › "PER-33: todos los permisos en permisos_config.js…" |
 
 ## Configuración
 
 | Qué | Dónde | Valor actual |
 | --- | --- | --- |
-| Roles con todo | `permisos_config.js` › `rolesTotales` | super admin, admin |
-| Roles que no son del personal | `permisos_config.js` › `rolesFuera` | cliente |
+| Roles con todo | `core/permisos_config.js` › `rolesTotales` | super admin, admin |
+| Roles que no son del personal | `core/permisos_config.js` › `rolesFuera` | cliente |
 | Qué rol tiene cada permiso | Base de datos (`rol_permiso`), se edita en `/admin/permisos` | — |
 
 ## Dónde está el código
@@ -101,6 +102,7 @@ Todos están en `permisos_config.js`: un bloque CORE y uno por rubro.
 | 2026-11-08 | PER-20 | El personal también necesita 8 caracteres como mínimo. Las contraseñas actuales siguen sirviendo: se exige solo al crear o cambiar. | Dueño del proyecto |
 | 2026-11-08 | PER-13 | Sacar el rol "profesional", revisando antes que nadie lo tenga. | Dueño del proyecto |
 | 2026-11-08 | — | Todos los permisos (core y rubros) en un solo archivo, `permisos_config.js`, con un bloque por rubro. Se descartó tenerlos en dos archivos: para un proyecto nuevo se borra el bloque del rubro a mano. | Dueño del proyecto |
+| 2026-11-10 | COR-04 | Al separar el core (CoreSistem), los permisos de los rubros pasan a `proyecto/permisos_rubros.js`: así el core se copia sin el bloque de la distribuidora y un proyecto nuevo no borra nada a mano. Siguen formando una sola lista con los mismos códigos (PER-33). | Dueño del proyecto (separar el core) |
 
 ## Preguntas abiertas
 

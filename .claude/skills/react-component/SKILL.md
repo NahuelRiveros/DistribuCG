@@ -5,7 +5,7 @@ description: Crea o modifica componentes y pantallas React de DistribuCG respeta
 
 # Componente o pantalla
 
-Leer CLAUDE.md y frontend/CLAUDE.md. Buscar primero en frontend/src/controls/.
+Leer CLAUDE.md y frontend/CLAUDE.md. Buscar primero en frontend/src/core/controls/.
 - Primitiva reusable sin negocio: controls/ui/.
 - Pantalla o componente del rubro: modules/eccomerce_distribuidora/ y su subárea.
 - API de distribuidora: modules/eccomerce_distribuidora/api/ usando api/http.js.

@@ -1,4 +1,4 @@
-import { clienteActivo } from "../../proyecto/config/brand_config.js";
+import { clienteActivo } from "./brand_config.js";
 
 // Colores dominantes del logo completo: azul #0E2B4D y rojo #F0101E.
 // Los nombres históricos de los tokens se conservan para todos sus consumidores.

@@ -12,7 +12,7 @@ export const productoDistribuidoraRouter = Router();
 productoDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));
 // Catálogo entero solo para logueados (decisión de negocio) — a diferencia
 // de indumentaria, no hay GET público acá.
-productoDistribuidoraRouter.use((req, res, next) => req.method === "GET" && clientConfig.distribuidora.publicCatalog ? optionalAuth(req, res, next) : requireAuth(req, res, next));
+productoDistribuidoraRouter.use((req, res, next) => req.method === "GET" && clientConfig.tienda.publicCatalog ? optionalAuth(req, res, next) : requireAuth(req, res, next));
 
 // Rutas específicas ANTES de "/:id" — si no, Express las matchea como id.
 productoDistribuidoraRouter.post("/ajustar-precios", requirePermiso("precios.editar"), ajustarPreciosMasivoController);

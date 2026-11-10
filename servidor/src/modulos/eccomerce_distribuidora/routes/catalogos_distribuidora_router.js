@@ -12,7 +12,7 @@ catalogosDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidor
 
 // A diferencia de indumentaria, acá el GET también requiere login — el
 // catálogo entero es solo para clientes logueados (decisión de negocio).
-catalogosDistribuidoraRouter.get("/categorias", (req, res, next) => clientConfig.distribuidora.publicCatalog ? next() : requireAuth(req, res, next), listarCategoriasController);
+catalogosDistribuidoraRouter.get("/categorias", (req, res, next) => clientConfig.tienda.publicCatalog ? next() : requireAuth(req, res, next), listarCategoriasController);
 catalogosDistribuidoraRouter.post("/categorias", requireAuth, requirePermiso("productos.editar"), crearCategoriaController);
 // Antes de "/categorias/:id" para que "mover" no se lea como un id.
 catalogosDistribuidoraRouter.patch("/categorias/mover", requireAuth, requirePermiso("productos.editar"), moverCategoriasController);

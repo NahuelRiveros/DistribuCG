@@ -11,24 +11,29 @@ ver `playwright.config.js`. No requiere el backend ni una base de datos.
 
 ## Arquitectura real
 
-- `src/app/router.jsx` reúne las rutas de `src/app/routes/`.
+- Tres partes (ver `../README.md`): `src/core/` (reutilizable, se sube a CoreSistem), `src/proyecto/`
+  (marca, colores, textos, logos y registros de rubros de este cliente) y `src/modules/<rubro>/`.
+  El core nunca importa un rubro.
+- `src/core/app/router.jsx` reúne las rutas de `src/core/app/routes/`.
 - `src/modules/eccomerce_distribuidora/` contiene catálogo, administración, perfil,
   carrito, pedidos y sus APIs. Mantener el identificador `eccomerce_distribuidora` tal como está.
-- `src/controls/ui/` contiene primitivas reutilizables. `controls/carrito/` y
-  `controls/pedidos/` reciben datos/adapters; no acoplarlos a endpoints del rubro.
-- `src/hooks/` es para hooks compartidos. Buscar también los del módulo antes de duplicar.
-- `src/api/http.js` adjunta el token salvo `publicAccess`; ante 401 elimina el token
+- `src/core/controls/ui/` contiene primitivas reutilizables. `core/controls/carrito/` recibe
+  datos/adapters; no acoplarlo a endpoints del rubro. Los controles de pedidos son del rubro
+  (`modules/eccomerce_distribuidora/pedidos/controles/`).
+- `src/core/hooks/` es para hooks compartidos. Buscar también los del módulo antes de duplicar.
+- `src/core/api/http.js` adjunta el token salvo `publicAccess`; ante 401 elimina el token
   y emite `auth:expired` excepto para login. Preservar el retorno interno seguro
   de `controls/acceso/return_to.js`.
-- `src/auth/auth_context.jsx` maneja sesión; `controls/acceso/protected_route.jsx`
+- `src/core/auth/auth_context.jsx` maneja sesión; `controls/acceso/protected_route.jsx`
   controla acceso visual. El backend debe verificar los permisos por separado.
 
 ## Configuración y diseño
 
-Los archivos raíz `client_config.js`, `gate_config.js` y `order_config.js` se comparten
-con el backend. No duplicar sus valores en pantallas.
-Identidad, colores y contenidos en `src/config/brand_config.js`, `theme_config.js`,
-`home_config.js` y `storefront_config.js`; navegación en `config/navbar_config/`.
+Los archivos `../proyecto/client_config.js`, `../proyecto/gate_config.js` y
+`../rubros/eccomerce_distribuidora/order_config.js` se comparten con el backend. No duplicar sus valores en pantallas.
+Identidad, colores y contenidos en `src/proyecto/config/` (`brand_config.js`, `theme_config.js`,
+`home_config.js`, `footer_config.js`, `logo_config.js`) y el `storefront_config.js` del rubro;
+navegación en `src/core/config/navbar_config/`.
 Reutilizar tokens CSS y controles antes de agregar estilos o componentes.
 El skill de diseño está en `.agents/skills/frontend-design/` y también en
 `../.claude/skills/frontend-design/` para Claude. Aplicarlo respetando la marca existente.
@@ -44,7 +49,7 @@ y el adapter existente para persistencia del carrito.
 Cubrir carga, error, vacío, teclado y anchos de 320, 390 y 1440 px.
 
 `VITE_API_URL` controla la API. Las direcciones públicas de respaldo viven en
-`../deployment_config.js`: producción usa `https://distribucg.onrender.com/api`.
-`src/api/api_url.js` valida la URL durante el build y al crear el cliente HTTP;
+`../proyecto/deployment_config.js`: producción usa `https://distribucg.onrender.com/api`.
+`src/core/api/api_url.js` valida la URL durante el build y al crear el cliente HTTP;
 rechaza el dominio del proyecto anterior. Revisar las variables de Vercel,
 que tienen prioridad sobre el respaldo. No asumir mismo origen.
