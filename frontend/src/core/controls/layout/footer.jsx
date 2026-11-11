@@ -30,6 +30,8 @@ export default function Footer() {
   // Solo tiene sentido en un deploy con la tienda prendida — en un cliente
   // que solo use el panel (sin tienda) este bloque no debería aparecer.
   const comercioActivo = Boolean(tiendaActiva);
+  // El texto lo pone el rubro (`tienda.llamado` en su modulo.js): cada negocio promete lo que cumple.
+  const llamado = tiendaActiva?.llamado ?? { titulo: "¿Ya armaste tu pedido?" };
 
   return (
     <footer className="kt-body relative overflow-hidden bg-(--kt-night) text-white">
@@ -50,8 +52,8 @@ export default function Footer() {
         <div className="relative border-b border-white/10 bg-black/15">
           <div className="mx-auto flex max-w-7xl flex-col items-start gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="kt-display text-xl font-bold text-white sm:text-2xl">¿Ya armaste tu pedido?</h3>
-              <p className="mt-1 text-sm text-slate-300">Catálogo completo, precios y stock siempre al día.</p>
+              <h3 className="kt-display text-xl font-bold text-white sm:text-2xl">{llamado.titulo}</h3>
+              {llamado.texto && <p className="mt-1 text-sm text-slate-300">{llamado.texto}</p>}
             </div>
             <Link
               to={tiendaActiva.catalogo}

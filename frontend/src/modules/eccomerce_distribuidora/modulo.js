@@ -24,6 +24,7 @@ export const moduloDistribuidora = {
   tienda: {
     catalogo: storefrontConfig.catalogPath,
     aviso: storefrontConfig.labels.orderNotice,
+    llamado: { titulo: "¿Ya armaste tu pedido?", texto: "Catálogo completo, precios y stock siempre al día." },
     textoLogin: "Ingresá para enviar y consultar tus pedidos.",
     linksFooter: [
       { label: "Catálogo", to: storefrontConfig.catalogPath, icon: Package },
