@@ -27,6 +27,7 @@
 !docs/specs/_plantilla_cambio.md
 !docs/specs/_plantilla_modulo.md
 !docs/specs/core/
+!docs/specs/cambios/2026-11-home-tienda.md
 
 # Frontend: esqueleto y core
 !frontend/package.json
