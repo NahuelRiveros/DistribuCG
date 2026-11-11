@@ -10,13 +10,13 @@ gestionar, sin ver lo que no le corresponde, en computadora y en celular.
 - **Incluye:** quién entra al panel (`/panel`), el menú lateral, la pantalla de inicio y qué pasa
   al intentar abrir una pantalla sin permiso.
 - **No incluye:** qué permisos existen y quién los tiene ([permisos.md](permisos.md)), qué muestra el
-  resumen del negocio (spec de cada rubro), ni la suscripción y los módulos del super admin (spec de sistema).
+  resumen del negocio (spec de cada rubro), ni la suscripción del Administrador del sistema (spec de sistema).
 
 ## Actores
 
 | Quién | Qué ve |
 | --- | --- |
-| Super admin | Todo el panel, incluido el grupo "Sistema". |
+| Administrador del sistema | Todo el panel, incluido el grupo "Configuración". |
 | Admin | Todos los grupos salvo "Sistema". |
 | Supervisor, vendedor y roles creados en el panel | Solo los ítems de sus permisos. |
 | Cliente | Nada: no tiene panel. |
@@ -27,9 +27,8 @@ gestionar, sin ver lo que no le corresponde, en computadora y en celular.
 | --- | --- | --- |
 | Inicio | Inicio | Quien entra al panel |
 | Distribuidora | Los de la gestión del rubro (artículos, precios, pedidos…) | Según cada permiso (spec del rubro) |
-| Admin › Gestión | Personal · Roles y permisos | `usuarios.gestionar` · `permisos.gestionar` |
-| Admin › Configuración | Contenido del home · Cinta de anuncios | `contenido.editar` |
-| Sistema | Suscripción del sistema · Módulos habilitados | Solo super admin |
+| Gestión | Personal · Roles y permisos · Banners y promociones | `usuarios.gestionar` · `permisos.gestionar` · `contenido.editar` |
+| Configuración | Suscripción del sistema | Solo el Administrador del sistema |
 
 ## Reglas
 
@@ -47,7 +46,7 @@ gestionar, sin ver lo que no le corresponde, en computadora y en celular.
 | Código | Regla | Estado |
 | --- | --- | --- |
 | PAN-10 | El menú muestra solo los ítems que el rol permite; un grupo que se queda sin ítems no aparece. | ✅ `ux_rules.test.mjs` › "panel de gestión: cada uno ve las secciones de sus permisos…"; `storefront.spec.js` › "vendedor ve solo pedidos…" |
-| PAN-11 | Si el super admin apaga un módulo, sus ítems desaparecen del menú. Los de "Sistema" nunca se apagan: son los que permiten volver a prenderlo. | ✅ `ux_rules.test.mjs` › "navbar filtra árboles por rol y módulo, sin acoplarse a un rubro" ("Sistema" siempre visible: ⚠️) |
+| PAN-11 | Los ítems de un rubro aparecen solo si ese rubro está en `gate_config.js`; dentro, cada ítem se muestra según sus roles o permisos. | ✅ `ux_rules.test.mjs` › "PAN-11: navbar filtra árboles por rol, sin acoplarse a un rubro" |
 | PAN-12 | Los grupos de cada rubro los aporta el rubro: el panel no conoce sus pantallas (sacar un rubro saca su grupo). | ✅ `ux_rules.test.mjs` › "panel de gestión…" (arma el menú desde los rubros activos) |
 | PAN-13 | En computadora el menú se puede achicar a íconos, y ese navegador lo recuerda. | ⚠️ sin test |
 | PAN-14 | En celular el menú se oculta y se abre con el botón ☰. | ✅ `storefront.spec.js` › "supervisor entra al panel desde el navbar…" (corre en escritorio, celular y celular chico) |

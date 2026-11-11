@@ -1,53 +1,28 @@
 ﻿import { login, loginConGoogle, registrarCliente, obtenerPerfil } from "../../services/usuarios/auth_service.js";
 
+// Entrada validada en req.datos (auth_esquemas.js); los errores los responde app.js.
+
 export async function loginController(req, res) {
-  try {
-    // `email` se sigue aceptando mientras Vercel publica la web nueva (manda `identificador`).
-    const { identificador, email, password } = req.body ?? {};
-    const result = await login({ identificador: identificador ?? email, password });
-    return result.ok ? res.json(result) : res.status(401).json(result);
-  } catch (error) {
-    console.error("loginController:", error);
-    return res.status(500).json({ ok: false, codigo: "ERROR_LOGIN", mensaje: "No se pudo hacer login" });
-  }
+  const sesion = await login(req.datos.body);
+  return res.json({ ok: true, codigo: "LOGIN_OK", mensaje: "Login correcto", ...sesion });
 }
 
 export async function registerController(req, res) {
-  try {
-    const { nombre, apellido, email, password, nombre_usuario } = req.body ?? {};
-    const result = await registrarCliente({ nombre, apellido, email, password, nombre_usuario });
-    return result.ok ? res.status(201).json(result) : res.status(400).json(result);
-  } catch (error) {
-    console.error("registerController:", error);
-    return res.status(500).json({ ok: false, codigo: "ERROR_REGISTRO", mensaje: "No se pudo completar el registro" });
-  }
+  const { usuario_id } = await registrarCliente(req.datos.body);
+  return res.status(201).json({ ok: true, codigo: "REGISTRO_OK", mensaje: "Cuenta creada correctamente", usuario_id });
 }
-
-const ESTADO_GOOGLE = { GOOGLE_NO_CONFIGURADO: 503, REGISTRO_DESHABILITADO: 403 };
 
 export async function googleController(req, res) {
-  try {
-    const result = await loginConGoogle({ credencial: req.body?.credencial });
-    return res.status(result.ok ? 200 : ESTADO_GOOGLE[result.codigo] ?? 401).json(result);
-  } catch (error) {
-    console.error("googleController:", error);
-    return res.status(500).json({ ok: false, codigo: "ERROR_LOGIN", mensaje: "No se pudo ingresar con Google" });
-  }
+  const sesion = await loginConGoogle(req.datos.body);
+  return res.json({ ok: true, codigo: "LOGIN_OK", mensaje: "Login correcto", ...sesion });
 }
 
-export async function meController(req, res, next) {
-  try {
-    const r = await obtenerPerfil(req.user.persona_id);
-    return res.json({
-      ok: true,
-      usuario: { ...req.user, ...r.persona },
-    });
-  } catch (err) {
-    next(err);
-  }
+export async function meController(req, res) {
+  const persona = await obtenerPerfil(req.user.persona_id);
+  return res.json({ ok: true, usuario: { ...req.user, ...persona } });
 }
 
+// La sesión es un token en el navegador: salir es borrarlo allá. Acá solo se confirma.
 export async function logoutController(_req, res) {
   return res.json({ ok: true, mensaje: "Logout OK" });
 }
-

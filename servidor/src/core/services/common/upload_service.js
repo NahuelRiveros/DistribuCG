@@ -4,8 +4,7 @@ import { deploymentConfig } from "../../../../../proyecto/deployment_config.js";
 
 /**
  * Subida genérica de imágenes — no atada a ningún dominio (fotos de
- * producto, logos de marca, lo que haga falta). Ver home_service.js para
- * el mismo patrón aplicado al contenido del home.
+ * producto, logos de marca, banners, lo que haga falta).
  */
 export function subirImagen(buffer, { folder = `${deploymentConfig.carpetaCloudinary}/general` } = {}) {
   return new Promise((resolve, reject) => {

@@ -13,14 +13,6 @@ import { modulosActivos } from "../../../proyecto/modulos.js";
  * El orden importa: seed_super_admin depende de que ya exista el rol
  * "admin"/"super_admin" (de seed_rbac). Cada seed_*.js de acá adentro es
  * autocontenido — no se importan entre sí, solo este orquestador los conecta.
- *
- * seed_home() se eliminó: sembraba home_texto/home_pilar/home_contacto con
- * copy hardcodeado del template original de gimnasio, sin gate de
- * projectModules — cada reinicio del server los recreaba (findOrCreate) aun
- * después de vaciar la tabla a mano, pisando silenciosamente el contenido
- * real de frontend/src/config/home_config.js (que es la fuente de verdad
- * desde que se sacó la edición de textos/pilares/contacto del panel admin,
- * ver home_config_page.jsx). Esas tres tablas ya no las siembra nadie.
  */
 export async function seed_database() {
   console.log("🌱 Sembrando datos base...");

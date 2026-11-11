@@ -5,11 +5,10 @@ import { authRouter } from "./usuarios/auth_router.js";
 import { catalogosRouter } from "./sistema/catalogos_router.js";
 import { staffRouter } from "./usuarios/staff_router.js";
 import { permisosRouter } from "./usuarios/permisos_router.js";
+import { perfilRouter } from "./usuarios/perfil_router.js";
 import { suscripcionRouter } from "./sistema/suscripcion_router.js";
-import { homeRouter } from "./home/home_router.js";
-import { modulosRouter } from "./sistema/modulos_router.js";
 import { ubicacionRouter } from "./ubicacion/ubicacion_router.js";
-import { bannerAnuncioRouter } from "./sistema/banner_anuncio_router.js";
+import { bannerPromocionRouter } from "./sistema/banner_promocion_router.js";
 import { verificarSuscripcion } from "../middleware/suscripcion_middleware.js";
 
 import { uploadRouter } from "./upload_router.js";
@@ -54,12 +53,11 @@ router.use(verificarSuscripcion);
 router.use("/catalogos", catalogosRouter);
 router.use("/auth", authRouter);
 router.use("/staff", staffRouter);
+router.use("/perfil", perfilRouter);                  // ← datos propios de quien ingresó (facturación)
 router.use("/permisos", permisosRouter);                // ← roles y permisos del personal
 router.use("/suscripcion", suscripcionRouter);       // ← plan del software
-router.use("/home",  homeRouter);                     // ← contenido configurable del home (GET público)
-router.use("/modulos", modulosRouter);                // ← gestión de módulos de negocio habilitados
 router.use("/ubicacion", ubicacionRouter);            // ← provincia/departamento/localidad (público, sin auth)
-router.use("/banner", bannerAnuncioRouter);           // ← cinta de anuncios (GET público, gestión solo super_admin)
+router.use("/banners", bannerPromocionRouter);        // ← carrusel y cinta de la tienda (GET público, gestión con "Editar banners")
 
 router.use("/upload",    uploadRouter);                 // ← subida genérica de imágenes (Cloudinary)
 

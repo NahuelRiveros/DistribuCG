@@ -15,6 +15,7 @@ import { Persona }         from "./persona/persona.js";
 import { Sexo }            from "./persona/sexo.js";
 import { TipoDocumento }   from "./persona/tipo_documento.js";
 import { TipoPersona }     from "./persona/tipo_persona.js";
+import { PersonaFiscal }   from "./persona/persona_fiscal.js";
 
 // ── usuarios/ — login y RBAC ──────────────────────────────────────────────────
 import { Usuario }         from "./usuario/usuario.js";
@@ -24,16 +25,8 @@ import { RolPermiso }      from "./usuario/rol_permiso.js";
 import { Permiso }         from "./usuario/permiso.js";
 import { Modulo }          from "./usuario/modulo.js";
 
-// ── home/ — contenido configurable del home (imágenes/videos en Cloudinary) ──
-import { HomeArea }         from "./home/home_area.js";
-import { HomeContenido }    from "./home/home_contenido.js";
-import { HomeTexto }        from "./home/home_texto.js";
-import { HomePilar }        from "./home/home_pilar.js";
-import { HomeContacto }     from "./home/home_contacto.js";
-
-// ── sistema/ — módulos de negocio habilitados y cinta de anuncios ───────────
-import { ModuloNegocio }    from "./sistema/modulo_negocio.js";
-import { BannerAnuncio }    from "./sistema/banner_anuncio.js";
+// ── sistema/ — banners de la tienda ──────────────────────────────────────────
+import { BannerPromocion }  from "./sistema/banner_promocion.js";
 
 // Cada entrada es una asociación explícita y unidireccional — igual que antes,
 // solo que ahora es un array de datos en vez de llamadas sueltas. aplicarRelaciones
@@ -45,6 +38,10 @@ aplicarRelaciones([
   { tipo: "belongsTo", from: Persona, to: TipoDocumento, foreignKey: "tipo_documento_id", as: "tipo_documento" },
   { tipo: "belongsTo", from: Persona, to: Sexo,          foreignKey: "sexo_id",           as: "sexo" },
   { tipo: "belongsTo", from: Persona, to: TipoPersona,   foreignKey: "tipo_persona_id",   as: "tipo_persona" },
+
+  // ─── Persona ↔ PersonaFiscal (1:1, opcional) ────────────────────────────
+  { tipo: "hasOne",    from: Persona,       to: PersonaFiscal, foreignKey: "persona_id", as: "fiscal" },
+  { tipo: "belongsTo", from: PersonaFiscal, to: Persona,       foreignKey: "persona_id", as: "persona" },
 
   // ─── Persona ↔ Usuario (1:1) ────────────────────────────────────────────
   { tipo: "hasOne",    from: Persona, to: Usuario, foreignKey: "persona_id", as: "usuario" },
@@ -65,10 +62,6 @@ aplicarRelaciones([
   // ─── Rol ↔ Permiso (N:N vía RolPermiso) ─────────────────────────────────
   { tipo: "belongsToMany", from: Rol,     to: Permiso, through: RolPermiso, foreignKey: "rol_id",     otherKey: "permiso_id", as: "permisos" },
   { tipo: "belongsToMany", from: Permiso, to: Rol,     through: RolPermiso, foreignKey: "permiso_id", otherKey: "rol_id",     as: "roles" },
-
-  // ─── HomeArea ↔ HomeContenido (1:N) ──────────────────────────────────────
-  { tipo: "hasMany",   from: HomeArea,      to: HomeContenido, foreignKey: "area_id", as: "contenidos" },
-  { tipo: "belongsTo", from: HomeContenido, to: HomeArea,      foreignKey: "area_id", as: "area" },
 ]);
 
 export {
@@ -80,13 +73,8 @@ export {
   Permiso,
   RolPermiso,
   Persona,
+  PersonaFiscal,
   Usuario,
   UsuarioRol,
-  HomeArea,
-  HomeContenido,
-  HomeTexto,
-  HomePilar,
-  HomeContacto,
-  ModuloNegocio,
-  BannerAnuncio,
+  BannerPromocion,
 };

@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import routes from "./routes/index.js";
 import { env, limpiarValor } from "./configuracion_servidor/env.js";
 import { deploymentConfig } from "../../../proyecto/deployment_config.js";
+import { ErrorApp } from "./services/common/errores.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -111,7 +112,11 @@ export function createApp() {
   }
 
   // ── Error handler global ─────────────────────────────────────────────────
+  // Express 5 manda acá también los errores de los controllers async: no hace falta try/catch.
   app.use((err, _req, res, _next) => {
+    if (err instanceof ErrorApp) {
+      return res.status(err.estado).json({ ok: false, codigo: err.codigo, mensaje: err.message });
+    }
     if (err?.type === "entity.parse.failed") {
       return res.status(400).json({
         ok: false,

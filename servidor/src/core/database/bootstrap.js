@@ -1,12 +1,13 @@
 import { QueryTypes } from "sequelize";
 import { sequelize, DB_SCHEMA } from "./sequelize.js";
 import { calcularHashEsquema } from "./schema_hash.js";
+import { asegurarTablas } from "./seguridad_tablas.js";
 import { modulosActivos } from "../../proyecto/modulos.js";
-import { TABLAS_RETIRADAS, MODULOS_RETIRADOS } from "../../proyecto/tablas_retiradas.js";
+import { TABLAS_RETIRADAS } from "../../proyecto/tablas_retiradas.js";
 import {
-  Sexo, TipoDocumento, TipoPersona, Rol, Modulo, HomeArea,
-  Permiso, Persona, HomeContenido, RolPermiso, Usuario,
-  UsuarioRol, ModuloNegocio, BannerAnuncio, HomeTexto, HomePilar, HomeContacto,
+  Sexo, TipoDocumento, TipoPersona, Rol, Modulo,
+  Permiso, Persona, PersonaFiscal, RolPermiso, Usuario,
+  UsuarioRol, BannerPromocion,
 } from "../models/index.js";
 
 /**
@@ -21,6 +22,8 @@ export async function bootstrap_database() {
   await aplicar_ajustes_puntuales();
   await sincronizar_modelos_si_hace_falta();
   for (const modulo of modulosActivos) await modulo.arranque?.();
+  // Al final: así también cubre las tablas que crean los rubros en su arranque.
+  await asegurarTablas(sequelize, DB_SCHEMA);
   console.log("✅ Bootstrap finalizado correctamente");
 }
 
@@ -87,28 +90,21 @@ export async function aplicar_ajustes_puntuales() {
   for (const tabla of TABLAS_RETIRADAS) {
     await sequelize.query(`DROP TABLE IF EXISTS "${DB_SCHEMA}"."${tabla}" CASCADE`);
   }
-  // Ya no aparecen en "Módulos habilitados" del super admin. La tabla puede no
-  // existir todavía en el primer arranque (la crea el sync de más abajo).
-  // IN () vacío es un error de SQL: un proyecto sin módulos retirados no tiene nada que borrar.
-  if (!MODULOS_RETIRADOS.length) return;
-  await sequelize.query(`DELETE FROM "${DB_SCHEMA}".modulo_negocio WHERE codigo IN (:codigos)`, { replacements: { codigos: MODULOS_RETIRADOS } })
-    .catch((error) => { if (error.parent?.code !== "42P01") throw error; });
 }
 
 async function sincronizar_modelos() {
   // MODELOS_COMPARTIDOS va siempre primero (todo lo demás depende de
-  // Persona/Usuario/Rol/Home); dentro de cada lista el orden respeta sus FK.
+  // Persona/Usuario/Rol); dentro de cada lista el orden respeta sus FK.
 
   const MODELOS_COMPARTIDOS = [
     // catálogos sin dependencias externas
-    Sexo, TipoDocumento, TipoPersona, Rol, Modulo, ModuloNegocio, BannerAnuncio,
-    HomeArea, HomeTexto, HomePilar, HomeContacto,
+    Sexo, TipoDocumento, TipoPersona, Rol, Modulo, BannerPromocion,
     // nivel 1
     Permiso,       // permiso → modulo
     Persona,       // persona → sexo, tipo_documento, tipo_persona
-    HomeContenido, // home_contenido → home_area
     // nivel 2
-    RolPermiso, // rol_permiso → rol, permiso
+    RolPermiso,    // rol_permiso → rol, permiso
+    PersonaFiscal, // persona_fiscal → persona
     Usuario,    // usuario → persona
     // nivel 3
     UsuarioRol, // usuario_rol → usuario, rol

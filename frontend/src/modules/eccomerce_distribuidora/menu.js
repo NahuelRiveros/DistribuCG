@@ -18,13 +18,12 @@ import {
 //   - eccomerceDistribuidoraAdminDropdown ("Distribuidora · Gestión"): equipo
 //     gestionando catálogo y pedidos recibidos (grupo del panel).
 
-// "Productos" — link directo al catálogo (mismo filtro roles/modulo que
+// "Productos" — link directo al catálogo (mismo filtro de roles y permisos que
 // un ítem de dropdown, ver navbar_permissions.js: aplica igual a `links`).
 export const eccomerceDistribuidoraCatalogoLink = {
   label: "Productos",
   to: "/distribuidora/catalogo",
   requiereAuth: !storefrontConfig.publicCatalog,
-  modulo: "eccomerce_distribuidora",
   // Cualquier usuario con sesión compra; sin catálogo público, alcanza con requiereAuth.
   icon: LayoutGrid,
 };
@@ -41,7 +40,6 @@ export const eccomerceDistribuidoraAdminDropdown = {
       label: "Artículos",
       to: "/distribuidora/admin/productos",
       requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
       permisos: ["productos.editar"],
       icon: Package,
     },
@@ -49,7 +47,6 @@ export const eccomerceDistribuidoraAdminDropdown = {
       label: "Familias y categorías",
       to: "/distribuidora/admin/categorias",
       requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
       permisos: ["productos.editar"],
       icon: FolderTree,
     },
@@ -57,7 +54,6 @@ export const eccomerceDistribuidoraAdminDropdown = {
       label: "Marcas",
       to: "/distribuidora/admin/marcas",
       requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
       permisos: ["productos.editar"],
       icon: Tag,
     },
@@ -65,7 +61,6 @@ export const eccomerceDistribuidoraAdminDropdown = {
       label: "Listas de precios",
       to: "/distribuidora/admin/listas-precio",
       requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
       permisos: ["precios.editar"],
       icon: Tags,
     },
@@ -73,7 +68,6 @@ export const eccomerceDistribuidoraAdminDropdown = {
       label: "Importar productos",
       to: "/distribuidora/admin/importar",
       requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
       permisos: ["productos.editar", "precios.editar"],
       todosLosPermisos: true,
       icon: Upload,
@@ -82,7 +76,6 @@ export const eccomerceDistribuidoraAdminDropdown = {
       label: "Notas de pedido",
       to: "/distribuidora/admin/notas-pedido",
       requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
       permisos: ["pedidos.ver"],
       icon: ClipboardList,
     },
@@ -91,7 +84,6 @@ export const eccomerceDistribuidoraAdminDropdown = {
       label: "Lista de carga",
       to: "/distribuidora/admin/lista-carga",
       requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
       permisos: ["pedidos.ver"],
       icon: Truck,
     },
@@ -100,7 +92,6 @@ export const eccomerceDistribuidoraAdminDropdown = {
       label: "Clientes",
       to: "/distribuidora/admin/clientes",
       requiereAuth: true,
-      modulo: "eccomerce_distribuidora",
       permisos: ["clientes.ver"],
       icon: Users,
     },

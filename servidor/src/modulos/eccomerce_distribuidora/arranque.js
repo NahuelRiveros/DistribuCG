@@ -8,6 +8,29 @@ export async function arranque_distribuidora() {
   await crear_indice_busqueda_productos();
   await backfill_pago_legado();
   await backfill_marcas_distribuidora();
+  await migrar_cinta_de_anuncios();
+}
+
+/**
+ * Migración única (core 2026-11, SIS-32): la cinta de anuncios pasó de banner_anuncio a
+ * banner_promocion (tipo "cinta"). Copia lo que había, con su orden y estado, y borra la tabla
+ * vieja en la misma transacción: si algo falla no se pierde nada y se reintenta en el próximo
+ * arranque. Sin banner_anuncio (ya migrada o base nueva) no hace nada.
+ */
+export async function migrar_cinta_de_anuncios() {
+  const [{ existe }] = await sequelize.query(
+    "SELECT to_regclass(:tabla) IS NOT NULL AS existe",
+    { replacements: { tabla: `"${DB_SCHEMA}".banner_anuncio` }, type: QueryTypes.SELECT },
+  );
+  if (!existe) return;
+  await sequelize.transaction(async (transaction) => {
+    const [, copiadas] = await sequelize.query(`
+      INSERT INTO "${DB_SCHEMA}".banner_promocion (tipo, titulo, orden, activo, creado_en, actualizado_en)
+      SELECT 'cinta', texto, orden, activo, creado_en, now() FROM "${DB_SCHEMA}".banner_anuncio
+    `, { transaction });
+    await sequelize.query(`DROP TABLE "${DB_SCHEMA}".banner_anuncio`, { transaction });
+    console.log(`✅ Cinta de anuncios migrada a banner_promocion (${copiadas ?? 0} anuncio/s)`);
+  });
 }
 
 /**

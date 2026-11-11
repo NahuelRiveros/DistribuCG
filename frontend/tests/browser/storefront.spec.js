@@ -29,7 +29,7 @@ async function mockApi(page, initialCart = []) {
     else if (path === "/auth/login") data = { ok: true, token: "mock-session" };
     else if (path === "/auth/me") data = { ok: true, usuario: conPermisos({ usuario_id: 7, nombre: "Ana", apellido: "Cliente", roles: ["cliente"] }) };
     else if (path === "/auth/register") data = { ok: true };
-    else if (path === "/modulos/estado") data = { ok: true, modulos: { eccomerce_distribuidora: true } };
+    else if (path === "/banners") data = { ok: true, data: { carrusel: [], cinta: [] } };
     else if (path === "/distribuidora/carrito/merge") {
       cart = body.items.map((i) => ({ ...i, item_id: 50, nombre: product.nombre, variante: "Paquete 1 kg", precio: 1200, precio_al_agregar: 1200, stock_disponible: 200, activo: true, variante_disponible: true }));
       data = { ok: true, data: cart };
@@ -42,7 +42,6 @@ async function mockApi(page, initialCart = []) {
     } else if (path.startsWith("/distribuidora/carrito/items/") && method === "DELETE") { cart = cart.filter((i) => i.item_id !== Number(path.split("/").at(-1))); data = { ok: true, data: cart }; }
     else if (path === "/distribuidora/mi-perfil") data = { ok: true, data: { nombre: "Ana", apellido: "Cliente", celular: "11 2345-6789", cuit: "20-12345678-9", direccion: "Av. Prueba 123", provincia: "Buenos Aires", localidad: "La Plata", completo: true } };
     else if (path === "/distribuidora/notas-pedido" && method === "POST") { submitted.push(body); cart = []; data = { ok: true, data: { id: 123, total: body.expectedItems[0].cantidad * 1200 } }; }
-    else if (path === "/home/config") data = { ok: true, textos: {}, pilares: [], contactos: [] };
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(data) });
   });
   return { submitted, updates };
@@ -970,7 +969,9 @@ test("home comercial: sin ofertas ni productos mantiene navegación y contacto",
   await expect(page.getByRole("region", { name: "Ofertas para aprovechar" })).toHaveCount(0);
   await expect(page.getByRole("complementary", { name: "Promociones destacadas" })).toHaveCount(0);
   await expect(page.getByRole("complementary", { name: "Explorá el catálogo" }).getByRole("link", { name: "Explorar productos" })).toHaveAttribute("href", "/distribuidora/catalogo");
-  await expect(page.getByRole("heading", { name: "Hacé tu pedido", exact: true })).toBeVisible();
+  // El contacto vive en el pie (bloque #contacto); los datos sin completar no se muestran.
+  await expect(page.locator("#contacto").getByText("Mirá los productos y armá tu pedido")).toBeVisible();
+  await expect(page.locator("#contacto").getByText("[Tu número acá]")).toHaveCount(0);
   await noOverflow(page);
 });
 

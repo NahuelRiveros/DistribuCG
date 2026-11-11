@@ -8,9 +8,10 @@ seguir sus pedidos, el personal para trabajar en el panel.
 ## Alcance
 
 - **Incluye:** ingreso con email o usuario, ingreso con Google, registro de clientes,
-  recuperación de contraseña, duración y cierre de la sesión, límites de intentos.
+  recuperación de contraseña, duración y cierre de la sesión, límites de intentos y los datos de
+  facturación de cada persona.
 - **No incluye:** qué puede hacer cada rol una vez adentro (permisos y panel, specs propias) ni los
-  datos fiscales y de entrega del cliente (los pide el primer pedido, ver la spec de pedidos).
+  datos de entrega ni cuándo se piden los de facturación (lo decide cada rubro, ej. el primer pedido).
 
 ## Actores
 
@@ -26,7 +27,7 @@ seguir sus pedidos, el personal para trabajar en el panel.
 
 | Código | Regla | Estado |
 | --- | --- | --- |
-| USU-01 | Se ingresa con email **o** nombre de usuario en el mismo campo, sin distinguir mayúsculas. Con "@" se trata como email; sin "@", como usuario. | ✅ `checkout.integration.mjs` › "login con email o nombre de usuario, sin distinguir mayúsculas"; `ux_rules.test.mjs` › "login distingue email de nombre de usuario…" |
+| USU-01 | Se ingresa con email **o** nombre de usuario en el mismo campo, sin distinguir mayúsculas. Con "@" se trata como email; sin "@", como usuario. Con el campo vacío se pide \"Ingresá tu email o usuario.\" sin buscar ninguna cuenta. | ✅ `checkout.integration.mjs` › "login con email o nombre de usuario, sin distinguir mayúsculas"; `ux_rules.test.mjs` › "login distingue email de nombre de usuario…" |
 | USU-02 | Con datos incorrectos se muestra "Email, usuario o contraseña incorrectos", sin decir cuál de los dos falló. | ✅ `storefront.spec.js` › "inicia sesión con nombre de usuario y muestra el error de credenciales" |
 | USU-03 | Una cuenta dada de baja recibe el mismo mensaje que una contraseña incorrecta. | ⚠️ sin test |
 | USU-04 | Una cuenta desactivada o una persona cargada sin usuario recibe el mismo mensaje que USU-02, también al ingresar con Google: nadie puede averiguar si una cuenta existe. Por qué no entra alguien del personal lo ve el admin en "Personal". | ✅ `checkout.integration.mjs` › "USU-04, USU-06 y USU-09: mensaje genérico, 30 días de sesión para clientes y 24 h para el personal" |
@@ -71,6 +72,14 @@ seguir sus pedidos, el personal para trabajar en el panel.
 | USU-35 | Una cuenta desactivada o dada de baja no puede recuperar: el enlace se informa como no válido. | ⚠️ sin test |
 | USU-36 | Más de 5 pedidos o cambios por hora desde la misma IP se frenan. | ⚠️ sin test |
 
+### Datos de facturación
+
+| Código | Regla | Estado |
+| --- | --- | --- |
+| USU-40 | Cada persona puede tener **un** juego de datos de facturación (condición frente al IVA, CUIT o DNI, razón social y domicilio fiscal). Son opcionales: el registro no los pide y se completan cuando el sistema los necesita. Cada uno ve y edita solo los suyos (`GET` y `PUT /api/perfil/fiscal`, con sesión). | ✅ `core_api.test.mjs` › "USU-40: …" (guardar contra la base: ⚠️) |
+| USU-41 | Los datos se validan con `core/fiscal_config.js`, igual que en la web: CUIT con dígito verificador (DNI solo para consumidor final), guardado como `20-12345678-6`; razón social vacía = se factura a nombre y apellido. | ✅ `core_api.test.mjs` › "USU-41: …" |
+| USU-42 | El documento de la persona es opcional: un cliente que se registra no lo carga (antes se inventaba uno). Si se carga, no puede repetirse. | ⚠️ sin test con base |
+
 ## Configuración
 
 | Qué | Dónde | Valor actual |
@@ -86,7 +95,9 @@ seguir sus pedidos, el personal para trabajar en el panel.
 
 - Servidor: `routes/usuarios/auth_router.js` → `controllers/usuarios/auth_controller.js` →
   `services/usuarios/auth_service.js` y `password_recovery_service.js`; reglas en
-  `services/common/nombre_usuario.js` y `auth_tokens.js`; sesión en `middleware/auth_middleware.js`.
+  `services/common/nombre_usuario.js` y `auth_tokens.js`; sesión en `middleware/auth_middleware.js`; forma de la
+  entrada en `services/usuarios/auth_esquemas.js` (Zod); datos de facturación en `routes/usuarios/perfil_router.js` →
+  `services/usuarios/perfil_fiscal_service.js` (tabla `persona_fiscal`).
 - Frontend: `modules/usuarios/login_page.jsx`, `register_page.jsx`, `recovery_page.jsx`;
   textos en `config/auth_config.js`; redirecciones en `controls/acceso/return_to.js`.
 
@@ -94,6 +105,7 @@ seguir sus pedidos, el personal para trabajar en el panel.
 
 | Fecha | Regla | Decisión | Quién |
 | --- | --- | --- | --- |
+| 2026-11-10 | USU-40 a USU-42 | Datos de facturación 1:1 por persona y en el core (sirven a cualquier sistema que facture); documento opcional, sin inventar uno al registrarse. | Dueño del proyecto (recomendación aceptada) |
 | 2026-11-08 | USU-04 | Mensaje genérico para todos (clientes y personal), también con Google. Se descartó mostrar "Usuario inactivo" porque revela que la cuenta existe. | Dueño del proyecto |
 | 2026-11-08 | USU-06 | Clientes 30 días, personal 24 horas. Se descartaron 24 horas para todos (el cliente que compra cada semana tenía que volver a ingresar) y 7 días. | Dueño del proyecto |
 

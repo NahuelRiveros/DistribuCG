@@ -19,19 +19,8 @@ import { panelGestionLink } from "./panel_gestion.js";
 // módulos opcionales (ej. carrito). Cada componente decide por su cuenta si
 // se muestra o no.
 //
-// DOS GATES, uno arriba del otro:
-//   1. gate_config.js (el gate maestro) decide si el módulo EXISTE en este
-//      proyecto — por eso los grupos se arman condicionalmente acá con
-//      spreads (...(projectModules.eccomerce_distribuidora ? [...] : [])). Si es
-//      false, ni se define el ítem: no hay nada que un cliente pueda reactivar.
-//   2. Dentro de un módulo ya habilitado en el código, cada ítem lleva
-//      `modulo: "<codigo>"` y se filtra en vivo con moduloHabilitado() contra
-//      la tabla modulo_negocio (togleable desde /super-admin/modulos, sin
-//      redeploy). Así un super_admin puede apagar temporalmente un módulo y esos
-//      ítems desaparecen aunque gate_config.js siga en true.
-// Los ítems del propio dropdown "super_admin" (Suscripción, Módulos
-// habilitados) NO llevan `modulo:` — tienen que seguir accesibles aunque
-// todo lo demás esté apagado, para poder volver a prenderlo.
+// Qué rubros existen lo decide gate_config.js: los menús de un rubro apagado ni se arman.
+// Dentro de lo que existe, cada ítem se muestra según los roles o permisos que pide.
 export const navbar_config = {
   extras: pantallasActivas.flatMap((pantallas) => pantallas.extrasNavbar ?? []),
   accountLinks,

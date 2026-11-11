@@ -13,10 +13,10 @@ import LogoMoovs from "../../brand/logo_moovs.jsx";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { usuario, cargando, modulosHabilitados } = useAuth();
+  const { usuario, cargando } = useAuth();
   const location = useLocation();
   const returnTo = location.pathname + location.search + location.hash;
-  const config = filtrarNavbarPorRol(navbar_config, usuario, modulosHabilitados);
+  const config = filtrarNavbarPorRol(navbar_config, usuario);
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1280px)");
     const close = () => { if (media.matches) setMobileOpen(false); };

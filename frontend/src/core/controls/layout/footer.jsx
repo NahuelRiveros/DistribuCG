@@ -2,10 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Phone, Undo2, Scale } from "lucide-react";
 import { footer_config } from "../../../proyecto/config/footer_config.js";
 import { tiendaActiva } from "../../../proyecto/modulos_activos.js";
-import { moduloHabilitado } from "../config/modulos_config.js";
 import { iconoHome } from "../config/home_iconos.js";
-import { useAuth } from "../../auth/auth_context.jsx";
-import { useHomeConfig } from "../../hooks/use_home_config.js";
 import { HOME_CONTACTOS } from "../../../proyecto/config/home_config.js";
 import { brandConfig } from "../../../proyecto/config/brand_config.js";
 import LogoMoovs from "../brand/logo_moovs.jsx";
@@ -26,14 +23,9 @@ const esPlaceholder = (v) => /^\[.*\]$/.test(String(v ?? "").trim());
  */
 export default function Footer() {
   const { diferenciales, callout, legal } = footer_config;
-  const { modulosHabilitados } = useAuth();
-  const { contactos } = useHomeConfig();
+  const diferencialesActivos = diferenciales.filter((item) => item.habilitado);
 
-  const activo = (item) => item.habilitado && moduloHabilitado(item.modulo, modulosHabilitados);
-  const diferencialesActivos = diferenciales.filter(activo);
-
-  const contactosReales = (contactos.length > 0 ? contactos : HOME_CONTACTOS)
-    .filter((c) => !esPlaceholder(c.valor));
+  const contactosReales = HOME_CONTACTOS.filter((c) => !esPlaceholder(c.valor));
 
   // Solo tiene sentido en un deploy con la tienda prendida — en un cliente
   // que solo use el panel (sin tienda) este bloque no debería aparecer.
@@ -96,8 +88,9 @@ export default function Footer() {
             </FooterColumn>
           )}
 
-          {/* ── Ayuda / Contacto — datos reales (home_config.js), nunca inventados ── */}
-          <div>
+          {/* ── Ayuda / Contacto — datos reales (home_config.js), nunca inventados.
+              id="contacto": a donde llevan "Contacto" y el botón de arrepentimiento. ── */}
+          <div id="contacto" className="scroll-mt-24">
             <FooterColumn label="Ayuda">
               <FooterLink to="/#contacto" icon={Phone}>Contacto</FooterLink>
               {comercioActivo && (
@@ -145,8 +138,8 @@ export default function Footer() {
           {diferencialesActivos.length > 0 && (
             <div>
               <FooterColumn label="¿Por qué elegirnos?">
-                {diferencialesActivos.map((item) => (
-                  <li key={item.titulo} className="flex items-start gap-2.5">
+                {diferencialesActivos.map((item, i) => (
+                  <li key={`${item.titulo}-${i}`} className="flex items-start gap-2.5">
                     <item.icon size={15} className="mt-0.5 shrink-0 text-(--kt-accent-on-dark)" />
                     <div>
                       <div className="text-sm font-semibold text-white">{item.titulo}</div>

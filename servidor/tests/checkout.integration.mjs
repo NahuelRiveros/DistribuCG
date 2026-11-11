@@ -20,7 +20,19 @@ process.env.DB_SCHEMA = ownedSchema;
 process.env.ESQUEMA_SUSCRIPCION = ownedSchema;
 const { sequelize, DB_SCHEMA } = await import("../src/core/database/sequelize.js");
 const models = await import("../src/modulos/eccomerce_distribuidora/models/index.js");
-const { registrarCliente, login, loginConGoogle } = await import("../src/core/services/usuarios/auth_service.js");
+const authSrv = await import("../src/core/services/usuarios/auth_service.js");
+const { esquemaRegistro, esquemaLogin, esquemaGoogle } = await import("../src/core/services/usuarios/auth_esquemas.js");
+const { ErrorApp } = await import("../src/core/services/common/errores.js");
+// Igual que la ruta: valida con el esquema (validar.js) y los ErrorApp se ven como la respuesta HTTP.
+const comoRuta = (servicio, esquema) => async (datos, ...resto) => {
+  const entrada = esquema.safeParse(datos);
+  if (!entrada.success) return { ok: false, codigo: "DATOS_INVALIDOS", mensaje: entrada.error.issues[0].message };
+  try { return { ok: true, ...(await servicio(entrada.data, ...resto)) }; }
+  catch (error) { if (error instanceof ErrorApp) return { ok: false, codigo: error.codigo, mensaje: error.message }; throw error; }
+};
+const registrarCliente = comoRuta(authSrv.registrarCliente, esquemaRegistro);
+const login = comoRuta(authSrv.login, esquemaLogin);
+const loginConGoogle = comoRuta(authSrv.loginConGoogle, esquemaGoogle);
 const { obtenerCarrito, agregarItem, fusionarCarrito, actualizarCantidad, vaciarCarrito } = await import("../src/modulos/eccomerce_distribuidora/services/carrito_distribuidora_service.js");
 const { crearNotaPedido, cambiarEstado, cancelarPropia, registrarPago, anularPago, listarTodas } = await import("../src/modulos/eccomerce_distribuidora/services/nota_pedido_service.js");
 const { createResetToken } = await import("../src/core/services/common/auth_tokens.js");
@@ -51,8 +63,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     assert.match(DB_SCHEMA, /^codex_ux_test_[a-f0-9]{32}$/);
     await sequelize.query('CREATE SCHEMA "' + DB_SCHEMA + '"');
     created = true;
-    for (const name of ["ModuloNegocio", "Sexo", "TipoDocumento", "TipoPersona", "Persona", "Usuario", "Rol", "UsuarioRol", "Modulo", "Permiso", "RolPermiso", "CategoriaDistribuidora", "MarcaDistribuidora", "MarcaCategoriaDistribuidora", "ProductoDistribuidora", "VariedadDistribuidora", "ListaPrecio", "ListaPrecioLocalidad", "ListaPrecioItem", "CarritoDistribuidora", "CarritoDistribuidoraItem", "NotaPedido", "NotaPedidoEstadoLog", "NotaPedidoPago", "NotaPedidoComprobante", "NotaPedidoItem", "PerfilClienteDistribuidora", "OperacionCarrito"]) await models[name].sync();
-    await models.ModuloNegocio.create({ codigo: "eccomerce_distribuidora", descripcion: "Distribuidora", habilitado: true });
+    for (const name of ["Sexo", "TipoDocumento", "TipoPersona", "Persona", "Usuario", "Rol", "UsuarioRol", "Modulo", "Permiso", "RolPermiso", "CategoriaDistribuidora", "MarcaDistribuidora", "MarcaCategoriaDistribuidora", "ProductoDistribuidora", "VariedadDistribuidora", "ListaPrecio", "ListaPrecioLocalidad", "ListaPrecioItem", "CarritoDistribuidora", "CarritoDistribuidoraItem", "NotaPedido", "NotaPedidoEstadoLog", "NotaPedidoPago", "NotaPedidoComprobante", "NotaPedidoItem", "PerfilClienteDistribuidora", "OperacionCarrito"]) await models[name].sync();
     await models.TipoDocumento.create({ descripcion: "DNI" });
     await models.Rol.create({ codigo: "cliente", descripcion: "Cliente" });
     // Igual que el arranque: roles del personal y sus permisos por defecto.
@@ -256,9 +267,6 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
         const response = await fetch(url + "/todas", { headers: personal });
         assert.equal(response.status, 200);
         assert.ok((await response.json()).total >= 1);
-        await models.ModuloNegocio.update({ habilitado: false }, { where: { codigo: "eccomerce_distribuidora" } });
-        assert.equal((await fetch(url + "/todas", { headers: personal })).status, 403);
-        await models.ModuloNegocio.update({ habilitado: true }, { where: { codigo: "eccomerce_distribuidora" } });
         // La revocación de rol debe surtir efecto con el mismo token.
         await models.UsuarioRol.destroy({ where: { usuario_id: id, rol_id: staff.id } });
         assert.equal((await fetch(url + "/todas", { headers: personal })).status, 403);
@@ -624,10 +632,12 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.equal(porUsuario.ok, true);
       assert.equal(porUsuario.usuario.nombre_usuario, "ana.prueba");
       assert.equal((await login({ identificador: "ANA@EXAMPLE.TEST", password: "NuevaClave123" })).ok, true);
-      for (const identificador of ["ana.prueba", "otro.usuario", "a b", ""]) {
+      for (const identificador of ["ana.prueba", "otro.usuario", "a b"]) {
         const r = await login({ identificador, password: identificador === "ana.prueba" ? "mala" : "NuevaClave123" });
         assert.equal(r.codigo, "CREDENCIALES_INVALIDAS", identificador);
       }
+      // Vacío ni se busca: pide completar el campo (no revela nada de ninguna cuenta).
+      assert.deepEqual(await login({ identificador: "  ", password: "NuevaClave123" }), { ok: false, codigo: "DATOS_INVALIDOS", mensaje: "Ingresá tu email o usuario." });
       const otra = await registrarCliente({ nombre: "Beto", apellido: "Prueba", email: "beto@example.test", password: "Clave1234" });
       await assert.rejects(models.Usuario.update({ nombre_usuario: "ana.prueba" }, { where: { id: otra.usuario_id } }));
     });
@@ -686,7 +696,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       const repetido = await registrarCliente({ ...base, email: "eli@example.test", nombre_usuario: "CARO.P" });
       assert.equal(repetido.codigo, "NOMBRE_USUARIO_DUPLICADO");
       assert.equal(await models.Persona.count({ where: { email: "eli@example.test" } }), 0);
-      assert.equal((await registrarCliente({ ...base, email: "fede@example.test", nombre_usuario: "con espacio" })).codigo, "NOMBRE_USUARIO_INVALIDO");
+      assert.equal((await registrarCliente({ ...base, email: "fede@example.test", nombre_usuario: "con espacio" })).codigo, "DATOS_INVALIDOS");
 
       // Simultáneos con el mismo usuario: uno se crea y el otro recibe el mensaje, sin error 500.
       const [a, b] = await Promise.all([
@@ -1022,18 +1032,52 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       await assert.rejects(listasSrv.importarPreciosDeLista(lista.id, [{ cod_ref: "LQA-1", precio: 1 }, { cod_ref: "NO-EXISTE", precio: 2 }]), /NO-EXISTE/);
       assert.equal((await listasSrv.listarPreciosDeLista(lista.id, { solo_especiales: true })).filas.find((f) => f.variedad_id === vYerba.id).precio, 1200);
     });
-    await t.test("arranque: borra las tablas de los rubros retirados y sus módulos, sin tocar la distribuidora", async () => {
+    await t.test("arranque: borra las tablas de los rubros retirados, sin tocar la distribuidora", async () => {
       const { QueryTypes } = await import("sequelize");
       for (const tabla of ["alumno", "ejercicio", "patologia", "producto", "producto_tienda"]) await sequelize.query('CREATE TABLE "' + DB_SCHEMA + '"."' + tabla + '" (id serial PRIMARY KEY)');
       // carrito_item apunta a producto_tienda: el CASCADE no debe trabar el borrado.
       await sequelize.query('CREATE TABLE "' + DB_SCHEMA + '".carrito_item (id serial PRIMARY KEY, producto_id int REFERENCES "' + DB_SCHEMA + '".producto_tienda(id))');
-      await models.ModuloNegocio.bulkCreate(["gym", "kinesiologia", "stock", "eccomerce_indumentaria"].map((codigo) => ({ codigo, descripcion: codigo, habilitado: true })));
       await aplicar_ajustes_puntuales();
       await aplicar_ajustes_puntuales(); // corre en cada arranque: la segunda vez no falla
       const tablas = (await sequelize.query("SELECT table_name::text AS nombre FROM information_schema.tables WHERE table_schema = :schema", { replacements: { schema: DB_SCHEMA }, type: QueryTypes.SELECT })).map((x) => x.nombre);
       for (const tabla of TABLAS_RETIRADAS) assert.equal(tablas.includes(tabla), false, tabla);
       for (const tabla of ["nota_pedido", "producto_distribuidora", "persona"]) assert.ok(tablas.includes(tabla), tabla + " no está: " + tablas.join(", "));
-      assert.deepEqual((await models.ModuloNegocio.findAll()).map((m) => m.codigo), ["eccomerce_distribuidora"]);
+    });
+    await t.test("SIS-32, SIS-34, SIS-39 y COR-10: banners con base, migración de la cinta vieja y RLS", async () => {
+      const { QueryTypes } = await import("sequelize");
+      const banners = await import("../src/core/services/sistema/banner_promocion_service.js");
+      const { hoyArgentina } = await import("../src/core/services/sistema/banner_reglas.js");
+      const { migrar_cinta_de_anuncios } = await import("../src/modulos/eccomerce_distribuidora/arranque.js");
+      const { asegurarTablas } = await import("../src/core/database/seguridad_tablas.js");
+      await models.BannerPromocion.sync();
+      const enDias = (n) => { const d = new Date(hoyArgentina() + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+      const banner = (datos) => ({ titulo: "Promo", imagen_url: null, imagen_celular_url: null, enlace: null, orden: 0, activo: true, vigente_desde: null, vigente_hasta: null, ...datos });
+
+      // La cinta de banner_anuncio pasa a banner_promocion una sola vez, con su estado.
+      await sequelize.query('CREATE TABLE "' + DB_SCHEMA + '".banner_anuncio (id serial PRIMARY KEY, texto varchar(200) NOT NULL, orden smallint NOT NULL DEFAULT 0, activo boolean NOT NULL DEFAULT true, creado_en timestamptz NOT NULL DEFAULT now())');
+      await sequelize.query(`INSERT INTO "${DB_SCHEMA}".banner_anuncio (texto, orden, activo) VALUES ('Envío gratis', 0, true), ('Pausado', 1, false)`);
+      await migrar_cinta_de_anuncios();
+      await migrar_cinta_de_anuncios(); // sin la tabla vieja no hace nada
+      assert.deepEqual((await models.BannerPromocion.findAll({ order: [["orden", "ASC"]] })).map((b) => [b.tipo, b.titulo, b.activo]), [["cinta", "Envío gratis", true], ["cinta", "Pausado", false]]);
+      assert.deepEqual((await banners.listarVigentes()).cinta.map((b) => b.titulo), ["Envío gratis"]);
+
+      // Vigencia por fecha: programado no se ve; el que vence hoy todavía sí.
+      await banners.crear(banner({ tipo: "carrusel", titulo: "Navidad", imagen_url: "https://x.test/n.jpg", vigente_desde: enDias(1) }));
+      await banners.crear(banner({ tipo: "carrusel", titulo: "Último día", imagen_url: "https://x.test/u.jpg", vigente_hasta: enDias(0) }));
+      await banners.crear(banner({ tipo: "carrusel", titulo: "Vencido", imagen_url: "https://x.test/v.jpg", vigente_hasta: enDias(-1) }));
+      assert.deepEqual((await banners.listarVigentes()).carrusel.map((b) => b.titulo), ["Último día"]);
+      const estados = Object.fromEntries((await banners.listarTodos()).map((b) => [b.titulo, b.estado]));
+      assert.deepEqual([estados["Navidad"], estados["Último día"], estados["Vencido"], estados["Pausado"]], ["programado", "vigente", "vencido", "inactivo"]);
+
+      // Tope de 4 cintas activas (la pausada no cuenta).
+      for (const titulo of ["B", "C", "D"]) await banners.crear(banner({ tipo: "cinta", titulo }));
+      await assert.rejects(banners.crear(banner({ tipo: "cinta", titulo: "E" })), { codigo: "TOPE_ALCANZADO", estado: 409 });
+      await banners.crear(banner({ tipo: "cinta", titulo: "E", activo: false }));
+
+      // RLS en todas las tablas del schema.
+      await asegurarTablas(sequelize, DB_SCHEMA);
+      const sinRls = await sequelize.query("SELECT tablename FROM pg_tables WHERE schemaname = :schema AND NOT rowsecurity", { replacements: { schema: DB_SCHEMA }, type: QueryTypes.SELECT });
+      assert.deepEqual(sinRls, []);
     });
     await t.test("precios de demostración: precio a los cargados sin precio, activa y repone stock, sin repetir", async () => {
       const { aplicarPreciosDemo } = await import("../src/modulos/eccomerce_distribuidora/seed/precios_demo_distribuidora.js");

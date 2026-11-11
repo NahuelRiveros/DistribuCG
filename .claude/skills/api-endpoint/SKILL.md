@@ -9,7 +9,7 @@ Leer CLAUDE.md y un router/controller/service cercano.
 Para distribuidora usar servidor/src/modulos/eccomerce_distribuidora/{routes,controllers,services}/
 y registrar la ruta en `rutas` de su modulo.js. Las rutas del core van en servidor/src/core/routes/index.js.
 
-- Ruta: requireModuloHabilitado, requireAuth/optionalAuth y requireRole según el contrato real.
+- Ruta: requireAuth/optionalAuth, requirePermiso (no por rol) y validar({ body, params }) con esquemas Zod en español. Controller delgado sin try/catch; el service lanza ErrorApp (ver servidor/src/core/*/_scaffold y banners).
   Catálogo público depende de clientConfig; gestión de pedidos de orderConfig.managementRoles.
   Poner rutas fijas antes de /:id.
 - Validar body, query y params con utilidades existentes, sin asumir Zod ni req.datos.

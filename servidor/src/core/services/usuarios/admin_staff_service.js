@@ -101,7 +101,7 @@ export async function crearStaff({ email, password, nombre, apellido, documento,
   const rolCodigo = (await codigosAsignables()).includes(rol_codigo) ? rol_codigo : ROL_POR_DEFECTO;
 
   if (rolCodigo === "admin" && !solicitanteEsSuperAdmin)
-    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede crear otro admin" };
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo el Administrador del sistema puede crear un Gerente general" };
 
   if (!emailN || !pass || !nombreN || !apellidoN || !doc)
     return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: email, password, nombre, apellido y documento" };
@@ -251,7 +251,7 @@ export async function cambiarPasswordStaff(usuarioId, nuevaPassword, solicitante
     return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Staff no encontrado" };
 
   if (!solicitanteEsSuperAdmin && (await usuarioEsAdmin(usuarioId)))
-    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede cambiar la contraseña de un admin" };
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo el Administrador del sistema puede cambiar la contraseña de un Gerente general" };
 
   const hash = await bcrypt.hash(pass, 10);
   await usuario.update({ contrasena: hash, actualizado_en: ahoraArgentina() });
@@ -265,7 +265,7 @@ export async function cambiarEstadoStaff(usuarioId, activo, solicitanteEsSuperAd
     return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Staff no encontrado" };
 
   if (!solicitanteEsSuperAdmin && (await usuarioEsAdmin(usuarioId)))
-    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede activar o desactivar a un admin" };
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo el Administrador del sistema puede activar o desactivar a un Gerente general" };
 
   await usuario.update({ activo, actualizado_en: ahoraArgentina() });
 
@@ -289,7 +289,7 @@ export async function cambiarRolStaff(usuarioRolId, nuevoRolCodigo, solicitanteE
     return { ok: false, codigo: "NO_PERMITIDO", mensaje: "No se puede modificar este rol desde acá" };
 
   if ((rolActual === "admin" || nuevoRolCodigo === "admin") && !solicitanteEsSuperAdmin)
-    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede asignar o quitar el rol admin" };
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo el Administrador del sistema puede asignar o quitar el rol Gerente general" };
 
   if (rolActual === nuevoRolCodigo)
     return { ok: true, codigo: "SIN_CAMBIOS", mensaje: "El usuario ya tiene ese rol" };
@@ -319,7 +319,7 @@ export async function eliminarStaff(usuarioId, solicitanteEsSuperAdmin, solicita
     return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Staff no encontrado" };
 
   if (!solicitanteEsSuperAdmin && (await usuarioEsAdmin(usuarioId)))
-    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo un super administrador puede eliminar a un admin" };
+    return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo el Administrador del sistema puede eliminar a un Gerente general" };
 
   await usuario.update({ eliminado_en: ahoraArgentina(), activo: false, actualizado_en: ahoraArgentina() });
 

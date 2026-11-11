@@ -5,6 +5,8 @@ import { loginController, googleController, registerController, meController, lo
 import { requireAuth } from "../../middleware/auth_middleware.js";
 import { seedAdmin, seedStaff } from "../../controllers/usuarios/auth_seed_controller.js";
 import { env } from "../../configuracion_servidor/env.js";
+import { validar } from "../../middleware/validar.js";
+import { esquemaGoogle, esquemaLogin, esquemaRegistro } from "../../services/usuarios/auth_esquemas.js";
 
 export const authRouter = Router();
 
@@ -14,7 +16,7 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   // En minúsculas: cambiar mayúsculas no tiene que dar 10 intentos nuevos para la misma cuenta.
-  keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${String(req.body?.identificador || req.body?.email || "").trim().toLowerCase()}`,
+  keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${String(req.body?.identificador ?? "").trim().toLowerCase()}`,
   message: { ok: false, codigo: "DEMASIADOS_INTENTOS", mensaje: "Demasiados intentos. Intentá en 15 minutos." },
 });
 
@@ -64,8 +66,8 @@ authRouter.post("/forgot-password", resetLimiter, forgotPasswordController);
 authRouter.post("/reset-password", resetLimiter, secureResetPasswordController);
 authRouter.post("/seed-admin", requireSeedToken, seedAdmin);
 authRouter.post("/seed-staff", requireSeedToken, seedStaff);
-authRouter.post("/login", loginLimiter, loginController);
-authRouter.post("/google", loginLimiter, googleController);
-authRouter.post("/register", registerLimiter, registerController);
+authRouter.post("/login", loginLimiter, validar({ body: esquemaLogin }), loginController);
+authRouter.post("/google", loginLimiter, validar({ body: esquemaGoogle }), googleController);
+authRouter.post("/register", registerLimiter, validar({ body: esquemaRegistro }), registerController);
 authRouter.get("/me", requireAuth, meController);
 authRouter.post("/logout", requireAuth, logoutController);

@@ -18,6 +18,15 @@ export const permisosConfig = {
   rolesTotales: ["super_admin", "admin"],
   // No son roles del personal: no se listan en el panel ni se asignan desde "Personal".
   rolesFuera: ["cliente"],
+  // PER-14: nombre que se ve de cada rol del sistema. El código no se cambia nunca: lo usan el
+  // programa y las sesiones abiertas. Los roles creados en el panel muestran el nombre que se les dio.
+  nombresRol: {
+    super_admin: "Administrador del sistema",
+    admin: "Gerente general",
+    supervisor: "Encargado",
+    vendedor: "Vendedor",
+    cliente: "Cliente",
+  },
   grupos: [
     ...PERMISOS_DE_RUBROS.flatMap((rubro) => rubro.grupos),
     { codigo: "contenido", nombre: "Contenido de la tienda" },
@@ -25,13 +34,17 @@ export const permisosConfig = {
   ],
   permisos: [
     ...PERMISOS_DE_RUBROS.flatMap((rubro) => rubro.permisos),
-    { codigo: "contenido.editar", grupo: "contenido", nombre: "Editar el home", descripcion: "Contenido del home, cinta de anuncios e imágenes.", porDefecto: [] },
+    { codigo: "contenido.editar", grupo: "contenido", nombre: "Editar banners", descripcion: "Carrusel del inicio, cinta de anuncios e imágenes.", porDefecto: [] },
     { codigo: "usuarios.gestionar", grupo: "equipo", nombre: "Gestionar personal", descripcion: "Altas, bajas, contraseñas y rol de cada persona del equipo.", porDefecto: [] },
     { codigo: "permisos.gestionar", grupo: "equipo", nombre: "Roles y permisos", descripcion: "Crear roles y decidir qué puede hacer cada uno.", porDefecto: [] },
   ],
 };
 
 export const CODIGOS_PERMISO = permisosConfig.permisos.map((p) => p.codigo);
+
+/** Nombre visible de un rol; los creados en el panel: "repositor_de_gondola" → "Repositor de gondola". */
+export const nombreRol = (codigo) => permisosConfig.nombresRol[codigo]
+  ?? String(codigo ?? "").replace(/_/g, " ").replace(/^./, (letra) => letra.toUpperCase());
 
 /** Los permisos pedidos más los que requieren, en el orden de la lista y sin desconocidos. */
 export function conRequeridos(codigos = []) {

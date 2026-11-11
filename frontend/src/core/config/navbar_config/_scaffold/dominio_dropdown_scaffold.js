@@ -21,12 +21,7 @@
  * Cómo usarla:
  *   1. Copiá a `navbar_config/mi_dominio_dropdown.js`.
  *   2. Cambiá los íconos, labels, rutas y roles por los reales.
- *   3. `modulo: "mi_dominio"` en CADA ítem — es lo que conecta el toggle en
- *      vivo de /super-admin/modulos (tabla modulo_negocio). El nombre tiene
- *      que ser el mismo `codigo` que le pusiste en gate_config.js y en el
- *      seed del backend (database/seed.js) — si no coincide, el ítem queda
- *      siempre visible (moduloHabilitado() falla "abierto" ante un código
- *      desconocido, ver controls/config/modulos_config.js).
+ *   3. En cada ítem, `permisos: ["..."]` (o `roles`) dice quién lo ve.
  *   4. Si el módulo también necesita links sueltos fuera de un dropdown
  *      (como gymLinks en gym_dropdown.js), exportalos aparte, en el mismo archivo.
  *   5. Registralo en `navbar_config/main.js`:
@@ -49,7 +44,6 @@ export const dominioDropdown = {
       label: "Item 1",
       to: "/admin/mi-dominio",
       requiereAuth: true,
-      modulo: "mi_dominio",
       roles: ["admin"], // TODO: roles reales
       icon: Sparkles,
     },
@@ -65,7 +59,6 @@ export const dominioDropdown = {
           label: "Sub-item 1",
           to: "/admin/mi-dominio/sub-item-1",
           requiereAuth: true,
-          modulo: "mi_dominio",
           roles: ["admin"],
           icon: Sparkles,
         },
@@ -77,5 +70,5 @@ export const dominioDropdown = {
 // TODO: si el módulo también necesita links sueltos (fuera de un dropdown,
 // como gymLinks en gym_dropdown.js), sumar acá:
 // export const dominioLinks = [
-//   { label: "Algo", to: "/algo", modulo: "mi_dominio", icon: Sparkles },
+//   { label: "Algo", to: "/algo", permisos: ["mi_dominio.ver"], icon: Sparkles },
 // ];

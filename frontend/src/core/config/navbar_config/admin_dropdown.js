@@ -3,7 +3,6 @@ import {
   Users,
   Megaphone,
   Settings,
-  LayoutTemplate,
   Receipt,
   ShieldCheck,
 } from "lucide-react";
@@ -13,8 +12,8 @@ import {
 // en este único archivo, sin importar ítems de otros archivos de navbar_config.
 export const adminDropdown = {
   id: "admin",
-  labelNoAuth: "Admin",
-  labelAuth: "Admin",
+  labelNoAuth: "Gestión",
+  labelAuth: "Gestión",
   icon: LayoutDashboard,
   items: [
     {
@@ -46,15 +45,8 @@ export const adminDropdown = {
       permisos: ["contenido.editar"],
       children: [
         {
-          label: "Contenido del home",
-          to: "/admin/home-config",
-          requiereAuth: true,
-          permisos: ["contenido.editar"],
-          icon: LayoutTemplate,
-        },
-        {
-          label: "Cinta de anuncios",
-          to: "/admin/anuncios",
+          label: "Banners y promociones",
+          to: "/admin/banners",
           requiereAuth: true,
           permisos: ["contenido.editar"],
           icon: Megaphone,

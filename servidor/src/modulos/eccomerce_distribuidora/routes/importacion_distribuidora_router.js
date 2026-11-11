@@ -3,7 +3,6 @@ import multer from "multer";
 import { catalogImportConfig as config } from "../../../../../rubros/eccomerce_distribuidora/catalog_import_config.js";
 import { previsualizarImportacionController, validarImportacionController, detalleImportacionController, historialImportacionController, ejecutarImportacionController, cancelarImportacionController, informeImportacionController, plantillaImportacionController } from "../controllers/importacion_distribuidora_controller.js";
 import { requireAuth, requirePermiso } from "../../../core/middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 const upload = multer({
   storage: multer.memoryStorage(), limits: { fileSize: config.maxBytes, files: 1, fields: 4, fieldSize: 65536 },
   fileFilter: (_req, file, cb) => cb(/\.(xlsx|csv)$/i.test(file.originalname) ? null : Object.assign(new Error("Solo se admiten .xlsx o CSV. Convertí los .xls a .xlsx."), { status: 400 }), true),
@@ -18,7 +17,7 @@ function capacity(_req, res, next) {
 }
 export const importacionDistribuidoraRouter = Router();
 const router = importacionDistribuidoraRouter;
-router.use(requireAuth, requireModuloHabilitado("eccomerce_distribuidora"), requirePermiso("productos.editar"));
+router.use(requireAuth, requirePermiso("productos.editar"));
 // La importación también escribe precios: hacen falta los dos permisos.
 router.use(requirePermiso("precios.editar"));
 router.get("/plantilla", plantillaImportacionController);

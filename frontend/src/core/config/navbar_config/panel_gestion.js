@@ -11,8 +11,8 @@ const aplanar = (items) => items.flatMap((item) => item.children ?? [item]);
 
 const gruposDeSecciones = [
   ...modulosActivos.flatMap((modulo) => modulo.menu?.panel ?? []),
-  { id: "admin", titulo: "Admin", items: aplanar(adminDropdown.items) },
-  { id: "sistema", titulo: "Sistema", items: superAdminDropdown.items },
+  { id: "admin", titulo: "Gestión", items: aplanar(adminDropdown.items) },
+  { id: "sistema", titulo: "Configuración", items: superAdminDropdown.items },
 ];
 
 // Quien puede ver al menos una pantalla del panel puede entrar al panel: alcanza con
@@ -24,5 +24,5 @@ export const panelInicio = { label: "Inicio", to: "/panel", exact: true, requier
 
 export const panelGrupos = [{ id: "inicio", items: [panelInicio] }, ...gruposDeSecciones];
 
-// Botón del navbar de la tienda que reemplaza a los menús "Distribuidora · Gestión", "Admin" y "Sistema".
+// Botón del navbar de la tienda que reemplaza a los menús del rubro, "Gestión" y "Configuración".
 export const panelGestionLink = { label: "Panel de gestión", to: "/panel", requiereAuth: true, ...accesoPanel, icon: LayoutDashboard };

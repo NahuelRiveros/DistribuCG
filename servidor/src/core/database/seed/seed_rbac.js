@@ -1,6 +1,6 @@
-import { Rol, ModuloNegocio, Modulo, RolPermiso, UsuarioRol } from "../../models/index.js";
-import { modulosActivos } from "../../../proyecto/modulos.js";
+import { Rol, Modulo, RolPermiso, UsuarioRol } from "../../models/index.js";
 import { sequelize } from "../sequelize.js";
+import { permisosConfig } from "../../../../../core/permisos_config.js";
 
 /**
  * "staff" pasó a llamarse "supervisor". Se renombra una sola vez conservando sus
@@ -42,37 +42,26 @@ export async function retirarRolProfesional() {
   });
 }
 
+/**
+ * Roles del sistema (supervisor = catálogo, pedidos y cobros; vendedor = solo pedidos; cliente =
+ * quien se registra en la tienda). PER-14: si cambia su nombre en permisos_config.js, se actualiza
+ * en la base; los roles creados en el panel no se tocan.
+ */
+export async function sembrarRolesDelSistema() {
+  for (const [codigo, descripcion] of Object.entries(permisosConfig.nombresRol)) {
+    const [rol] = await Rol.findOrCreate({ where: { codigo }, defaults: { codigo, descripcion } });
+    if (rol.descripcion !== descripcion) await rol.update({ descripcion });
+  }
+}
+
 export async function seed_rbac() {
   await renombrarStaffASupervisor();
   await retirarRolProfesional();
-  // Roles genéricos, sin nombres de un rubro.
-  const roles = [
-    { codigo: "super_admin", descripcion: "Super administrador de la plataforma" },
-    { codigo: "admin",       descripcion: "Administrador del negocio" },
-    // Antes "staff" (ver renombrarStaffASupervisor): todo lo del catálogo, pedidos y cobros.
-    { codigo: "supervisor",  descripcion: "Supervisor" },
-    // Rol que se asigna automáticamente al auto-registrarse desde /register
-    // (POST /auth/register) — clientes externos de un módulo con catálogo
-    // propio (hoy: eccomerce_distribuidora), no personal interno.
-    { codigo: "cliente",     descripcion: "Cliente" },
-    // Acceso acotado a pedidos (ver/procesar notas de pedido) SIN tocar
-    // catálogo, stock, precios ni cobros. Sus permisos se editan en el panel.
-    { codigo: "vendedor",    descripcion: "Vendedor" },
-  ];
-  for (const rol of roles) {
-    await Rol.findOrCreate({ where: { codigo: rol.codigo }, defaults: rol });
-  }
-
-  // Módulos de negocio (gate real de licencia, ver requireModuloHabilitado) —
-  // findOrCreate no pisa el habilitado si un cliente ya lo togleó antes.
-  for (const { codigo, descripcion } of modulosActivos) {
-    await ModuloNegocio.findOrCreate({ where: { codigo }, defaults: { codigo, descripcion, habilitado: true } });
-  }
+  await sembrarRolesDelSistema();
 
   // Secciones del panel de gestión de roles — reflejan las áreas reales de la app (routes/)
   const modulos = [
     { codigo: "usuarios",     descripcion: "Usuarios y staff",               orden: 2 },
-    { codigo: "home",         descripcion: "Contenido del home",             orden: 9 },
     { codigo: "suscripcion",  descripcion: "Suscripción del software",       orden: 10 },
   ];
   for (const modulo of modulos) {

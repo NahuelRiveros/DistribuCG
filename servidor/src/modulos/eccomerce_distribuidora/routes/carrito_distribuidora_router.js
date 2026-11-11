@@ -4,10 +4,8 @@ import {
   actualizarCantidadController, eliminarItemController, vaciarCarritoController,
 } from "../controllers/carrito_distribuidora_controller.js";
 import { requireAuth } from "../../../core/middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 export const carritoDistribuidoraRouter = Router();
-carritoDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));
 carritoDistribuidoraRouter.use(requireAuth); // cualquier usuario logueado, sin rol específico
 
 carritoDistribuidoraRouter.post("/merge", fusionarCarritoController);

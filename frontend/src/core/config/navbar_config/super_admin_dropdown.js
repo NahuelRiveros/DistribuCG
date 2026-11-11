@@ -1,12 +1,10 @@
-import { Shield, KeyRound, ToggleLeft } from "lucide-react";
+import { Shield, KeyRound } from "lucide-react";
 
-// Sin ítems de un rubro acá adentro. Sin `modulo:` en ninguno
-// de los dos — tienen que seguir accesibles aunque todo lo demás esté
-// apagado, para poder volver a prenderlo desde /super-admin/modulos.
+// Solo del Administrador del sistema; sin ítems de un rubro.
 export const superAdminDropdown = {
   id: "super_admin",
-  labelNoAuth: "Sistema",
-  labelAuth: "Sistema",
+  labelNoAuth: "Configuración",
+  labelAuth: "Configuración",
   icon: Shield,
   items: [
     {
@@ -15,15 +13,6 @@ export const superAdminDropdown = {
       requiereAuth: true,
       roles: ["super_admin"],
       icon: KeyRound,
-    },
-    {
-      // Togglea en vivo (tabla modulo_negocio) los módulos que ya están
-      // habilitados en gate_config.js — ver comentario en main.js.
-      label: "Módulos habilitados",
-      to: "/super-admin/modulos",
-      requiereAuth: true,
-      roles: ["super_admin"],
-      icon: ToggleLeft,
     },
   ],
 };

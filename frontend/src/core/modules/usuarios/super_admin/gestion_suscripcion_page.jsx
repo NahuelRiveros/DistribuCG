@@ -131,7 +131,7 @@ export default function GestionSuscripcionPage() {
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm shadow-violet-500/30">
                 <Shield size={11} />
-                Super Admin
+                Administrador del sistema
               </span>
               <h1 className="mt-2 text-2xl font-extrabold text-slate-900">Suscripción del sistema</h1>
               <p className="mt-0.5 text-sm text-slate-500">

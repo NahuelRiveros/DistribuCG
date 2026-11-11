@@ -6,10 +6,8 @@ import {
   ajustarPreciosMasivoController, listarOfertasController, preciosEnListasController,
 } from "../controllers/producto_distribuidora_controller.js";
 import { requireAuth, requirePermiso, optionalAuth } from "../../../core/middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 export const productoDistribuidoraRouter = Router();
-productoDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));
 // Catálogo entero solo para logueados (decisión de negocio) — a diferencia
 // de indumentaria, no hay GET público acá.
 productoDistribuidoraRouter.use((req, res, next) => req.method === "GET" && clientConfig.tienda.publicCatalog ? optionalAuth(req, res, next) : requireAuth(req, res, next));

@@ -12,5 +12,7 @@ export const TABLAS_RETIRADAS = [
   "movimiento_stock", "producto", "categoria_producto",
   "carrito_item", "carrito", "stock", "producto_tienda",
   "talle", "color", "marca", "categoria", "envio_opcion", "condicion_iva",
+  // Core 2026-11: home editable (pasó a banners) y "Módulos habilitados" (los rubros los decide gate_config.js).
+  // banner_anuncio no va acá: el arranque del rubro primero copia sus cintas a banner_promocion.
+  "home_contenido", "home_area", "home_texto", "home_pilar", "home_contacto", "modulo_negocio",
 ];
-export const MODULOS_RETIRADOS = ["gym", "kinesiologia", "stock", "eccomerce_indumentaria"];

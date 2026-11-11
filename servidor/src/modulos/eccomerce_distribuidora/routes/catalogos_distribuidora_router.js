@@ -5,10 +5,8 @@ import {
   fusionarCategoriaController, moverCategoriasController,
 } from "../controllers/catalogos_distribuidora_controller.js";
 import { requireAuth, requirePermiso } from "../../../core/middleware/auth_middleware.js";
-import { requireModuloHabilitado } from "../../../core/middleware/modulo_middleware.js";
 
 export const catalogosDistribuidoraRouter = Router();
-catalogosDistribuidoraRouter.use(requireModuloHabilitado("eccomerce_distribuidora"));
 
 // A diferencia de indumentaria, acá el GET también requiere login — el
 // catálogo entero es solo para clientes logueados (decisión de negocio).

@@ -5,11 +5,7 @@ import { brandConfig } from "./brand_config.js";
 // CONFIG DEL FOOTER — pensado para reusar esta base en otro cliente/proyecto
 // cambiando solo este archivo (no footer.jsx).
 //
-// Cada ítem puede llevar `modulo: "<codigo>"` (o sin `modulo` si es
-// transversal). El on/off real de un módulo de negocio vive en un solo
-// lugar: config/modulos_config.js — acá no se apaga nada a mano, footer.jsx
-// filtra según ese archivo. `habilitado: false` apaga un ítem puntual sin
-// tocar el módulo entero.
+// `habilitado: false` apaga un ítem puntual.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const footer_config = {
@@ -22,14 +18,12 @@ export const footer_config = {
   // ── ¿Por qué elegirnos? ──────────────────────────────────────────────────
   diferenciales: [
     {
-      modulo: null,
       habilitado: true,
       icon: LineChart,
       titulo: "Stock actualizado",
       texto: "Precios y disponibilidad al día, sin sorpresas al momento de pedir.",
     },
     {
-      modulo: null,
       habilitado: true,
       icon: ShieldCheck,
       titulo: "Pedidos confiables",

@@ -1,33 +1,35 @@
 ﻿import bcrypt from "bcrypt";
-import { randomBytes } from "node:crypto";
-import { duracionSesionSegundos, passwordVersion, tipoSesion } from "../common/auth_tokens.js";
-import { clasificarIdentificador, esNombreUsuarioValido, normalizarNombreUsuario } from "../common/nombre_usuario.js";
-import { verificarCredencialGoogle } from "../common/google_auth.js";
-import { clientConfig } from "../../../../../proyecto/client_config.js";
-import { contrasenaValida, MENSAJE_CONTRASENA } from "../common/contrasena.js";
 import jwt from "jsonwebtoken";
+import { randomBytes } from "node:crypto";
 import { UniqueConstraintError } from "sequelize";
+import { duracionSesionSegundos, passwordVersion, tipoSesion } from "../common/auth_tokens.js";
+import { clasificarIdentificador } from "../common/nombre_usuario.js";
+import { verificarCredencialGoogle } from "../common/google_auth.js";
+import { ErrorApp } from "../common/errores.js";
+import { clientConfig } from "../../../../../proyecto/client_config.js";
 import { env } from "../../configuracion_servidor/env.js";
 import { sequelize } from "../../database/sequelize.js";
-import { Persona, Usuario, UsuarioRol, Rol, TipoDocumento } from "../../models/index.js";
+import { Persona, Usuario, UsuarioRol, Rol } from "../../models/index.js";
 
-function safeStr(v) {
-  return String(v ?? "").trim();
-}
+// La entrada llega validada por auth_esquemas.js. Acá quedan las reglas que necesitan la base.
+// Los errores se lanzan como ErrorApp y los responde el manejador central (app.js).
+
+const credencialesInvalidas = () => new ErrorApp("CREDENCIALES_INVALIDAS", "Email, usuario o contraseña incorrectos", 401);
+const googleInvalido = () => new ErrorApp("GOOGLE_INVALIDO", "No pudimos verificar tu cuenta de Google. Intentá de nuevo.", 401);
+const nombreUsuarioDuplicado = () => new ErrorApp("NOMBRE_USUARIO_DUPLICADO", "Ese usuario ya está en uso. Probá con otro.", 400);
+const registroDeshabilitado = () => new ErrorApp("REGISTRO_DESHABILITADO", "El registro público no está habilitado.", 403);
+
+const cuentaBloqueada = (usuario) => !usuario || usuario.eliminado_en || usuario.activo === false;
 
 function crearToken({ usuario_id, persona_id, roles, contrasena }) {
-  const secret = env.JWT_SECRET;
-  if (!secret) throw new Error("Falta JWT_SECRET en .env");
-
+  if (!env.JWT_SECRET) throw new Error("Falta JWT_SECRET en .env");
   const sesion = tipoSesion(roles);
-  return jwt.sign({ sub: String(usuario_id), persona_id, roles, sesion, pv: passwordVersion(contrasena) }, secret, {
+  return jwt.sign({ sub: String(usuario_id), persona_id, roles, sesion, pv: passwordVersion(contrasena) }, env.JWT_SECRET, {
     expiresIn: duracionSesionSegundos(sesion),
   });
 }
 
-const CREDENCIALES_INVALIDAS = { ok: false, codigo: "CREDENCIALES_INVALIDAS", mensaje: "Email, usuario o contraseña incorrectos" };
-
-/** Busca persona y usuario por email o por nombre de usuario. */
+/** Busca persona y usuario por email o por nombre de usuario (USU-01). */
 async function buscarCuenta(identificador) {
   const { tipo, valor, valido } = clasificarIdentificador(identificador);
   if (tipo === "email") {
@@ -42,38 +44,21 @@ async function buscarCuenta(identificador) {
 }
 
 export async function login({ identificador, password }) {
-  const pass = String(password ?? "");
-
   const { persona, usuario } = await buscarCuenta(identificador);
-  if (!persona) return CREDENCIALES_INVALIDAS;
-
-  // USU-04: sin usuario, dada de baja o desactivada responde igual que una contraseña incorrecta:
-  // nadie puede averiguar si una cuenta existe. Por qué no entra alguien del personal lo ve el admin.
-  if (!usuario || usuario.eliminado_en || usuario.activo === false) return CREDENCIALES_INVALIDAS;
-
-  const valido = await bcrypt.compare(pass, usuario.contrasena ?? "");
-  if (!valido) return CREDENCIALES_INVALIDAS;
-
-  return await abrirSesion({ persona, usuario });
+  // USU-04: sin cuenta, sin usuario, dada de baja o desactivada responde igual que una contraseña
+  // incorrecta: nadie puede averiguar si una cuenta existe.
+  if (!persona || cuentaBloqueada(usuario)) throw credencialesInvalidas();
+  if (!await bcrypt.compare(password, usuario.contrasena ?? "")) throw credencialesInvalidas();
+  return abrirSesion({ persona, usuario });
 }
 
 /** Token y datos de la sesión; compartido por el login con contraseña y el de Google. */
 async function abrirSesion({ persona, usuario }) {
-  const rolesRows = await usuario.getRoles({
-    attributes: ["codigo"],
-    joinTableAttributes: [],
-  });
-
-  const roles = rolesRows.map((r) => r.codigo);
-
+  const roles = (await usuario.getRoles({ attributes: ["codigo"], joinTableAttributes: [] })).map((r) => r.codigo);
   const token = crearToken({ usuario_id: usuario.id, persona_id: persona.id, roles, contrasena: usuario.contrasena });
-
   await usuario.update({ ultimo_login: new Date() });
 
   return {
-    ok: true,
-    codigo: "LOGIN_OK",
-    mensaje: "Login correcto",
     token,
     usuario: {
       usuario_id: usuario.id,
@@ -88,70 +73,42 @@ async function abrirSesion({ persona, usuario }) {
 }
 
 /**
- * Auto-registro público (POST /auth/register) — siempre asigna el rol fijo
- * "cliente" (ver seed_rbac.js). Distinto de crearStaff (admin_staff_service.js),
- * que es para personal interno cargado por un admin.
- *
- * `documento` de Persona es NOT NULL + unique y el formulario de registro no
- * lo pide (no tiene sentido pedir DNI para un cliente mayorista) — se genera
- * un valor sintético único, no es un documento real.
+ * Auto-registro público: siempre con el rol "cliente" (USU-14). Distinto de crearStaff
+ * (admin_staff_service.js), que es para el personal cargado desde el panel.
  */
-const NOMBRE_USUARIO_DUPLICADO = { ok: false, codigo: "NOMBRE_USUARIO_DUPLICADO", mensaje: "Ese usuario ya está en uso. Probá con otro." };
-
 export async function registrarCliente({ nombre, apellido, email, password, nombre_usuario }) {
-  const nombreN   = safeStr(nombre);
-  const apellidoN = safeStr(apellido);
-  const emailN    = safeStr(email).toLowerCase();
-  const pass      = String(password ?? "");
-  // Opcional: si queda vacío, la cuenta ingresa solo con el email.
-  const usuarioN  = normalizarNombreUsuario(nombre_usuario) || null;
-  if (!clientConfig.auth.publicRegistration) return { ok: false, codigo: "REGISTRO_DESHABILITADO", mensaje: "El registro público no está habilitado." };
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailN)) return { ok: false, codigo: "EMAIL_INVALIDO", mensaje: "Ingresá un email válido" };
-
-  if (!nombreN || !apellidoN || !emailN || !pass) {
-    return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: nombre, apellido, email y password" };
+  if (!clientConfig.auth.publicRegistration) throw registroDeshabilitado();
+  if (await Persona.findOne({ where: { email } })) {
+    throw new ErrorApp("EMAIL_DUPLICADO", "Ya existe una cuenta con ese email", 400);
   }
-  if (!contrasenaValida(pass)) return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: MENSAJE_CONTRASENA };
-
-  if (usuarioN && !esNombreUsuarioValido(usuarioN)) {
-    return { ok: false, codigo: "NOMBRE_USUARIO_INVALIDO", mensaje: "El usuario debe tener entre 3 y 30 caracteres: letras, números, punto, guion o guion bajo" };
-  }
-
-  const yaExiste = await Persona.findOne({ where: { email: emailN } });
-  if (yaExiste) {
-    return { ok: false, codigo: "EMAIL_DUPLICADO", mensaje: "Ya existe una cuenta con ese email" };
-  }
-  if (usuarioN && await Usuario.findOne({ where: { nombre_usuario: usuarioN } })) return NOMBRE_USUARIO_DUPLICADO;
+  if (nombre_usuario && await Usuario.findOne({ where: { nombre_usuario } })) throw nombreUsuarioDuplicado();
 
   try {
-    return await crearCliente({ nombreN, apellidoN, emailN, pass, usuarioN });
+    return await crearCliente({ nombre, apellido, email, password, nombre_usuario });
   } catch (error) {
-    // Dos registros simultáneos con el mismo usuario: la base frena el segundo.
-    // Se mira el nombre de la restricción: `error.fields` queda vacío si Postgres responde en español.
-    if (error instanceof UniqueConstraintError && error.parent?.constraint?.includes("nombre_usuario")) return NOMBRE_USUARIO_DUPLICADO;
+    // Dos registros simultáneos con el mismo usuario: la base frena el segundo. Se mira el nombre
+    // de la restricción porque `error.fields` queda vacío si Postgres responde en español.
+    if (error instanceof UniqueConstraintError && error.parent?.constraint?.includes("nombre_usuario")) throw nombreUsuarioDuplicado();
     throw error;
   }
 }
 
-const GOOGLE_INVALIDO = { ok: false, codigo: "GOOGLE_INVALIDO", mensaje: "No pudimos verificar tu cuenta de Google. Intentá de nuevo." };
-
 /**
- * "Continuar con Google": la misma cuenta se reconoce por su google_id; si es la
- * primera vez, se vincula a la cuenta con ese email (solo si Google lo verificó)
- * o se crea un cliente nuevo, sin contraseña usable (puede crearla con
- * "Olvidé mi contraseña"). `verificar` se reemplaza solo en los tests.
+ * "Continuar con Google": la cuenta se reconoce por su google_id; la primera vez se vincula a la
+ * cuenta con ese email (solo si Google lo verificó) o se crea un cliente nuevo sin contraseña
+ * usable (puede crearla con "Olvidé mi contraseña"). `verificar` se reemplaza solo en los tests.
  */
 export async function loginConGoogle({ credencial }, { verificar = verificarCredencialGoogle } = {}) {
-  if (!env.GOOGLE_CLIENT_ID) return { ok: false, codigo: "GOOGLE_NO_CONFIGURADO", mensaje: "El ingreso con Google no está habilitado." };
+  if (!env.GOOGLE_CLIENT_ID) throw new ErrorApp("GOOGLE_NO_CONFIGURADO", "El ingreso con Google no está habilitado.", 503);
 
   let datos;
-  try { datos = await verificar(credencial); } catch { return GOOGLE_INVALIDO; }
-  if (!datos?.google_id) return GOOGLE_INVALIDO;
-  // Sin esto, alguien podría crear una cuenta de Google con un email ajeno y entrar a esa cuenta.
+  try { datos = await verificar(credencial); } catch { throw googleInvalido(); }
+  if (!datos?.google_id) throw googleInvalido();
+  // USU-21: sin esto, alguien podría crear una cuenta de Google con un email ajeno y entrar a esa cuenta.
   if (!datos.email_verificado || !datos.email) {
-    return { ok: false, codigo: "GOOGLE_EMAIL_NO_VERIFICADO", mensaje: "Tu cuenta de Google no tiene el email verificado. Ingresá con email y contraseña." };
+    throw new ErrorApp("GOOGLE_EMAIL_NO_VERIFICADO", "Tu cuenta de Google no tiene el email verificado. Ingresá con email y contraseña.", 401);
   }
-  const email = safeStr(datos.email).toLowerCase();
+  const email = String(datos.email).trim().toLowerCase();
 
   let usuario = await Usuario.findOne({ where: { google_id: datos.google_id } });
   let persona = usuario ? await Persona.findByPk(usuario.persona_id) : null;
@@ -159,19 +116,20 @@ export async function loginConGoogle({ credencial }, { verificar = verificarCred
   if (!usuario) {
     persona = await Persona.findOne({ where: { email } });
     if (persona) {
+      // USU-22: se vincula la cuenta existente, salvo que ya tenga otro Google.
       usuario = await Usuario.findOne({ where: { persona_id: persona.id } });
-      if (!usuario) return GOOGLE_INVALIDO;
-      if (usuario.google_id) return { ok: false, codigo: "GOOGLE_OTRA_CUENTA", mensaje: "Este email ya está vinculado a otra cuenta de Google." };
+      if (!usuario) throw googleInvalido();
+      if (usuario.google_id) throw new ErrorApp("GOOGLE_OTRA_CUENTA", "Este email ya está vinculado a otra cuenta de Google.", 401);
       await usuario.update({ google_id: datos.google_id });
     } else {
-      if (!clientConfig.auth.publicRegistration) return { ok: false, codigo: "REGISTRO_DESHABILITADO", mensaje: "El registro público no está habilitado." };
+      if (!clientConfig.auth.publicRegistration) throw registroDeshabilitado();
       try {
         await crearCliente({
-          nombreN: (safeStr(datos.nombre) || email.split("@")[0]).slice(0, 100),
-          apellidoN: safeStr(datos.apellido).slice(0, 100),
-          emailN: email,
-          pass: randomBytes(32).toString("hex"),
-          usuarioN: null,
+          nombre: (String(datos.nombre ?? "").trim() || email.split("@")[0]).slice(0, 100),
+          apellido: String(datos.apellido ?? "").trim().slice(0, 100),
+          email,
+          password: randomBytes(32).toString("hex"),
+          nombre_usuario: null,
           googleId: datos.google_id,
         });
       } catch (error) {
@@ -179,54 +137,40 @@ export async function loginConGoogle({ credencial }, { verificar = verificarCred
         if (!(error instanceof UniqueConstraintError)) throw error;
       }
       usuario = await Usuario.findOne({ where: { google_id: datos.google_id } });
-      if (!usuario) return GOOGLE_INVALIDO;
+      if (!usuario) throw googleInvalido();
       persona = await Persona.findByPk(usuario.persona_id);
     }
   }
 
-  if (usuario.eliminado_en || usuario.activo === false) return GOOGLE_INVALIDO;
-  return await abrirSesion({ persona, usuario });
+  if (cuentaBloqueada(usuario)) throw googleInvalido();
+  return abrirSesion({ persona, usuario });
 }
 
-async function crearCliente({ nombreN, apellidoN, emailN, pass, usuarioN, googleId = null }) {
-  return await sequelize.transaction(async (t) => {
-    const tipoDocumentoDni = await TipoDocumento.findOne({ where: { descripcion: "DNI" }, transaction: t });
-    const documentoSintetico = `REG${randomBytes(8).toString("hex")}`;
-
-    const persona = await Persona.create({
-      nombre: nombreN, apellido: apellidoN, email: emailN,
-      documento: documentoSintetico,
-      tipo_documento_id: tipoDocumentoDni?.id ?? null,
-    }, { transaction: t });
-
-    const hash = await bcrypt.hash(pass, 10);
-    const usuario = await Usuario.create(
-      { persona_id: persona.id, contrasena: hash, activo: true, nombre_usuario: usuarioN, google_id: googleId },
-      { transaction: t }
-    );
-
+// El registro no pide documento: queda vacío hasta que haga falta (ej. para facturar).
+async function crearCliente({ nombre, apellido, email, password, nombre_usuario, googleId = null }) {
+  return sequelize.transaction(async (t) => {
     const rolCliente = await Rol.findOne({ where: { codigo: "cliente" }, transaction: t });
     if (!rolCliente) throw new Error("Falta configurar el rol cliente");
-    if (rolCliente) {
-      await UsuarioRol.create({ usuario_id: usuario.id, rol_id: rolCliente.id }, { transaction: t });
-    }
 
-    return { ok: true, codigo: "REGISTRO_OK", mensaje: "Cuenta creada correctamente", usuario_id: usuario.id };
+    const persona = await Persona.create({ nombre, apellido, email }, { transaction: t });
+    const usuario = await Usuario.create({
+      persona_id: persona.id,
+      contrasena: await bcrypt.hash(password, 10),
+      activo: true,
+      nombre_usuario,
+      google_id: googleId,
+    }, { transaction: t });
+    await UsuarioRol.create({ usuario_id: usuario.id, rol_id: rolCliente.id }, { transaction: t });
+
+    return { usuario_id: usuario.id };
   });
 }
 
 export async function obtenerPerfil(persona_id) {
-  const persona = await Persona.findByPk(persona_id, {
-    attributes: ["nombre", "apellido", "email"],
-  });
-
+  const persona = await Persona.findByPk(persona_id, { attributes: ["nombre", "apellido", "email"] });
   return {
-    ok: true,
-    persona: {
-      nombre:   persona?.nombre   ?? null,
-      apellido: persona?.apellido ?? null,
-      email:    persona?.email    ?? null,
-    },
+    nombre: persona?.nombre ?? null,
+    apellido: persona?.apellido ?? null,
+    email: persona?.email ?? null,
   };
 }
-

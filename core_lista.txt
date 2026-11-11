@@ -50,3 +50,7 @@
 !servidor/src/server.js
 !servidor/src/core/
 !servidor/tests/core_estructura.test.mjs
+!servidor/tests/core_seguridad.test.mjs
+!servidor/tests/core_roles.test.mjs
+!servidor/tests/core_banners.test.mjs
+!servidor/tests/core_api.test.mjs

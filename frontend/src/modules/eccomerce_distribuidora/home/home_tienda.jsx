@@ -26,7 +26,7 @@ function FotoProducto({ producto }) {
     : <Package size={40} aria-hidden="true" className="text-(--kt-petrol)" />;
 }
 
-export default function HomeTienda({ texto, textos }) {
+export default function HomeTienda({ textos = HOME_TIENDA }) {
   const navigate = useNavigate();
   const { isAuth, usuario } = useAuth();
   const puedeVer = config.enabled && (config.publicCatalog || isAuth);
@@ -64,21 +64,20 @@ export default function HomeTienda({ texto, textos }) {
         <div className="relative overflow-hidden rounded-3xl bg-(--kt-petrol) p-6 text-white sm:p-10">
           <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full border-[45px] border-white/5" />
           <div className="relative">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/80">{brandConfig.nombre} · {texto("hero_kicker", brandConfig.rubro)}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/80">{brandConfig.nombre} · {brandConfig.rubro}</p>
             <h1 id="home-titulo" className="kt-display mt-5 max-w-xl text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
-              {texto("hero_titulo", textos.hero_titulo)}
-              <span className="block text-(--kt-accent-on-dark)">{texto("hero_titulo_resaltado", textos.hero_titulo_resaltado)}</span>
+              {textos.heroTitulo}
+              {textos.heroTituloResaltado && <span className="block text-(--kt-accent-on-dark)">{textos.heroTituloResaltado}</span>}
             </h1>
-            <p className="mt-5 max-w-lg text-sm leading-relaxed text-white/85 sm:text-base">{texto("hero_subtitulo", textos.hero_subtitulo)}</p>
+            <p className="mt-5 max-w-lg text-sm leading-relaxed text-white/85 sm:text-base">{textos.heroSubtitulo}</p>
             {config.enabled && <form role="search" aria-label="Buscar en el catálogo" onSubmit={buscar} className="mt-7 flex min-w-0 items-center gap-2 rounded-xl bg-white p-1.5 text-(--kt-ink) focus-within:ring-2 focus-within:ring-(--kt-turquoise)">
               <Search size={19} aria-hidden="true" className="ml-2 hidden shrink-0 text-(--kt-ink-soft) sm:block" />
               <label htmlFor="home-busqueda" className="sr-only">{config.labels.search}</label>
-              <input id="home-busqueda" name="q" type="search" maxLength={160} placeholder={HOME_TIENDA.buscarPlaceholder} className="min-h-11 min-w-0 flex-1 bg-transparent px-2 text-sm outline-none" />
+              <input id="home-busqueda" name="q" type="search" maxLength={160} placeholder={textos.buscarPlaceholder} className="min-h-11 min-w-0 flex-1 bg-transparent px-2 text-sm outline-none" />
               <button type="submit" className="flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-(--kt-accent-comercial) px-3 text-sm font-bold text-white hover:bg-(--kt-accent-comercial-hover)">Buscar</button>
             </form>}
             <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2">
-              {config.enabled && <Link to={config.catalogPath} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold underline decoration-white/40 underline-offset-4 hover:decoration-white">{texto("hero_cta_primario", textos.hero_cta_primario)} <ArrowRight size={17} aria-hidden="true" /></Link>}
-              <a href="#como-pedir" className="inline-flex min-h-11 items-center text-sm text-white/85 underline-offset-4 hover:underline">{texto("hero_cta_secundario", textos.hero_cta_secundario)}</a>
+              {config.enabled && <Link to={config.catalogPath} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold underline decoration-white/40 underline-offset-4 hover:decoration-white">{textos.heroCta} <ArrowRight size={17} aria-hidden="true" /></Link>}
             </div>
           </div>
         </div>
@@ -86,10 +85,10 @@ export default function HomeTienda({ texto, textos }) {
         {config.enabled && <aside aria-label={hayOfertas ? "Promociones destacadas" : "Explorá el catálogo"} className="relative flex min-w-0 flex-col overflow-hidden rounded-3xl border border-(--kt-accent-comercial)/15 bg-(--kt-accent-comercial-soft) p-6 sm:p-8">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-(--kt-accent-comercial)">
             {hayOfertas ? <BadgePercent size={19} aria-hidden="true" /> : <ShoppingBasket size={19} aria-hidden="true" />}
-            {hayOfertas ? HOME_TIENDA.promoEtiqueta : HOME_TIENDA.catalogoEtiqueta}
+            {hayOfertas ? textos.promoEtiqueta : textos.catalogoEtiqueta}
           </div>
-          <h2 className="kt-display mt-3 max-w-sm text-3xl font-bold leading-tight tracking-tight text-(--kt-ink)">{hayOfertas ? HOME_TIENDA.promoTitulo : HOME_TIENDA.catalogoTitulo}</h2>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-(--kt-ink-soft)">{hayOfertas ? HOME_TIENDA.promoTexto : HOME_TIENDA.catalogoTexto}</p>
+          <h2 className="kt-display mt-3 max-w-sm text-3xl font-bold leading-tight tracking-tight text-(--kt-ink)">{hayOfertas ? textos.promoTitulo : textos.catalogoTitulo}</h2>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-(--kt-ink-soft)">{hayOfertas ? textos.promoTexto : textos.catalogoTexto}</p>
           {fotos.length > 0
             ? <div className="my-5 flex min-h-28 items-center justify-center gap-2 sm:min-h-36">
                 {fotos.map((p, i) => <Link key={p.id} to={config.catalogPath + "/" + p.id} aria-label={"Ver " + p.nombre}
@@ -99,7 +98,7 @@ export default function HomeTienda({ texto, textos }) {
               </div>
             : <div aria-hidden="true" className="my-5 flex h-28 items-center justify-center rounded-2xl border border-(--kt-accent-comercial)/15 bg-white/60"><ShoppingBasket size={64} strokeWidth={1.25} className="text-(--kt-accent-comercial)" /></div>}
           <Link to={destino} className="mt-auto inline-flex min-h-11 items-center justify-between gap-3 border-t border-(--kt-accent-comercial)/20 pt-4 text-sm font-bold text-(--kt-accent-comercial)">
-            {hayOfertas ? HOME_TIENDA.promoCta : HOME_TIENDA.catalogoCta}<ArrowRight size={18} aria-hidden="true" />
+            {hayOfertas ? textos.promoCta : textos.catalogoCta}<ArrowRight size={18} aria-hidden="true" />
           </Link>
         </aside>}
       </div>
@@ -112,7 +111,7 @@ export default function HomeTienda({ texto, textos }) {
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-            <div><p className="text-xs font-bold uppercase tracking-widest text-(--kt-teal-700)">{HOME_TIENDA.familiasEtiqueta}</p><h2 id="home-familias" className="kt-display mt-2 text-2xl font-bold sm:text-3xl">{HOME_TIENDA.familiasTitulo}</h2></div>
+            <div><p className="text-xs font-bold uppercase tracking-widest text-(--kt-teal-700)">{textos.familiasEtiqueta}</p><h2 id="home-familias" className="kt-display mt-2 text-2xl font-bold sm:text-3xl">{textos.familiasTitulo}</h2></div>
             <TrazoAnimado />
           </div>
           <Link to={config.catalogPath} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-(--kt-petrol)">Ver todas <ArrowRight size={16} aria-hidden="true" /></Link>
@@ -137,7 +136,7 @@ export default function HomeTienda({ texto, textos }) {
     {puedeVer && <section aria-labelledby="home-productos" className="px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <div><p className="text-xs font-bold uppercase tracking-widest text-(--kt-teal-700)">{HOME_TIENDA.productosEtiqueta}</p><h2 id="home-productos" className="kt-display mt-2 text-2xl font-bold sm:text-3xl">{HOME_TIENDA.productosTitulo}</h2></div>
+          <div><p className="text-xs font-bold uppercase tracking-widest text-(--kt-teal-700)">{textos.productosEtiqueta}</p><h2 id="home-productos" className="kt-display mt-2 text-2xl font-bold sm:text-3xl">{textos.productosTitulo}</h2></div>
           <Link to={config.catalogPath} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-(--kt-petrol)">Explorar catálogo <ArrowRight size={16} aria-hidden="true" /></Link>
         </div>
         {productos.isPending ? <Esqueleto cantidad={4} />

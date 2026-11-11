@@ -247,21 +247,20 @@ test("carrito invitado combina variantes sin superar stock y descarta almacenami
   assert.equal(readGuestCart({ getItem: () => "invalid" }, "key"), null);
   assert.equal(readGuestCart({ getItem: () => JSON.stringify({ key: "k", items: [], updatedAt: 0 }) }, "key"), null);
 });
-test("navbar filtra árboles por rol y módulo, sin acoplarse a un rubro", () => {
-  for (const modulo of ["eccomerce_distribuidora", "otro_rubro"]) {
-    const config = { links: [{ to: "/", label: "Inicio" }], dropdowns: [{ id: modulo, items: [{ label: "Gestión", children: [{ to: "/admin", roles: ["admin"], modulo, requiereAuth: true }] }] }] };
-    assert.equal(filtrarNavbarPorRol(config, null, { [modulo]: true }).dropdowns.length, 0);
-    assert.equal(filtrarNavbarPorRol(config, { roles: ["admin"] }, { [modulo]: true }).dropdowns.length, 1);
-    assert.equal(filtrarNavbarPorRol(config, { roles: ["admin"] }, { [modulo]: false }).dropdowns.length, 0);
+test("PAN-11: navbar filtra árboles por rol, sin acoplarse a un rubro", () => {
+  for (const id of ["eccomerce_distribuidora", "otro_rubro"]) {
+    const config = { links: [{ to: "/", label: "Inicio" }], dropdowns: [{ id, items: [{ label: "Gestión", children: [{ to: "/admin", roles: ["admin"], requiereAuth: true }] }] }] };
+    assert.equal(filtrarNavbarPorRol(config, null).dropdowns.length, 0);
+    assert.equal(filtrarNavbarPorRol(config, { roles: ["admin"] }).dropdowns.length, 1);
+    assert.equal(filtrarNavbarPorRol(config, { roles: ["vendedor"] }).dropdowns.length, 0);
   }
 });
 
 test("panel de gestión: cada uno ve las secciones de sus permisos y el cliente no entra", async () => {
   const { panelGrupos, accesoPanel } = await import("../../frontend/src/core/config/navbar_config/panel_gestion.js");
-  const modulos = { eccomerce_distribuidora: true };
   const porDefecto = (rol) => permisosConfig.permisos.filter((p) => p.porDefecto.includes(rol)).map((p) => p.codigo);
   const usuario = (roles, asignados = []) => ({ roles, permisos: permisosEfectivos(roles, asignados) });
-  const menu = (u) => Object.fromEntries(filtrarNavbarPorRol({ dropdowns: panelGrupos }, u, modulos).dropdowns.map((g) => [g.id, g.items.map((i) => i.to)]));
+  const menu = (u) => Object.fromEntries(filtrarNavbarPorRol({ dropdowns: panelGrupos }, u).dropdowns.map((g) => [g.id, g.items.map((i) => i.to)]));
 
   // Lo decidido con el cliente: el vendedor solo pedidos; el supervisor catálogo, precios, pedidos y cobros.
   assert.deepEqual(porDefecto("vendedor"), ["pedidos.ver", "pedidos.gestionar"]);
@@ -273,7 +272,7 @@ test("panel de gestión: cada uno ve las secciones de sus permisos y el cliente 
   // Un rol creado en el panel con solo artículos: sin listas de precios ni importación (que escribe precios).
   assert.deepEqual(menu(usuario(["repositor"], ["productos.editar"])).distribuidora, ["/distribuidora/admin/productos", "/distribuidora/admin/categorias", "/distribuidora/admin/marcas"]);
   const admin = menu(usuario(["admin"]));
-  assert.deepEqual(admin.admin, ["/admin/staffManager", "/admin/permisos", "/admin/home-config", "/admin/anuncios"]);
+  assert.deepEqual(admin.admin, ["/admin/staffManager", "/admin/permisos", "/admin/banners"]);
   assert.ok(admin.distribuidora.includes("/distribuidora/admin/listas-precio"));
   assert.ok(admin.distribuidora.includes("/distribuidora/admin/clientes"), "CLI-14: admin ve Clientes");
   assert.ok(menu(usuario(["vendedor"], ["clientes.ver"])).distribuidora.includes("/distribuidora/admin/clientes"), "o quien tenga el permiso tildado");
@@ -284,8 +283,6 @@ test("panel de gestión: cada uno ve las secciones de sus permisos y el cliente 
   for (const p of permisosConfig.permisos.filter((p) => p.codigo !== "ventas.ver")) {
     assert.ok([p.codigo, ...(p.requiere ?? [])].some((c) => accesoPanel.permisos.includes(c)), p.codigo);
   }
-  // Con el módulo apagado desde /super-admin/modulos, desaparece su sección.
-  assert.equal(filtrarNavbarPorRol({ dropdowns: panelGrupos }, supervisor, { eccomerce_distribuidora: false }).dropdowns.some((g) => g.id === "distribuidora"), false);
 });
 
 test("PER-33: todos los permisos en permisos_config.js, con la misma lista de siempre (códigos, grupos, orden y roles de entrada)", async () => {

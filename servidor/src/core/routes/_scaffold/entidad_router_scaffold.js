@@ -1,42 +1,27 @@
 /**
- * PLANTILLA — router: GET público (o no, ver TODO) + escritura solo admin.
- * Ver routes/productos/catalogos_router.js para un ejemplo real ya
- * funcionando con este mismo patrón.
- *
- * No se importa desde ningún lado — punto de partida para copiar.
+ * PLANTILLA — router. Ejemplo real: routes/sistema/banner_promocion_router.js.
  *
  * Cómo usarla:
- *   1. Copiá a `routes/<dominio>/mi_entidad_router.js`.
- *   2. Cambiá el import por tu controller real.
- *   3. Si el módulo entero se puede apagar por instalación (como gym o
- *      eccomerce_indumentaria), agregá `.use(requireModuloHabilitado("codigo"))` — si no,
- *      sacá esa línea.
- *   4. Registralo en `routes/index.js`:
- *        import { entidadRouter } from "./<dominio>/mi_entidad_router.js";
- *        router.use("/mi-entidad", entidadRouter);
- *      Ojo con el nombre del import si ya existe un router con el mismo
- *      nombre exportado en otro archivo — hay que alias-earlo (ver cómo
- *      `catalogosRouter` de productos/ se importa con alias en index.js,
- *      porque ya existía uno en sistema/).
- *   5. Si tenés rutas de path fijo (ej. "/stock-bajo") Y una ruta "/:id",
- *      las fijas van SIEMPRE antes que "/:id" — si no, Express interpreta
- *      "stock-bajo" como un id.
+ *   1. Copiá a `routes/<dominio>/mi_entidad_router.js` y cambiá los imports.
+ *   2. Elegí el permiso (core/permisos_config.js o proyecto/permisos_rubros.js). Se controla por
+ *      permiso, no por rol: así el dueño decide desde "Roles y permisos" quién puede.
+ *   3. Registralo en `routes/index.js` (o en el modulo.js del rubro).
+ *   4. Las rutas fijas (ej. "/stock-bajo") van ANTES que "/:id", si no Express toma "stock-bajo" como id.
  */
-
 import { Router } from "express";
 import {
   listarEntidadesController, crearEntidadController,
   actualizarEntidadController, eliminarEntidadController,
 } from "../../controllers/_scaffold/entidad_controller_scaffold.js"; // TODO: controller real
-import { requireAuth, requireRole } from "../../middleware/auth_middleware.js";
-// import { requireModuloHabilitado } from "../../middleware/modulo_middleware.js"; // TODO: si aplica
+import { requireAuth, requirePermiso } from "../../middleware/auth_middleware.js";
+import { validar } from "../../middleware/validar.js";
+import { esquemaEntidad, esquemaId } from "../../services/_scaffold/entidad_esquemas_scaffold.js"; // TODO: esquemas reales
 
 export const entidadRouter = Router();
-// entidadRouter.use(requireModuloHabilitado("codigo")); // TODO: descomentar si aplica
 
-// TODO: sacar requireAuth del GET si esta entidad es un catálogo público
-// (el frontend la necesita sin login, como categorías/marcas/talles/colores)
-entidadRouter.get("/", requireAuth, listarEntidadesController);
-entidadRouter.post("/", requireAuth, requireRole("admin"), crearEntidadController);
-entidadRouter.put("/:id", requireAuth, requireRole("admin"), actualizarEntidadController);
-entidadRouter.delete("/:id", requireAuth, requireRole("admin"), eliminarEntidadController);
+// TODO: si es un catálogo público (la tienda lo necesita sin ingresar), mover este GET arriba del use().
+entidadRouter.use(requireAuth);
+entidadRouter.get("/", listarEntidadesController);
+entidadRouter.post("/", requirePermiso("entidad.editar"), validar({ body: esquemaEntidad }), crearEntidadController);
+entidadRouter.put("/:id", requirePermiso("entidad.editar"), validar({ params: esquemaId, body: esquemaEntidad }), actualizarEntidadController);
+entidadRouter.delete("/:id", requirePermiso("entidad.editar"), validar({ params: esquemaId }), eliminarEntidadController);
