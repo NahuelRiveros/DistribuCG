@@ -28,12 +28,21 @@ registros de `proyecto/` (`modulos_activos.js`, `pantallas_modulos.jsx`, `modulo
    `frontend/.env.local`, con una base PostgreSQL local.
 6. `node scripts/verificar.mjs`: tests, lint y build.
 
-## Mantener el core actualizado desde un proyecto
+## Mejorar el core en este repo
 
-El proyecto donde se mejora el core tiene un segundo repositorio git en `.git-core/` que apunta a
-este repo. `core_lista.txt` dice qué archivos son del core.
+Se clona, se corre `node scripts/nuevo_proyecto.mjs` para tener un `proyecto/` de prueba y se trabaja
+como en cualquier repo (`git commit` y `git push`). Para que las carpetas `proyecto/` de prueba nunca
+se suban, anotarlas una vez en `.git/info/exclude`: `/proyecto/`, `/frontend/src/proyecto/`,
+`/servidor/src/proyecto/`, `/frontend/index.html` y `/frontend/public/`.
 
-- `node scripts/core_subir.mjs`: muestra qué cambió en el core, sin subir nada.
-- `node scripts/core_subir.mjs --subir`: hace el commit y lo sube.
+## Sincronizar el core con un proyecto
 
-Solo viajan archivos ya commiteados en el proyecto, y nunca `proyecto/`, los rubros ni los `.env`.
+El proyecto tiene un segundo repositorio git en `.git-core/` que apunta a este repo. `core_lista.txt` dice
+qué archivos son del core. Solo viajan archivos ya commiteados, y nunca `proyecto/`, los rubros ni los `.env`.
+
+- **Del proyecto al core:** `node scripts/core_subir.mjs` muestra qué cambió; `--subir` lo sube.
+- **Del core al proyecto:** `node scripts/core_traer.mjs` muestra qué hay nuevo en este repo; `--traer` lo
+  aplica a los archivos del proyecto (después: `node scripts/verificar.mjs` y commitear en el proyecto).
+  Si los dos lados cambiaron la misma línea, quedan marcas `<<<<<<<`/`>>>>>>>`: elegir qué queda y correr
+  `node scripts/core_traer.mjs --terminar`.
+- Si el core tiene mejoras que el proyecto no trajo, `core_subir` avisa y pide traerlas primero.

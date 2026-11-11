@@ -40,6 +40,11 @@ if (pendientes) {
   process.exit(1);
 }
 
+if (fs.existsSync(path.join(GIT_CORE, "MERGE_HEAD"))) {
+  console.log("Hay una mezcla de core_traer sin terminar: resolvela y corré node scripts/core_traer.mjs --terminar.");
+  process.exit(1);
+}
+
 // El índice del core se arma de cero con la lista: así también viajan los archivos borrados.
 const lista = path.join(os.tmpdir(), `core-lista-${process.pid}.txt`);
 fs.writeFileSync(lista, archivos.join("\n"));
@@ -51,10 +56,22 @@ const hayHistoria = (() => { try { gitCore(["rev-parse", "--verify", "-q", "HEAD
 const cambios = (hayHistoria ? gitCore(["diff", "--cached", "--name-status", "HEAD"]) : archivos.map((a) => `A\t${a}`).join("\n"))
   .split("\n").filter(Boolean);
 
-if (!cambios.length) {
+// Comparar con CoreSistem: si tiene mejoras que acá faltan, hay que traerlas antes de subir.
+gitCore(["fetch", "-q", "origin"]);
+const hayRemoto = (() => { try { gitCore(["rev-parse", "--verify", "-q", "origin/main"]); return true; } catch { return false; } })();
+const contar = (rango) => (hayRemoto && hayHistoria ? Number(gitCore(["rev-list", "--count", rango])) : 0);
+if (contar("HEAD..origin/main")) {
+  console.log("CoreSistem tiene mejoras que este proyecto todavía no trajo. Primero: node scripts/core_traer.mjs --traer");
+  process.exit(1);
+}
+// Commits del core hechos por core_traer (mezclas) que todavía no se subieron.
+const sinSubir = hayRemoto ? contar("origin/main..HEAD") : Number(hayHistoria);
+
+if (!cambios.length && !sinSubir) {
   console.log(`El core ya está al día (${archivos.length} archivos).`);
   process.exit(0);
 }
+if (!cambios.length) console.log(`Sin archivos nuevos para subir, pero hay ${sinSubir} commit(s) del core pendientes (de core_traer).`);
 
 const porCarpeta = {};
 for (const linea of cambios) {
@@ -63,7 +80,7 @@ for (const linea of cambios) {
   porCarpeta[carpeta] ??= { A: 0, M: 0, D: 0 };
   porCarpeta[carpeta][estado[0]] = (porCarpeta[carpeta][estado[0]] ?? 0) + 1;
 }
-console.log(`Core: ${archivos.length} archivos en total; ${cambios.length} cambian (A nuevos, M modificados, D borrados):`);
+if (cambios.length) console.log(`Core: ${archivos.length} archivos en total; ${cambios.length} cambian (A nuevos, M modificados, D borrados):`);
 for (const [carpeta, n] of Object.entries(porCarpeta).sort()) console.log(`  ${carpeta.padEnd(32)} A ${n.A}  M ${n.M}  D ${n.D}`);
 if (args.includes("--ver")) console.log(cambios.map((c) => "  " + c).join("\n"));
 
@@ -74,6 +91,6 @@ if (!subir) {
 
 const origen = git(["rev-parse", "--short", "HEAD"]);
 const mensaje = mensajeIdx >= 0 ? args[mensajeIdx + 1] : `Core actualizado desde DistribuCG (${origen})`;
-gitCore(["commit", "-q", "-m", mensaje]);
+if (cambios.length) gitCore(["commit", "-q", "-m", mensaje]);
 console.log(gitCore(["push", "-u", "origin", "main"]) || "Subido a CoreSistem.");
 console.log(gitCore(["log", "--oneline", "-1"]));

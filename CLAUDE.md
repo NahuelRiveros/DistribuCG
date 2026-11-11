@@ -22,7 +22,8 @@ de esos rubros.
 `frontend/src/proyecto/` y `servidor/src/proyecto/`; el negocio en `rubros/eccomerce_distribuidora/` (config
 compartida), `frontend/src/modules/eccomerce_distribuidora/` y `servidor/src/modulos/eccomerce_distribuidora/`.
 El core nunca importa un rubro (test COR-01); lee lo del cliente solo de `proyecto/`. El core se sube además a
-https://github.com/NahuelRiveros/CoreSistem.git con `node scripts/core_subir.mjs` (`--subir` para subir; solo
+https://github.com/NahuelRiveros/CoreSistem.git con `node scripts/core_subir.mjs` y se traen las mejoras hechas allá con
+`node scripts/core_traer.mjs` (`--subir`/`--traer` para hacerlo; solo
 lo de `core_lista.txt` ya commiteado). `plantilla_proyecto/` es el `proyecto/` genérico que copia
 `scripts/nuevo_proyecto.mjs` en un proyecto nuevo: si se agrega un archivo a `proyecto/` que el core lee,
 sumar su versión genérica a la plantilla.
