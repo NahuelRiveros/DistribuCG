@@ -121,6 +121,25 @@ export async function listarPropias(usuario_id) {
   });
 }
 
+/**
+ * PED-76: un pedido del cliente con artículos, cobros, comprobantes e historial. De los motivos, solo
+ * llega el de la cancelación (los demás son internos del equipo). Uno ajeno devuelve null, igual que
+ * uno que no existe.
+ */
+export async function obtenerPropia(usuario_id, id) {
+  const nota = await NotaPedido.findOne({
+    where: { id, usuario_id },
+    include: [
+      { model: NotaPedidoItem, as: "items" }, INCLUDE_PAGOS, INCLUDE_COMPROBANTES,
+      { model: NotaPedidoEstadoLog, as: "historial_estados", separate: true, attributes: ["id", "anterior", "nuevo", "motivo", "fecha"], order: [["fecha", "ASC"], ["id", "ASC"]] },
+    ],
+  });
+  if (!nota) return null;
+  const datos = nota.toJSON();
+  datos.historial_estados = datos.historial_estados.map((h) => ({ ...h, motivo: h.nuevo === "cancelada" ? h.motivo : null }));
+  return datos;
+}
+
 export async function listarTodas({ q, estado, estado_pago, comprobante, cliente, pagina, por_pagina } = {}) {
   const where = {};
   // CLI-13: los pedidos de un cliente, desde el listado de clientes.
@@ -131,9 +150,11 @@ export async function listarTodas({ q, estado, estado_pago, comprobante, cliente
   if (Object.hasOwn(FILTROS_COMPROBANTE, comprobante)) where.id = FILTROS_COMPROBANTE[comprobante];
   if (q) {
     const text = "%" + String(q).trim().slice(0, 100) + "%";
-    const people = await Persona.findAll({ where: { [Op.or]: [{ nombre: { [Op.iLike]: text } }, { apellido: { [Op.iLike]: text } }, { email: { [Op.iLike]: text } }] }, attributes: ["id"], raw: true });
+    // PED-77: también por celular.
+    const people = await Persona.findAll({ where: { [Op.or]: [{ nombre: { [Op.iLike]: text } }, { apellido: { [Op.iLike]: text } }, { email: { [Op.iLike]: text } }, { celular: { [Op.iLike]: text } }] }, attributes: ["id"], raw: true });
     const users = people.length ? await Usuario.findAll({ where: { persona_id: { [Op.in]: people.map((p) => p.id) } }, attributes: ["id"], raw: true }) : [];
-    where[Op.or] = [{ usuario_id: { [Op.in]: users.map((u) => u.id) } }, ...(/^#?\d+$/.test(q) ? [{ id: Number(String(q).replace("#", "")) }] : [])];
+    // Un celular (muchos dígitos) no es un número de pedido: no entra en un entero y la consulta fallaría.
+    where[Op.or] = [{ usuario_id: { [Op.in]: users.map((u) => u.id) } }, ...(/^#?\d{1,9}$/.test(String(q).trim()) ? [{ id: Number(String(q).trim().replace("#", "")) }] : [])];
   }
   const { page, limit, offset } = normalizarPaginacion({ page: pagina, limit: por_pagina, defaultLimit: 20, maxLimit: 50 });
   const result = await NotaPedido.findAndCountAll({

@@ -4,7 +4,7 @@ import multer from "multer";
 import {
   crearNotaPedidoController, listarMisNotasController, listarTodasController,
   cambiarEstadoController, cancelarMiNotaController, registrarPagoController, anularPagoController,
-  exportarNotaPedidoController,
+  exportarNotaPedidoController, obtenerMiNotaController,
 } from "../controllers/nota_pedido_controller.js";
 import {
   subirComprobanteController, enlaceComprobanteController, aceptarComprobanteController, rechazarComprobanteController,
@@ -25,6 +25,7 @@ notaPedidoRouter.get("/lista-carga", requirePermiso("pedidos.ver"), listaCargaCo
 
 notaPedidoRouter.get("/", listarMisNotasController);
 notaPedidoRouter.post("/", crearNotaPedidoController);
+notaPedidoRouter.get("/:id", obtenerMiNotaController); // PED-76: solo los propios
 // Sin rol de gestión: el servicio solo encuentra pedidos del usuario de la sesión.
 notaPedidoRouter.post("/:id/cancelar", cancelarMiNotaController);
 notaPedidoRouter.post("/:id/comprobantes", subida.single("archivo"), subirComprobanteController);

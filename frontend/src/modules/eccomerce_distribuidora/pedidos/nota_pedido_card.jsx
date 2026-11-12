@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
 import { accionesDeEstado, orderConfig, ESTADOS } from "../config/order_config.js";
 import { storefrontConfig } from "../storefront_config.js";
 import OrderSummary from "./controles/order_summary.jsx";
@@ -11,6 +11,8 @@ import ActionButton from "../../../core/controls/ui/action_button.jsx";
 import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
 import { ListaComprobantes } from "./pago_transferencia.jsx";
 import { condicionIva, tipoFacturaSugerida } from "../../../../../core/fiscal_config.js";
+import { brandConfig } from "../../../proyecto/config/brand_config.js";
+import { linkWhatsapp, mensajeEstadoCliente, numeroWhatsapp } from "./controles/mensajes_estado.js";
 const person = (u) => u?.persona ? [u.persona.nombre, u.persona.apellido].filter(Boolean).join(" ") : "Equipo";
 const date = (value) => new Date(value).toLocaleString("es-AR");
 
@@ -52,6 +54,11 @@ export default function NotaPedidoCard({ nota, operatorId, puedeCobrar = false, 
   }
   const needsReason = action && (action.payment || action.receipt === "rechazar" || orderConfig.reasonRequired.includes(action.previous + ":" + action.state));
   const pendientes = nota.comprobantes?.filter((c) => c.estado === "pendiente").length ?? 0;
+  // PED-75: el mensaje dice el estado actual y lleva el link al pedido; lo manda la persona del equipo.
+  const celularCliente = numeroWhatsapp(nota.usuario?.persona?.celular);
+  const avisoWhatsapp = celularCliente && linkWhatsapp(celularCliente, mensajeEstadoCliente(
+    { id: nota.id, estado: nota.estado, nombre: nota.usuario?.persona?.nombre }, brandConfig.nombre, `${window.location.origin}/distribuidora/mis-pedidos/${nota.id}`,
+  ));
   const acciones = puedeCambiarEstado ? accionesDeEstado(nota.estado) : { siguiente: null, cancelar: false, otras: [] };
   const tituloModal = action?.payment ? "Anular registro de cobro" : action?.receipt === "aceptar" ? "Aceptar comprobante" : action?.receipt === "rechazar" ? "Rechazar comprobante" : "Confirmar cambio de estado";
   const textoModal = action?.payment ? "Se anulará el registro de " + money(action.payment.monto) + ". Esta acción no realiza una devolución de dinero."
@@ -88,6 +95,11 @@ export default function NotaPedidoCard({ nota, operatorId, puedeCobrar = false, 
         {acciones.cancelar && <button type="button" disabled={busy} onClick={() => prepare({ state: "cancelada", previous: nota.estado })} className="min-h-11 rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50">Cancelar pedido</button>}
         <button type="button" disabled={busy} onClick={exportFile} className="min-h-11 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">Exportar Excel</button>
       </div>
+      {avisoWhatsapp
+        ? <a href={avisoWhatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#1E7A46] px-4 text-sm font-bold text-white hover:bg-[#17633A] sm:w-auto">
+          <MessageCircle size={17} aria-hidden="true" /> Avisarle por WhatsApp: {ESTADOS[nota.estado]?.label}
+        </a>
+        : <p className="text-xs text-slate-500">El cliente no tiene celular cargado: no se le puede avisar por WhatsApp.</p>}
       {acciones.otras.length > 0 && <details className="text-sm">
         <summary className="min-h-11 cursor-pointer content-center font-semibold text-slate-600">Más opciones</summary>
         <div className="flex flex-wrap gap-2 pt-2">{acciones.otras.map((otra) => <button type="button" key={otra.estado} disabled={busy} onClick={() => prepare({ state: otra.estado, previous: nota.estado })} className="min-h-11 rounded-xl border border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">{otra.label}</button>)}</div>

@@ -34,7 +34,7 @@ const registrarCliente = comoRuta(authSrv.registrarCliente, esquemaRegistro);
 const login = comoRuta(authSrv.login, esquemaLogin);
 const loginConGoogle = comoRuta(authSrv.loginConGoogle, esquemaGoogle);
 const { obtenerCarrito, agregarItem, fusionarCarrito, actualizarCantidad, vaciarCarrito } = await import("../src/modulos/eccomerce_distribuidora/services/carrito_distribuidora_service.js");
-const { crearNotaPedido, cambiarEstado, cancelarPropia, registrarPago, anularPago, listarTodas } = await import("../src/modulos/eccomerce_distribuidora/services/nota_pedido_service.js");
+const { crearNotaPedido, cambiarEstado, cancelarPropia, registrarPago, anularPago, listarTodas, obtenerPropia } = await import("../src/modulos/eccomerce_distribuidora/services/nota_pedido_service.js");
 const { createResetToken } = await import("../src/core/services/common/auth_tokens.js");
 const { resetPassword } = await import("../src/core/services/usuarios/password_recovery_service.js");
 const { env } = await import("../src/core/configuracion_servidor/env.js");
@@ -131,6 +131,9 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.equal(list.total, 1);
       assert.equal(list.data[0].historial_estados.length, 4);
       assert.equal((await listarTodas({ q: "NadieExiste" })).total, 0);
+      // PED-77: también por celular; un número largo no se toma como número de pedido.
+      assert.equal((await listarTodas({ q: "2345-6789" })).data.some((n) => n.id === note.id), true);
+      assert.equal((await listarTodas({ q: "1123456789012" })).total, 0);
     });
     await t.test("cobros: reintentos, saldo máximo y anulación auditada", async () => {
       const note = await models.NotaPedido.findOne();
@@ -238,6 +241,14 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       await cambiarEstado(confirmada.id, "confirmado", { usuario_id: id, expectedState: "pendiente" });
       await assert.rejects(cancelarPropia(id, confirmada.id, { motivo: "Tarde" }), /en proceso/);
       assert.equal((await confirmada.reload()).estado, "confirmado");
+      // PED-76: el detalle propio trae el historial; de los motivos, solo el de la cancelación. Uno ajeno, nada.
+      await cambiarEstado(confirmada.id, "pendiente", { usuario_id: id, expectedState: "confirmado", motivo: "Interno: revisar precio" });
+      const detalle = await obtenerPropia(id, confirmada.id);
+      assert.deepEqual(detalle.historial_estados.map((h) => h.nuevo), ["pendiente", "confirmado", "pendiente"]);
+      assert.equal(detalle.historial_estados.some((h) => h.motivo === "Interno: revisar precio"), false, "el motivo interno no llega al cliente");
+      assert.equal(detalle.items.length, 1);
+      assert.match((await obtenerPropia(id, nota.id)).historial_estados.at(-1).motivo, /Me equivoqué/);
+      assert.equal(await obtenerPropia(otro.usuario_id, nota.id), null);
     });
     await t.test("HTTP: cliente no gestiona notas y el supervisor sí, con sus permisos", async () => {
       const express = (await import("express")).default;

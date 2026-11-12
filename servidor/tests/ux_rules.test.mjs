@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createResetToken, verifyResetToken, passwordVersion } from "../src/core/services/common/auth_tokens.js";
 import { validQuantity, validateSnapshot } from "../src/core/services/common/cart_rules.js";
 import { accionesDeEstado, orderConfig, receiptProblem, transitionProblem } from "../../rubros/eccomerce_distribuidora/order_config.js";
+import { PASOS_CLIENTE, linkWhatsapp, mensajeEstadoCliente, numeroWhatsapp, queSigue } from "../../frontend/src/modules/eccomerce_distribuidora/pedidos/controles/mensajes_estado.js";
 import { CODIGOS_PERMISO, dependientesDe, permisosConfig, permisosEfectivos, tienePermiso } from "../../core/permisos_config.js";
 import { cumpleAcceso } from "../../frontend/src/core/controls/acceso/acceso.js";
 import { cuitValido, dniValido, fiscalConfig, normalizarDocumento, problemaFiscal, tipoFacturaSugerida } from "../../core/fiscal_config.js";
@@ -543,4 +544,17 @@ test("CLI-14: ver clientes es un permiso propio que de entrada no tiene ningún 
   assert.ok(permisosConfig.grupos.some((g) => g.codigo === permiso.grupo));
   assert.equal(tienePermiso({ roles: ["supervisor"], permisos: permisosEfectivos(["supervisor"], ["pedidos.ver", "cobros.gestionar"]) }, "clientes.ver"), false);
   assert.equal(tienePermiso({ roles: ["admin"], permisos: permisosEfectivos(["admin"], []) }, "clientes.ver"), true);
+});
+
+test("PED-75 y PED-76: mensaje de WhatsApp según el estado, celular para wa.me y qué sigue", () => {
+  assert.deepEqual(PASOS_CLIENTE.filter((e) => !orderConfig.states[e]), [], "los pasos son estados reales");
+  for (const estado of Object.keys(orderConfig.states)) assert.notEqual(queSigue(estado), "", estado);
+  assert.equal(mensajeEstadoCliente({ id: 12, estado: "en_curso", nombre: "Ana María" }, "DC Formosa", "https://dc.test/distribuidora/mis-pedidos/12"),
+    "¡Hola Ana! Te escribimos de DC Formosa por tu pedido #12: lo estamos preparando.\nPodés verlo acá: https://dc.test/distribuidora/mis-pedidos/12");
+  assert.doesNotMatch(mensajeEstadoCliente({ id: 12, estado: "pendiente" }, "DC", null), /verlo/);
+  assert.equal(numeroWhatsapp("11 2345-6789"), "5491123456789");
+  assert.equal(numeroWhatsapp("+54 9 370 412-3456"), "5493704123456");
+  assert.equal(numeroWhatsapp("123"), null, "incompleto");
+  assert.equal(numeroWhatsapp(null), null);
+  assert.equal(linkWhatsapp("549111", "Hola #12"), "https://wa.me/549111?text=Hola%20%2312");
 });

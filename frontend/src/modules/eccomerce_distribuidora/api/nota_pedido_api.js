@@ -10,6 +10,12 @@ export async function getMisNotasPedido() {
   return data.data;
 }
 
+// PED-76: un pedido propio con su historial.
+export async function getMiNotaPedido(id) {
+  const { data } = await http.get(`/distribuidora/notas-pedido/${id}`);
+  return data.data;
+}
+
 // El comprador cancela su pedido; con volverAlCarrito sus productos vuelven al carrito.
 export async function cancelarMiNotaPedido(id, { motivo, volverAlCarrito = false } = {}) {
   const { data } = await http.post(`/distribuidora/notas-pedido/${id}/cancelar`, { motivo, volverAlCarrito });

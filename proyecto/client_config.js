@@ -5,6 +5,9 @@ export const clientConfig = {
   auth: { publicRegistration: projectModules.eccomerce_distribuidora, passwordMinLength: 8, passwordMaxLength: 72, resetMinutes: 20, sesionClienteDias: 30, sesionPersonalHoras: 24 },
   // Catálogo y carrito de la tienda (las reglas del carrito del core leen estos límites).
   tienda: { publicCatalog: true, guestCart: true, pageSize: 24, maxQuantity: 9999, maxCartLines: 200, cartTtlDays: 30 },
+  // PED-76: WhatsApp de la distribuidora para "Consultar por WhatsApp" en el pedido del cliente: con código
+  // de país y sin "+" (ej. "5493704000000"). [COMPLETAR] Mientras sea null no se ofrece el botón.
+  whatsapp: null,
   // Datos que ve el comprador para pagar. [COMPLETAR] con los reales del cliente antes de publicar.
   transferencia: {
     titular: "[DC SRL titular de la cuenta]",

@@ -14,6 +14,9 @@ import {
 } from "../api/nota_pedido_api.js";
 
 const FILTROS_COMPROBANTE = [{ value: "por_revisar", label: "Comprobante para revisar" }, { value: "sin", label: "Sin comprobante" }];
+// PED-77: pestañas por estado, en el orden en que avanza un pedido.
+const PESTANAS = [["", "Todos"], ["pendiente", "Recibidos"], ["confirmado", "Confirmados"], ["en_curso", "En preparación"], ["entregado", "Entregados"], ["cancelada", "Cancelados"]]
+  .filter(([estado]) => !estado || ESTADOS[estado]);
 import NotaPedidoCard from "./nota_pedido_card.jsx";
 
 export default function NotasPedidoDistribuidoraPage() {
@@ -37,9 +40,16 @@ export default function NotasPedidoDistribuidoraPage() {
         <div><h1 className="text-2xl font-extrabold">Notas de pedido</h1><p className="mt-1 text-sm text-slate-600">Revisá las solicitudes, coordiná la entrega y registrá los cobros recibidos.</p></div>
         <ActionButton disabled={query.isFetching} onClick={() => query.refetch()}>{query.isFetching ? "Actualizando…" : "Actualizar"}</ActionButton>
       </div>
-      <div className="grid items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SearchField value={filters.q} onSearch={(q) => filter("q", q)} label="Buscar pedidos" placeholder="Número, cliente o email" />
-        <SelectField name="order-state" label="Estado del pedido" placeholder="Todos los estados" value={filters.estado} onChange={(e) => filter("estado", e.target.value)} options={Object.entries(ESTADOS).map(([value, s]) => ({ value, label: s.label }))} />
+      <nav aria-label="Estado del pedido" className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 [scrollbar-width:none]">
+        {PESTANAS.map(([estado, label]) => (
+          <button key={estado || "todos"} type="button" aria-pressed={filters.estado === estado} onClick={() => filter("estado", estado)}
+            className={`min-h-11 shrink-0 rounded-xl px-4 text-sm font-semibold transition sm:flex-1 ${filters.estado === estado ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}>
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div className="grid items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
+        <SearchField value={filters.q} onSearch={(q) => filter("q", q)} label="Buscar pedidos" placeholder="Número, cliente, email o celular" />
         <SelectField name="payment-state" label="Estado del cobro" placeholder="Todos los cobros" value={filters.estado_pago} onChange={(e) => filter("estado_pago", e.target.value)} options={Object.entries(ESTADOS_PAGO).map(([value, s]) => ({ value, label: s.label }))} />
         <SelectField name="receipt-state" label="Comprobante" placeholder="Todos" value={filters.comprobante} onChange={(e) => filter("comprobante", e.target.value)} options={FILTROS_COMPROBANTE} />
       </div>

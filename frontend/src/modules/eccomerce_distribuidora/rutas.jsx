@@ -4,6 +4,7 @@ const ProductosDistribuidoraPage = lazy(() => import("./productos/productos_page
 const ProductoDetalleDistribuidoraPage = lazy(() => import("./productos/producto_detalle_page.jsx"));
 const NotaPedidoPage = lazy(() => import("./carrito/nota_pedido_page.jsx"));
 const MisPedidosPage = lazy(() => import("./carrito/mis_pedidos_page.jsx"));
+const MiPedidoPage = lazy(() => import("./carrito/mi_pedido_page.jsx"));
 const PerfilPage = lazy(() => import("./perfil/perfil_page.jsx"));
 const CategoriasDistribuidoraPage = lazy(() => import("./admin/categorias_page.jsx"));
 const ArticuloFormPage = lazy(() => import("./admin/articulo_form_page.jsx"));
@@ -34,6 +35,7 @@ export const eccomerceDistribuidoraRoutes = [
   { path: "/distribuidora/catalogo/:id", element: storefrontConfig.publicCatalog ? <ProductoDetalleDistribuidoraPage /> : protegida(<ProductoDetalleDistribuidoraPage />) },
   { path: "/distribuidora/carrito", element: storefrontConfig.guestCart && storefrontConfig.publicCatalog ? <NotaPedidoPage /> : protegida(<NotaPedidoPage />) },
   { path: "/distribuidora/mis-pedidos", element: protegida(<MisPedidosPage />) },
+  { path: "/distribuidora/mis-pedidos/:id", element: protegida(<MiPedidoPage />) }, // PED-76
 
   // Sin restricción de rol — el backend (perfil_cliente_router.js) tampoco
   // la tiene, es siempre "mi propio perfil" (req.user.usuario_id). El link

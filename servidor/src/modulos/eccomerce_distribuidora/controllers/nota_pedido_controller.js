@@ -2,7 +2,7 @@ import { orderConfig } from "../../../../../rubros/eccomerce_distribuidora/order
 import ExcelJS from "exceljs";
 import { condicionIva, tipoFacturaSugerida } from "../../../../../core/fiscal_config.js";
 import {
-  crearNotaPedido, listarPropias, listarTodas, obtenerDetalle,
+  crearNotaPedido, listarPropias, listarTodas, obtenerDetalle, obtenerPropia,
   cambiarEstado, cancelarPropia, registrarPago, anularPago,
 } from "../services/nota_pedido_service.js";
 
@@ -27,6 +27,19 @@ export async function listarMisNotasController(req, res) {
   } catch (error) {
     console.error("Error al listar notas de pedido:", error);
     return res.status(500).json({ ok: false, mensaje: "Error interno al listar los pedidos" });
+  }
+}
+
+/** PED-76: detalle de un pedido propio; uno ajeno responde igual que uno que no existe. */
+export async function obtenerMiNotaController(req, res) {
+  const id = Number(req.params.id);
+  try {
+    const nota = Number.isInteger(id) && id > 0 ? await obtenerPropia(req.user.usuario_id, id) : null;
+    if (!nota) return res.status(404).json({ ok: false, codigo: "NO_EXISTE", mensaje: "No encontramos ese pedido." });
+    return res.json({ ok: true, data: nota });
+  } catch (error) {
+    console.error("Error al obtener la nota de pedido:", error);
+    return res.status(500).json({ ok: false, mensaje: "Error interno al cargar el pedido" });
   }
 }
 

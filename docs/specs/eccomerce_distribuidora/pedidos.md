@@ -107,6 +107,9 @@ equipo lo lleve de "Recibido" a "Entregado" sin perder nada en el camino: stock,
 | PED-72 | Las ventas no cuentan los pedidos cancelados. | ✅ mismo test que PED-70 |
 | PED-73 | Quien tiene "Editar artículos" ve cuántas presentaciones están sin stock o bajo el mínimo, con ejemplos y acceso directo a la lista filtrada. | ✅ mismo test que PED-70; `storefront.spec.js` › "artículos: tabla con código, bultos y stock bajo…" |
 | PED-74 | Cada parte del resumen se muestra solo con su permiso: sin "Ver pedidos" ni "Ver ventas y saldos" no hay resumen de pedidos, y sin "Editar artículos" no hay resumen de stock. | ✅ mismo test que PED-70 |
+| PED-75 | En el detalle de cada pedido del panel, "Avisarle por WhatsApp" abre el chat con el celular del cliente y un mensaje según el estado, con el link a su pedido; sin celular no aparece y se avisa ([cambio](../cambios/2026-11-pedidos-seguimiento-whatsapp.md)). | ✅ `ux_rules.test.mjs` › "PED-75 y PED-76…"; `storefront.spec.js` › "PED-75 y PED-77…" y "staff gestiona notas…" |
+| PED-76 | El cliente ve cada pedido en `/distribuidora/mis-pedidos/:id`: pasos, qué sigue, artículos y entrega, cobro y comprobantes, cancelar mientras está Recibido e historial (de los motivos, solo el de la cancelación); "Consultar por WhatsApp" si `client_config.whatsapp` está cargado. Se actualiza al volver a la pestaña. La lista es un resumen. Uno ajeno responde como inexistente. | ✅ `checkout.integration.mjs` › "comprador: cancela en Recibido…"; `storefront.spec.js` › "comprador cancela…" y "comprador adjunta el comprobante…" |
+| PED-77 | El panel de pedidos tiene pestañas por estado (en la URL) y busca también por celular; un número largo no se toma como número de pedido. | ✅ `checkout.integration.mjs` › "gestión: transiciones…"; `storefront.spec.js` › "PED-75 y PED-77…" |
 
 ### Facturación (preparada, no integrada)
 

@@ -585,6 +585,9 @@ test("staff gestiona notas y registra cobros con historial en cualquier pantalla
   await expect(page.getByRole("heading", { name: "Notas de pedido", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Pedido #123/ }).click();
   await noOverflow(page);
+  // PED-75: sin celular cargado no hay botón de WhatsApp.
+  await expect(page.getByText("El cliente no tiene celular cargado")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Avisarle por WhatsApp/ })).toHaveCount(0);
   // PED-19: un botón principal con el próximo paso; volver atrás queda en "Más opciones".
   await expect(page.getByRole("button", { name: /^Pasar a/ })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Cancelar pedido" })).toBeVisible();
@@ -622,6 +625,7 @@ test("comprador cancela un pedido recibido y lo vuelve a armar; el confirmado no
   const cancelaciones = [];
   let carrito = [];
   await page.route("**/api/distribuidora/notas-pedido", (route) => route.fulfill({ json: { ok: true, data: pedidos } }));
+  for (const p of pedidos) await page.route(`**/api/distribuidora/notas-pedido/${p.id}`, (route) => route.fulfill({ json: { ok: true, data: { ...p, historial_estados: [] } } }));
   await page.route("**/api/distribuidora/carrito", (route) => route.fulfill({ json: { ok: true, data: carrito } }));
   await page.route("**/api/distribuidora/notas-pedido/200/cancelar", (route) => {
     cancelaciones.push(route.request().postDataJSON());
@@ -633,8 +637,15 @@ test("comprador cancela un pedido recibido y lo vuelve a armar; el confirmado no
   });
   await page.goto("/distribuidora/mis-pedidos");
   await expect(page.getByRole("heading", { name: "Pedido #201" })).toBeVisible();
+  // PED-76: la lista es un resumen; cancelar y el cobro están en el detalle de cada pedido.
+  await expect(page.getByRole("button", { name: "Cancelar o cambiar pedido" })).toHaveCount(0);
   // Solo el pedido recibido ofrece cancelar; el confirmado ya está en manos del equipo.
-  await expect(page.getByRole("button", { name: "Cancelar o cambiar pedido" })).toHaveCount(1);
+  await page.getByRole("link", { name: "Ver pedido #201" }).click();
+  await expect(page.getByRole("heading", { name: "Pedido #201", level: 1 })).toBeVisible();
+  await expect(page.getByText("Está confirmado. Lo vamos a preparar para la entrega.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cancelar o cambiar pedido" })).toHaveCount(0);
+  await page.goto("/distribuidora/mis-pedidos");
+  await page.getByRole("link", { name: "Ver pedido #200" }).click();
   await page.getByRole("button", { name: "Cancelar o cambiar pedido" }).click();
   const dialogo = page.getByRole("dialog");
   await expect(dialogo).toContainText("Cancelar pedido #200");
@@ -662,11 +673,12 @@ const PNG_MINIMO = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0
 test("comprador adjunta el comprobante de transferencia, ve el rechazo y lo abre", async ({ page, context }, info) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("token", "mock-session"));
-  const pedido = { id: 300, estado: "confirmado", estado_pago: "pendiente", total: 6000, monto_pagado: 0, fecha_alta: "2026-10-20T12:00:00Z", pagos: [],
+  const pedido = { id: 300, estado: "confirmado", estado_pago: "pendiente", total: 6000, monto_pagado: 0, fecha_alta: "2026-10-20T12:00:00Z", pagos: [], direccion: "Av. Prueba 123", localidad: "Formosa",
     items: [{ id: 1, cantidad: 5, nombre_producto: product.nombre, subtotal: 6000 }],
     comprobantes: [{ id: 9, nombre_archivo: "transferencia-borrosa.jpg", estado: "rechazado", motivo_rechazo: "No se lee el importe", subido_en: "2026-10-20T13:00:00Z" }] };
   const subidas = [];
   await page.route("**/api/distribuidora/notas-pedido", (route) => route.fulfill({ json: { ok: true, data: [pedido] } }));
+  await page.route("**/api/distribuidora/notas-pedido/300", (route) => route.fulfill({ json: { ok: true, data: { ...pedido, historial_estados: [] } } }));
   await page.route("**/api/distribuidora/notas-pedido/300/comprobantes", (route) => {
     subidas.push(route.request().headers()["content-type"]);
     const nuevo = { id: 10, nombre_archivo: "captura.png", estado: "pendiente", subido_en: "2026-10-21T10:00:00Z" };
@@ -675,7 +687,7 @@ test("comprador adjunta el comprobante de transferencia, ve el rechazo y lo abre
   });
   await page.route("**/api/distribuidora/notas-pedido/300/comprobantes/9/enlace", (route) => route.fulfill({ json: { ok: true, data: { url: "https://cloudinary.test/comprobante-9.jpg" } } }));
   await context.route("https://cloudinary.test/**", (route) => route.fulfill({ contentType: "text/plain", body: "archivo privado" }));
-  await page.goto("/distribuidora/mis-pedidos");
+  await page.goto("/distribuidora/mis-pedidos/300");
   const pago = page.getByRole("region", { name: "Pago por transferencia" });
   await expect(pago.getByText("Motivo: No se lee el importe")).toBeVisible();
   // Los datos para transferir y los productos ya están desplegados: no hace falta abrirlos.
@@ -694,6 +706,37 @@ test("comprador adjunta el comprobante de transferencia, ve el rechazo y lo abre
   await expect(pestana).toHaveURL("https://cloudinary.test/comprobante-9.jpg");
   await noOverflow(page);
   await page.screenshot({ path: info.outputPath("comprobante-comprador.png"), fullPage: true });
+});
+
+test("PED-75 y PED-77: pestañas por estado, búsqueda por celular y aviso por WhatsApp con el estado", async ({ page }, info) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("token", "mock-session"));
+  await page.route("**/api/auth/me", (route) => route.fulfill({ json: { ok: true, usuario: conPermisos({ usuario_id: 8, nombre: "Eva", roles: ["supervisor"] }) } }));
+  const pedido = { id: 77, estado: "en_curso", estado_pago: "pendiente", total: 2400, monto_pagado: 0, fecha_alta: "2026-11-10T12:00:00Z", direccion: "Av. Prueba 123", localidad: "Formosa",
+    usuario: { persona: { nombre: "Ana María", apellido: "Cliente", email: "ana@example.test", celular: "370 412-3456" } }, items: [{ id: 1, cantidad: 2, nombre_producto: product.nombre, subtotal: 2400 }], pagos: [], historial_estados: [] };
+  const consultas = [];
+  await page.route("**/api/distribuidora/notas-pedido/todas**", (route) => {
+    consultas.push(Object.fromEntries(new URL(route.request().url()).searchParams));
+    return route.fulfill({ json: { ok: true, data: [pedido], page: 1, totalPages: 1, total: 1 } });
+  });
+  await page.goto("/distribuidora/admin/notas-pedido");
+  const pestanas = page.getByRole("navigation", { name: "Estado del pedido" });
+  await expect(pestanas.getByRole("button", { name: "Todos" })).toHaveAttribute("aria-pressed", "true");
+  await pestanas.getByRole("button", { name: "En preparación" }).click();
+  await expect(page).toHaveURL(/estado=en_curso/);
+  await expect.poll(() => consultas.at(-1)?.estado).toBe("en_curso");
+  await page.getByLabel("Buscar pedidos").fill("412-3456");
+  await page.getByLabel("Buscar pedidos").press("Enter");
+  await expect.poll(() => consultas.at(-1)?.q).toBe("412-3456");
+  await page.getByRole("button", { name: /Pedido #77/ }).click();
+  const aviso = page.getByRole("link", { name: "Avisarle por WhatsApp: En preparación" });
+  const href = decodeURIComponent(await aviso.getAttribute("href"));
+  expect(href).toMatch(/^https:\/\/wa\.me\/5493704123456\?text=/);
+  expect(href).toContain("¡Hola Ana! Te escribimos de");
+  expect(href).toContain("por tu pedido #77: lo estamos preparando.");
+  expect(href).toMatch(/Podés verlo acá: http:\/\/[^/]+\/distribuidora\/mis-pedidos\/77/);
+  await noOverflow(page);
+  await page.screenshot({ path: info.outputPath("pedidos-pestanas-whatsapp.png"), fullPage: true });
 });
 
 test("gestión revisa comprobantes: staff acepta con el importe o rechaza con motivo; el vendedor no cobra", async ({ page }, info) => {
