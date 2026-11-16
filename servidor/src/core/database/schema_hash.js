@@ -12,7 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * bootstrap (agrupa los modelos en listas y decide el orden). Si ninguno de
  * estos archivos cambió desde el último boot exitoso, sync({alter:true}) no
  * tiene nada nuevo que encontrar — bootstrap_database() usa este hash para
- * saltarse esa vuelta completa (~2s locales, bastante más contra Neon).
+ * saltarse esa vuelta completa (~2s locales, bastante más contra Supabase remoto).
  *
  * Se hashea el CONTENIDO de los archivos, no la estructura de los modelos en
  * memoria — más simple y confiable que reconstruir a mano qué compara

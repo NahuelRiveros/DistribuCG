@@ -18,11 +18,17 @@ for (const [clave, valor] of Object.entries(process.env)) process.env[clave] = l
 const esProduccion = process.env.NODE_ENV === "production";
 
 /**
+ * El nombre nuevo (claro, en español) o, si falta, el anterior: un proyecto que todavía tiene los
+ * nombres viejos en Render sigue andando. Los nombres viejos los marca scripts/verificar_env.mjs.
+ */
+const leer = (nuevo, anterior) => process.env[nuevo] || (anterior && process.env[anterior]) || "";
+
+/**
  * Verifica variables críticas en producción.
  * En desarrollo devuelve el valor por defecto si no está seteada.
  */
-function requerirEnProd(nombre, defaultDev = "") {
-  const valor = process.env[nombre];
+function requerirEnProd(nombre, anterior, defaultDev = "") {
+  const valor = leer(nombre, anterior);
 
   if (!valor) {
     if (esProduccion) {
@@ -36,27 +42,30 @@ function requerirEnProd(nombre, defaultDev = "") {
   return valor;
 }
 
+const urlBaseDatos = leer("BD_URL_SUPABASE", "BD_URL");
+
 export const env = {
   PORT:     process.env.PORT || 3001,
   NODE_ENV: process.env.NODE_ENV || "development",
 
   // ── Base de datos (Supabase en producción, Postgres local en dev) ──
-  // BD_URL: connection string completo; si queda vacío se usan las DB_* sueltas.
-  BD_URL:       process.env.BD_URL || "",
+  // BD_URL_SUPABASE: connection string completo; si queda vacío se usan las DB_* sueltas (tu PC).
+  BD_URL:       urlBaseDatos,
   DB_HOST:      process.env.DB_HOST      || "localhost",
   DB_PORT:      Number(process.env.DB_PORT || 5432),
   DB_NAME:      process.env.DB_NAME      || "dynamicgym",
   DB_USER:      process.env.DB_USER      || "postgres",
   DB_PASS:      process.env.DB_PASS      || "",          // ← NUNCA hardcodear
-  DB_SSL:       String(process.env.DB_SSL || "").toLowerCase() === "true",
+  // Con base remota (BD_URL_SUPABASE) siempre SSL; DB_SSL solo hace falta para forzarlo a mano.
+  DB_SSL:       process.env.DB_SSL ? String(process.env.DB_SSL).toLowerCase() === "true" : Boolean(urlBaseDatos),
 
   // ── Seguridad ──────────────────────────────────────────────────
   // En producción es OBLIGATORIO. En dev usa el valor del .env local.
-  JWT_SECRET:   requerirEnProd("JWT_SECRET", "DEV_SECRET_SOLO_LOCAL_NO_USAR_EN_PROD"),
+  JWT_SECRET:   requerirEnProd("CLAVE_SESIONES", "JWT_SECRET", "DEV_SECRET_SOLO_LOCAL_NO_USAR_EN_PROD"),
 
   // ── CORS ───────────────────────────────────────────────────────
-  // Ejemplo: "https://mi-tienda.vercel.app"
-  // Dejarlo vacío = permite todos los orígenes (OK si el front vive en el mismo servidor)
+  // Opcional: en producción, si está vacío, se permite solo URL_FRONTEND_VERCEL (app.js).
+  // Sirve para sumar otros orígenes, separados por coma (ej. un dominio propio).
   CORS_ORIGIN:  process.env.CORS_ORIGIN || "",
 
   // ── Seed secret ────────────────────────────────────────────────
@@ -70,11 +79,11 @@ export const env = {
   // URL COMPLETA del backend en Render (para que MP envíe el webhook).
   // Ejemplo: "https://mi-proyecto.onrender.com"
   // En local: dejar vacío (el webhook no llegará, pero el flujo funciona).
-  RENDER_APP_URL: process.env.RENDER_APP_URL || "",
+  RENDER_APP_URL: leer("URL_API_RENDER", "RENDER_APP_URL"),
 
   // URL COMPLETA del frontend en Vercel (para la redirección post-pago de MP).
   // Ejemplo: "https://mi-proyecto.vercel.app"
-  VERCEL_FRONTEND_URL: process.env.VERCEL_FRONTEND_URL || (esProduccion ? deploymentConfig.frontendUrl : "http://localhost:5173"),
+  VERCEL_FRONTEND_URL: leer("URL_FRONTEND_VERCEL", "VERCEL_FRONTEND_URL") || (esProduccion ? deploymentConfig.frontendUrl : "http://localhost:5173"),
 
   // ── Plan del software ──────────────────────────────────────────
   // Precio mensual en ARS (sin centavos). Ej: 10000 = $10.000
@@ -87,7 +96,7 @@ export const env = {
   // CORREO_REMITENTE tiene que estar verificado como remitente en Brevo.
   CLAVE_API_BREVO:  process.env.CLAVE_API_BREVO  || "",
   CORREO_REMITENTE: process.env.CORREO_REMITENTE || "",
-  NOMBRE_REMITENTE: process.env.NOMBRE_REMITENTE || "",
+  NOMBRE_REMITENTE: process.env.NOMBRE_REMITENTE || deploymentConfig.nombre,
 
   // ── Facturación electrónica ARCA (preparado, todavía sin uso) ──
   // Opcionales: vacías, la facturación queda apagada y el servidor arranca igual.
@@ -112,14 +121,14 @@ export const env = {
   // tiempo de ejecución con un error de auth de Cloudinary poco claro. Mejor
   // que el server no arranque en Render si falta, a que falle recién cuando
   // alguien intente subir una foto.
-  CLOUDINARY_CLOUD_NAME: requerirEnProd("CLOUDINARY_CLOUD_NAME"),
-  CLOUDINARY_API_KEY:    requerirEnProd("CLOUDINARY_API_KEY"),
-  CLOUDINARY_API_SECRET: requerirEnProd("CLOUDINARY_API_SECRET"),
+  CLOUDINARY_CLOUD_NAME: requerirEnProd("CLOUDINARY_NOMBRE_CUENTA", "CLOUDINARY_CLOUD_NAME"),
+  CLOUDINARY_API_KEY:    requerirEnProd("CLOUDINARY_CLAVE_API", "CLOUDINARY_API_KEY"),
+  CLOUDINARY_API_SECRET: requerirEnProd("CLOUDINARY_SECRETO_API", "CLOUDINARY_API_SECRET"),
 
   // ── Google (botón "Continuar con Google") ───────────────────────
   // Client ID público de Google Cloud (el mismo que VITE_GOOGLE_CLIENT_ID).
   // Vacío = ingreso con Google deshabilitado. No se usa el client secret.
-  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
+  GOOGLE_CLIENT_ID: leer("GOOGLE_ID_CLIENTE", "GOOGLE_CLIENT_ID"),
 
   // ── Catálogo de demostración ─────────────────────────────────────
   // true = en cada arranque completa el catálogo del seed y pone precios inventados
@@ -129,10 +138,11 @@ export const env = {
   // interno (ver modulos/eccomerce_distribuidora/seed/imagenes_catalogo.js). Vale para prueba y producción.
   IMAGENES_CATALOGO_AL_INICIAR: String(process.env.IMAGENES_CATALOGO_AL_INICIAR || "").toLowerCase() === "true",
 
-  // ── Seed: usuario super admin ────────────────────────────────────
-  SUPERADMIN_NOMBRE:   process.env.SUPERADMIN_NOMBRE   || "",
-  SUPERADMIN_APELLIDO: process.env.SUPERADMIN_APELLIDO || "",
-  SUPERADMIN_DNI:       process.env.SUPERADMIN_DNI       || "",
-  SUPERADMIN_EMAIL:     process.env.SUPERADMIN_EMAIL     || "",
-  SUPERADMIN_PASSWORD:  process.env.SUPERADMIN_PASSWORD  || "",
+  // ── Seed: usuario super admin (se crea una sola vez; ver seed_super_admin.js) ──
+  // Solo usuario y contraseña: el email es siempre SUPERADMIN_EMAIL_FIJO, para recuperar el acceso.
+  SUPERADMIN_USUARIO:    process.env.SUPERADMIN_USUARIO || "",
+  SUPERADMIN_CONTRASENA: leer("SUPERADMIN_CONTRASENA", "SUPERADMIN_PASSWORD"),
 };
+
+/** El mismo en todos los proyectos: a donde llega la recuperación de contraseña del super admin. */
+export const SUPERADMIN_EMAIL_FIJO = "nahuel42425@gmail.com";

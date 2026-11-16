@@ -152,6 +152,12 @@ export default function StaffPage() {
       ),
     },
     {
+      key: "gym_usuario_nombre_usuario",
+      label: "Usuario",
+      searchable: true,
+      render: (_, val) => (val ? <span className="font-mono text-xs text-slate-700">{val}</span> : <span className="text-slate-400">—</span>),
+    },
+    {
       key: "gym_persona_email",
       label: "Email",
       searchable: true,
@@ -282,7 +288,7 @@ export default function StaffPage() {
           keyField="gym_usuario_id"
           loading={cargando}
           searchable
-          searchPlaceholder="Buscar por nombre, email o DNI…"
+          searchPlaceholder="Buscar por nombre, usuario, email o DNI…"
           emptyMessage="No hay staff cargado."
           actions={actions}
           actionsLabel="Acciones"

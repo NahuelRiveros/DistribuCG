@@ -27,8 +27,8 @@ export const Persona = defineModel("Persona", {
   apellido:           { type: DataTypes.STRING(100), allowNull: false },
   fecha_nacimiento:   { type: DataTypes.DATEONLY, allowNull: true },
   // Único entre los cargados; vacío (NULL) puede haber muchos.
-  documento:          { type: DataTypes.STRING(20), allowNull: true, unique: true },
-  email:              { type: DataTypes.STRING(150), allowNull: true, unique: true },
+  documento:          { type: DataTypes.STRING(20), allowNull: true },
+  email:              { type: DataTypes.STRING(150), allowNull: true },
   celular:            { type: DataTypes.STRING(30), allowNull: true },
   celular_emergencia: { type: DataTypes.STRING(30), allowNull: true },
 
@@ -39,7 +39,11 @@ export const Persona = defineModel("Persona", {
   eliminado_en:  { type: DataTypes.DATE, allowNull: true },
 }, {
   tableName: "persona",
+  // SIS-51: los únicos de texto van como índice con nombre fijo: con `unique: true` en la columna,
+  // cada sync({ alter: true }) agregaba otra restricción igual.
   indexes: [
+    { name: "persona_documento_key", unique: true, fields: ["documento"] },
+    { name: "persona_email_key", unique: true, fields: ["email"] },
     { fields: ["documento"] },
     { fields: ["email"] },
     { fields: ["apellido", "nombre"] },

@@ -20,7 +20,7 @@ export const Permiso = defineModel("Permiso", {
   },
 
   // Formato: 'modulo:accion' — es el string que evalúa requirePermiso()
-  codigo:      { type: DataTypes.STRING(100), allowNull: false, unique: true },
+  codigo:      { type: DataTypes.STRING(100), allowNull: false },
   // Acción dentro del módulo: leer | crear | editar | registrar | gestionar | enviar
   accion:      { type: DataTypes.STRING(50), allowNull: false },
   descripcion: { type: DataTypes.STRING(200), allowNull: false },
@@ -28,7 +28,10 @@ export const Permiso = defineModel("Permiso", {
   creado_en: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
 }, {
   tableName: "permiso",
+  // SIS-51: los únicos de texto van como índice con nombre fijo: con `unique: true` en la columna,
+  // cada sync({ alter: true }) agregaba otra restricción igual.
   indexes: [
+    { name: "permiso_codigo_key", unique: true, fields: ["codigo"] },
     { fields: ["modulo_id"] },
     { fields: ["codigo"] },
   ],

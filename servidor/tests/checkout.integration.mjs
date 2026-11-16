@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 dotenv.config({ path: fileURLToPath(new URL("../.env.local", import.meta.url)), quiet: true });
 process.env.NODE_ENV = "test";
 process.env.BD_URL = "";
+process.env.BD_URL_SUPABASE = ""; // nombre nuevo de la base remota: tampoco
+process.env.BD_URL_NEON = "";
 process.env.GOOGLE_CLIENT_ID = "cliente-de-prueba";
 process.env.DB_HOST = "127.0.0.1";
 process.env.DB_SSL = "false";
@@ -16,6 +18,8 @@ process.env.DB_SSL = "false";
 for (const clave of ["SMTP_USER", "SMTP_PASS", "CLAVE_API_BREVO", "CORREO_REMITENTE"]) process.env[clave] = "";
 const ownedSchema = "codex_ux_test_" + randomUUID().replaceAll("-", "");
 process.env.DB_SCHEMA = ownedSchema;
+// Con el core nuevo, BD_ESQUEMA (de .env.local) manda sobre DB_SCHEMA: se fijan las dos.
+process.env.BD_ESQUEMA = ownedSchema;
 // Las tablas de la suscripción viven en public en producción; acá, en el schema temporal.
 process.env.ESQUEMA_SUSCRIPCION = ownedSchema;
 const { sequelize, DB_SCHEMA } = await import("../src/core/database/sequelize.js");
@@ -82,6 +86,17 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     const product = await models.ProductoDistribuidora.create({ categoria_id: category.id, nombre: "Arroz" });
     const variant = await models.VariedadDistribuidora.create({ producto_id: product.id, nombre: "1 kg", precio: 100, controla_stock: true, cantidad: 100 });
     const payload = { producto_id: product.id, variedad_id: variant.id, cantidad: 2 };
+    await t.test("SIS-51: sincronizar dos veces (como dos deploys) no repite restricciones únicas, tampoco en el rubro", async () => {
+      const nombres = ["Sexo", "TipoDocumento", "TipoPersona", "Persona", "Usuario", "Rol", "UsuarioRol", "Modulo", "Permiso", "RolPermiso", "CategoriaDistribuidora", "MarcaDistribuidora", "MarcaCategoriaDistribuidora", "ProductoDistribuidora", "VariedadDistribuidora", "ListaPrecio", "ListaPrecioLocalidad", "ListaPrecioItem", "CarritoDistribuidora", "CarritoDistribuidoraItem", "NotaPedido", "NotaPedidoEstadoLog", "NotaPedidoPago", "NotaPedidoComprobante", "NotaPedidoItem", "PerfilClienteDistribuidora", "OperacionCarrito"];
+      for (let vuelta = 0; vuelta < 2; vuelta++) for (const nombre of nombres) await models[nombre].sync({ alter: true });
+      const repetidos = await sequelize.query(`
+        SELECT t.relname AS tabla, ix.indkey::text AS columnas, count(*)::int AS cuantos
+        FROM pg_index ix JOIN pg_class t ON t.oid = ix.indrelid JOIN pg_namespace n ON n.oid = t.relnamespace
+        WHERE n.nspname = :s AND ix.indisunique AND NOT ix.indisprimary
+          AND t.relname NOT IN ('rol_permiso', 'usuario_rol')
+        GROUP BY 1, 2 HAVING count(*) > 1`, { replacements: { s: DB_SCHEMA }, type: "SELECT" });
+      assert.deepEqual(repetidos, []);
+    });
     await t.test("fusionar dos veces la misma selección no duplica cantidades", async () => {
       const key = randomUUID();
       await Promise.all([fusionarCarrito(id, { key, items: [payload] }), fusionarCarrito(id, { key, items: [payload] })]);
@@ -603,11 +618,14 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     await t.test("PER-20: el personal necesita 8 caracteres al crearse o cambiar la contraseña; las viejas siguen sirviendo", async () => {
       const { crearStaff, cambiarPasswordStaff } = await import("../src/core/services/usuarios/admin_staff_service.js");
       const bcrypt = (await import("bcrypt")).default;
-      const datos = { email: "vera@example.test", nombre: "Vera", apellido: "Vendedora", documento: "30111222", rol_codigo: "vendedor", solicitanteEsSuperAdmin: false };
+      // PER-34: el personal se crea con usuario; email y documento son opcionales.
+      const datos = { nombre_usuario: "vera.ventas", email: "vera@example.test", nombre: "Vera", apellido: "Vendedora", documento: "30111222", rol_codigo: "vendedor", solicitanteEsSuperAdmin: false };
       assert.equal((await crearStaff({ ...datos, password: "1234567" })).codigo, "PASSWORD_INVALIDA");
       const creada = await crearStaff({ ...datos, password: "Clave123" });
       assert.equal(creada.ok, true, creada.mensaje);
       assert.equal((await login({ identificador: "vera@example.test", password: "Clave123" })).ok, true);
+      assert.equal((await login({ identificador: "Vera.Ventas", password: "Clave123" })).ok, true, "también con el usuario");
+      assert.equal((await crearStaff({ ...datos, nombre_usuario: "", email: "otra@example.test", documento: "", password: "Clave123" })).codigo, "FALTAN_DATOS", "sin usuario no se crea");
       assert.equal((await cambiarPasswordStaff(creada.usuario_id, "1234567", false)).codigo, "PASSWORD_INVALIDA");
       assert.equal((await cambiarPasswordStaff(creada.usuario_id, "Nueva1234", false)).ok, true);
       // Una contraseña corta de antes del cambio: se sigue aceptando para ingresar.

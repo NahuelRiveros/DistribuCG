@@ -6,8 +6,8 @@ import { TOPE_ACTIVOS, estadoBanner, hoyArgentina } from "./banner_reglas.js";
 const ORDEN = [["orden", "ASC"], ["id", "ASC"]];
 const CAMPOS_PUBLICOS = ["id", "tipo", "titulo", "imagen_url", "imagen_celular_url", "enlace"];
 
-// Cada visita al sitio pide los banners: se guardan un minuto en memoria para no despertar la
-// base (Neon) en cada página. Cualquier cambio desde el panel la vacía al instante.
+// Cada visita al sitio pide los banners: se guardan un minuto en memoria para no consultar la
+// base remota en cada página. Cualquier cambio desde el panel la vacía al instante.
 const CACHE_MS = 60 * 1000;
 let cache = null;
 const vaciarCache = () => { cache = null; };

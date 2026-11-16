@@ -4,9 +4,37 @@ import { sequelize } from "../../database/sequelize.js";
 import { Persona, Usuario, UsuarioRol, Rol, TipoDocumento } from "../../models/index.js";
 import { permisosConfig } from "../../../../../core/permisos_config.js";
 import { contrasenaValida, MENSAJE_CONTRASENA } from "../common/contrasena.js";
+import { esNombreUsuarioValido, normalizarNombreUsuario } from "../common/nombre_usuario.js";
 
 const normalizarEmail = (v) => String(v ?? "").trim().toLowerCase();
 const normalizarDocumento = (v) => String(v ?? "").replace(/[.\s]/g, "").trim();
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MENSAJE_USUARIO = "El usuario debe tener entre 3 y 30 caracteres: letras, números, punto, guion o guion bajo";
+
+/**
+ * PER-34 y PER-35: usuario, nombre y apellido obligatorios; email y documento opcionales (vacío = null).
+ * Devuelve los datos normalizados o el error a responder.
+ */
+function datosPersonal({ nombre_usuario, nombre, apellido, email, documento }) {
+  const datos = {
+    usuarioN: normalizarNombreUsuario(nombre_usuario),
+    nombreN: String(nombre ?? "").trim(),
+    apellidoN: String(apellido ?? "").trim(),
+    emailN: normalizarEmail(email) || null,
+    doc: normalizarDocumento(documento) || null,
+  };
+  if (!datos.usuarioN || !datos.nombreN || !datos.apellidoN)
+    return { error: { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: usuario, nombre y apellido" } };
+  if (!esNombreUsuarioValido(datos.usuarioN))
+    return { error: { ok: false, codigo: "USUARIO_INVALIDO", mensaje: MENSAJE_USUARIO } };
+  if (datos.emailN && !EMAIL_REGEX.test(datos.emailN))
+    return { error: { ok: false, codigo: "EMAIL_INVALIDO", mensaje: "Ingresá un email válido o dejalo vacío" } };
+  if (datos.doc && !/^\d+$/.test(datos.doc))
+    return { error: { ok: false, codigo: "DOCUMENTO_INVALIDO", mensaje: "El documento debe contener solo números" } };
+  return datos;
+}
+
+const usuarioDuplicado = { ok: false, codigo: "USUARIO_DUPLICADO", mensaje: "Ese usuario ya existe: elegí otro" };
 
 // Roles que se pueden asignar desde "Personal": todos los del personal, incluidos los
 // creados en el panel de permisos. "admin" solo lo asigna un super_admin (se valida
@@ -61,7 +89,7 @@ export async function listarStaff() {
             attributes: ["id", "nombre", "apellido", "email", "documento", "actualizado_en"],
           },
         ],
-        attributes: ["id", "persona_id", "activo", "actualizado_en", "ultimo_login"],
+        attributes: ["id", "persona_id", "nombre_usuario", "activo", "actualizado_en", "ultimo_login"],
       },
       {
         model: Rol,
@@ -75,6 +103,7 @@ export async function listarStaff() {
   return relaciones.map((rel) => ({
     gym_usuario_rol_id:    rel.id,
     gym_usuario_id:        rel.usuario?.id,
+    gym_usuario_nombre_usuario: rel.usuario?.nombre_usuario,
     gym_usuario_activo:    rel.usuario?.activo,
     gym_usuario_fechacambio: rel.usuario?.actualizado_en,
     gym_usuario_ultimo_login: rel.usuario?.ultimo_login,
@@ -92,33 +121,31 @@ export async function listarStaff() {
   }));
 }
 
-export async function crearStaff({ email, password, nombre, apellido, documento, rol_codigo, solicitanteEsSuperAdmin }) {
-  const emailN    = normalizarEmail(email);
+export async function crearStaff({ nombre_usuario, email, password, nombre, apellido, documento, rol_codigo, solicitanteEsSuperAdmin }) {
   const pass      = String(password ?? "").trim();
-  const doc       = normalizarDocumento(documento);
-  const nombreN   = String(nombre ?? "").trim();
-  const apellidoN = String(apellido ?? "").trim();
   const rolCodigo = (await codigosAsignables()).includes(rol_codigo) ? rol_codigo : ROL_POR_DEFECTO;
 
   if (rolCodigo === "admin" && !solicitanteEsSuperAdmin)
     return { ok: false, codigo: "SIN_PERMISO", mensaje: "Solo el Administrador del sistema puede crear un Gerente general" };
 
-  if (!emailN || !pass || !nombreN || !apellidoN || !doc)
-    return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: email, password, nombre, apellido y documento" };
+  const datos = datosPersonal({ nombre_usuario, nombre, apellido, email, documento });
+  if (datos.error) return datos.error;
+  const { usuarioN, nombreN, apellidoN, emailN, doc } = datos;
+  if (!pass)
+    return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: usuario, contraseña, nombre y apellido" };
   if (!contrasenaValida(pass))
     return { ok: false, codigo: "PASSWORD_INVALIDA", mensaje: MENSAJE_CONTRASENA };
-  if (!/^\d+$/.test(doc))
-    return { ok: false, codigo: "DOCUMENTO_INVALIDO", mensaje: "El documento debe contener solo números" };
 
   return await sequelize.transaction(async (t) => {
     const rolStaff = await Rol.findOne({ where: { codigo: rolCodigo }, transaction: t });
     if (!rolStaff)
       return { ok: false, codigo: "SIN_ROL", mensaje: `No existe el rol '${rolCodigo}' en la tabla rol` };
 
-    let persona = await Persona.findOne({
-      where: { [Op.or]: [{ email: emailN }, { documento: doc }] },
-      transaction: t,
-    });
+    if (await Usuario.findOne({ where: { nombre_usuario: usuarioN }, transaction: t })) return usuarioDuplicado;
+
+    // Una persona que ya existe (mismo email o documento) se reutiliza; sin esos datos, siempre es nueva.
+    const conocida = [emailN && { email: emailN }, doc && { documento: doc }].filter(Boolean);
+    let persona = conocida.length ? await Persona.findOne({ where: { [Op.or]: conocida }, transaction: t }) : null;
 
     if (persona) {
       const usuarioExistente = await Usuario.findOne({
@@ -139,6 +166,8 @@ export async function crearStaff({ email, password, nombre, apellido, documento,
           { usuario_id: usuarioExistente.id, rol_id: rolStaff.id, actualizado_en: ahoraArgentina() },
           { transaction: t }
         );
+        // Si todavía entraba solo con el email, desde ahora también puede con el usuario.
+        if (!usuarioExistente.nombre_usuario) await usuarioExistente.update({ nombre_usuario: usuarioN }, { transaction: t });
 
         return {
           ok: true, codigo: "ROL_ASIGNADO",
@@ -150,7 +179,7 @@ export async function crearStaff({ email, password, nombre, apellido, documento,
 
       const hash = await bcrypt.hash(pass, 10);
       const nuevoUsuario = await Usuario.create(
-        { persona_id: persona.id, contrasena: hash, activo: true, actualizado_en: ahoraArgentina() },
+        { persona_id: persona.id, nombre_usuario: usuarioN, contrasena: hash, activo: true, actualizado_en: ahoraArgentina() },
         { transaction: t }
       );
 
@@ -177,7 +206,7 @@ export async function crearStaff({ email, password, nombre, apellido, documento,
 
     const hash = await bcrypt.hash(pass, 10);
     const usuario = await Usuario.create(
-      { persona_id: persona.id, contrasena: hash, activo: true, actualizado_en: ahoraArgentina() },
+      { persona_id: persona.id, nombre_usuario: usuarioN, contrasena: hash, activo: true, actualizado_en: ahoraArgentina() },
       { transaction: t }
     );
 
@@ -188,21 +217,15 @@ export async function crearStaff({ email, password, nombre, apellido, documento,
 
     return {
       ok: true, codigo: "USUARIO_CREADO", mensaje: "Usuario creado correctamente",
-      usuario_id: usuario.id, persona_id: persona.id, email: persona.email, rol: rolCodigo,
+      usuario_id: usuario.id, persona_id: persona.id, nombre_usuario: usuarioN, email: persona.email, rol: rolCodigo,
     };
   });
 }
 
 export async function actualizarStaff(usuarioId, data) {
-  const emailN    = normalizarEmail(data.email);
-  const doc       = normalizarDocumento(data.documento);
-  const nombreN   = String(data.nombre ?? "").trim();
-  const apellidoN = String(data.apellido ?? "").trim();
-
-  if (!nombreN || !apellidoN || !emailN || !doc)
-    return { ok: false, codigo: "FALTAN_DATOS", mensaje: "Requiere: nombre, apellido, email y documento" };
-  if (!/^\d+$/.test(doc))
-    return { ok: false, codigo: "DOCUMENTO_INVALIDO", mensaje: "El documento debe contener solo números" };
+  const datos = datosPersonal(data);
+  if (datos.error) return datos.error;
+  const { usuarioN, nombreN, apellidoN, emailN, doc } = datos;
 
   return await sequelize.transaction(async (t) => {
     const usuario = await Usuario.findByPk(usuarioId, {
@@ -213,25 +236,19 @@ export async function actualizarStaff(usuarioId, data) {
     if (!usuario || !usuario.persona)
       return { ok: false, codigo: "NO_ENCONTRADO", mensaje: "Staff no encontrado" };
 
-    const otraConEmail = await Persona.findOne({
-      where: { email: emailN, id: { [Op.ne]: usuario.persona.id } },
-      transaction: t,
-    });
-    if (otraConEmail)
+    if (await Usuario.findOne({ where: { nombre_usuario: usuarioN, id: { [Op.ne]: usuario.id } }, transaction: t })) return usuarioDuplicado;
+
+    if (emailN && await Persona.findOne({ where: { email: emailN, id: { [Op.ne]: usuario.persona.id } }, transaction: t }))
       return { ok: false, codigo: "EMAIL_DUPLICADO", mensaje: "Ya existe una persona con ese email" };
 
-    const otraConDoc = await Persona.findOne({
-      where: { documento: doc, id: { [Op.ne]: usuario.persona.id } },
-      transaction: t,
-    });
-    if (otraConDoc)
+    if (doc && await Persona.findOne({ where: { documento: doc, id: { [Op.ne]: usuario.persona.id } }, transaction: t }))
       return { ok: false, codigo: "DOCUMENTO_DUPLICADO", mensaje: "Ya existe una persona con ese documento" };
 
     await usuario.persona.update(
       { nombre: nombreN, apellido: apellidoN, email: emailN, documento: doc, actualizado_en: ahoraArgentina() },
       { transaction: t }
     );
-    await usuario.update({ actualizado_en: ahoraArgentina() }, { transaction: t });
+    await usuario.update({ nombre_usuario: usuarioN, actualizado_en: ahoraArgentina() }, { transaction: t });
 
     return {
       ok: true, codigo: "STAFF_ACTUALIZADO", mensaje: "Staff actualizado correctamente",

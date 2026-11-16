@@ -36,10 +36,11 @@ export async function listarStaffController(_req, res) {
 // ➕ crear
 export async function crearStaffController(req, res) {
   try {
-    const { email, password, nombre, apellido, documento, rol_codigo } = req.body ?? {};
+    const { nombre_usuario, email, password, nombre, apellido, documento, rol_codigo } = req.body ?? {};
     const solicitanteEsSuperAdmin = (req.user?.roles ?? []).includes("super_admin");
 
     const result = await crearStaff({
+      nombre_usuario,
       email,
       password,
       nombre,
@@ -68,9 +69,10 @@ export async function crearStaffController(req, res) {
 export async function actualizarStaffController(req, res) {
   try {
     const { usuarioId } = req.params;
-    const { nombre, apellido, email, documento } = req.body ?? {};
+    const { nombre_usuario, nombre, apellido, email, documento } = req.body ?? {};
 
     const result = await actualizarStaff(usuarioId, {
+      nombre_usuario,
       nombre,
       apellido,
       email,

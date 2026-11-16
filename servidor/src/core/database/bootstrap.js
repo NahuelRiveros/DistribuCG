@@ -2,6 +2,7 @@ import { QueryTypes } from "sequelize";
 import { sequelize, DB_SCHEMA } from "./sequelize.js";
 import { calcularHashEsquema } from "./schema_hash.js";
 import { asegurarTablas } from "./seguridad_tablas.js";
+import { borrarUnicosRepetidos } from "./indices_repetidos.js";
 import { modulosActivos } from "../../proyecto/modulos.js";
 import { TABLAS_RETIRADAS } from "../../proyecto/tablas_retiradas.js";
 import {
@@ -31,7 +32,7 @@ export async function bootstrap_database() {
  * sincronizar_modelos() hace un sync({alter:true}) por cada modelo — cada
  * uno le pregunta a Postgres cómo es la tabla hoy y compara contra la
  * definición, aunque no haya cambiado nada. Medido: ~2s para ~30 tablas
- * contra Postgres LOCAL (sin latencia de red); contra Neon en producción, y
+ * contra Postgres LOCAL (sin latencia de red); contra Supabase en producción, y
  * sobre todo si el compute estaba en autosuspend, bastante más — y esto
  * corre en CADA boot del proceso, no solo después de un deploy con cambios
  * reales de schema.
@@ -59,6 +60,9 @@ async function sincronizar_modelos_si_hace_falta() {
   }
 
   await sincronizar_modelos();
+  // SIS-52: las copias de restricciones únicas solo aparecen al sincronizar: se limpian acá.
+  const borradas = await borrarUnicosRepetidos(sequelize, DB_SCHEMA);
+  if (borradas) console.log(`🧹 Se borraron ${borradas} restricciones únicas repetidas`);
 
   await sequelize.query(`
     CREATE TABLE IF NOT EXISTS "${DB_SCHEMA}"."_schema_meta" (

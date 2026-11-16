@@ -28,6 +28,8 @@
 !docs/specs/_plantilla_modulo.md
 !docs/specs/core/
 !docs/specs/cambios/2026-11-home-tienda.md
+!docs/specs/cambios/2026-11-personal-con-usuario.md
+!docs/specs/cambios/2026-11-indices-unicos.md
 
 # Frontend: esqueleto y core
 !frontend/package.json

@@ -121,38 +121,44 @@ test("BD_URL con solo el host frena el arranque con un mensaje claro y sin mostr
   assert.equal(arrancar("postgresql://postgres.ej:clave@aws-0-ej.pooler.supabase.com:5432/postgres").status, 0);
 });
 
-test("verificar_env avisa nombres viejos, valores de ejemplo y una BD_URL en tu PC, sin mostrar valores", () => {
+test("verificar_env avisa nombres viejos, valores de ejemplo y una base remota en tu PC, sin mostrar valores", () => {
   const raiz = mkdtempSync(join(tmpdir(), "verificar_env_"));
   try {
     mkdirSync(join(raiz, "servidor"));
     mkdirSync(join(raiz, "frontend"));
-    writeFileSync(join(raiz, "servidor/.env.local.example"), "BD_URL=\nDB_SCHEMA=gc_dist_test\nDB_NAME=\n");
-    writeFileSync(join(raiz, "servidor/.env.produccion.example"), "NODE_ENV=production\nBD_URL=\nDB_SSL=true\nDB_SCHEMA=gc_dist\n");
+    writeFileSync(join(raiz, "servidor/.env.local.example"), "BD_URL_SUPABASE=\nBD_ESQUEMA=gc_dist_test\nDB_NAME=\n");
+    writeFileSync(join(raiz, "servidor/.env.produccion.example"), "NODE_ENV=production\nCLAVE_SESIONES=\nURL_FRONTEND_VERCEL=\nBD_URL_SUPABASE=\nBD_ESQUEMA=gc_dist\nCLOUDINARY_NOMBRE_CUENTA=\nCLOUDINARY_CLAVE_API=\nCLOUDINARY_SECRETO_API=\n");
     writeFileSync(join(raiz, "frontend/.env.local.example"), "VITE_API_URL=http://localhost:3001/api\n");
     writeFileSync(join(raiz, "frontend/.env.produccion.example"), "VITE_API_URL=https://api.onrender.com/api\n");
-    // Un .env viejo, una BD_URL de producción en tu PC y un nombre viejo con valor secreto.
+    // Un .env viejo, la base de producción en tu PC y un nombre viejo con valor secreto.
     writeFileSync(join(raiz, "servidor/.env"), "BD_URL=postgresql://u:SECRETO_VIEJO@host/db\n");
-    writeFileSync(join(raiz, "servidor/.env.local"), "NEON_DATABASE_URL=postgres://SECRETO_NO_MOSTRAR\nBD_URL=postgresql://u:clave@host/db\nDB_NAME=local\n");
-    writeFileSync(join(raiz, "servidor/.env.produccion"), "NODE_ENV=production\nBD_URL=postgresql://u:[COMPLETAR]@host/db\nDB_SSL=true\n");
+    writeFileSync(join(raiz, "servidor/.env.local"), "NEON_DATABASE_URL=postgres://SECRETO_NO_MOSTRAR\nBD_URL_SUPABASE=postgresql://u:clave@host:5432/postgres\nDB_NAME=local\n");
+    writeFileSync(join(raiz, "servidor/.env.produccion"), "NODE_ENV=production\nBD_URL_SUPABASE=postgresql://u:[COMPLETAR]@host:5432/postgres\n");
     writeFileSync(join(raiz, "frontend/.env.local"), "VITE_API_URL=http://localhost:3001/api\n");
 
     const script = fileURLToPath(new URL("../../scripts/verificar_env.mjs", import.meta.url));
     const r = spawnSync(process.execPath, [script, raiz], { encoding: "utf8" });
     assert.equal(r.status, 1);
     assert.match(r.stdout, /servidor\/\.env ya no se usa/);
-    assert.match(r.stdout, /NEON_DATABASE_URL → renombrar a BD_URL/);
-    assert.match(r.stdout, /BD_URL tiene que quedar vacía/);
-    assert.match(r.stdout, /BD_URL → todavía tiene un valor de ejemplo/);
-    assert.match(r.stdout, /Falta DB_SCHEMA/, "producción sin DB_SCHEMA usaría gc_dist_test");
+    assert.match(r.stdout, /NEON_DATABASE_URL → renombrar a BD_URL_SUPABASE/);
+    assert.match(r.stdout, /BD_URL_SUPABASE tiene que quedar vacía/);
+    assert.match(r.stdout, /BD_URL_SUPABASE → todavía tiene un valor de ejemplo/);
+    assert.match(r.stdout, /Falta BD_ESQUEMA/, "producción sin BD_ESQUEMA usaría gc_dist_test");
+    assert.match(r.stdout, /Falta CLAVE_SESIONES/);
     assert.match(r.stdout, /frontend\/\.env\.produccion\) ──\nℹ️ {2}No existe \(opcional\)/);
     assert.doesNotMatch(r.stdout, /SECRETO_NO_MOSTRAR|SECRETO_VIEJO|clave@host/);
 
     rmSync(join(raiz, "servidor/.env"));
-    writeFileSync(join(raiz, "servidor/.env.local"), "BD_URL=\nDB_SCHEMA=gc_dist_test\nDB_NAME=local\n");
-    writeFileSync(join(raiz, "servidor/.env.produccion"), "NODE_ENV=production\nBD_URL=postgresql://u:clave@host/db\nDB_SSL=true\nDB_SCHEMA=gc_dist\n");
+    writeFileSync(join(raiz, "servidor/.env.local"), "BD_URL_SUPABASE=\nBD_ESQUEMA=gc_dist_test\nDB_NAME=local\n");
+    writeFileSync(join(raiz, "servidor/.env.produccion"), [
+      "NODE_ENV=production", "CLAVE_SESIONES=una-clave-larga-de-prueba-1234567890", "URL_FRONTEND_VERCEL=https://tienda.test",
+      "BD_URL_SUPABASE=postgresql://u:clave@host.pooler.supabase.com:5432/postgres", "BD_ESQUEMA=gc_dist",
+      "CLOUDINARY_NOMBRE_CUENTA=cuenta", "CLOUDINARY_CLAVE_API=123", "CLOUDINARY_SECRETO_API=secreto", "",
+    ].join("\n"));
     const ok = spawnSync(process.execPath, [script, raiz], { encoding: "utf8" });
     assert.equal(ok.status, 0, ok.stdout);
     assert.match(ok.stdout, /Todo en orden/);
+    assert.doesNotMatch(ok.stdout, /clave@host|secreto|una-clave-larga/, "nunca muestra valores");
   } finally {
     rmSync(raiz, { recursive: true, force: true });
   }

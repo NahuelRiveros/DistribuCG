@@ -12,16 +12,17 @@ En Vercel, proyecto del frontend, Environment Variables para Production:
 
 ```dotenv
 VITE_API_URL=https://distribucg.onrender.com/api
-VITE_GOOGLE_CLIENT_ID=EL_CLIENT_ID_PUBLICO_DE_GOOGLE
+VITE_GOOGLE_ID_CLIENTE=EL_CLIENT_ID_PUBLICO_DE_GOOGLE
 ```
 
-En Render, servicio del backend, Environment:
+En Render, servicio del backend, Environment (nombres desde 2026-11; los anteriores —`VERCEL_FRONTEND_URL`,
+`RENDER_APP_URL`, `GOOGLE_CLIENT_ID`, `VITE_GOOGLE_CLIENT_ID`— se siguen leyendo, pero conviene renombrarlos):
 
 ```dotenv
-CORS_ORIGIN=https://distribu-cg.vercel.app
-VERCEL_FRONTEND_URL=https://distribu-cg.vercel.app
-RENDER_APP_URL=https://distribucg.onrender.com
-GOOGLE_CLIENT_ID=EL_MISMO_CLIENT_ID_PUBLICO_DE_VERCEL
+# Una sola variable para la tienda: arma los links y es el origen permitido por CORS.
+URL_FRONTEND_VERCEL=https://distribu-cg.vercel.app
+URL_API_RENDER=https://distribucg.onrender.com
+GOOGLE_ID_CLIENTE=EL_MISMO_CLIENT_ID_PUBLICO_DE_VERCEL
 # Correo (avisos de pedidos y recuperación de contraseña). Render gratis bloquea
 # el SMTP: usar la API de Brevo. Ver servidor/.env.produccion.example.
 CLAVE_API_BREVO=[COMPLETAR]
@@ -29,8 +30,8 @@ CORREO_REMITENTE=[COMPLETAR con el correo verificado en Brevo]
 NOMBRE_REMITENTE=[COMPLETAR, ej. Distribuidora EJEMPLO]
 ```
 
-No agregar `/api` al origen de CORS. Los dominios adicionales autorizados
-se separan por comas. Una variable configurada en la plataforma tiene
+No agregar `/api` a `URL_FRONTEND_VERCEL`. Para autorizar dominios adicionales,
+`CORS_ORIGIN` (opcional) los suma, separados por comas. Una variable configurada en la plataforma tiene
 prioridad sobre las direcciones de respaldo del repositorio: corregir
 los valores antiguos en ambos paneles.
 

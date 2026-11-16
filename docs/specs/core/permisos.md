@@ -78,6 +78,9 @@ proyecto en `proyecto/permisos_rubros.js`.
 | PER-31 | Un permiso que se saca del código se borra de la base junto con sus asignaciones. Por eso los permisos de un rubro se cuentan aunque el rubro esté apagado. | ✅ mismo test que PER-30 (la parte del rubro apagado: ⚠️) |
 | PER-32 | El rol viejo "staff" se renombra "supervisor" conservando sus personas y permisos. | ✅ mismo test que PER-30 |
 | PER-33 | Todos los permisos (core y rubros) forman una sola lista: los del core en `core/permisos_config.js` y los de los rubros en `proyecto/permisos_rubros.js`; la lista no cambia de códigos, grupos, orden ni roles de entrada. | ✅ `ux_rules.test.mjs` › "PER-33: todos los permisos en permisos_config.js…" |
+| PER-34 | En "Personal", un integrante nuevo se crea con usuario, contraseña, nombre y apellido (obligatorios) y rol; email y documento son opcionales. El usuario no se repite (sin distinguir mayúsculas) y con él ingresa ([cambio](../cambios/2026-11-personal-con-usuario.md)). | ✅ `ropa.integration.mjs` (Stilos) › "PER-34 a PER-36 (core)…" |
+| PER-35 | Al editar se cambian usuario, nombre, apellido y, opcionales, email y documento (vacío lo borra); repetidos se avisan. La lista muestra el usuario. | ✅ `ropa.integration.mjs` (Stilos) › "PER-34 a PER-36 (core)…" |
+| PER-36 | Con email, la persona recupera la contraseña sola; sin email, se la cambia un administrador desde "Personal". El formulario lo explica. | ✅ `ropa.integration.mjs` (Stilos) › "PER-34 a PER-36 (core)…"; pantalla: capturas |
 
 ## Configuración
 

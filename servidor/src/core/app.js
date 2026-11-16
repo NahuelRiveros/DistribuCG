@@ -44,7 +44,7 @@ const corsOrigin = origenesConfigurados.length ? origenesConfigurados
 export function createApp() {
   const app = express();
   // A la vista en los logs de Render: si la tienda no puede usar la API, lo primero es mirar esto.
-  if (env.NODE_ENV !== "test") console.log(`🌐 Orígenes permitidos (CORS_ORIGIN): ${corsOrigin.join(", ")}`);
+  if (env.NODE_ENV !== "test") console.log(`🌐 Orígenes permitidos (URL_FRONTEND_VERCEL o CORS_ORIGIN): ${corsOrigin.join(", ")}`);
   const rechazados = new Set();
 
   app.use(helmet({ crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" } }));
@@ -65,7 +65,7 @@ export function createApp() {
       // Una vez por dirección: el navegador solo dice "CORS"; acá queda cuál fue y qué corregir.
       if (!rechazados.has(origin)) {
         rechazados.add(origin);
-        console.warn(`⚠️  Pedido desde ${origin} rechazado: no está en CORS_ORIGIN (${corsOrigin.join(", ")}).`);
+        console.warn(`⚠️  Pedido desde ${origin} rechazado: no es URL_FRONTEND_VERCEL ni está en CORS_ORIGIN (${corsOrigin.join(", ")}).`);
       }
       const error = new Error(`CORS: origen no permitido — ${origin}`);
       error.codigo = "CORS_NO_PERMITIDO";

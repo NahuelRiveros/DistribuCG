@@ -1,14 +1,14 @@
 import { Sequelize } from "sequelize";
 import { env } from "../configuracion_servidor/env.js";
 
-// gc_dist en producción, gc_dist_test para pruebas. Solo minúsculas: el
-// search_path de abajo va sin comillas y Postgres pasaría mayúsculas a minúsculas.
-export const DB_SCHEMA = process.env.DB_SCHEMA || "gc_dist_test";
+// BD_ESQUEMA (antes DB_SCHEMA): el del proyecto en producción, uno local en tu PC. Solo minúsculas:
+// el search_path de abajo va sin comillas y Postgres pasaría mayúsculas a minúsculas.
+export const DB_SCHEMA = process.env.BD_ESQUEMA || process.env.DB_SCHEMA || "gc_dist_test";
 if (!/^[a-z][a-z0-9_]*$/.test(DB_SCHEMA)) {
-  throw new Error(`DB_SCHEMA inválido ("${DB_SCHEMA}"): usar solo minúsculas, números y _ (ej. gc_dist)`);
+  throw new Error(`BD_ESQUEMA inválido ("${DB_SCHEMA}"): usar solo minúsculas, números y _ (ej. stilos)`);
 }
 
-// Neon pooler no soporta search_path como parámetro de startup.
+// Poolers como Supabase Session Pooler no garantizan search_path como parámetro de startup.
 // Se establece vía afterConnect para compatibilidad con pooler y conexión directa.
 const dialectOptions = {
   ...(env.DB_SSL ? { ssl: { require: true, rejectUnauthorized: false } } : {}),
@@ -17,12 +17,8 @@ const dialectOptions = {
 // ── Pool de conexiones ────────────────────────────────────────────────────
 // Evita abrir/cerrar la DB en cada request.
 // En Render free tier el DB tiene límite de 25 conexiones → max: 5 es seguro.
-// min: 0 porque Neon suspende el compute tras un rato inactivo: una conexión
-// "min" que se mantiene abierta para siempre queda colgada (stale) del lado
-// del pool sin que Sequelize se entere, y el primer request tras el
-// autosuspend explota con 500 (funciona recién al reintentar/F5). Con min:0
-// el pool descarta conexiones ociosas (idle: 10000) y abre una nueva por
-// request cuando hace falta.
+// min: 0 evita conservar conexiones remotas inactivas en el pool de Sequelize.
+// Las conexiones ociosas se descartan y se vuelven a abrir cuando hacen falta.
 const poolConfig = {
   max: 5,
   min: 0,
@@ -35,8 +31,8 @@ const baseConfig = {
   logging: false,
   dialectOptions,
   pool: poolConfig,
-  // Reintenta automáticamente si la conexión murió del lado de Neon
-  // (autosuspend / idle timeout) en vez de devolver 500 al front.
+  // Reintenta si el servidor PostgreSQL remoto cerró una conexión inactiva
+  // o hubo un corte de red, en vez de devolver 500 al front.
   retry: {
     max: 3,
     match: [

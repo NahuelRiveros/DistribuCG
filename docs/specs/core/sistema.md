@@ -59,12 +59,14 @@ arranca y responde de forma segura.
 | SIS-38 | Las imágenes se piden a Cloudinary al ancho en que se muestran. | ⚠️ sin test |
 | SIS-39 | Como máximo 8 banners de carrusel y 4 de cinta activos a la vez (los vencidos no cuentan); al pasarse: "Desactivá uno antes de sumar otro". | ✅ `checkout.integration.mjs` › "SIS-32, SIS-34, SIS-39 y COR-10: …" |
 | SIS-50 | Un banner de carrusel puede tener una imagen vertical para el celular. Se usa si todos los banners del carrusel la tienen, para que todas las diapositivas midan lo mismo; si no, se recorta la de computadora. | ⚠️ sin test (revisado en capturas) |
+| SIS-51 | Las columnas de texto únicas (persona, usuario, rol, permiso, módulo, catálogos) se declaran como índice con nombre fijo (`<tabla>_<columna>_key`): sincronizar los modelos varias veces no agrega restricciones repetidas ([cambio](../cambios/2026-11-indices-unicos.md)). | ✅ `ropa.integration.mjs` (Stilos) › "Arranque: sincronizar dos veces…" |
+| SIS-52 | Después de sincronizar, el arranque borra las restricciones `<nombre>_key<N>` que repiten las mismas columnas que `<nombre>_key` en la misma tabla (solo en el schema del proyecto); deja la original. | ✅ `ropa.integration.mjs` (Stilos) › "SIS-52…" |
 
 ### Seguridad y API del core
 
 | Código | Regla | Estado |
 | --- | --- | --- |
-| COR-10 | Al arrancar, todas las tablas del schema quedan con RLS activado y, en Supabase, sin acceso para `anon` ni `authenticated`: la API REST de Supabase no puede leer ni escribir nada. Avisa si `DB_SCHEMA=public`. | ✅ `core_seguridad.test.mjs`; `checkout.integration.mjs` › "SIS-32, SIS-34, SIS-39 y COR-10: …" |
+| COR-10 | Al arrancar, todas las tablas del schema quedan con RLS activado y, en Supabase, sin acceso para `anon` ni `authenticated`: la API REST de Supabase no puede leer ni escribir nada. Avisa si `BD_ESQUEMA=public`. | ✅ `core_seguridad.test.mjs`; `checkout.integration.mjs` › "SIS-32, SIS-34, SIS-39 y COR-10: …" |
 | COR-20 | Una entrada inválida responde 400 `DATOS_INVALIDOS` con el primer error en español y la lista por campo; los errores esperados de un service (`ErrorApp`) responden con su código y estado. | ✅ `core_api.test.mjs` › "COR-20: …" |
 
 ### Servidor y despliegue
@@ -74,10 +76,12 @@ arranca y responde de forma segura.
 | SIS-40 | `/api/health` responde sin consultar la base, para que el chequeo de Render no la despierte; con `?bd=1` sí la revisa. | ✅ `despliegue.test.mjs` › "/api/health responde sin tocar la base" |
 | SIS-41 | La API solo acepta pedidos desde la tienda configurada (aunque tenga "/" al final); otros orígenes reciben 403. | ✅ `despliegue.test.mjs` › "CORS acepta la tienda configurada…" |
 | SIS-42 | Las variables pegadas en Render con comillas o espacios se limpian solas. | ✅ `despliegue.test.mjs` › "variables pegadas con comillas o espacios en Render se limpian" |
-| SIS-43 | Si la dirección de la base está incompleta, el servidor no arranca y explica qué falta, sin mostrar el valor. | ✅ `despliegue.test.mjs` › "BD_URL con solo el host frena el arranque…" |
+| SIS-43 | Si la dirección de la base está incompleta, el servidor no arranca y explica qué falta, sin mostrar el valor. | ✅ `despliegue.test.mjs` › "BD_URL con solo el host frena el arranque…" (variable `BD_URL_SUPABASE`) |
 | SIS-44 | El revisor de `.env` avisa nombres viejos y valores de ejemplo, sin mostrar ningún valor. | ✅ `despliegue.test.mjs` › "verificar_env avisa nombres viejos y valores de ejemplo…" |
 | SIS-45 | En producción, la web usa la API de DistribuCG y rechaza el dominio anterior antes de mandar credenciales. | ✅ `despliegue.test.mjs` › "la API de producción usa DistribuCG…"; "producción permite el frontend de DistribuCG…" |
-| SIS-46 | El diagnóstico del Administrador del sistema detecta credenciales, email, documento y estados que impiden ingresar, sin devolver nunca la contraseña ni su hash. | ✅ `super_admin.test.mjs` (4 tests "diagnóstico admin: …") |
+| SIS-46 | El diagnóstico del Administrador del sistema (`npm run admin:verificar`) detecta usuario, contraseña y estados que impiden ingresar, sin devolver nunca la contraseña ni su hash. | ✅ `ropa.integration.mjs` › "Super admin (core)…" (Stilos) |
+| SIS-47 | Variables de entorno con nombres claros: `CLAVE_SESIONES`, `URL_FRONTEND_VERCEL` (también es el origen permitido por CORS), `URL_API_RENDER`, `BD_URL_SUPABASE`, `BD_ESQUEMA`, `CLOUDINARY_NOMBRE_CUENTA`, `CLOUDINARY_CLAVE_API`, `CLOUDINARY_SECRETO_API`, `GOOGLE_ID_CLIENTE`. Los nombres anteriores se siguen leyendo, y el revisor de `.env` pide renombrarlos. Con base remota, SSL se activa solo. | ✅ `core_env.test.mjs` |
+| SIS-48 | El Administrador del sistema se crea una sola vez con `SUPERADMIN_USUARIO` y `SUPERADMIN_CONTRASENA`; su email es fijo en el core (`SUPERADMIN_EMAIL_FIJO`), igual en todos los proyectos, para recuperar el acceso. Un deploy nunca pisa una contraseña existente. | ✅ `ropa.integration.mjs` › "Super admin (core)…" (Stilos) |
 
 ## Configuración
 
@@ -110,6 +114,7 @@ arranca y responde de forma segura.
 
 | Fecha | Regla | Decisión | Quién |
 | --- | --- | --- | --- |
+| 2026-11-11 | SIS-47, SIS-48 | Menos variables y con nombres claros: una sola URL de la tienda (también CORS), super admin con usuario y contraseña y email fijo. Los nombres viejos se siguen leyendo para no romper proyectos ya desplegados. Hecho en Stilos y subido al core. | Dueño del proyecto |
 | 2026-11-10 | SIS-20 a SIS-22 | Se retira "Módulos habilitados" (tabla `modulo_negocio`): era de otra idea de sistema. Queda solo `gate_config.js` (SIS-21). | Dueño del proyecto |
 | 2026-11-10 | SIS-30 a SIS-50 | Home solo de tienda; banners con fechas cargados desde el panel; la cinta se unifica con el carrusel; tope 8 y 4; imagen opcional para celular. Spec: `cambios/2026-11-home-tienda.md`. | Dueño del proyecto |
 | 2026-11-08 | SIS-05 | Con el plan vencido se bloquea el panel (el equipo no carga ni modifica nada, salvo pagar) y la tienda sigue vendiendo, para no cortarle las ventas al negocio. Se descartaron bloquear todo y no bloquear nunca. | Dueño del proyecto |

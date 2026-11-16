@@ -88,7 +88,7 @@ seguir sus pedidos, el personal para trabajar en el panel.
 | Largo de la contraseña | `client_config.js` › `auth.passwordMinLength` / `passwordMaxLength` | 8 a 72 |
 | Vencimiento del enlace de recuperación | `client_config.js` › `auth.resetMinutes` | 20 minutos |
 | Duración de la sesión | `client_config.js` › `auth.sesionClienteDias` / `sesionPersonalHoras` | 30 días clientes · 24 horas personal |
-| Ingreso con Google | variables `GOOGLE_CLIENT_ID` (servidor) y `VITE_GOOGLE_CLIENT_ID` (web) | Configurado |
+| Ingreso con Google | variables `GOOGLE_ID_CLIENTE` (servidor) y `VITE_GOOGLE_ID_CLIENTE` (web); los nombres anteriores se siguen leyendo | Configurado |
 | Límites de intentos | `servidor/src/core/routes/usuarios/auth_router.js` | Ingreso 10 / 15 min · registro 10 / hora · recuperación 5 / hora |
 
 ## Dónde está el código

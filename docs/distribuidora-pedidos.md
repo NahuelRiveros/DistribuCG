@@ -119,7 +119,7 @@ Cada acción del personal pide un permiso de `permisos_config.js`; el servidor l
 
 Un mail que falla no deshace ni frena el pedido: queda en el log del servidor. El reintento de un envío con la misma clave de idempotencia no repite avisos, y un cambio al mismo estado tampoco. Los textos están en `avisos_pedido_plantillas.js` y escapan todo lo que escribe el cliente.
 
-Proveedor: con `CLAVE_API_BREVO` se usa la API HTTPS de Brevo (**obligatorio en Render gratis, que bloquea los puertos SMTP**); `CORREO_REMITENTE` debe estar verificado en Brevo y `NOMBRE_REMITENTE` es el nombre visible. Sin Brevo se usa el SMTP de `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` y `SMTP_FROM`, útil en desarrollo local. `VERCEL_FRONTEND_URL` arma los enlaces. Sin ninguno de los dos, no se envía nada y se registra un aviso en el log. Las pruebas vacían estas variables y simulan Brevo: nunca envían correos reales.
+Proveedor: con `CLAVE_API_BREVO` se usa la API HTTPS de Brevo (**obligatorio en Render gratis, que bloquea los puertos SMTP**); `CORREO_REMITENTE` debe estar verificado en Brevo y `NOMBRE_REMITENTE` es el nombre visible. Sin Brevo se usa el SMTP de `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` y `SMTP_FROM`, útil en desarrollo local. `URL_FRONTEND_VERCEL` (antes `VERCEL_FRONTEND_URL`, que se sigue leyendo) arma los enlaces. Sin ninguno de los dos, no se envía nada y se registra un aviso en el log. Las pruebas vacían estas variables y simulan Brevo: nunca envían correos reales.
 
 ## Verificación
 
