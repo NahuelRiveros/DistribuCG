@@ -1,4 +1,5 @@
 import { Shield, KeyRound } from "lucide-react";
+import { suscripcionDelSoftwareActiva } from "../../../../../core/suscripcion_software_config.js";
 
 // Solo del Administrador del sistema; sin ítems de un rubro.
 export const superAdminDropdown = {
@@ -6,7 +7,7 @@ export const superAdminDropdown = {
   labelNoAuth: "Configuración",
   labelAuth: "Configuración",
   icon: Shield,
-  items: [
+  items: suscripcionDelSoftwareActiva ? [
     {
       label: "Suscripción del sistema",
       to: "/super-admin/suscripcion",
@@ -14,5 +15,5 @@ export const superAdminDropdown = {
       roles: ["super_admin"],
       icon: KeyRound,
     },
-  ],
+  ] : [],
 };

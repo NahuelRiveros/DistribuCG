@@ -37,6 +37,7 @@ arranca y responde de forma segura.
 | SIS-06 | Si no se puede consultar el estado de la suscripción, no se bloquea nada: un problema técnico no frena el negocio. | ⚠️ sin test |
 | SIS-07 | El estado se consulta como mucho cada 5 minutos, para no despertar la base en cada pedido. | ⚠️ sin test |
 | SIS-08 | el Administrador del sistema ve el estado y el historial de pagos, extiende días o fija una fecha. El dueño del software puede hacer lo mismo sin ingresar, con la clave secreta del servidor. | ⚠️ sin test |
+| SIS-56 | Una instalación puede no cobrarse el software (`suscripcionDelSoftware: false` en `proyecto/client_config.js`, ej. un producto propio): no hay bloqueo, ni rutas `/api/suscripcion`, ni plan inicial, ni aviso, ni pantallas del plan. Sin ese dato queda prendida. | ✅ `core_roles.test.mjs` › "SIS-56: …" |
 
 ### Rubros de la instalación
 

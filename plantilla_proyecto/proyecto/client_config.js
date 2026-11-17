@@ -2,6 +2,8 @@
 export const clientConfig = {
   // Elige la marca de frontend/src/proyecto/config/brand_config.js.
   id: "ejemplo",
+  // SIS-56: false = esta instalación no se cobra el software (sin bloqueo ni pantallas del plan).
+  suscripcionDelSoftware: true,
   // publicRegistration: true si el proyecto tiene tienda y los clientes se registran solos.
   auth: { publicRegistration: false, passwordMinLength: 8, passwordMaxLength: 72, resetMinutes: 20, sesionClienteDias: 30, sesionPersonalHoras: 24 },
   // Catálogo y carrito de la tienda (las reglas del carrito del core leen estos límites).

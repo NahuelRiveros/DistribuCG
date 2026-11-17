@@ -15,7 +15,7 @@ export default function PanelUsuario({ compacta = false }) {
   if (!usuario) return null;
 
   const nombre = [usuario.nombre, usuario.apellido].filter(Boolean).join(" ") || usuario.email || "Usuario";
-  const delEquipo = (usuario.roles ?? []).filter((r) => r !== "cliente");
+  const delEquipo = (usuario.roles ?? []).filter((r) => !permisosConfig.rolesFuera.includes(r));
   // Si tiene varios, se muestra primero uno del sistema (ej. "Gerente general").
   const principal = delEquipo.find((r) => permisosConfig.nombresRol[r]) ?? delEquipo[0];
   const rol = principal ? nombreRol(principal) : "";

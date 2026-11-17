@@ -1,4 +1,9 @@
-import { PERMISOS_DE_RUBROS } from "../proyecto/permisos_rubros.js";
+import * as rubros from "../proyecto/permisos_rubros.js";
+
+const PERMISOS_DE_RUBROS = rubros.PERMISOS_DE_RUBROS ?? [];
+// Opcional en proyecto/permisos_rubros.js (PER-37): roles propios del rubro que no usan permisos del
+// personal (como "cliente") y el rol que recibe quien se registra. Sin esto: "cliente".
+const ROLES_DE_RUBROS = rubros.ROLES_DE_RUBROS ?? {};
 
 // Permisos del personal, compartidos por la API y la interfaz. Qué rol tiene cada
 // permiso se guarda en la base (rol_permiso) y se edita en el panel de permisos;
@@ -17,7 +22,9 @@ export const permisosConfig = {
   // Tienen todos los permisos siempre y no aparecen como editables: nadie queda afuera por error.
   rolesTotales: ["super_admin", "admin"],
   // No son roles del personal: no se listan en el panel ni se asignan desde "Personal".
-  rolesFuera: ["cliente"],
+  rolesFuera: ["cliente", ...Object.keys(ROLES_DE_RUBROS.fuera ?? {})],
+  // USU-14 / PER-37: rol de quien se registra (o entra por primera vez con Google).
+  rolAlRegistrarse: ROLES_DE_RUBROS.alRegistrarse ?? "cliente",
   // PER-14: nombre que se ve de cada rol del sistema. El código no se cambia nunca: lo usan el
   // programa y las sesiones abiertas. Los roles creados en el panel muestran el nombre que se les dio.
   nombresRol: {
@@ -26,6 +33,7 @@ export const permisosConfig = {
     supervisor: "Encargado",
     vendedor: "Vendedor",
     cliente: "Cliente",
+    ...ROLES_DE_RUBROS.fuera,
   },
   grupos: [
     ...PERMISOS_DE_RUBROS.flatMap((rubro) => rubro.grupos),

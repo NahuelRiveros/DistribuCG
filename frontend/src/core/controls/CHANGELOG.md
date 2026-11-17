@@ -11,6 +11,17 @@ los consumidores tienen que ajustar) y anotá acá qué cambió. Antes de pisar
 un archivo en otro proyecto, revisá si ese proyecto le hizo cambios propios
 al mismo archivo — si los tiene, es un merge manual, no un copy-paste.
 
+## 2.2.0 — 2026-11-17
+
+Puntos de extensión para conectar proyectos sin tienda (MiPadel). Compatibles: sin configurar nada, todo sigue igual.
+
+- `core/permisos_config.js`: lee el opcional `ROLES_DE_RUBROS` de `proyecto/permisos_rubros.js` (PER-37):
+  roles propios sin permisos (`fuera`) y `rolAlRegistrarse`. El registro y Google usan ese rol (USU-14).
+- `layout/panel/panel_usuario`: no muestra como rol del equipo ningún rol "fuera" (antes solo `cliente`).
+- `config/auth_config`: `destinoTrasRegistro` sale de `registro.destino` del `modulo.js` de un rubro (USU-43).
+- `core/suscripcion_software_config.js`: `suscripcionDelSoftware: false` en `proyecto/client_config.js` apaga
+  la suscripción del software: sin bloqueo, rutas, plan inicial, aviso ni pantallas (SIS-56).
+
 ## 2.1.0 — 2026-11-17
 
 Diseño del marco tomado de MiPadel (spec `docs/specs/core/sistema.md`, SIS-53 a SIS-55). Compatible:

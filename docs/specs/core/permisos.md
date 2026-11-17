@@ -57,6 +57,7 @@ proyecto en `proyecto/permisos_rubros.js`.
 | PER-12 | Solo se borran roles creados desde el panel y sin personas asignadas; si tiene personas, se avisa cuántas y que antes hay que cambiarles el rol. | ✅ `storefront.spec.js` › mismo test que PER-10 |
 | PER-13 | Los roles del sistema (Administrador del sistema, Gerente general, Encargado, Vendedor, Cliente) no se borran. El rol "profesional", que quedó del gimnasio, se borra al arrancar si nadie lo tiene; si alguien lo tiene, se conserva y se avisa en el registro del servidor. | ✅ `checkout.integration.mjs` › "PER-13: el arranque borra el rol profesional si nadie lo tiene…" (que no se borren los del sistema: ⚠️) |
 | PER-14 | Los roles del sistema se muestran como Administrador del sistema, Gerente general, Encargado, Vendedor y Cliente: nunca "admin" ni "super admin". El nombre vive en `permisosConfig.nombresRol` y, si cambia, se actualiza en la base al arrancar. El código interno (`super_admin`, `admin`, `supervisor`) no cambia. | ✅ `core_roles.test.mjs` › "PER-14: …" (la actualización en la base: ⚠️) |
+| PER-37 | Un rubro puede declarar en `proyecto/permisos_rubros.js` sus propios roles sin permisos del personal (`ROLES_DE_RUBROS.fuera`: código y nombre, ej. jugador y organizador) y el rol de quien se registra (`alRegistrarse`). Esos roles se crean solos al arrancar, no aparecen en el panel de permisos ni en Personal, y su sesión dura como la de un cliente. Sin declararlos, solo existe `cliente`. | ✅ `core_roles.test.mjs` › "PER-37: …" |
 
 ### Personal
 

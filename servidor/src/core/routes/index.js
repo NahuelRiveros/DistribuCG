@@ -10,6 +10,7 @@ import { suscripcionRouter } from "./sistema/suscripcion_router.js";
 import { ubicacionRouter } from "./ubicacion/ubicacion_router.js";
 import { bannerPromocionRouter } from "./sistema/banner_promocion_router.js";
 import { verificarSuscripcion } from "../middleware/suscripcion_middleware.js";
+import { suscripcionDelSoftwareActiva } from "../../../../core/suscripcion_software_config.js";
 
 import { uploadRouter } from "./upload_router.js";
 
@@ -44,8 +45,8 @@ router.get("/health", async (req, res) => {
 });
 
 // Bloquea todas las rutas operativas si la suscripción está vencida.
-// Siempre pasan: /health, /auth, /suscripcion, /catalogos
-router.use(verificarSuscripcion);
+// Siempre pasan: /health, /auth, /suscripcion, /catalogos. Apagada (SIS-56): ni bloqueo ni rutas del plan.
+if (suscripcionDelSoftwareActiva) router.use(verificarSuscripcion);
 
 /**
  * 🔽 TUS ROUTES
@@ -55,7 +56,7 @@ router.use("/auth", authRouter);
 router.use("/staff", staffRouter);
 router.use("/perfil", perfilRouter);                  // ← datos propios de quien ingresó (facturación)
 router.use("/permisos", permisosRouter);                // ← roles y permisos del personal
-router.use("/suscripcion", suscripcionRouter);       // ← plan del software
+if (suscripcionDelSoftwareActiva) router.use("/suscripcion", suscripcionRouter); // ← plan del software
 router.use("/ubicacion", ubicacionRouter);            // ← provincia/departamento/localidad (público, sin auth)
 router.use("/banners", bannerPromocionRouter);        // ← carrusel y cinta de la tienda (GET público, gestión con "Editar banners")
 

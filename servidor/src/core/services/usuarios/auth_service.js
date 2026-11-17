@@ -1,4 +1,4 @@
-﻿import bcrypt from "bcrypt";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "node:crypto";
 import { UniqueConstraintError } from "sequelize";
@@ -7,6 +7,7 @@ import { clasificarIdentificador } from "../common/nombre_usuario.js";
 import { verificarCredencialGoogle } from "../common/google_auth.js";
 import { ErrorApp } from "../common/errores.js";
 import { clientConfig } from "../../../../../proyecto/client_config.js";
+import { permisosConfig } from "../../../../../core/permisos_config.js";
 import { env } from "../../configuracion_servidor/env.js";
 import { sequelize } from "../../database/sequelize.js";
 import { Persona, Usuario, UsuarioRol, Rol } from "../../models/index.js";
@@ -149,8 +150,8 @@ export async function loginConGoogle({ credencial }, { verificar = verificarCred
 // El registro no pide documento: queda vacío hasta que haga falta (ej. para facturar).
 async function crearCliente({ nombre, apellido, email, password, nombre_usuario, googleId = null }) {
   return sequelize.transaction(async (t) => {
-    const rolCliente = await Rol.findOne({ where: { codigo: "cliente" }, transaction: t });
-    if (!rolCliente) throw new Error("Falta configurar el rol cliente");
+    const rolCliente = await Rol.findOne({ where: { codigo: permisosConfig.rolAlRegistrarse }, transaction: t });
+    if (!rolCliente) throw new Error(`Falta configurar el rol ${permisosConfig.rolAlRegistrarse}`);
 
     const persona = await Persona.create({ nombre, apellido, email }, { transaction: t });
     const usuario = await Usuario.create({

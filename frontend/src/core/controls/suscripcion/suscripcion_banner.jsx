@@ -3,6 +3,7 @@ import { AlertTriangle, CreditCard, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/auth_context";
 import { getEstadoSuscripcion } from "../../api/suscripcion_api";
+import { suscripcionDelSoftwareActiva } from "../../../../../core/suscripcion_software_config.js";
 
 const DURACION_MS = 5000;
 
@@ -13,7 +14,8 @@ export default function SuscripcionBanner() {
   const [visible, setVisible] = useState(true);
   const [progreso, setProgreso] = useState(100); // 100 → 0 en DURACION_MS
 
-  const esAdmin = isAuth && usuario?.roles?.includes("admin");
+  // Con la suscripción del software apagada (SIS-56) no se consulta ni se avisa nada.
+  const esAdmin = suscripcionDelSoftwareActiva && isAuth && usuario?.roles?.includes("admin");
 
   useEffect(() => {
     if (!esAdmin) return;

@@ -45,9 +45,10 @@ seguir sus pedidos, el personal para trabajar en el panel.
 | USU-11 | Se piden nombre, apellido, email válido y contraseña de 8 a 72 caracteres. | ⚠️ sin test |
 | USU-12 | No puede haber dos cuentas con el mismo email: "Ya existe una cuenta con ese email". | ⚠️ sin test |
 | USU-13 | El nombre de usuario es opcional: 3 a 30 caracteres entre letras, números, punto, guion y guion bajo (sin "@"), se guarda en minúsculas y no puede repetirse. La pantalla avisa si ya está en uso. | ✅ `checkout.integration.mjs` › "registro con usuario opcional: guarda en minúsculas, rechaza repetido e inválido"; `storefront.spec.js` › "registro con usuario opcional muestra si ya está en uso…" |
-| USU-14 | Toda cuenta creada por registro es de rol cliente. | ⚠️ sin test |
+| USU-14 | Toda cuenta creada por registro (o la primera vez con Google) recibe el rol de `permisosConfig.rolAlRegistrarse`: `cliente`, salvo que el rubro declare otro en `proyecto/permisos_rubros.js` (PER-37). | ⚠️ sin test |
 | USU-15 | Más de 5 registros por hora desde la misma IP se frenan. | ⚠️ sin test |
 | USU-16 | Lo que el visitante tenía en el carrito se conserva al registrarse o ingresar. | ✅ `storefront.spec.js` › "el cliente conserva carrito al registrarse…" (detalle en la spec del carrito) |
+| USU-43 | Quien se registra sin venir de otra página va al destino que declare el rubro (`registro.destino` en su `modulo.js`, ej. su perfil de bienvenida); sin rubro que lo declare, al destino de siempre. Si venía de otra página, vuelve ahí. | ⚠️ sin test (revisado en el navegador) |
 
 ### Ingreso con Google
 

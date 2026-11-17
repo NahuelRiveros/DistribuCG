@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../auth/auth_context.jsx";
-import { authConfig } from "../../config/auth_config.js";
+import { authConfig, destinoTrasRegistro } from "../../config/auth_config.js";
 import { http } from "../../api/http.js";
 import { safeReturnTo, authLink } from "../../controls/acceso/return_to.js";
 import AuthLayout from "../../controls/acceso/auth_layout.jsx";
@@ -18,7 +18,7 @@ export default function RegisterPage() {
   const [created, setCreated] = useState(false);
   const { register, handleSubmit, getValues, formState: { errors, isSubmitting } } = useForm();
   if (!authConfig.publicRegistration) return <Navigate to="/login" replace />;
-  if (isAuth) return <Navigate to={destination} replace />;
+  if (isAuth) return <Navigate to={params.get("returnTo") || !destinoTrasRegistro ? destination : destinoTrasRegistro} replace />;
   return <AuthLayout title={authConfig.texts.registerTitle} subtitle={authConfig.texts.registerSubtitle}>
     <form className="space-y-4" onSubmit={handleSubmit(async ({ nombre, apellido, email, nombre_usuario, password }) => {
       setError("");

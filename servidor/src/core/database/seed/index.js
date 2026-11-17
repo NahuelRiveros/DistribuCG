@@ -4,6 +4,7 @@ import { sincronizarPermisos } from "../../services/usuarios/permisos_service.js
 import { seed_super_admin } from "./seed_super_admin.js";
 import { seed_suscripcion } from "./seed_suscripcion.js";
 import { modulosActivos } from "../../../proyecto/modulos.js";
+import { suscripcionDelSoftwareActiva } from "../../../../../core/suscripcion_software_config.js";
 
 /**
  * Seed de catálogos + usuario super admin — idempotente, seguro de correr
@@ -20,7 +21,7 @@ export async function seed_database() {
   await seed_rbac();
   await sincronizarPermisos(); // después de seed_rbac: asigna los permisos nuevos a supervisor y vendedor
   await seed_super_admin();
-  await seed_suscripcion();
+  if (suscripcionDelSoftwareActiva) await seed_suscripcion();
   for (const modulo of modulosActivos) await modulo.seed?.();
   console.log("✅ Seed finalizado");
 }

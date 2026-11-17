@@ -26,3 +26,6 @@ const DISTRIBUIDORA = {
 };
 
 export const PERMISOS_DE_RUBROS = [DISTRIBUIDORA];
+
+// PER-37: sin roles propios; quien se registra es cliente.
+export const ROLES_DE_RUBROS = {};
