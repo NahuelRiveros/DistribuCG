@@ -7,6 +7,9 @@ import { HOME_CONTACTOS } from "../../../proyecto/config/home_config.js";
 import { brandConfig } from "../../../proyecto/config/brand_config.js";
 import LogoMoovs from "../brand/logo_moovs.jsx";
 
+// Con "simbolo-y-texto" el logo ya muestra el nombre escrito: el pie no lo repite.
+const logoMuestraNombre = () => brandConfig.logo?.tipo === "simbolo-y-texto";
+
 // Un placeholder sin completar en home_config.js se ve como "[Tu número acá]"
 // — mostrarlo tal cual a un cliente real sería peor que no mostrar nada.
 const esPlaceholder = (v) => /^\[.*\]$/.test(String(v ?? "").trim());
@@ -72,11 +75,20 @@ export default function Footer() {
           {/* ── Marca ── */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <LogoMoovs size="md" variant="light" slot="footer" />
-              <div>
-                <p className="kt-display text-lg font-bold leading-tight text-white">{brandConfig.nombre}</p>
-                <p className="text-xs text-slate-400">{brandConfig.rubro}</p>
-              </div>
+              {logoMuestraNombre() ? (
+                <div>
+                  <LogoMoovs size="sm" variant="light" slot="footer" />
+                  <p className="mt-1 text-xs text-slate-400">{brandConfig.rubro}</p>
+                </div>
+              ) : (
+                <>
+                  <LogoMoovs size="md" variant="light" slot="footer" />
+                  <div>
+                    <p className="kt-display text-lg font-bold leading-tight text-white">{brandConfig.nombre}</p>
+                    <p className="text-xs text-slate-400">{brandConfig.rubro}</p>
+                  </div>
+                </>
+              )}
             </div>
             <p className="max-w-70 text-sm leading-6 text-slate-300">
               {brandConfig.tagline}

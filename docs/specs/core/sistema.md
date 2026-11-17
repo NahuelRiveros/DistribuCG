@@ -62,6 +62,15 @@ arranca y responde de forma segura.
 | SIS-51 | Las columnas de texto únicas (persona, usuario, rol, permiso, módulo, catálogos) se declaran como índice con nombre fijo (`<tabla>_<columna>_key`): sincronizar los modelos varias veces no agrega restricciones repetidas ([cambio](../cambios/2026-11-indices-unicos.md)). | ✅ `ropa.integration.mjs` (Stilos) › "Arranque: sincronizar dos veces…" |
 | SIS-52 | Después de sincronizar, el arranque borra las restricciones `<nombre>_key<N>` que repiten las mismas columnas que `<nombre>_key` en la misma tabla (solo en el schema del proyecto); deja la original. | ✅ `ropa.integration.mjs` (Stilos) › "SIS-52…" |
 
+### Marco del sitio (barra, menú, pie e impresión)
+
+El diseño del marco es el de MiPadel (pedido del dueño, 2026-11-17); los colores, el logo y las frases son de cada proyecto.
+
+| Código | Regla | Estado |
+| --- | --- | --- |
+| SIS-53 | La portada ("/") es de cada proyecto: si un rubro trae `inicio` en sus pantallas, se muestra esa; si no, el home de tienda del core (SIS-30). | ✅ `core_estructura.test.mjs` › "SIS-53: …" |
+| SIS-54 | La barra muestra el menú en forma de píldora desde 1024 px y, en celular, un menú lateral con la marca, los links y una tarjeta para ingresar o crear cuenta. Sus frases (`menuMovil` en `brand_config.js`: lema, título, texto y pie) son del proyecto; sin ellas se usan textos neutros. El logo puede ser imagen (`gc-mark`) o símbolo y nombre con acento (`simbolo-y-texto`). El panel ofrece "Ver tienda" si hay tienda y "Ver sitio" si no. | ⚠️ sin test (revisado en capturas) |
+| SIS-55 | Al imprimir una página del sitio no salen la cinta, la barra, el aviso de suscripción ni el pie: solo el contenido. | ⚠️ sin test |
 ### Seguridad y API del core
 
 | Código | Regla | Estado |

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, PanelLeftClose, PanelLeftOpen, Store, X } from "lucide-react";
+import { Globe, Menu, PanelLeftClose, PanelLeftOpen, Store, X } from "lucide-react";
 import LogoMoovs from "../../brand/logo_moovs.jsx";
 import SuscripcionBanner from "../../suscripcion/suscripcion_banner.jsx";
 import ErrorBoundary from "../../ui/error_boundary.jsx";
@@ -8,6 +8,10 @@ import { cn } from "../../../utils/cn.js";
 import PanelMenu from "./panel_menu.jsx";
 import PanelUsuario from "./panel_usuario.jsx";
 import { usePanelGrupos } from "./use_panel_grupos.js";
+import { tiendaActiva } from "../../../../proyecto/modulos_activos.js";
+
+// Un proyecto con tienda vuelve a "la tienda"; uno sin tienda, "al sitio".
+const VOLVER = tiendaActiva ? { icono: Store, texto: "Ver tienda" } : { icono: Globe, texto: "Ver sitio" };
 
 const CLAVE_ACHICADO = "panel_menu_achicado";
 
@@ -18,7 +22,7 @@ function leerAchicado() {
 const BOTON_ICONO = "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition outline-none focus-visible:ring-2 focus-visible:ring-(--kt-turquoise)";
 
 /**
- * Zona de gestión, separada de la tienda: sin navbar ni footer de la tienda, con menú
+ * Zona de gestión, separada del sitio: sin navbar ni footer del sitio, con menú
  * lateral propio (en celular, un menú que se abre con ☰). Las páginas de gestión
  * conservan sus direcciones; solo cambia el marco que las rodea.
  */
@@ -90,7 +94,7 @@ export default function PanelLayout({ children }) {
             <p className="truncate font-bold text-(--kt-ink)">{actual?.label ?? "Panel de gestión"}</p>
           </div>
           <Link to="/" className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-(--kt-teal-700) hover:bg-slate-100">
-            <Store aria-hidden="true" className="h-4 w-4" /><span className="hidden sm:inline">Ver tienda</span><span className="sr-only sm:hidden">Ver tienda</span>
+            <VOLVER.icono aria-hidden="true" className="h-4 w-4" /><span className="hidden sm:inline">{VOLVER.texto}</span><span className="sr-only sm:hidden">{VOLVER.texto}</span>
           </Link>
         </header>
         <div className="print:hidden"><SuscripcionBanner /></div>

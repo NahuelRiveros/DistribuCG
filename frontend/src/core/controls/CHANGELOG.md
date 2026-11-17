@@ -11,6 +11,20 @@ los consumidores tienen que ajustar) y anotá acá qué cambió. Antes de pisar
 un archivo en otro proyecto, revisá si ese proyecto le hizo cambios propios
 al mismo archivo — si los tiene, es un merge manual, no un copy-paste.
 
+## 2.1.0 — 2026-11-17
+
+Diseño del marco tomado de MiPadel (spec `docs/specs/core/sistema.md`, SIS-53 a SIS-55). Compatible:
+un proyecto que no configura nada nuevo sigue andando, con el diseño nuevo y textos neutros.
+
+- `layout/navbar`: menú en píldora, barra más alta, "Ingresar ↗" y el menú de celular desde 1024 px
+  (antes 1280). `navbar_link` muestra el ícono del ítem si lo tiene.
+- `layout/navbar_mobile`: menú lateral con la marca, tarjeta para ingresar o crear cuenta y frases del
+  proyecto en `brandConfig.menuMovil` (`lema`, `titulo`, `texto`, `pie`; todas opcionales).
+- `brand/logo_moovs`: nuevo `logo.tipo` "simbolo-y-texto" (símbolo + nombre con `acento`). El pie no
+  repite el nombre cuando el logo ya lo muestra.
+- `layout/app_layout`: al imprimir solo sale el contenido (sin cinta, barra, aviso ni pie).
+- `layout/panel/panel_layout`: "Ver tienda" si hay tienda; si no, "Ver sitio".
+- `app/routes/general.routes`: la portada la puede poner el rubro (`inicio` en sus pantallas, `app/inicio.js`).
 ## 2.0.0 — 2026-11-10
 
 Home de tienda con banners programables (spec `docs/specs/cambios/2026-11-home-tienda.md`).

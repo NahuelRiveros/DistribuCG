@@ -10,8 +10,11 @@ export const clientes = {
     nombreCorto: "[COMPLETAR]",
     rubro: "[COMPLETAR rubro]",
     tagline: "[COMPLETAR frase corta].",
-    // "gc-mark" muestra las imágenes de logo_config.js.
+    // "gc-mark" muestra las imágenes de logo_config.js; "simbolo-y-texto" muestra el símbolo
+    // (logo_config.js o el favicon) y el nombre escrito, con `acento` en otro color (ej. texto "Mi", acento "Marca").
     logo: { tipo: "gc-mark", texto: "[COMPLETAR]", ariaLabel: "[COMPLETAR nombre]" },
+    // Frases del menú del celular (opcionales; sin ellas se usan textos neutros):
+    // menuMovil: { lema: "Arriba de los links", titulo: "Tarjeta de ingreso", texto: "Debajo del título", pie: "Al final" },
     fuentes: {
       display: "'Bricolage Grotesque', sans-serif",
       body: "'Plus Jakarta Sans', sans-serif",
