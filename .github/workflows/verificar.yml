@@ -1,6 +1,7 @@
 # Corre todas las pruebas en los servidores de GitHub en cada push y pull request.
 # El resultado se ve en la pestaña "Actions" del repo (y GitHub avisa por mail si falla).
 # No usa la base real ni secretos: PostgreSQL de prueba propio y API simulada en Playwright.
+# Es del core: llega igual a todos los proyectos con core_traer.
 name: Verificar
 
 on:
@@ -21,7 +22,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres_ci
-          POSTGRES_DB: distribucg_ci
+          POSTGRES_DB: proyecto_ci
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres"
@@ -29,7 +30,7 @@ jobs:
     env:
       NODE_ENV: test
       DB_PORT: 5432
-      DB_NAME: distribucg_ci
+      DB_NAME: proyecto_ci
       DB_USER: postgres
       DB_PASS: postgres_ci
     steps:
