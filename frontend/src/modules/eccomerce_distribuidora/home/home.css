@@ -1,0 +1,20 @@
+.dc-home { overflow: clip; }
+.dc-home-hero { background-image: radial-gradient(ellipse at 20% 85%, rgb(49 95 143 / 25%), transparent 42%), linear-gradient(120deg, #081c33 0%, #0e2b4d 60%, #102e50 100%); }
+.dc-hero-orbit { position: absolute; pointer-events: none; border: 1px solid rgb(255 255 255 / 7%); border-radius: 9999px; }
+.dc-hero-orbit-one { width: 34rem; height: 34rem; right: -13rem; top: -19rem; box-shadow: 0 0 0 3rem rgb(255 255 255 / 2%), 0 0 0 6rem rgb(255 255 255 / 1%); }
+.dc-hero-orbit-two { width: 18rem; height: 18rem; left: -14rem; bottom: -12rem; border-color: rgb(240 16 30 / 16%); box-shadow: 0 0 0 2rem rgb(240 16 30 / 4%); }
+.dc-hero-highlight { color: var(--kt-accent-on-dark); }
+.dc-hero-copy { animation: dc-home-rise .65s cubic-bezier(.2,.7,.2,1) both; }
+.dc-hero-feature { animation: dc-home-rise .7s .1s cubic-bezier(.2,.7,.2,1) both; }
+.dc-feature-product-raised { transform: translateY(-.5rem); }
+.dc-feature-mark { box-shadow: 0 0 0 6px rgb(243 246 250 / 65%); }
+.dc-hero-baseline { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1rem; border-top: 1px solid rgb(255 255 255 / 10%); padding: .8rem max(1rem, calc((100vw - 80rem) / 2)); color: rgb(255 255 255 / 44%); font-size: 9px; font-weight: 800; letter-spacing: .17em; }
+.dc-section-kicker { color: var(--kt-accent-comercial); font-size: 10px; font-weight: 800; letter-spacing: .2em; line-height: 1.4; text-transform: uppercase; }
+.dc-family-card { animation: dc-home-rise .5s cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--dc-delay, 0ms); }
+.dc-family-glow { position: absolute; right: -2rem; top: -2rem; width: 6rem; height: 6rem; border-radius: 9999px; background: var(--kt-bg-soft); transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+.dc-family-card:hover .dc-family-glow { transform: scale(1.5); }
+.dc-product-reveal { animation: dc-home-rise .55s cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--dc-delay, 0ms); }
+@keyframes dc-home-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 639px) { .dc-hero-baseline { justify-content: center; text-align: center; } .dc-hero-baseline span:last-child { display: none; } }
+@media (prefers-reduced-motion: reduce) { .dc-hero-copy, .dc-hero-feature, .dc-family-card, .dc-product-reveal { animation: none; } .dc-family-glow, .dc-feature-product, .dc-feature-mark { transition: none; } }
+.dc-offers-section { background-image: linear-gradient(115deg, #fff 0%, var(--kt-accent-comercial-soft) 50%, #fff 100%); }
