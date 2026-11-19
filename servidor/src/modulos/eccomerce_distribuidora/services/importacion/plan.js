@@ -81,7 +81,8 @@ export function buildPlan(rows, settings, catalog) {
       before: variant ? variantSnapshot(variant) : null,
       productBefore: product ? hash([product.nombre, product.categoria_id, product.activo, product.fecha_baja]) : null,
       previousPrice: variant ? Number(variant.precio) : null, finalPrice: price,
-      message: variant ? "Se conservan nombre, marca, descripción, categoría, imágenes y campos no seleccionados." : "Nueva presentación.",
+      message: variant ? "Se conservan nombre, marca, descripción, categoría, imágenes y campos no seleccionados."
+        : price === 0 ? "Nueva, sin precio: queda oculta hasta que la lista de precios le ponga uno." : "Nueva presentación.",
     };
   });
 }

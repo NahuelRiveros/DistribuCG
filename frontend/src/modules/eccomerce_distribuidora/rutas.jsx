@@ -19,6 +19,7 @@ const ArticulosPage = lazy(() => import("./admin/articulos_page.jsx"));
 const ListaCargaPage = lazy(() => import("./pedidos/lista_carga_page.jsx"));
 const ClientesPage = lazy(() => import("./admin/clientes_page.jsx"));
 const PreciosClientePage = lazy(() => import("./admin/precios_cliente_page.jsx"));
+const MantenimientoCatalogoPage = lazy(() => import("./admin/mantenimiento_catalogo_page.jsx"));
 import { protegida } from "../../core/app/routes/route_helpers.jsx";
 
 // Catálogo público y carrito invitado configurables por instalación. Cualquier
@@ -64,6 +65,9 @@ export const eccomerceDistribuidoraAdminRoutes = [
   { path: "/distribuidora/admin/listas-precio/:id/precios", element: protegida(<ListaPrecioPreciosPage />, PRECIOS) },
   // PRE-30: actualizar precios con la lista del sistema del cliente (solo escribe precios).
   { path: "/distribuidora/admin/precios-cliente", element: protegida(<PreciosClientePage />, PRECIOS) },
+  // CAT-52: limpiar y recargar el catálogo del cliente es solo del super admin (el servidor también lo exige).
+  // CAT-60: la ruta no existe con el mantenimiento apagado en client_config.
+  ...(storefrontConfig.mantenimientoCatalogo ? [{ path: "/distribuidora/admin/mantenimiento", element: protegida(<MantenimientoCatalogoPage />, ["super_admin"]) }] : []),
   { path: "/distribuidora/admin/lista-carga", element: protegida(<ListaCargaPage />, PEDIDOS) },
   { path: "/distribuidora/admin/importar", element: protegida(<ImportacionDistribuidoraPage />, IMPORTAR) },
   { path: "/distribuidora/admin/notas-pedido", element: protegida(<NotasPedidoDistribuidoraPage />, PEDIDOS) },

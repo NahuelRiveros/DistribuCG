@@ -4,6 +4,7 @@ import { groupKey, categoryPaths, hash } from "./plan.js";
 import { keyText } from "./normalize.js";
 import { asegurarMarcasPorNombre, asociarSiFalta } from "../marcas_distribuidora_service.js";
 import { claveMarca } from "../../../../core/services/common/formato_nombre.js";
+import { hoyArgentina } from "./lista_cliente.js";
 const unique = (rows) => [...new Map(rows.map((r) => [r.id, r])).values()];
 const chunks = (array, size = 500) => Array.from({ length: Math.ceil(array.length / size) }, (_, i) => array.slice(i * size, (i + 1) * size));
 async function readChunks(Model, values, condition, transaction) {
@@ -51,11 +52,15 @@ export async function applyPlan(plan, catalog, transaction) {
     // Las marcas del archivo se buscan (o crean) en la tabla de marcas y se asocian a la categoría.
     const marcas = await asegurarMarcasPorNombre(entries.map(([, v]) => v.marca).filter(Boolean), transaction);
     const marcaDe = (v) => (v.marca ? marcas.get(claveMarca(v.marca)) : null);
-    const added = await Product.bulkCreate(entries.map(([,v]) => ({ nombre: v.producto_nombre, categoria_id: categoryIds.get(keyText(v.categoria)), marca_id: marcaDe(v)?.id ?? null, marca: marcaDe(v)?.nombre ?? null, descripcion: v.descripcion, activo: true })), { transaction, returning: true });
+    // CAT-43: un artículo nuevo sin precio (todas sus presentaciones en 0) se crea oculto y marcado como
+    // "sin precio de la lista": Actualizar precios lo pone a la venta cuando la lista le trae precio (PRE-34b).
+    const sinPrecio = (key) => creates.filter((r) => groupKey(r.value.categoria, r.value.producto_nombre) === key).every((r) => Number(r.patch.precio) === 0);
+    const added = await Product.bulkCreate(entries.map(([key, v]) => ({ nombre: v.producto_nombre, categoria_id: categoryIds.get(keyText(v.categoria)), marca_id: marcaDe(v)?.id ?? null, marca: marcaDe(v)?.nombre ?? null, descripcion: v.descripcion, activo: !sinPrecio(key), inactivo_por_lista: sinPrecio(key) })), { transaction, returning: true });
     added.forEach((p, i) => productIds.set(entries[i][0], p.id));
     await asociarSiFalta(added.filter((p) => p.marca_id).map((p) => ({ marca_id: p.marca_id, categoria_id: p.categoria_id })), transaction);
   }
-  if (creates.length) await Variant.bulkCreate(creates.map((r) => ({ producto_id: r.productId || productIds.get(groupKey(r.value.categoria, r.value.producto_nombre)), nombre: r.value.variedad_nombre, ...r.patch, fecha_cambio_precio: new Date() })), { transaction });
+  const hoy = hoyArgentina();
+  if (creates.length) await Variant.bulkCreate(creates.map((r) => ({ producto_id: r.productId || productIds.get(groupKey(r.value.categoria, r.value.producto_nombre)), nombre: r.value.variedad_nombre, ...r.patch, sin_precio_lista_desde: Number(r.patch.precio) === 0 ? hoy : null, fecha_cambio_precio: new Date() })), { transaction });
   const variants = new Map(catalog.variants.map((v) => [v.id, v]));
   const updates = plan.filter((r) => r.action === "update");
   const conFechaPrecio = (r) => {

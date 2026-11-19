@@ -18,6 +18,7 @@ import { marcasDistribuidoraRouter } from "./routes/marcas_distribuidora_router.
 import { listasPrecioRouter } from "./routes/listas_precio_router.js";
 import { clientesDistribuidoraRouter } from "./routes/clientes_distribuidora_router.js";
 import { preciosClienteRouter } from "./routes/precios_cliente_router.js";
+import { mantenimientoCatalogoRouter } from "./routes/mantenimiento_catalogo_router.js";
 import { arranque_distribuidora } from "./arranque.js";
 import { seed_distribuidora } from "./seed/index.js";
 
@@ -61,6 +62,7 @@ export const moduloDistribuidora = {
     ["/distribuidora/listas-precio", listasPrecioRouter],           // listas de precios regionales
     ["/distribuidora/clientes", clientesDistribuidoraRouter],       // listado de clientes con datos completos
     ["/distribuidora/precios-cliente", preciosClienteRouter],       // actualizar precios con la lista del sistema del cliente
+    ["/distribuidora/mantenimiento", mantenimientoCatalogoRouter],  // super admin: limpiar y recargar el catálogo del cliente
   ],
 
   arranque: arranque_distribuidora,

@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Upload,
   RefreshCw,
+  DatabaseZap,
   Boxes,
   FolderTree,
   Tag,
@@ -72,6 +73,14 @@ export const eccomerceDistribuidoraAdminDropdown = {
       permisos: ["precios.editar"],
       icon: RefreshCw,
     },
+    // CAT-60: solo mientras el mantenimiento esté encendido en client_config (se apaga con producción cargada).
+    ...(storefrontConfig.mantenimientoCatalogo ? [{
+      label: "Mantenimiento del catálogo",
+      to: "/distribuidora/admin/mantenimiento",
+      requiereAuth: true,
+      roles: ["super_admin"],
+      icon: DatabaseZap,
+    }] : []),
     {
       label: "Importar productos",
       to: "/distribuidora/admin/importar",

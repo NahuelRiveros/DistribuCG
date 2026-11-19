@@ -1301,6 +1301,131 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       await productos.cambiarEstadoProducto(vuelve.producto_id, true);
       assert.equal((await productoDe(vuelve)).inactivo_por_lista, false);
     });
+
+    await t.test("CAT-43: importar un artículo nuevo sin precio lo crea oculto y la lista del cliente lo pone a la venta", async () => {
+      const ExcelJS = (await import("exceljs")).default;
+      const { buildPlan } = await import("../src/modulos/eccomerce_distribuidora/services/importacion/plan.js");
+      const { loadCatalog, applyPlan } = await import("../src/modulos/eccomerce_distribuidora/services/importacion/catalog_repository.js");
+      const precios = await import("../src/modulos/eccomerce_distribuidora/services/precios_cliente_service.js");
+      await models.CategoriaDistribuidora.create({ nombre: "Ocultos QA", slug: "ocultos-qa" }).then((f) => models.CategoriaDistribuidora.create({ nombre: "Varios QA", slug: "varios-qa", padre_id: f.id }));
+      const fila = (row, cod, importe) => ({ row, value: { cod_ref: cod, producto_nombre: "Articulo QA " + cod, variedad_nombre: null, categoria: "Ocultos QA > Varios QA", marca: null, descripcion: null, importe, iva_porcentaje: null, cantidad: null, codigo_barras: null, unidades_por_bulto: 12 } });
+      const filas = [fila(2, "920001", 0), fila(3, "920002", 150)];
+      const ajustes = { identity: "sku", mode: "upsert", updateFields: ["precio"], priceType: "net", defaultVat: 21 };
+      const plan = buildPlan(filas, ajustes, await loadCatalog(filas));
+      assert.match(plan[0].message, /oculta/);
+      await sequelize.transaction(async (tx) => applyPlan(plan, await loadCatalog(filas, tx), tx));
+      const articulo = async (cod) => {
+        const v = await models.VariedadDistribuidora.findOne({ where: { cod_ref: cod } });
+        return { v, p: await models.ProductoDistribuidora.findByPk(v.producto_id) };
+      };
+      const oculto = await articulo("920001"), conPrecio = await articulo("920002");
+      assert.deepEqual([oculto.p.activo, oculto.p.inactivo_por_lista, oculto.v.sin_precio_lista_desde, oculto.v.unidades_por_bulto], [false, true, precios.hoyArgentina(), 12]);
+      assert.deepEqual([conPrecio.p.activo, conPrecio.p.inactivo_por_lista, conPrecio.v.sin_precio_lista_desde], [true, false, null]);
+
+      // La lista del cliente le trae precio: vuelve a la venta sin pedir revisión (primer precio).
+      const libro = new ExcelJS.Workbook();
+      libro.addWorksheet("LISTA").addRow(["920001  ", "Articulo QA 920001", 480]);
+      const vista = await precios.validarListaCliente(Buffer.from(await libro.xlsx.writeBuffer()), "lista.xlsx", randomUUID(), id);
+      assert.equal(vista.resumen.reactivar, 1);
+      await precios.ejecutarLote(vista.id, id, { index: 0, confirm: true, ajustarListas: false });
+      const despues = await articulo("920001");
+      assert.deepEqual([despues.p.activo, despues.p.inactivo_por_lista, Number(despues.v.precio), despues.v.sin_precio_lista_desde], [true, false, 480, null]);
+    });
+
+    // Va al final: borra todo el catálogo de las pruebas anteriores.
+    await t.test("CAT-52 a CAT-59: el super admin limpia los artículos (los pedidos conservan su copia) y recarga el catálogo del cliente, oculto", async () => {
+      const { writeFile, rm } = await import("node:fs/promises");
+      const { tmpdir } = await import("node:os");
+      const { join } = await import("node:path");
+      const mant = await import("../src/modulos/eccomerce_distribuidora/services/mantenimiento_catalogo_service.js");
+      const { seed_distribuidora } = await import("../src/modulos/eccomerce_distribuidora/seed/index.js");
+      // Algo en carrito y un precio regional, además de los pedidos que dejaron las pruebas anteriores.
+      const cat = await models.CategoriaDistribuidora.create({ nombre: "Mant QA", slug: "mant-qa" });
+      const prod = await models.ProductoDistribuidora.create({ categoria_id: cat.id, nombre: "Articulo Mant QA" });
+      const vari = await models.VariedadDistribuidora.create({ producto_id: prod.id, precio: 100, cod_ref: "930001" });
+      await vaciarCarrito(id);
+      await agregarItem(id, { producto_id: prod.id, variedad_id: vari.id, cantidad: 1 });
+      const lista = await models.ListaPrecio.create({ nombre: "Zona Mant QA" });
+      await models.ListaPrecioItem.create({ lista_id: lista.id, variedad_id: vari.id, precio: 90 });
+      const renglones = await models.NotaPedidoItem.findAll({ raw: true });
+      assert.ok(renglones.length > 0 && renglones.some((r) => r.producto_id), "hay pedidos con artículos");
+
+      const archivo = join(tmpdir(), `catalogo-mant-${randomUUID()}.json`);
+      await writeFile(archivo, JSON.stringify([
+        { codigo: "940001", nombre: "Caramelos Menta QA", presentacion: "1 kg", marca: "Marca QA", categoria: "Golosinas QA > Caramelos QA", bulto: 8 },
+        { codigo: "940002", nombre: "Caramelos Frutilla QA", presentacion: "1 kg", marca: "Marca QA", categoria: "Golosinas QA > Caramelos QA", bulto: 8 },
+        { codigo: "940003", nombre: "Escoba QA", presentacion: null, marca: "", categoria: "Limpieza QA > Escobas QA", bulto: 12 },
+      ]));
+      try {
+        // CAT-53 y CAT-55: con artículos no se puede cargar; la copia trae lo que hay.
+        const antes = await mant.estadoCatalogo({ archivo });
+        assert.equal(antes.puedeCargar, false);
+        assert.ok(antes.articulos > 0 && antes.carritos > 0 && antes.preciosRegionales > 0 && antes.renglonesPedidos > 0);
+        assert.ok((await mant.copiaCatalogo()).some((f) => f.codigo === "930001"));
+        await assert.rejects(mant.cargarLote(id, 0, { archivo }), /primero limpialo/);
+        await assert.rejects(mant.limpiarCatalogo(id, "borrar"), /BORRAR ARTÍCULOS/);
+
+        // CAT-54: todo o nada; los pedidos siguen completos y dejan de apuntar al artículo.
+        const limpio = await mant.limpiarCatalogo(id, mant.FRASE_LIMPIAR);
+        assert.ok(limpio.articulos > 0 && limpio.categorias > 0 && limpio.carritos > 0);
+        for (const modelo of ["ProductoDistribuidora", "VariedadDistribuidora", "CategoriaDistribuidora", "MarcaDistribuidora", "CarritoDistribuidoraItem", "ListaPrecioItem"]) {
+          assert.equal(await models[modelo].count(), 0, modelo);
+        }
+        const despues = await models.NotaPedidoItem.findAll({ raw: true });
+        assert.equal(despues.length, renglones.length);
+        assert.ok(despues.every((r) => r.producto_id === null && r.variedad_id === null && r.nombre_producto));
+        assert.ok(await models.ListaPrecio.findByPk(lista.id), "la lista regional sigue, sin precios especiales");
+
+        // CAT-59: el arranque no vuelve a llenar la base vacía con la demo. CATALOGO_DEMO_AL_INICIAR es otra cosa
+        // (un pedido explícito para ambientes de demostración) y el .env.local de la PC puede tenerla encendida.
+        const demo = env.CATALOGO_DEMO_AL_INICIAR;
+        env.CATALOGO_DEMO_AL_INICIAR = false;
+        try { await seed_distribuidora(); } finally { env.CATALOGO_DEMO_AL_INICIAR = demo; }
+        assert.equal(await models.CategoriaDistribuidora.count(), 0);
+        assert.equal(await models.ProductoDistribuidora.count(), 0);
+
+        // CAT-55 y CAT-56: carga por lotes, oculta y en $0, con categorías y marcas; no se repite.
+        assert.equal((await mant.estadoCatalogo({ archivo })).puedeCargar, true);
+        const carga = await mant.cargarLote(id, 0, { archivo });
+        assert.deepEqual([carga.estado, carga.resultado.presentaciones, carga.resultado.errores], ["completado", 3, 0]);
+        assert.deepEqual(await mant.cargarLote(id, 0, { archivo }).catch((e) => e.message), "Ya hay artículos cargados. Para cargar el catálogo de nuevo, primero limpialo.");
+        const productosCargados = await models.ProductoDistribuidora.findAll({ raw: true });
+        assert.equal(productosCargados.length, 3);
+        assert.ok(productosCargados.every((p) => p.activo === false && p.inactivo_por_lista === true));
+        const escoba = await models.VariedadDistribuidora.findOne({ where: { cod_ref: "940003" }, raw: true });
+        assert.deepEqual([Number(escoba.precio), escoba.unidades_por_bulto], [0, 12]);
+        assert.equal(await models.CategoriaDistribuidora.count(), 4); // dos familias con una categoría cada una
+        assert.equal(await models.MarcaDistribuidora.count(), 1);
+      } finally { await rm(archivo, { force: true }); }
+
+      // CAT-52: solo el super admin (un admin con todos los permisos tampoco).
+      const express = (await import("express")).default;
+      const { mantenimientoCatalogoRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/mantenimiento_catalogo_router.js");
+      const app = express();
+      app.use(express.json());
+      app.use("/mant", mantenimientoCatalogoRouter);
+      const server = await new Promise((resolve) => { const instance = app.listen(0, "127.0.0.1", () => resolve(instance)); });
+      try {
+        const url = "http://127.0.0.1:" + server.address().port + "/mant/catalogo";
+        const token = async () => (await login({ identificador: "carla@example.test", password: "Clave1234" })).token;
+        const pedir = async () => fetch(url, { headers: { Authorization: "Bearer " + await token() } });
+        assert.equal((await fetch(url)).status, 401);
+        assert.equal((await pedir()).status, 403, "carla es admin, no super admin");
+        const persona = await models.Persona.findOne({ where: { email: "carla@example.test" } });
+        const carla = await models.Usuario.findOne({ where: { persona_id: persona.id } });
+        const [superAdmin] = await models.Rol.findOrCreate({ where: { codigo: "super_admin" }, defaults: { codigo: "super_admin", descripcion: "Super admin" } });
+        await models.UsuarioRol.create({ usuario_id: carla.id, rol_id: superAdmin.id });
+        assert.equal((await pedir()).status, 200);
+        // CAT-60: con el mantenimiento apagado, ni el super admin puede limpiar ni cargar.
+        const { clientConfig } = await import("../../proyecto/client_config.js");
+        clientConfig.tienda.mantenimientoCatalogo = false;
+        try {
+          assert.equal((await pedir()).status, 404);
+          const limpiar = await fetch(url + "/limpiar", { method: "POST", headers: { Authorization: "Bearer " + await token(), "Content-Type": "application/json" }, body: JSON.stringify({ confirmacion: "BORRAR ARTÍCULOS" }) });
+          assert.equal(limpiar.status, 404);
+        } finally { clientConfig.tienda.mantenimientoCatalogo = true; }
+      } finally { await new Promise((resolve) => server.close(resolve)); }
+    });
   } finally {
     if (created) {
       assert.equal(DB_SCHEMA, ownedSchema);

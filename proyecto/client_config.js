@@ -4,7 +4,11 @@ export const clientConfig = {
   id: "gc",
   auth: { publicRegistration: projectModules.eccomerce_distribuidora, passwordMinLength: 8, passwordMaxLength: 72, resetMinutes: 20, sesionClienteDias: 30, sesionPersonalHoras: 24 },
   // Catálogo y carrito de la tienda (las reglas del carrito del core leen estos límites).
-  tienda: { publicCatalog: true, guestCart: true, pageSize: 24, maxQuantity: 9999, maxCartLines: 200, cartTtlDays: 30 },
+  // catalogoInicialAlArrancar: con la base sin artículos, el arranque siembra familias, marcas y productos de
+  // demostración. Esta instalación usa el catálogo del cliente (CAT-59): apagado, así limpiar no trae la demo de vuelta.
+  // mantenimientoCatalogo (CAT-60): página del super admin para LIMPIAR todo el catálogo y recargarlo. Es destructiva:
+  // ponerla en false apenas producción quede cargada (oculta la página y el servidor rechaza limpiar y cargar).
+  tienda: { publicCatalog: true, guestCart: true, pageSize: 24, maxQuantity: 9999, maxCartLines: 200, cartTtlDays: 30, catalogoInicialAlArrancar: false, mantenimientoCatalogo: true },
   // PED-76: WhatsApp de la distribuidora para "Consultar por WhatsApp" en el pedido del cliente: con código
   // de país y sin "+" (ej. "5493704000000"). [COMPLETAR] Mientras sea null no se ofrece el botón.
   whatsapp: null,

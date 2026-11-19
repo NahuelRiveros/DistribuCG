@@ -10,14 +10,15 @@ const CARPETA_CLOUDINARY = "distribucg/productos";
 // La tienda muestra las fotos tal cual: se piden achicadas y en el formato más liviano que acepte el navegador.
 const ENTREGA = [{ width: 600, height: 600, crop: "limit", fetch_format: "auto", quality: "auto" }];
 
-const carpeta = process.argv[2];
+// npm corre el script desde servidor/: una ruta relativa se toma desde donde se escribió el comando (INIT_CWD).
+const carpeta = process.argv[2] && path.resolve(process.env.INIT_CWD ?? process.cwd(), process.argv[2]);
 if (!carpeta) {
   console.error('❌ Indicá la carpeta: npm --prefix servidor run imagenes:subir -- "C:/ruta/para_cloudinary"');
   process.exit(1);
 }
 const { cloud_name, api_key, api_secret } = cloudinary.config();
 if (!cloud_name || !api_key || !api_secret) {
-  console.error("❌ Faltan CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY o CLOUDINARY_API_SECRET en servidor/.env");
+  console.error("❌ Faltan CLOUDINARY_NOMBRE_CUENTA, CLOUDINARY_CLAVE_API o CLOUDINARY_SECRETO_API en servidor/.env.produccion");
   process.exit(1);
 }
 

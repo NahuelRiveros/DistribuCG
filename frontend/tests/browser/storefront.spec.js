@@ -1288,3 +1288,60 @@ test("PRE-30: si el Excel no es la lista, lo dice y deja reintentar sin cambiar 
   await expect(page.getByRole("button", { name: "Reintentar" })).toBeVisible();
   await expect(page).not.toHaveURL(/\?id=/);
 });
+// CAT-52 a CAT-58: mantenimiento del catálogo, simulado como un servidor con estado.
+async function mockMantenimiento(page) {
+  let estado = { articulos: 2019, presentaciones: 2021, categorias: 120, marcas: 300, carritos: 4, preciosRegionales: 10, renglonesPedidos: 55,
+    catalogo: { articulos: 600, conFoto: 400 }, carga: null, puedeCargar: false };
+  const pedidos = { limpiar: [], lotes: [] };
+  await page.route("**/api/distribuidora/mantenimiento/catalogo**", async (route) => {
+    const req = route.request(), ruta = new URL(req.url()).pathname.replace(/^.*\/catalogo/, "");
+    if (ruta === "" ) return route.fulfill({ json: { ok: true, data: estado } });
+    if (ruta === "/limpiar") {
+      pedidos.limpiar.push(req.postDataJSON());
+      estado = { ...estado, articulos: 0, presentaciones: 0, categorias: 0, marcas: 0, carritos: 0, preciosRegionales: 0, renglonesPedidos: 0, puedeCargar: true };
+      return route.fulfill({ json: { ok: true, data: { articulos: 2019, categorias: 120, marcas: 300 } } });
+    }
+    if (ruta === "/cargar") {
+      const { lote } = req.postDataJSON();
+      pedidos.lotes.push(lote);
+      const fin = lote === 2;
+      if (fin) estado = { ...estado, articulos: 580, puedeCargar: false };
+      return route.fulfill({ json: { ok: true, data: { estado: fin ? "completado" : "procesando", siguiente_lote: lote + 1, total_lotes: 3, resultado: { articulos: 580, categorias: 90, fotos: 400, errores: 0 } } } });
+    }
+    return route.fulfill({ status: 404, json: { ok: false, mensaje: "Ruta no simulada" } });
+  });
+  return pedidos;
+}
+test("CAT-52 a CAT-58: el super admin limpia con la frase y carga el catálogo del cliente por lotes", async ({ page }) => {
+  await entrarComo(page, ["super_admin"]);
+  const pedidos = await mockMantenimiento(page);
+  await page.goto("/panel");
+  await (await menuPanel(page)).getByRole("link", { name: "Mantenimiento del catálogo" }).click();
+  await expect(page.getByRole("heading", { name: "Mantenimiento del catálogo" })).toBeVisible();
+  await expect(page.getByText("Ya hay artículos cargados: para cargar de nuevo, primero limpiá.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cargar catálogo del cliente" })).toBeDisabled();
+  await noOverflow(page);
+
+  await page.getByRole("button", { name: "Limpiar artículos…" }).click();
+  const borrar = page.getByRole("button", { name: "Borrar todo" });
+  await expect(borrar).toBeDisabled();
+  await page.getByRole("textbox").fill("borrar artículos");
+  await expect(borrar).toBeDisabled();
+  await page.getByRole("textbox").fill("BORRAR ARTÍCULOS");
+  await borrar.click();
+  await expect(page.getByRole("button", { name: "Borrar todo" })).toHaveCount(0);
+  expect(pedidos.limpiar).toEqual([{ confirmacion: "BORRAR ARTÍCULOS" }]);
+
+  await page.getByRole("button", { name: "Cargar catálogo del cliente" }).click();
+  await expect(page.getByText(/Listo: 580 artículos, 90 categorías y 400 fotos/)).toBeVisible();
+  expect(pedidos.lotes).toEqual([0, 1, 2]);
+  await page.getByRole("link", { name: "Siguiente: Actualizar precios" }).click();
+  await expect(page).toHaveURL(/precios-cliente/);
+});
+test("CAT-52: un admin no ve el mantenimiento del catálogo", async ({ page }) => {
+  await entrarComo(page, ["admin"]);
+  await page.goto("/panel");
+  const menu = await menuPanel(page);
+  await expect(menu.getByRole("link", { name: "Actualizar precios" })).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Mantenimiento del catálogo" })).toHaveCount(0);
+});

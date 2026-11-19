@@ -4,6 +4,9 @@ import { listaPreciosClienteConfig as config } from "../../../../../../rubros/ec
 
 const redondear = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
+/** Fecha de hoy en Argentina, "AAAA-MM-DD" (la de las fechas de negocio). */
+export const hoyArgentina = (fecha = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).format(fecha);
+
 /** "006021  ", "\"006021" o "'006021" → "006021". Solo texto: un precio numérico nunca se toma como código. */
 export function codigoCliente(valor) {
   if (typeof valor !== "string") return null;

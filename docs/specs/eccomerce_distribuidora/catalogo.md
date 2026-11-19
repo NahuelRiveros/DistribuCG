@@ -73,6 +73,7 @@ mantenga cientos de artículos sin errores, a mano o importando una planilla.
 | CAT-40 | Se importa un Excel o CSV de hasta 20 MB y 50.000 filas. Las columnas se reconocen por su nombre; se elige crear nuevos, actualizar existentes o las dos cosas, y se ve una muestra antes de confirmar y un informe al terminar. | ⚠️ sin test |
 | CAT-41 | En artículos existentes, el código de barras y los bultos solo se completan si estaban vacíos, y el stock solo se reemplaza si se habilita "Actualizar stock". | ⚠️ sin test |
 | CAT-42 | Importar pide "Editar artículos" y "Cambiar precios", porque también escribe precios. | ✅ `ux_rules.test.mjs` › "permisos: admin y super admin tienen todo…" (ver PER-03) |
+| CAT-43 | Un artículo nuevo importado sin precio ($0 en todas sus presentaciones) se crea **oculto** y marcado como "sin precio de la lista": el cliente no lo ve ni puede pedirlo. Cuando "Actualizar precios" le trae precio, queda a la venta solo (PRE-34b). La vista previa lo avisa en la fila. | ✅ `checkout.integration.mjs` › "CAT-43: …" |
 
 ### Catálogo inicial
 
@@ -80,6 +81,23 @@ mantenga cientos de artículos sin errores, a mano o importando una planilla.
 | --- | --- | --- |
 | CAT-50 | El catálogo inicial completa una base sin pisar lo que el cliente cambió: respeta bajas, renombres, IDs y nombres, no duplica y omite lo que no encuentra sin frenar la carga. | ✅ `seed_distribuidora.test.mjs` (15 tests "seed: …" y "productos: …") |
 | CAT-51 | El catálogo de demostración se retira dándolo de baja, y conserva los artículos que tienen código del cliente; sin confirmar, solo cuenta. | ✅ `imagenes_catalogo.test.mjs` › "retiro del catálogo demo: …" (2 tests) |
+
+### Mantenimiento del catálogo (super admin)
+
+Panel › Mantenimiento del catálogo ([cambio](../cambios/2026-11-recargar-catalogo-cliente.md)). Tests: `checkout.integration.mjs` ›
+"CAT-52 a CAT-59: …" y `storefront.spec.js` › "CAT-52 a CAT-58: …" y "CAT-52: un admin no ve…".
+
+| Código | Regla | Estado |
+| --- | --- | --- |
+| CAT-52 | Solo el super admin ve y usa "Limpiar artículos" y "Cargar catálogo del cliente"; el servidor rechaza a cualquier otro rol, aunque tenga todos los permisos. | ✅ |
+| CAT-53 | Antes de limpiar se ven las cantidades que se van a tocar y se puede bajar una copia CSV; para confirmar hay que escribir `BORRAR ARTÍCULOS`. | ✅ |
+| CAT-54 | Limpiar borra, todo o nada, artículos, presentaciones, categorías, marcas, carritos y precios especiales regionales. Los pedidos conservan su copia y dejan de apuntar al artículo; listas regionales, clientes, pedidos y fotos de Cloudinary no se tocan. | ✅ |
+| CAT-55 | La carga solo arranca con la base sin artículos; se hace por lotes, se retoma si se corta y no duplica. | ✅ |
+| CAT-56 | Carga el catálogo del cliente (`seed/catalogo_cliente.json`, sin precios, generado por `organizar_catalogo_cliente.mjs`) con su foto por código: todo oculto y en $0 (CAT-43). | ✅ |
+| CAT-57 | Al terminar lleva a "Actualizar precios", que pone precios y deja a la venta los que tienen (PRE-34b). | ✅ |
+| CAT-58 | Cada limpieza y carga queda registrada con quién, cuándo y cuántos. | ✅ |
+| CAT-59 | Con `tienda.catalogoInicialAlArrancar: false`, el arranque no siembra la demo en una base sin artículos. | ✅ |
+| CAT-60 | Todo el mantenimiento se enciende con `tienda.mantenimientoCatalogo` (`proyecto/client_config.js`). Apagado, la página y su menú no existen y el servidor responde 404 a limpiar y cargar, también al super admin. Se apaga apenas producción queda cargada. | ✅ `checkout.integration.mjs` › "CAT-52 a CAT-59: …" |
 
 ## Configuración
 
@@ -101,6 +119,8 @@ mantenga cientos de artículos sin errores, a mano o importando una planilla.
 | Fecha | Regla | Decisión | Quién |
 | --- | --- | --- | --- |
 | 2026-11-08 | CAT-13 | El artículo solo puede ir en una categoría (Familia › Categoría), nunca directo en la familia. | Dueño del proyecto |
+| 2026-11-19 | CAT-52 a CAT-59 | El super admin puede limpiar todo el catálogo (también categorías y marcas; los pedidos conservan su copia) y recargarlo oculto desde el catálogo del cliente; los precios los pone la lista. La demo del arranque se apaga. | Dueño del proyecto |
+| 2026-11-19 | CAT-43 | El catálogo replica el Listado de Artículos del cliente: lo que no tiene precio en la lista se carga oculto, con su código y bulto, y aparece solo cuando la lista le pone precio. | Dueño del proyecto |
 | 2026-11-10 | CAT-17 | La importación aplica la misma regla, sin crear categorías automáticas ([cambio](../cambios/2026-11-importacion-solo-categoria.md)). | Dueño del proyecto |
 
 ## Preguntas abiertas

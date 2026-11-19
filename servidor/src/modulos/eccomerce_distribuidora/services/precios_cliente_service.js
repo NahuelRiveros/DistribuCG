@@ -6,12 +6,11 @@ import { sequelize, DB_SCHEMA } from "../../../core/database/sequelize.js";
 import { Usuario, ImportacionCatalogo as Trabajo, ImportacionCatalogoLote as Lote } from "../models/index.js";
 import { listaPreciosClienteConfig as config, GRUPOS_PRECIOS_CLIENTE } from "../../../../../rubros/eccomerce_distribuidora/lista_precios_cliente_config.js";
 import { leerListaCliente } from "./importacion/lector_lista_cliente.js";
-import { extraerPrecios, armarPlanPrecios, resumirPlan, cambioAAplicar, ESTADOS_CON_DECISION } from "./importacion/lista_cliente.js";
+import { extraerPrecios, armarPlanPrecios, resumirPlan, cambioAAplicar, ESTADOS_CON_DECISION, hoyArgentina } from "./importacion/lista_cliente.js";
 import { importError } from "./importacion/normalize.js";
 
+export { hoyArgentina };
 export const TIPO_PRECIOS_CLIENTE = "precios_cliente";
-const ZONA = "America/Argentina/Buenos_Aires";
-export const hoyArgentina = (fecha = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: ZONA }).format(fecha);
 const tabla = (nombre) => `"${DB_SCHEMA}"."${nombre}"`;
 const redondear = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 const ORDEN = new Map(GRUPOS_PRECIOS_CLIENTE.map((g, i) => [g.estado, i]));
