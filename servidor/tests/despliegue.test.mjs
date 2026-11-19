@@ -115,7 +115,8 @@ test("BD_URL con solo el host frena el arranque con un mensaje claro y sin mostr
   const arrancar = (BD_URL) =>
     spawnSync(process.execPath, ["--input-type=module", "-e", `await import(${JSON.stringify(sequelizeJs)})`], {
       encoding: "utf8",
-      env: { ...process.env, NODE_ENV: "test", BD_URL },
+      // Con los dos nombres: si no, un BD_URL_SUPABASE del .env.local de la PC tendría prioridad.
+      env: { ...process.env, NODE_ENV: "test", BD_URL, BD_URL_SUPABASE: BD_URL },
     });
 
   const soloHost = arrancar("db.EJEMPLO_SECRETO.supabase.co");

@@ -7,7 +7,7 @@ import { aplicarPreciosDemo, esquemaPermiteDemo } from "./precios_demo_distribui
  * Catálogo de DEMOSTRACIÓN en cada arranque (variable CATALOGO_DEMO_AL_INICIAR=true):
  * completa familias, marcas y productos del seed y les pone precios de demostración.
  * Todo es repetible, así que arranques sin novedades no cambian nada.
- * En el esquema de producción (gc_dist) se saltea con un aviso, sin frenar el arranque.
+ * En el esquema de producción (deploymentConfig.esquemaProduccion) se saltea con un aviso, sin frenar el arranque.
  */
 export async function seed_catalogo_demo({ esquema } = {}) {
   const { sequelize, DB_SCHEMA } = await import("../../../core/database/sequelize.js");

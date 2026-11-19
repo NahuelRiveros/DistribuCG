@@ -3,7 +3,7 @@ import * as modelos from "../models/index.js";
 import { aplicarPreciosDemo } from "./precios_demo_distribuidora.js";
 
 // Ejecutar desde servidor: npm run seed:precios-demo
-// Escribe en la base del .env (nunca en el esquema de producción gc_dist).
+// Escribe en la base del .env (nunca en el esquema de producción, deploymentConfig.esquemaProduccion).
 try {
   await sequelize.authenticate();
   console.log(`Cargando precios de demostración en el esquema ${DB_SCHEMA}...`);

@@ -1,7 +1,8 @@
 // Precios de DEMOSTRACIÓN para ver el catálogo armado mientras no llegan los precios reales.
-// Son inventados: nunca se aplican en producción (esquema gc_dist).
+// Son inventados: nunca se aplican en producción (deploymentConfig.esquemaProduccion).
+import { deploymentConfig } from "../../../../../proyecto/deployment_config.js";
 
-export const ESQUEMA_PRODUCCION = "gc_dist";
+export const ESQUEMA_PRODUCCION = deploymentConfig.esquemaProduccion;
 export const PROPORCION_OFERTAS = 0.2;
 
 // Rango de precio por familia (en pesos), para que golosinas no cuesten como herramientas.

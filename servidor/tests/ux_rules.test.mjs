@@ -488,7 +488,7 @@ test("precios de demostración: fijos por producto, en el rango de la familia, ~
     }
   }
   assert.ok(ofertas > 150 && ofertas < 250, "ofertas: " + ofertas);
-  assert.equal(esquemaPermiteDemo("gc_dist"), false);
+  assert.equal(esquemaPermiteDemo("dcdist"), false);
   assert.equal(esquemaPermiteDemo("gc_dist_test"), true);
 });
 test("SIS-01: 10 días de gracia después del vencimiento; recién al día 11 queda vencido", async () => {

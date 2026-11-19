@@ -14,7 +14,7 @@ export async function seed_distribuidora() {
     await seed_marcas_distribuidora();   // solo sin marcas; usa las familias de arriba
     await seed_productos_distribuidora(); // solo sin artículos; usa familias y marcas existentes
   }
-  // Solo en ambientes de demostración (nunca en gc_dist): completa el catálogo y pone precios de prueba.
+  // Solo en ambientes de demostración (nunca en el esquema de producción): completa el catálogo y pone precios de prueba.
   if (env.CATALOGO_DEMO_AL_INICIAR) await seed_catalogo_demo();
   // Prueba y producción: fotos de Cloudinary para los artículos importados que aún no tienen.
   if (env.IMAGENES_CATALOGO_AL_INICIAR) await seed_imagenes_catalogo();

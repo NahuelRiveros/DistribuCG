@@ -1122,7 +1122,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       await models.VariedadDistribuidora.create({ producto_id: conPrecio.id, precio: 1234, controla_stock: false, cantidad: 0 });
       const agotada = await models.VariedadDistribuidora.create({ producto_id: sinStock.id, precio: 500, controla_stock: true, cantidad: 0 });
 
-      await assert.rejects(aplicarPreciosDemo({ modelos: models, esquema: "gc_dist" }), /producción/);
+      await assert.rejects(aplicarPreciosDemo({ modelos: models, esquema: "dcdist" }), /producción/);
       const primera = await aplicarPreciosDemo({ modelos: models, esquema: DB_SCHEMA });
       assert.ok(primera.productos >= 2);
       for (const producto of [sinPrecio1, sinPrecio2]) {
@@ -1147,7 +1147,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     await t.test("arranque con catálogo de demostración: carga el seed con precios, repetible y nunca en producción", async () => {
       const { seed_catalogo_demo } = await import("../src/modulos/eccomerce_distribuidora/seed/catalogo_demo.js");
       const { PRODUCTOS_INICIALES } = await import("../src/modulos/eccomerce_distribuidora/seed/seed_productos_distribuidora.js");
-      assert.equal(await seed_catalogo_demo({ esquema: "gc_dist" }), null);
+      assert.equal(await seed_catalogo_demo({ esquema: "dcdist" }), null);
       const primera = await seed_catalogo_demo();
       assert.ok(primera.productos >= Object.values(PRODUCTOS_INICIALES).flat().length);
       const { QueryTypes } = await import("sequelize");
