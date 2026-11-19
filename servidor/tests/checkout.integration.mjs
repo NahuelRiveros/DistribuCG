@@ -67,7 +67,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     assert.match(DB_SCHEMA, /^codex_ux_test_[a-f0-9]{32}$/);
     await sequelize.query('CREATE SCHEMA "' + DB_SCHEMA + '"');
     created = true;
-    for (const name of ["Sexo", "TipoDocumento", "TipoPersona", "Persona", "Usuario", "Rol", "UsuarioRol", "Modulo", "Permiso", "RolPermiso", "CategoriaDistribuidora", "MarcaDistribuidora", "MarcaCategoriaDistribuidora", "ProductoDistribuidora", "VariedadDistribuidora", "ListaPrecio", "ListaPrecioLocalidad", "ListaPrecioItem", "CarritoDistribuidora", "CarritoDistribuidoraItem", "NotaPedido", "NotaPedidoEstadoLog", "NotaPedidoPago", "NotaPedidoComprobante", "NotaPedidoItem", "PerfilClienteDistribuidora", "OperacionCarrito"]) await models[name].sync();
+    for (const name of ["Sexo", "TipoDocumento", "TipoPersona", "Persona", "Usuario", "Rol", "UsuarioRol", "Modulo", "Permiso", "RolPermiso", "CategoriaDistribuidora", "MarcaDistribuidora", "MarcaCategoriaDistribuidora", "ProductoDistribuidora", "VariedadDistribuidora", "ListaPrecio", "ListaPrecioLocalidad", "ListaPrecioItem", "ImportacionCatalogo", "ImportacionCatalogoLote", "CarritoDistribuidora", "CarritoDistribuidoraItem", "NotaPedido", "NotaPedidoEstadoLog", "NotaPedidoPago", "NotaPedidoComprobante", "NotaPedidoItem", "PerfilClienteDistribuidora", "OperacionCarrito"]) await models[name].sync();
     await models.TipoDocumento.create({ descripcion: "DNI" });
     await models.Rol.create({ codigo: "cliente", descripcion: "Cliente" });
     // Igual que el arranque: roles del personal y sus permisos por defecto.
@@ -87,7 +87,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
     const variant = await models.VariedadDistribuidora.create({ producto_id: product.id, nombre: "1 kg", precio: 100, controla_stock: true, cantidad: 100 });
     const payload = { producto_id: product.id, variedad_id: variant.id, cantidad: 2 };
     await t.test("SIS-51: sincronizar dos veces (como dos deploys) no repite restricciones únicas, tampoco en el rubro", async () => {
-      const nombres = ["Sexo", "TipoDocumento", "TipoPersona", "Persona", "Usuario", "Rol", "UsuarioRol", "Modulo", "Permiso", "RolPermiso", "CategoriaDistribuidora", "MarcaDistribuidora", "MarcaCategoriaDistribuidora", "ProductoDistribuidora", "VariedadDistribuidora", "ListaPrecio", "ListaPrecioLocalidad", "ListaPrecioItem", "CarritoDistribuidora", "CarritoDistribuidoraItem", "NotaPedido", "NotaPedidoEstadoLog", "NotaPedidoPago", "NotaPedidoComprobante", "NotaPedidoItem", "PerfilClienteDistribuidora", "OperacionCarrito"];
+      const nombres = ["Sexo", "TipoDocumento", "TipoPersona", "Persona", "Usuario", "Rol", "UsuarioRol", "Modulo", "Permiso", "RolPermiso", "CategoriaDistribuidora", "MarcaDistribuidora", "MarcaCategoriaDistribuidora", "ProductoDistribuidora", "VariedadDistribuidora", "ListaPrecio", "ListaPrecioLocalidad", "ListaPrecioItem", "ImportacionCatalogo", "ImportacionCatalogoLote", "CarritoDistribuidora", "CarritoDistribuidoraItem", "NotaPedido", "NotaPedidoEstadoLog", "NotaPedidoPago", "NotaPedidoComprobante", "NotaPedidoItem", "PerfilClienteDistribuidora", "OperacionCarrito"];
       for (let vuelta = 0; vuelta < 2; vuelta++) for (const nombre of nombres) await models[nombre].sync({ alter: true });
       const repetidos = await sequelize.query(`
         SELECT t.relname AS tabla, ix.indkey::text AS columnas, count(*)::int AS cuantos
@@ -1209,6 +1209,97 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
         assert.ok(cuerpo.data.some((c) => c.usuario_id === carla.usuario_id));
         assert.ok(!cuerpo.data.some((c) => c.usuario_id === beto.usuario_id));
       } finally { await new Promise((resolve) => server.close(resolve)); }
+    });
+
+    await t.test("PRE-30 a PRE-39: la lista del cliente actualiza precios, ajusta listas regionales, desactiva y reactiva, respeta cambios posteriores y se deshace", async () => {
+      const ExcelJS = (await import("exceljs")).default;
+      const precios = await import("../src/modulos/eccomerce_distribuidora/services/precios_cliente_service.js");
+      const { listImports } = await import("../src/modulos/eccomerce_distribuidora/services/importacion_distribuidora_service.js");
+      const cat = await models.CategoriaDistribuidora.create({ nombre: "Lista cliente QA", slug: "lista-cliente-qa" });
+      const crear = async (cod, precio, producto = {}, variedad = {}) => {
+        const p = await models.ProductoDistribuidora.create({ categoria_id: cat.id, nombre: "Articulo " + cod, ...producto });
+        return models.VariedadDistribuidora.create({ producto_id: p.id, precio, cod_ref: cod, ...variedad });
+      };
+      const sube = await crear("910001", 100);
+      const revisar = await crear("910002", 100);
+      const sinPrecio = await crear("910003", 100);
+      const viejo = await crear("910004", 100, {}, { sin_precio_lista_desde: "2025-01-01" });
+      const vuelve = await crear("910005", 80, { activo: false, inactivo_por_lista: true }, { sin_precio_lista_desde: "2025-01-01" });
+      const tocado = await crear("910006", 100);
+      const repetido = await crear("910007", 200);
+      const lista = await models.ListaPrecio.create({ nombre: "Zona QA lista cliente" });
+      const especial = await models.ListaPrecioItem.create({ lista_id: lista.id, variedad_id: sube.id, precio: 90 });
+
+      const excel = async (filas, hojas = ["LISTA"]) => {
+        const libro = new ExcelJS.Workbook();
+        for (const nombre of hojas) {
+          const hoja = libro.addWorksheet(nombre);
+          hoja.addRow(["COD", "DESCRIPCIÓN", "PRECIO", "COD", "DESCRIPCIÓN", "PRECIO"]);
+          filas.forEach((f) => hoja.addRow(f));
+        }
+        return Buffer.from(await libro.xlsx.writeBuffer());
+      };
+      // PRE-30: sin la hoja LISTA no sigue.
+      await assert.rejects(precios.validarListaCliente(await excel([["910001  ", "Articulo 910001", 1]], ["Otra"]), "lista.xlsx", randomUUID(), id), /hoja LISTA/);
+
+      const archivo = await excel([
+        ["910001  ", "Articulo 910001", 110, "910002  ", "Articulo 910002", 150],
+        ['"910003', "Articulo 910003", 0, "910004  ", "Articulo 910004", " "],
+        ["910005  ", "Articulo 910005", 85, "910006  ", "Articulo 910006", 105],
+        ["910007  ", "Articulo 910007", 200, "910007  ", "Articulo 910007", 210],
+      ]);
+      const clave = randomUUID();
+      const vista = await precios.validarListaCliente(archivo, "lista.xlsx", clave, id);
+      for (const [estado, n] of Object.entries({ sube: 2, revisar: 1, sin_precio: 1, desactivar: 1, reactivar: 1, repetido: 1 })) assert.equal(vista.resumen[estado], n, estado);
+      assert.equal(vista.resumen.listas_regionales, 1);
+      assert.equal(vista.pendientes, 2);
+      // Mismo archivo y misma clave: devuelve la misma vista previa, no crea otra.
+      assert.equal((await precios.validarListaCliente(archivo, "lista.xlsx", clave, id)).id, vista.id);
+      assert.equal((await precios.listarFilas(vista.id, id, { estado: "repetido" })).filas[0].opciones.length, 2);
+
+      // PRE-36 y PRE-37: los extremos no se aprueban en bloque; el repetido se elige.
+      await assert.rejects(precios.guardarDecisiones(vista.id, id, { decisiones: { 910001: "aprobar" } }), /no necesita decisión/);
+      await assert.rejects(precios.guardarDecisiones(vista.id, id, { decisiones: { 910007: "opcion:5" } }), /Decisión inválida/);
+      const decidida = await precios.guardarDecisiones(vista.id, id, { aprobarTodos: true, decisiones: { 910007: "opcion:1" } });
+      assert.equal(decidida.pendientes, 0);
+
+      // Alguien cambia un precio después de la vista previa: esa fila no se pisa.
+      await tocado.update({ precio: 101 });
+      await assert.rejects(precios.ejecutarLote(vista.id, id, { index: 0, confirm: true }), /listas regionales/);
+      const aplicada = await precios.ejecutarLote(vista.id, id, { index: 0, confirm: true, ajustarListas: true });
+      assert.equal(aplicada.estado, "completado");
+      assert.deepEqual([aplicada.resultado.precios, aplicada.resultado.desactivados, aplicada.resultado.reactivados, aplicada.resultado.listas_regionales, aplicada.resultado.cambiados], [4, 1, 1, 1, 1]);
+      // Reintentar el mismo lote no repite nada.
+      await precios.ejecutarLote(vista.id, id, { index: 0, confirm: true, ajustarListas: true });
+
+      const precioDe = async (v) => Number((await v.reload()).precio);
+      assert.equal(await precioDe(sube), 110);
+      assert.equal(Number((await especial.reload()).precio), 99);       // PRE-38: 90 × 110/100
+      assert.equal(await precioDe(revisar), 150);
+      assert.equal(await precioDe(sinPrecio), 100);                        // PRE-34: el precio no se toca
+      assert.equal(sinPrecio.sin_precio_lista_desde, precios.hoyArgentina());
+      const productoDe = (v) => models.ProductoDistribuidora.findByPk(v.producto_id);
+      assert.deepEqual([(await productoDe(viejo)).activo, (await productoDe(viejo)).inactivo_por_lista], [false, true]); // PRE-34b
+      assert.deepEqual([(await productoDe(vuelve)).activo, await precioDe(vuelve), (await vuelve.reload()).sin_precio_lista_desde], [true, 85, null]);
+      assert.equal(await precioDe(tocado), 101);
+      assert.equal(await precioDe(repetido), 210);
+      assert.ok(!(await listImports(id)).some((j) => j.id === vista.id), "no aparece en el historial del importador general");
+
+      // PRE-39: deshacer vuelve atrás lo que la actualización puso, una sola vez.
+      const deshecha = await precios.deshacerActualizacion(vista.id, id);
+      assert.equal(deshecha.estado, "deshecho");
+      assert.equal(await precioDe(sube), 100);
+      assert.equal(Number((await especial.reload()).precio), 90);
+      assert.equal((await sinPrecio.reload()).sin_precio_lista_desde, null);
+      assert.equal((await productoDe(viejo)).activo, true);
+      assert.deepEqual([(await productoDe(vuelve)).activo, (await productoDe(vuelve)).inactivo_por_lista, await precioDe(vuelve)], [false, true, 80]);
+      assert.equal(await precioDe(tocado), 101);
+      assert.equal(await precioDe(repetido), 200);
+      await assert.rejects(precios.deshacerActualizacion(vista.id, id), /terminada/);
+
+      // Activarlo a mano saca la marca: una lista futura ya no lo desactiva ni reactiva sola.
+      await productos.cambiarEstadoProducto(vuelve.producto_id, true);
+      assert.equal((await productoDe(vuelve)).inactivo_por_lista, false);
     });
   } finally {
     if (created) {

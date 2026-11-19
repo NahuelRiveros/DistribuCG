@@ -43,7 +43,7 @@ equipo lo lleve de "Recibido" a "Entregado" sin perder nada en el camino: stock,
 | PED-04 | El pedido guarda una copia de productos, precios, IVA de cada línea y datos de entrega: no cambia aunque después se edite el producto o el perfil del cliente. | ⚠️ sin test |
 | PED-05 | En el primer pedido se piden nombre, apellido, celular, datos fiscales y de entrega; un cliente al que le faltan los completa sin perder el carrito. | ✅ `ux_rules.test.mjs` › "primer pedido exige nombre, apellido, celular, datos fiscales y de entrega"; `checkout.integration.mjs` › "cliente de antes sin condición de IVA…" |
 | PED-06 | Enviar el pedido no reserva stock ni cobra nada: el equipo confirma disponibilidad, entrega y forma de pago. | ⚠️ sin test |
-| PED-07 | Un pedido menor al monto mínimo no se puede enviar, y se muestra cuánto falta. El mínimo se calcula con los precios de la lista del cliente. | 🚧 decidido con el cliente, falta programar (etapa 4 de [mejoras-relevamiento.md](../../mejoras-relevamiento.md)) · ❓ ver pregunta 1 |
+| PED-07 | Un pedido menor al monto mínimo no se puede enviar, y se muestra cuánto falta. El mínimo se calcula con los precios de la lista del cliente, después de los descuentos por bulto (PRE-47). | 🚧 decidido con el cliente, falta programar (etapa 4 de [mejoras-relevamiento.md](../../mejoras-relevamiento.md)) · ❓ ver pregunta 1 |
 | PED-08 | El cliente elige reparto o retiro en el local. El costo de envío sale de su localidad; si la localidad no tiene monto, dice "a convenir" y el equipo lo carga al confirmar. | 🚧 decidido con el cliente, falta programar (etapa 4) |
 
 ### Estados y gestión
@@ -142,6 +142,7 @@ equipo lo lleve de "Recibido" a "Entregado" sin perder nada en el camino: stock,
 | 2026-10 | PED-20 | El stock se descuenta al Confirmar, no al enviar (relevamiento, punto 8). | Cliente |
 | 2026-10 | PED-31 | El comprador cancela solo en Recibido y no edita: "Cancelar y volver a armar" (relevamiento, punto 10). | Cliente |
 | 2026-11-08 | PED-19, PED-23, PED-26 | Botón principal con el próximo paso; aceptar el comprobante por el total pasa el pedido solo a En preparación; sin comprobante se confirma a mano. Se mantienen los estados Confirmado y En preparación. Se descartaron dejar el estado sin cambios al aceptar, pasar solo a Confirmado, exigir cobro para confirmar y unir los dos estados. | Dueño del proyecto |
+| 2026-11-19 | PED-07 | El mínimo de compra se calcula después de los descuentos por bulto ([cambio](../cambios/2026-11-descuentos-por-bulto.md)). | Dueño del proyecto |
 
 ## Preguntas abiertas
 

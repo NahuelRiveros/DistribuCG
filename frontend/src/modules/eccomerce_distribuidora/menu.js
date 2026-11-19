@@ -4,6 +4,7 @@ import {
   Package,
   ClipboardList,
   Upload,
+  RefreshCw,
   Boxes,
   FolderTree,
   Tag,
@@ -63,6 +64,13 @@ export const eccomerceDistribuidoraAdminDropdown = {
       requiereAuth: true,
       permisos: ["precios.editar"],
       icon: Tags,
+    },
+    {
+      label: "Actualizar precios",
+      to: "/distribuidora/admin/precios-cliente",
+      requiereAuth: true,
+      permisos: ["precios.editar"],
+      icon: RefreshCw,
     },
     {
       label: "Importar productos",

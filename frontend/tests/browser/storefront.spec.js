@@ -1192,3 +1192,99 @@ test("CLI-11: sin clientes con datos completos, lo explica", async ({ page }) =>
   await page.goto("/distribuidora/admin/clientes");
   await expect(page.getByText("Todavía no hay clientes con los datos completos.")).toBeVisible();
 });
+// PRE-30 a PRE-39: la API de "Actualizar precios" simulada como un servidor con estado.
+async function mockPreciosCliente(page, { errorAlValidar } = {}) {
+  const ID = "11111111-2222-4333-8444-555555555555";
+  const filas = {
+    repetido: [{ cod: "006021", estado: "repetido", articulo: "Vino Cuatro Monos Locos", descripcion: "MARCOLAR Cacer.22", precioAntes: 20504.7,
+      opciones: [{ precio: 20504.7, descripcion: "MARCOLAR Cacer.22 Prestig.", fila: 1297, origen: "LISTA" }, { precio: 13951.61, descripcion: "VINO CUATRO MONOS LOCOS 4*750cc", fila: 1343, origen: "LISTA" }] }],
+    revisar: [{ cod: "000103", estado: "revisar", articulo: "Gomitas Yelly Buttons Mogul", descripcion: "Gomitas Mogul Yelly Buttons", precioAntes: 1856.29, precioNuevo: 2324.33, variacion: 25.2, motivos: ["variacion"], origen: "Datos Exportados" }],
+    sube: [{ cod: "000144", estado: "sube", articulo: "Caramelos Butter Toffees", descripcion: "Car.Arcor Butt.Toff.", precioAntes: 12000, precioNuevo: 12972.89, variacion: 8.1 }],
+  };
+  const decisiones = {};
+  const pedidos = { lotes: [] };
+  let trabajo = null;
+  const conPendientes = () => ({ ...trabajo, pendientes: 2 - Object.keys(decisiones).length, decididas: Object.keys(decisiones).length });
+  await page.route("**/api/distribuidora/precios-cliente/**", async (route) => {
+    const req = route.request(), url = new URL(req.url()), ruta = url.pathname.replace(/^.*precios-cliente/, "");
+    const responder = (data, status = 200) => route.fulfill({ status, json: status === 200 ? { ok: true, data } : { ok: false, mensaje: data } });
+    if (ruta === "/historial") return responder(trabajo ? [{ id: ID, archivo: trabajo.archivo, estado: trabajo.estado, resultado: trabajo.resultado, creado_en: trabajo.creado_en }] : []);
+    if (ruta === "/validar") {
+      if (errorAlValidar) return responder(errorAlValidar, 400);
+      trabajo = { id: ID, archivo: "LISTA DE PRECIOS DC-FSA.xlsx", estado: "validado", creado_en: "2026-11-19T12:00:00Z", fecha_lista: "2026-11-19", siguiente_lote: 0, total_lotes: 1,
+        resumen: { total: 6, repetido: 1, revisar: 1, sube: 1, sin_precio: 2, sin_cambio: 1, listas_regionales: 1 }, resultado: {}, puedeDeshacer: false, ajustarListas: null };
+      return responder(conPendientes());
+    }
+    if (ruta === `/${ID}`) return responder(conPendientes());
+    if (ruta === `/${ID}/filas`) {
+      const lista = (filas[url.searchParams.get("estado")] ?? []).map((f) => ({ ...f, decision: decisiones[f.cod] ?? null }));
+      return responder({ filas: lista, total: lista.length, pagina: 1, paginas: 1 });
+    }
+    if (ruta === `/${ID}/decisiones`) {
+      const cuerpo = req.postDataJSON();
+      if (cuerpo.aprobarTodos) decisiones["000103"] = "aprobar";
+      for (const [cod, valor] of Object.entries(cuerpo.decisiones ?? {})) { if (valor === null) delete decisiones[cod]; else decisiones[cod] = valor; }
+      return responder(conPendientes());
+    }
+    if (ruta === `/${ID}/lote`) {
+      pedidos.lotes.push(req.postDataJSON());
+      trabajo = { ...trabajo, estado: "completado", siguiente_lote: 1, ajustarListas: req.postDataJSON().ajustarListas, puedeDeshacer: true, resultado: { precios: 3, listas_regionales: 1 } };
+      return responder(conPendientes());
+    }
+    if (ruta === `/${ID}/deshacer`) {
+      trabajo = { ...trabajo, estado: "deshecho", puedeDeshacer: false, resultado: { ...trabajo.resultado, deshacer: { revertidos: 3, no_revertidos: 0, codigos_no_revertidos: [] } } };
+      return responder(conPendientes());
+    }
+    return responder("Ruta no simulada", 404);
+  });
+  return pedidos;
+}
+test("PRE-30 a PRE-39: actualizar precios con la lista del cliente, elegir repetidos, aprobar todos, aplicar y deshacer", async ({ page }) => {
+  await entrarComo(page, ["admin"]);
+  const pedidos = await mockPreciosCliente(page);
+  await page.goto("/panel");
+  await (await menuPanel(page)).getByRole("link", { name: "Actualizar precios" }).click();
+  await expect(page.getByRole("heading", { name: "Actualizar precios" })).toBeVisible();
+  await expect(page.getByText("Todavía no subiste ninguna lista.")).toBeVisible();
+
+  await page.locator('input[type="file"]').setInputFiles({ name: "LISTA DE PRECIOS DC-FSA.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: Buffer.from("excel") });
+  await page.getByRole("button", { name: "Leer la lista" }).click();
+  await expect(page).toHaveURL(/precios-cliente\?id=/);
+  await expect(page.getByText("artículos de la tienda están en 0 en la lista")).toBeVisible();
+  await expect(page.getByText("Faltan 2 decisiones")).toBeVisible();
+  await noOverflow(page);
+
+  // Arranca en el primer grupo que pide decisión: el código repetido.
+  await expect(page.getByRole("heading", { name: "Código repetido" })).toBeVisible();
+  await page.getByRole("radio", { name: /VINO CUATRO MONOS/ }).check();
+  await expect(page.getByText("Falta 1 decisión")).toBeVisible();
+
+  await page.getByRole("button", { name: /A revisar/ }).click();
+  await expect(page.getByText("Precio de Datos Exportados")).toBeVisible();
+  await page.getByRole("button", { name: "Aprobar todos" }).click();
+  await expect(page.getByRole("button", { name: "Aprobar", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText(/Faltan? \d+ decisi/)).toHaveCount(0);
+
+  await expect(page.getByText("hasta 1 precio especial")).toBeVisible();
+  await page.getByRole("button", { name: "Aplicar actualización" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Aplicar" }).click();
+  await expect(page.getByRole("heading", { name: "Actualización aplicada" })).toBeVisible();
+  await expect(page.getByText("Precios actualizados")).toBeVisible();
+  expect(pedidos.lotes).toEqual([{ index: 0, confirm: true, ajustarListas: true }]);
+
+  await page.getByRole("button", { name: "Deshacer" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Deshacer" }).click();
+  await expect(page.getByRole("heading", { name: "Actualización deshecha" })).toBeVisible();
+  await expect(page.getByText("Se volvieron atrás 3 artículos.")).toBeVisible();
+  await noOverflow(page);
+});
+test("PRE-30: si el Excel no es la lista, lo dice y deja reintentar sin cambiar nada", async ({ page }) => {
+  await entrarComo(page, ["admin"]);
+  await mockPreciosCliente(page, { errorAlValidar: "El archivo no tiene la hoja LISTA. Hojas encontradas: Hoja1." });
+  await page.goto("/distribuidora/admin/precios-cliente");
+  await page.locator('input[type="file"]').setInputFiles({ name: "otra.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: Buffer.from("x") });
+  await page.getByRole("button", { name: "Leer la lista" }).click();
+  await expect(page.getByText("El archivo no tiene la hoja LISTA. Hojas encontradas: Hoja1.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Reintentar" })).toBeVisible();
+  await expect(page).not.toHaveURL(/\?id=/);
+});

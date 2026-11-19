@@ -11,7 +11,8 @@ const publicRow = (r) => ({ row: r.row, sku: r.value?.cod_ref || "", name: r.val
 async function ownedJob(id, userId, transaction, lock = false) {
   uuid(id);
   const job = await Job.findOne({ where: { id, usuario_id: userId }, transaction, ...(lock ? { lock: transaction.LOCK.UPDATE } : {}) });
-  if (!job) throw importError("Importación no encontrada.", 404);
+  // Las actualizaciones de precios del cliente comparten la tabla pero tienen su propio flujo.
+  if (!job || job.opciones?.tipo) throw importError("Importación no encontrada.", 404);
   return job;
 }
 export async function previewFile(buffer, filename, options) {
@@ -53,7 +54,7 @@ export async function getImport(id, userId) {
   return { ...job.toJSON(), sample: batches.flatMap((b) => b.registros.slice(0, 20).map(publicRow)) };
 }
 export async function listImports(userId) {
-  return Job.findAll({ where: { usuario_id: userId }, attributes: ["id", "archivo", "estado", "resumen", "resultado", "siguiente_lote", "total_lotes", "creado_en"], order: [["creado_en", "DESC"]], limit: 20 });
+  return Job.findAll({ where: { usuario_id: userId, [Op.and]: [sequelize.where(sequelize.literal("opciones->>'tipo'"), Op.is, null)] }, attributes: ["id", "archivo", "estado", "resumen", "resultado", "siguiente_lote", "total_lotes", "creado_en"], order: [["creado_en", "DESC"]], limit: 20 });
 }
 export async function executeBatch(id, userId, { index, confirm = false, skipErrors = false } = {}) {
   if (!Number.isInteger(index) || index < 0) throw importError("Lote inválido.");

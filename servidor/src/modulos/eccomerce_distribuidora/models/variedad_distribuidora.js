@@ -49,6 +49,8 @@ export const VariedadDistribuidora = defineModel("VariedadDistribuidora", {
   stock_minimo:       { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   // Se completa sola cada vez que cambia el precio (edición, ajuste masivo o importación).
   fecha_cambio_precio: { type: DataTypes.DATE, allowNull: true },
+  // Desde cuándo la lista del cliente la trae con precio 0 (PRE-34); se borra cuando vuelve con precio.
+  sin_precio_lista_desde: { type: DataTypes.DATEONLY, allowNull: true },
 
   fecha_alta: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW },
   fecha_baja: { type: DataTypes.DATEONLY, allowNull: true },

@@ -42,6 +42,10 @@ sumar su versión genérica a la plantilla.
   todos siempre. El rol `staff` se renombró a `supervisor` (`renombrarStaffASupervisor` en `seed_rbac.js`).
 - `rubros/eccomerce_distribuidora/catalog_import_config.js`: campos de la importación del catálogo; los límites del
   lector (tamaño, filas, tiempo) son del core: `core/importacion_config.js`.
+- `rubros/eccomerce_distribuidora/lista_precios_cliente_config.js`: "Actualizar precios" con el Excel que exporta el
+  sistema del cliente (PRE-30 a PRE-39): hojas `LISTA`/`Datos Exportados`, umbrales de revisión y los 6 meses sin precio que
+  desactivan un artículo (`producto_distribuidora.inactivo_por_lista`, `variedad_distribuidora.sin_precio_lista_desde`).
+  Comparte las tablas de la importación (`importacion_catalogo`, con `opciones.tipo = "precios_cliente"`).
 - `core/fiscal_config.js`: condiciones frente al IVA, validación de CUIT/DNI y tipo de factura sugerida; la
   condición de quien factura sale de `proyecto/client_config.js` (`emisorFiscal`, a completar). La facturación con ARCA está documentada, no programada:
   `docs/facturacion-arca.md`; su configuración (variables `ARCA_*`, URLs, estado) está en

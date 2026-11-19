@@ -269,7 +269,7 @@ test("panel de gestión: cada uno ve las secciones de sus permisos y el cliente 
   const supervisor = usuario(["supervisor"], porDefecto("supervisor"));
   assert.deepEqual(Object.keys(menu(supervisor)), ["inicio", "distribuidora"]);
   assert.deepEqual(menu(usuario(["vendedor"], porDefecto("vendedor"))).distribuidora, ["/distribuidora/admin/notas-pedido", "/distribuidora/admin/lista-carga"]);
-  assert.deepEqual(menu(supervisor).distribuidora, ["/distribuidora/admin/productos", "/distribuidora/admin/categorias", "/distribuidora/admin/marcas", "/distribuidora/admin/listas-precio", "/distribuidora/admin/importar", "/distribuidora/admin/notas-pedido", "/distribuidora/admin/lista-carga"]);
+  assert.deepEqual(menu(supervisor).distribuidora, ["/distribuidora/admin/productos", "/distribuidora/admin/categorias", "/distribuidora/admin/marcas", "/distribuidora/admin/listas-precio", "/distribuidora/admin/precios-cliente", "/distribuidora/admin/importar", "/distribuidora/admin/notas-pedido", "/distribuidora/admin/lista-carga"]);
   // Un rol creado en el panel con solo artículos: sin listas de precios ni importación (que escribe precios).
   assert.deepEqual(menu(usuario(["repositor"], ["productos.editar"])).distribuidora, ["/distribuidora/admin/productos", "/distribuidora/admin/categorias", "/distribuidora/admin/marcas"]);
   const admin = menu(usuario(["admin"]));

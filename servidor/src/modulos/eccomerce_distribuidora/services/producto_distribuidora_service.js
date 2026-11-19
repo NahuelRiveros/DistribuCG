@@ -194,6 +194,8 @@ export async function actualizarProducto(id, payload, { transaction } = {}) {
     ...marca,
     imagen_url: payload.imagen_url ?? producto.imagen_url,
     activo: payload.activo ?? producto.activo,
+    // Activarlo o desactivarlo a mano saca la marca de la lista del cliente (PRE-34b).
+    ...(payload.activo != null && payload.activo !== producto.activo ? { inactivo_por_lista: false } : {}),
   }, { transaction });
   return producto;
 }
@@ -237,7 +239,7 @@ export async function actualizarProductoConVariedad(id, payload, datosVariedad, 
 export async function cambiarEstadoProducto(id, activo) {
   const producto = await ProductoDistribuidora.findByPk(id);
   if (!producto) return null;
-  await producto.update({ activo });
+  await producto.update({ activo, inactivo_por_lista: false });
   return producto;
 }
 

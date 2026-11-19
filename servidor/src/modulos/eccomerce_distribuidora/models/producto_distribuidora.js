@@ -30,6 +30,9 @@ export const ProductoDistribuidora = defineModel("ProductoDistribuidora", {
   imagen_url: { type: DataTypes.STRING(500), allowNull: true },
 
   activo: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+  // Lo desactivó la lista del cliente por estar sin precio (PRE-34b): vuelve solo cuando la lista trae precio.
+  // Desactivado a mano = false, y entonces no se reactiva solo.
+  inactivo_por_lista: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
 
   fecha_alta: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW },
   fecha_baja: { type: DataTypes.DATEONLY, allowNull: true },
