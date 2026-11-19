@@ -100,7 +100,12 @@ test("producción permite el frontend de DistribuCG por defecto y muestra la ide
   `;
   const r = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
     encoding: "utf8",
-    env: { ...process.env, NODE_ENV: "production", BD_URL: "", CORS_ORIGIN: "", VERCEL_FRONTEND_URL: "", JWT_SECRET: "prueba-local", CLOUDINARY_CLOUD_NAME: "prueba", CLOUDINARY_API_KEY: "prueba", CLOUDINARY_API_SECRET: "prueba" },
+    // Nombres nuevos y anteriores: si no, el .env.local de la PC (con la dirección local) completa los que falten.
+    env: {
+      ...process.env, NODE_ENV: "production", BD_URL: "", BD_URL_SUPABASE: "", CORS_ORIGIN: "", VERCEL_FRONTEND_URL: "", URL_FRONTEND_VERCEL: "",
+      JWT_SECRET: "prueba-local", CLAVE_SESIONES: "prueba-local", CLOUDINARY_CLOUD_NAME: "prueba", CLOUDINARY_API_KEY: "prueba", CLOUDINARY_API_SECRET: "prueba",
+      CLOUDINARY_NOMBRE_CUENTA: "prueba", CLOUDINARY_CLAVE_API: "prueba", CLOUDINARY_SECRETO_API: "prueba",
+    },
   });
   assert.equal(r.status, 0, r.stdout + r.stderr);
 });
