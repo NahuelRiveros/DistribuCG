@@ -30,8 +30,24 @@ export async function leerImagenesCatalogo(archivo = ARCHIVO_IMAGENES) {
 }
 
 /**
- * Pone la foto a los artículos vigentes que no tienen ninguna, buscándolos por el código
- * interno de sus presentaciones. Nunca reemplaza una foto existente (cargada a mano o antes).
+ * Cuenta de Cloudinary + public_id de una URL, sin transformaciones ni versión: dos URLs con la misma
+ * clave son la misma foto, aunque se haya vuelto a subir (cambia la versión).
+ */
+export function recursoCloudinary(url) {
+  try {
+    const [cuenta, , entrega, ...resto] = new URL(url).pathname.split("/").filter(Boolean);
+    if (entrega !== "upload") return null;
+    const partes = resto.filter((p) => !p.includes(",") && !/^[a-z]{1,2}_/.test(p) && !/^v\d+$/.test(p));
+    return partes.length ? `${cuenta}/${partes.join("/").replace(/\.[a-z0-9]+$/i, "")}` : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Pone la foto a los artículos vigentes por el código interno de sus presentaciones. Solo escribe si el
+ * artículo no tiene foto o si tiene ESA MISMA foto del catálogo con otra dirección (se volvió a subir y la
+ * vieja ya no existe). Nunca reemplaza otra foto (cargada a mano desde la ficha).
  * Si un artículo tiene varios códigos con foto, usa la del código más bajo, el mismo
  * criterio con el que se nombraron al subirlas.
  */
@@ -43,21 +59,26 @@ export async function asignarImagenesCatalogo(modelos, imagenes, transaction) {
     where: { cod_ref: codigos, fecha_baja: null }, attributes: ["producto_id", "cod_ref"], raw: true, transaction,
   });
   if (!variedades.length) return { asignadas: 0 };
-  const sinFoto = await ProductoDistribuidora.findAll({
-    where: { id: [...new Set(variedades.map((v) => v.producto_id))], imagen_url: null, fecha_baja: null },
-    attributes: ["id"], raw: true, transaction,
+  const productos = await ProductoDistribuidora.findAll({
+    where: { id: [...new Set(variedades.map((v) => v.producto_id))], fecha_baja: null },
+    attributes: ["id", "imagen_url"], raw: true, transaction,
   });
-  const pendientes = new Set(sinFoto.map((p) => p.id));
+  const actual = new Map(productos.map((p) => [p.id, p.imagen_url]));
   const fotoDe = new Map();
   for (const v of [...variedades].sort((a, b) => a.cod_ref.localeCompare(b.cod_ref))) {
-    if (pendientes.has(v.producto_id) && !fotoDe.has(v.producto_id)) fotoDe.set(v.producto_id, imagenes[v.cod_ref]);
+    if (!actual.has(v.producto_id) || fotoDe.has(v.producto_id)) continue;
+    const nueva = imagenes[v.cod_ref], hoy = actual.get(v.producto_id);
+    const reemplazable = !hoy || (hoy !== nueva && recursoCloudinary(hoy) === recursoCloudinary(nueva));
+    fotoDe.set(v.producto_id, reemplazable ? nueva : null);
   }
-  const porUrl = new Map();
-  for (const [id, url] of fotoDe) porUrl.set(url, [...(porUrl.get(url) ?? []), id]);
-  for (const [url, ids] of porUrl) {
-    await ProductoDistribuidora.update({ imagen_url: url }, { where: { id: ids, imagen_url: null }, transaction });
+  let asignadas = 0;
+  for (const [id, url] of fotoDe) {
+    if (!url) continue;
+    // Con la foto que se leyó recién: si alguien la cambió a mano en el medio, no se pisa.
+    const [n] = await ProductoDistribuidora.update({ imagen_url: url }, { where: { id, imagen_url: actual.get(id) }, transaction });
+    asignadas += n;
   }
-  return { asignadas: fotoDe.size };
+  return { asignadas };
 }
 
 /** Arranque con IMAGENES_CATALOGO_AL_INICIAR=true. Sin fotos pendientes no escribe nada. */

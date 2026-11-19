@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { asignarImagenesCatalogo, leerImagenesCatalogo } from "../src/modulos/eccomerce_distribuidora/seed/imagenes_catalogo.js";
+import { asignarImagenesCatalogo, leerImagenesCatalogo, recursoCloudinary } from "../src/modulos/eccomerce_distribuidora/seed/imagenes_catalogo.js";
 import { retirarProductos } from "../src/modulos/eccomerce_distribuidora/seed/completar_productos_distribuidora.js";
 
 // Modelo en memoria: findAll/update con where de igualdad, listas (IN) y null.
@@ -55,6 +55,31 @@ test("fotos del catálogo: asigna por código solo a vigentes sin foto, con el c
   assert.equal(sinCodigo.imagen_url, null);
   // Repetirlo no cambia nada: ya no quedan artículos sin foto con código conocido.
   assert.deepEqual(await asignarImagenesCatalogo(modelos, imagenes), { asignadas: 0 });
+});
+
+test("fotos del catálogo: al volver a subir una foto, el artículo toma la dirección nueva; la cargada a mano no se toca", async () => {
+  const vieja = "https://res.cloudinary.com/demo/image/upload/c_limit,f_auto,h_600,q_auto,w_600/v1/distribucg/productos/000100?_a=x";
+  const nueva = "https://res.cloudinary.com/demo/image/upload/c_limit,f_auto,h_600,q_auto,w_600/v2/distribucg/productos/000100?_a=y";
+  const aMano = "https://res.cloudinary.com/demo/image/upload/v5/distribucg/productos/abc123random";
+  const modelos = {
+    ProductoDistribuidora: modelo([
+      { id: 1, imagen_url: vieja, fecha_baja: null },
+      { id: 2, imagen_url: aMano, fecha_baja: null },
+    ]),
+    VariedadDistribuidora: modelo([
+      { producto_id: 1, cod_ref: "000100", fecha_baja: null },
+      { producto_id: 2, cod_ref: "000300", fecha_baja: null },
+    ]),
+  };
+  const otraNueva = "https://res.cloudinary.com/demo/image/upload/v2/distribucg/productos/000300";
+  assert.deepEqual(await asignarImagenesCatalogo(modelos, { "000100": nueva, "000300": otraNueva }), { asignadas: 1 });
+  const [conVieja, conAMano] = modelos.ProductoDistribuidora.filas;
+  assert.equal(conVieja.imagen_url, nueva);
+  assert.equal(conAMano.imagen_url, aMano, "es otra foto: no la reemplaza");
+  // Misma foto, misma dirección: nada para hacer.
+  assert.deepEqual(await asignarImagenesCatalogo(modelos, { "000100": nueva }), { asignadas: 0 });
+  assert.equal(recursoCloudinary(vieja), recursoCloudinary(nueva));
+  assert.equal(recursoCloudinary(vieja), "demo/distribucg/productos/000100");
 });
 
 test("fotos del catálogo: sin códigos no consulta la base", async () => {

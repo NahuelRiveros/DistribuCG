@@ -230,14 +230,18 @@ export async function ejecutarLote(id, usuarioId, { index, confirm = false, ajus
         continue;
       }
       const actual = actuales.get(c.variedadId);
+      // Un artículo con varias presentaciones puede quedar en lotes distintos: si otra presentación ya lo dejó
+      // como esta fila lo iba a dejar (activado o desactivado por la lista), no es un cambio ajeno.
+      const objetivo = c.accionProducto ? { activo: c.accionProducto === "reactivar", ipl: c.accionProducto === "desactivar" } : null;
+      const productoYaListo = Boolean(objetivo && actual && actual.activo === objetivo.activo && actual.inactivo_por_lista === objetivo.ipl);
+      const productoComoAntes = actual && actual.activo === c.activoAntes && actual.inactivo_por_lista === c.inactivoPorListaAntes;
       // PRE-39 y la regla del importador: si alguien lo cambió después de la vista previa, no se pisa.
-      if (!actual || actual.precio !== c.precioAntes || (actual.sin_precio ?? null) !== c.sinPrecioAntes
-        || actual.activo !== c.activoAntes || actual.inactivo_por_lista !== c.inactivoPorListaAntes) {
+      if (!actual || actual.precio !== c.precioAntes || (actual.sin_precio ?? null) !== c.sinPrecioAntes || !(productoComoAntes || productoYaListo)) {
         resultadoFilas.push({ aplicado: false, mensaje: MENSAJE_CAMBIO });
         continue;
       }
       variantes.push({ id: c.variedadId, precio: c.precioNuevo, cambia: c.precioNuevo !== c.precioAntes, desde: c.sinPrecioDespues });
-      if (c.accionProducto) productos.set(c.productoId, { id: c.productoId, activo: c.accionProducto === "reactivar", ipl: c.accionProducto === "desactivar" });
+      if (objetivo && !productoYaListo) productos.set(c.productoId, { id: c.productoId, ...objetivo });
       resultadoFilas.push({ aplicado: true, cambio: c });
     }
 

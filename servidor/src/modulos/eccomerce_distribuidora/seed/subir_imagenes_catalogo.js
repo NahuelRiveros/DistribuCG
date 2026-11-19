@@ -11,7 +11,10 @@ const CARPETA_CLOUDINARY = "distribucg/productos";
 const ENTREGA = [{ width: 600, height: 600, crop: "limit", fetch_format: "auto", quality: "auto" }];
 
 // npm corre el script desde servidor/: una ruta relativa se toma desde donde se escribió el comando (INIT_CWD).
-const carpeta = process.argv[2] && path.resolve(process.env.INIT_CWD ?? process.cwd(), process.argv[2]);
+const argumento = process.argv.slice(2).find((a) => !a.startsWith("--"));
+const carpeta = argumento && path.resolve(process.env.INIT_CWD ?? process.cwd(), argumento);
+// --todas: vuelve a subir todo el índice (por ejemplo, si las fotos se borraron de Cloudinary).
+const TODAS = process.argv.includes("--todas");
 if (!carpeta) {
   console.error('❌ Indicá la carpeta: npm --prefix servidor run imagenes:subir -- "C:/ruta/para_cloudinary"');
   process.exit(1);
@@ -25,7 +28,7 @@ if (!cloud_name || !api_key || !api_secret) {
 const indice = JSON.parse(await readFile(path.join(carpeta, "_indice.json"), "utf8"));
 const imagenes = await leerImagenesCatalogo();
 const guardar = () => writeFile(ARCHIVO_IMAGENES, JSON.stringify(Object.fromEntries(Object.entries(imagenes).sort()), null, 2) + "\n");
-const pendientes = indice.filter((foto) => foto.codigos.some((codigo) => !imagenes[codigo]));
+const pendientes = TODAS ? indice : indice.filter((foto) => foto.codigos.some((codigo) => !imagenes[codigo]));
 console.log(`Subiendo ${pendientes.length} fotos a ${cloud_name}/${CARPETA_CLOUDINARY} (${indice.length - pendientes.length} ya estaban)...`);
 
 let subidas = 0;
@@ -35,9 +38,9 @@ async function trabajar() {
   while (siguiente < pendientes.length) {
     const foto = pendientes[siguiente++];
     try {
-      // public_id = código del cliente: repetir la subida no crea copias (overwrite: false).
+      // public_id = código del cliente: repetir la subida no crea copias. Con --todas pisa la que haya (overwrite).
       const resultado = await cloudinary.uploader.upload(path.join(carpeta, foto.archivo), {
-        folder: CARPETA_CLOUDINARY, public_id: foto.codigos[0], overwrite: false, resource_type: "image",
+        folder: CARPETA_CLOUDINARY, public_id: foto.codigos[0], overwrite: TODAS, resource_type: "image",
         // Se guarda hasta 1200 px: alcanza para el detalle y no ocupa espacio de más en el plan gratis.
         transformation: [{ width: 1200, height: 1200, crop: "limit" }],
       });

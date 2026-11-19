@@ -1332,6 +1332,28 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       assert.deepEqual([despues.p.activo, despues.p.inactivo_por_lista, Number(despues.v.precio), despues.v.sin_precio_lista_desde], [true, false, 480, null]);
     });
 
+    await t.test("PRE-34b y PRE-39: un artículo oculto con dos presentaciones en lotes distintos recibe los dos precios", async () => {
+      const ExcelJS = (await import("exceljs")).default;
+      const precios = await import("../src/modulos/eccomerce_distribuidora/services/precios_cliente_service.js");
+      const { listaPreciosClienteConfig } = await import("../../rubros/eccomerce_distribuidora/lista_precios_cliente_config.js");
+      const cat = await models.CategoriaDistribuidora.create({ nombre: "Dos QA", slug: "dos-qa" });
+      const prod = await models.ProductoDistribuidora.create({ categoria_id: cat.id, nombre: "Articulo Dos QA", activo: false, inactivo_por_lista: true });
+      const chica = await models.VariedadDistribuidora.create({ producto_id: prod.id, nombre: "Chica", precio: 0, cod_ref: "960001", sin_precio_lista_desde: "2026-11-01" });
+      const grande = await models.VariedadDistribuidora.create({ producto_id: prod.id, nombre: "Grande", precio: 0, cod_ref: "960002", sin_precio_lista_desde: "2026-11-01" });
+      const libro = new ExcelJS.Workbook();
+      libro.addWorksheet("LISTA").addRow(["960001  ", "Articulo Dos QA chica", 100, "960002  ", "Articulo Dos QA grande", 180]);
+      const lote = listaPreciosClienteConfig.batchSize;
+      listaPreciosClienteConfig.batchSize = 1; // cada fila en su propio lote
+      try {
+        const vista = await precios.validarListaCliente(Buffer.from(await libro.xlsx.writeBuffer()), "lista.xlsx", randomUUID(), id);
+        let actual = vista;
+        while (actual.estado !== "completado") actual = await precios.ejecutarLote(vista.id, id, { index: actual.siguiente_lote, confirm: true, ajustarListas: false });
+        assert.equal(actual.resultado.cambiados ?? 0, 0);
+      } finally { listaPreciosClienteConfig.batchSize = lote; }
+      assert.deepEqual([Number((await chica.reload()).precio), Number((await grande.reload()).precio)], [100, 180]);
+      assert.equal((await prod.reload()).activo, true);
+    });
+
     // Va al final: borra todo el catálogo de las pruebas anteriores.
     await t.test("CAT-52 a CAT-59: el super admin limpia los artículos (los pedidos conservan su copia) y recarga el catálogo del cliente, oculto", async () => {
       const { writeFile, rm } = await import("node:fs/promises");
