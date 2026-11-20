@@ -3,7 +3,7 @@
 Direcciones de esta instalación, compartidas por frontend y API mediante
 `deployment_config.js`:
 
-- Frontend: `https://distribu-cg.vercel.app`.
+- Frontend: `https://dc-formosa.vercel.app`.
 - API: `https://distribucg.onrender.com/api`.
 
 ## Variables de las plataformas
@@ -20,7 +20,7 @@ En Render, servicio del backend, Environment (nombres desde 2026-11; los anterio
 
 ```dotenv
 # Una sola variable para la tienda: arma los links y es el origen permitido por CORS.
-URL_FRONTEND_VERCEL=https://distribu-cg.vercel.app
+URL_FRONTEND_VERCEL=https://dc-formosa.vercel.app
 URL_API_RENDER=https://distribucg.onrender.com
 GOOGLE_ID_CLIENTE=EL_MISMO_CLIENT_ID_PUBLICO_DE_VERCEL
 # Correo (avisos de pedidos y recuperación de contraseña). Render gratis bloquea
@@ -44,7 +44,7 @@ credenciales a ese proyecto.
 ## Google Cloud
 
 En el cliente OAuth de tipo aplicación web, incluir como origen JavaScript
-autorizado `https://distribu-cg.vercel.app`. El código usa Google Identity
+autorizado `https://dc-formosa.vercel.app`. El código usa Google Identity
 Services con callback de credencial, no un client secret en el navegador.
 Los dos Client ID deben coincidir. Si se usa un cliente OAuth en modo
 Testing, revisar también sus usuarios de prueba según la configuración
@@ -66,7 +66,7 @@ Después de desplegar, comprobar en Network:
 
 1. El destino es `https://distribucg.onrender.com/api/auth/google`.
 2. `OPTIONS` responde 204 con
-   `Access-Control-Allow-Origin: https://distribu-cg.vercel.app`.
+   `Access-Control-Allow-Origin: https://dc-formosa.vercel.app`.
 3. Se envía el `POST` y se recibe su respuesta.
 
 Un 403 de CORS ocurre antes de validar la credencial de Google. Si CORS

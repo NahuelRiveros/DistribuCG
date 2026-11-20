@@ -1448,6 +1448,73 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
         } finally { clientConfig.tienda.mantenimientoCatalogo = true; }
       } finally { await new Promise((resolve) => server.close(resolve)); }
     });
+    await t.test("CAT-61 a CAT-63: la tienda solo muestra lo que está a la venta, el inicio arranca con fotos y el carrito no acepta $0", async () => {
+      const express = (await import("express")).default;
+      const { productoDistribuidoraRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/producto_distribuidora_router.js");
+      const { catalogosDistribuidoraRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/catalogos_distribuidora_router.js");
+      const familia = await models.CategoriaDistribuidora.create({ nombre: "Venta QA", slug: "venta-qa" });
+      const cat = await models.CategoriaDistribuidora.create({ nombre: "Aceites Venta QA", slug: "venta-qa-aceites", padre_id: familia.id });
+      const crear = async (nombre, precios, extra = {}) => {
+        const p = await models.ProductoDistribuidora.create({ categoria_id: cat.id, nombre, activo: true, ...extra });
+        const vs = [];
+        for (const [i, precio] of precios.entries()) vs.push(await models.VariedadDistribuidora.create({ producto_id: p.id, nombre: `${i + 1} l`, precio }));
+        return { p, vs };
+      };
+      const conFoto = await crear("Zeta Con Foto QA", [0, 500], { imagen_url: "https://res.cloudinary.com/demo/image/upload/v1/zeta.jpg" });
+      const sinFoto = await crear("Alfa Sin Foto QA", [300]);
+      const enCero = await crear("Beta En Cero QA", [0]);
+      await crear("Gama Oculto QA", [800], { activo: false });
+
+      const app = express();
+      app.use(express.json());
+      app.use("/productos", productoDistribuidoraRouter);
+      app.use("/catalogos", catalogosDistribuidoraRouter);
+      const server = await new Promise((resolve) => { const s = app.listen(0, "127.0.0.1", () => resolve(s)); });
+      try {
+        const url = `http://127.0.0.1:${server.address().port}`;
+        const persona = await models.Persona.findOne({ where: { email: "carla@example.test" } });
+        assert.ok(persona, "carla (admin) existe desde los tests anteriores");
+        const gestion = { Authorization: "Bearer " + (await login({ identificador: "carla@example.test", password: "Clave1234" })).token };
+        const leer = async (ruta, headers = {}) => (await fetch(url + ruta, { headers })).json();
+
+        // CAT-62: el visitante no ve el artículo en $0 ni la presentación en $0; la paginación cuenta lo mismo.
+        const tienda = await leer(`/productos?categoria=${cat.id}`);
+        assert.deepEqual(tienda.data.map((p) => p.nombre), ["Alfa Sin Foto QA", "Zeta Con Foto QA"], "alfabético");
+        assert.equal(tienda.total, 2);
+        assert.deepEqual(tienda.data[1].variedades.map((v) => v.id), [conFoto.vs[1].id]);
+        assert.equal((await fetch(`${url}/productos/${enCero.p.id}`)).status, 404);
+        assert.deepEqual((await leer(`/productos/${conFoto.p.id}`)).data.variedades.map((v) => v.id), [conFoto.vs[1].id]);
+        // CAT-61: el inicio pide primero los que tienen foto; un orden desconocido vuelve al alfabético.
+        assert.deepEqual((await leer(`/productos?categoria=${cat.id}&orden=con_foto`)).data.map((p) => p.nombre), ["Zeta Con Foto QA", "Alfa Sin Foto QA"]);
+        assert.equal((await leer(`/productos?categoria=${cat.id}&orden=imagen_url;DROP`)).data[0].nombre, "Alfa Sin Foto QA");
+        // La gestión ve todo, también lo oculto y lo que está en $0.
+        const enGestion = await leer(`/productos?categoria=${cat.id}`, gestion);
+        assert.equal(enGestion.total, 4);
+        assert.equal(enGestion.data.find((p) => p.id === conFoto.p.id).variedades.length, 2);
+        assert.equal((await fetch(`${url}/productos/${enCero.p.id}`, { headers: gestion })).status, 200);
+
+        // CAT-63: contadores de la tienda (a la venta) y de la gestión (todo).
+        const contar = async (headers) => (await leer("/catalogos/categorias", headers)).data.find((c) => c.id === cat.id).cantidad_productos;
+        assert.equal(await contar(), 2);
+        assert.equal(await contar(gestion), 4);
+
+        // Precio especial de una lista: si la zona lo vende, para esa zona está a la venta.
+        const lista = await listasSrv.guardarLista(null, { nombre: "Zona Venta QA", localidades: [{ provincia: "Buenos Aires", localidad: "Zona Venta QA" }] });
+        await listasSrv.guardarPreciosDeLista(lista.id, [{ variedad_id: enCero.vs[0].id, precio: 90 }]);
+        assert.equal((await productos.listarProductos({ categoria: cat.id, soloALaVenta: true, listaId: lista.id })).pagination.total, 3);
+        assert.equal((await categoriasSrv.listarCategorias({ soloALaVenta: true, listaId: lista.id })).find((c) => c.id === cat.id).cantidad_productos, 3);
+      } finally { await new Promise((resolve) => server.close(resolve)); }
+
+      // Carrito: no acepta una presentación en $0; si quedó en $0 después, no está disponible y el pedido no sale.
+      await vaciarCarrito(id);
+      await assert.rejects(agregarItem(id, { producto_id: conFoto.p.id, variedad_id: conFoto.vs[0].id, cantidad: 1 }), (e) => e.codigo === "SIN_PRECIO" && e.status === 409);
+      await agregarItem(id, { producto_id: sinFoto.p.id, variedad_id: sinFoto.vs[0].id, cantidad: 1 });
+      await sinFoto.vs[0].update({ precio: 0 });
+      const [linea] = await obtenerCarrito(id);
+      assert.equal(linea.variante_disponible, false);
+      await assert.rejects(crearNotaPedido(id, { key: randomUUID(), expectedItems: await obtenerCarrito(id) }), /no disponibles/);
+      await vaciarCarrito(id);
+    });
   } finally {
     if (created) {
       assert.equal(DB_SCHEMA, ownedSchema);

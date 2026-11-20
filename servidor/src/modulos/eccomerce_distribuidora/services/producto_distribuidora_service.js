@@ -72,6 +72,22 @@ async function idsConVariedad(condicion) {
   return [...new Set(filas.map((v) => v.producto_id))];
 }
 
+/**
+ * CAT-62/63: el artículo tiene alguna presentación vigente con precio mayor a 0 para la lista de quien
+ * mira (su precio especial si la lista lo tiene, si no la General). `listaId` se fuerza a entero.
+ */
+export const condicionALaVenta = (listaId) => sequelize.literal(`EXISTS (SELECT 1 FROM variedad_distribuidora v
+  LEFT JOIN lista_precio_item i ON i.variedad_id = v.id AND i.lista_id = ${Math.trunc(Number(listaId)) || 0}
+  WHERE v.producto_id = "ProductoDistribuidora"."id" AND v.fecha_baja IS NULL
+    AND (CASE WHEN i.id IS NULL THEN v.precio ELSE i.precio END) > 0)`);
+
+// Órdenes del listado. `con_foto` (CAT-61, inicio de la tienda): primero los que tienen foto.
+const ORDENES = {
+  nombre: [["nombre", "ASC"]],
+  con_foto: [[sequelize.literal('"ProductoDistribuidora"."imagen_url" IS NULL'), "ASC"], ["nombre", "ASC"]],
+};
+export const ORDENES_LISTADO = Object.keys(ORDENES);
+
 const CONDICION_STOCK = {
   sin_stock: { controla_stock: true, cantidad: { [Op.lte]: 0 } },
   // Incluye los agotados: también están por debajo del mínimo.
@@ -79,7 +95,7 @@ const CONDICION_STOCK = {
 };
 
 // `estado` y `stock` solo los usa la gestión (con soloActivos en false).
-async function construirWhere({ categoria, incluirDescendientes = true, q, soloActivos = true, marca, estado, stock, ids } = {}) {
+async function construirWhere({ categoria, incluirDescendientes = true, q, soloActivos = true, marca, estado, stock, ids, soloALaVenta = false, listaId = null } = {}) {
   const where = { fecha_baja: null };
   // `ids`: subconjunto ya calculado (ej. productos en oferta para la lista del cliente).
   if (Array.isArray(ids)) where.id = { [Op.in]: ids };
@@ -99,6 +115,7 @@ async function construirWhere({ categoria, incluirDescendientes = true, q, soloA
       { id: { [Op.in]: porCodigo } },
     ] });
   }
+  if (soloALaVenta) filtros.push(condicionALaVenta(listaId));
   if (!soloActivos && CONDICION_STOCK[stock]) filtros.push({ id: { [Op.in]: await idsConVariedad(CONDICION_STOCK[stock]) } });
   if (filtros.length) where[Op.and] = filtros;
   return where;
@@ -113,8 +130,8 @@ async function construirWhere({ categoria, incluirDescendientes = true, q, soloA
 // exacta (sin bajar a subcategorías) — lo usa el árbol del admin al expandir
 // un nivel puntual, para no traerse de golpe todo el subárbol y mezclarlo
 // bajo el nodo equivocado.
-export async function listarProductos({ categoria, incluirDescendientes = true, q, pagina, por_pagina, soloActivos = true, marca, estado, stock, ids } = {}) {
-  const where = await construirWhere({ categoria, incluirDescendientes, q, soloActivos, marca, estado, stock, ids });
+export async function listarProductos({ categoria, incluirDescendientes = true, q, pagina, por_pagina, soloActivos = true, marca, estado, stock, ids, soloALaVenta = false, listaId = null, orden = "nombre" } = {}) {
+  const where = await construirWhere({ categoria, incluirDescendientes, q, soloActivos, marca, estado, stock, ids, soloALaVenta, listaId });
   const maxLimit = soloActivos ? 100 : 1000;
   const { page, limit, offset } = normalizarPaginacion({ page: pagina, limit: por_pagina, defaultLimit: 24, maxLimit });
 
@@ -122,7 +139,7 @@ export async function listarProductos({ categoria, incluirDescendientes = true, 
     where,
     attributes: ATTR_LISTADO,
     include: INCLUDE_LISTADO,
-    order: [["nombre", "ASC"]],
+    order: ORDENES[orden] ?? ORDENES.nombre,
     limit,
     offset,
     distinct: true,

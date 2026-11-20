@@ -3,6 +3,7 @@ import { withCart, idempotent } from "./cart_transaction.js";
 import { cartError, validQuantity } from "../../../core/services/common/cart_rules.js";
 import { clientConfig } from "../../../../../proyecto/client_config.js";
 import { listaDeUsuario, preciosDeLista } from "./listas_precio_service.js";
+import { presentacionALaVenta } from "./articulo_rules.js";
 export async function obtenerOCrearCarrito(usuario_id) {
   const [cart] = await CarritoDistribuidora.findOrCreate({ where: { usuario_id }, defaults: { usuario_id } });
   return cart;
@@ -35,7 +36,7 @@ export async function listarItemsCarrito(carrito_id, transaction) {
     ], order: [["fecha_alta", "ASC"]],
   });
   const { precios } = await preciosDelCarrito(carrito_id, rows.map((r) => r.variedad_id).filter(Boolean), transaction);
-  return rows.map((item) => ({
+  return rows.map((item) => listaParaComprar({
     ...referenciaDescuento(item.variedad, precios.get(item.variedad_id)),
     item_id: item.id, producto_id: item.producto_id, variedad_id: item.variedad_id,
     nombre: item.producto?.nombre ?? "Producto no disponible", categoria: item.producto?.categoria?.nombre ?? null,
@@ -47,6 +48,8 @@ export async function listarItemsCarrito(carrito_id, transaction) {
     cantidad: item.cantidad, activo: !!item.producto?.activo && !item.producto.fecha_baja,
   }));
 }
+// CAT-62: si la presentación quedó en $0 después de agregarla, deja de estar disponible y el pedido no sale.
+const listaParaComprar = (item) => (item.variante_disponible && !presentacionALaVenta(item) ? { ...item, variante_disponible: false } : item);
 export async function obtenerCarrito(usuario_id) { const cart = await obtenerOCrearCarrito(usuario_id); return listarItemsCarrito(cart.id); }
 async function addToCart(cart, payload, t) {
   const { producto_id, variedad_id, cantidad } = payload;
@@ -58,6 +61,7 @@ async function addToCart(cart, payload, t) {
   const variant = variants[0];
   const { precios } = await preciosDelCarrito(cart.id, [variant.id], t);
   const precio = precios.get(variant.id)?.precio ?? variant.precio;
+  if (!presentacionALaVenta({ precio })) throw cartError("Esta presentación todavía no tiene precio. Consultanos por ella.", 409, "SIN_PRECIO");
   const existing = await CarritoDistribuidoraItem.findOne({ where: { carrito_id: cart.id, variedad_id: variant.id }, transaction: t });
   const quantity = validQuantity((existing?.cantidad ?? 0) + cantidad, variant.controla_stock ? variant.cantidad : null);
   if (existing) await existing.update({ cantidad: quantity, precio_unidad: precio }, { transaction: t });

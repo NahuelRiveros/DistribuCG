@@ -99,6 +99,16 @@ Panel › Mantenimiento del catálogo ([cambio](../cambios/2026-11-recargar-cata
 | CAT-59 | Con `tienda.catalogoInicialAlArrancar: false`, el arranque no siembra la demo en una base sin artículos. | ✅ |
 | CAT-60 | Todo el mantenimiento se enciende con `tienda.mantenimientoCatalogo` (`proyecto/client_config.js`). Apagado, la página y su menú no existen y el servidor responde 404 a limpiar y cargar, también al super admin. Se apaga apenas producción queda cargada. | ✅ `checkout.integration.mjs` › "CAT-52 a CAT-59: …" |
 
+### Lo que ve la tienda
+
+[Cambio](../cambios/2026-11-tienda-solo-a-la-venta.md). Tests: `ux_rules.test.mjs` › "CAT-62: …" y `checkout.integration.mjs` › "CAT-61 a CAT-63: …".
+
+| Código | Regla | Estado |
+| --- | --- | --- |
+| CAT-61 | El inicio muestra 12 artículos, primero los que tienen foto; el catálogo sigue por orden alfabético. | ✅ |
+| CAT-62 | Solo está a la venta la presentación con precio mayor a 0 para la lista de quien mira: la tienda no muestra las de $0 (ni artículos sin ninguna), el carrito no las acepta y el pedido no sale si una quedó en $0. La gestión las ve. | ✅ |
+| CAT-63 | Los números de las categorías en la tienda cuentan solo lo que está a la venta para quien mira; la gestión ve el total. | ✅ |
+
 ## Configuración
 
 | Qué | Dónde | Valor actual |
@@ -119,6 +129,7 @@ Panel › Mantenimiento del catálogo ([cambio](../cambios/2026-11-recargar-cata
 | Fecha | Regla | Decisión | Quién |
 | --- | --- | --- | --- |
 | 2026-11-08 | CAT-13 | El artículo solo puede ir en una categoría (Familia › Categoría), nunca directo en la familia. | Dueño del proyecto |
+| 2026-11-19 | CAT-61 a CAT-63 | La tienda muestra solo lo que se puede comprar (sin presentaciones en $0) y el inicio arranca por los artículos con foto; el catálogo queda alfabético. | Dueño del proyecto |
 | 2026-11-19 | CAT-52 a CAT-59 | El super admin puede limpiar todo el catálogo (también categorías y marcas; los pedidos conservan su copia) y recargarlo oculto desde el catálogo del cliente; los precios los pone la lista. La demo del arranque se apaga. | Dueño del proyecto |
 | 2026-11-19 | CAT-43 | El catálogo replica el Listado de Artículos del cliente: lo que no tiene precio en la lista se carga oculto, con su código y bulto, y aparece solo cuando la lista le pone precio. | Dueño del proyecto |
 | 2026-11-10 | CAT-17 | La importación aplica la misma regla, sin crear categorías automáticas ([cambio](../cambios/2026-11-importacion-solo-categoria.md)). | Dueño del proyecto |

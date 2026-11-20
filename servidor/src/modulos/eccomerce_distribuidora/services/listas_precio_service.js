@@ -67,6 +67,7 @@ export async function idsProductosEnOferta(listaId, { limite } = {}, transaction
      LEFT JOIN lista_precio_item i ON i.variedad_id = v.id AND i.lista_id = :lista
      WHERE v.fecha_baja IS NULL
        AND (CASE WHEN i.id IS NULL THEN v.precio_anterior > v.precio ELSE i.precio_anterior > i.precio END)
+       AND (CASE WHEN i.id IS NULL THEN v.precio ELSE i.precio END) > 0
      GROUP BY v.producto_id ORDER BY descuento DESC, v.producto_id ASC
      ${limite ? "LIMIT :limite" : ""}`,
     { lista: listaId ?? 0, limite: Number(limite) || null }, transaction,

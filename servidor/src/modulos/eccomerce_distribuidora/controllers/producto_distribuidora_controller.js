@@ -1,9 +1,9 @@
 import {
   listarProductos, obtenerProductoPorId, crearProductoConVariedad, actualizarProductoConVariedad, cambiarEstadoProducto, eliminarProducto,
-  ajustarPreciosMasivo, cambiaPrecios, errorSinPermisoPrecios, errorCategoriaDeArticulo,
+  ajustarPreciosMasivo, cambiaPrecios, errorSinPermisoPrecios, errorCategoriaDeArticulo, ORDENES_LISTADO,
 } from "../services/producto_distribuidora_service.js";
 import { tienePermiso } from "../../../../../core/permisos_config.js";
-import { validarVariedad, FILTROS_STOCK } from "../services/articulo_rules.js";
+import { validarVariedad, FILTROS_STOCK, soloALaVenta } from "../services/articulo_rules.js";
 import { listaDeUsuario, aplicarListaAProductos, idsProductosEnOferta, preciosEnListas } from "../services/listas_precio_service.js";
 
 const MAX_OFERTAS = 24;
@@ -29,11 +29,15 @@ export async function listarProductosController(req, res) {
       categoria, q, pagina, por_pagina, marca, ids,
       incluirDescendientes: req.query.incluirDescendientes !== "false",
       soloActivos: !gestion,
+      // CAT-62: un cliente solo ve artículos con alguna presentación a la venta para su lista.
+      soloALaVenta: !gestion, listaId: lista?.id,
+      orden: ORDENES_LISTADO.includes(req.query.orden) ? req.query.orden : undefined,
       // Filtros de la gestión de artículos: un cliente no puede pedir inactivos ni stock.
       estado: gestion && ["activos", "inactivos"].includes(estado) ? estado : undefined,
       stock: gestion && FILTROS_STOCK.includes(stock) ? stock : undefined,
     });
-    const data = await aplicarListaAProductos(productos, lista);
+    const conPrecios = await aplicarListaAProductos(productos, lista);
+    const data = gestion ? conPrecios : soloALaVenta(conPrecios);
     return res.json({ ok: true, data, total: pagination.total, pagina: pagination.page, total_paginas: pagination.totalPages, lista_precio: lista?.nombre ?? null });
   } catch (error) {
     console.error("Error al listar productos:", error);
@@ -46,7 +50,9 @@ export async function obtenerProductoController(req, res) {
     const gestion = puedeVerInactivos(req);
     const producto = await obtenerProductoPorId(req.params.id, { soloActivos: !gestion });
     if (!producto) return res.status(404).json({ ok: false, mensaje: "Producto no encontrado" });
-    const [data] = await aplicarListaAProductos([producto], await listaPara(req, gestion));
+    const [conPrecios] = await aplicarListaAProductos([producto], await listaPara(req, gestion));
+    const data = gestion ? conPrecios : soloALaVenta([conPrecios])[0];
+    if (!data) return res.status(404).json({ ok: false, mensaje: "Producto no encontrado" });
     return res.json({ ok: true, data });
   } catch (error) {
     console.error("Error al obtener producto:", error);
@@ -153,10 +159,10 @@ export async function listarOfertasController(req, res) {
     // Se piden de más: alguno puede estar inactivo y se descarta al filtrar.
     const ids = await idsProductosEnOferta(lista?.id, { limite: limite * 2 });
     if (!ids.length) return res.json({ ok: true, data: [], lista_precio: lista?.nombre ?? null });
-    const { productos } = await listarProductos({ ids, soloActivos: true, por_pagina: limite * 2 });
+    const { productos } = await listarProductos({ ids, soloActivos: true, soloALaVenta: true, listaId: lista?.id, por_pagina: limite * 2 });
     const orden = new Map(ids.map((id, i) => [id, i]));
     const ordenados = [...productos].sort((a, b) => orden.get(a.id) - orden.get(b.id)).slice(0, limite);
-    return res.json({ ok: true, data: await aplicarListaAProductos(ordenados, lista), lista_precio: lista?.nombre ?? null });
+    return res.json({ ok: true, data: soloALaVenta(await aplicarListaAProductos(ordenados, lista)), lista_precio: lista?.nombre ?? null });
   } catch (error) {
     console.error("Error al listar ofertas:", error);
     return res.status(500).json({ ok: false, mensaje: "Error interno al listar las ofertas" });

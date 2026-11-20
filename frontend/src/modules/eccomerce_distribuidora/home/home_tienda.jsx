@@ -33,7 +33,8 @@ export default function HomeTienda({ textos = HOME_TIENDA }) {
   const visitante = usuario?.usuario_id ?? "visitante";
   const productos = useQuery({
     queryKey: ["home", "productos", visitante],
-    queryFn: ({ signal }) => getProductos({ pagina: 1, por_pagina: 8 }, { signal, publicAccess: config.publicCatalog && !isAuth }),
+    // CAT-61: la portada muestra primero lo que tiene foto; el catálogo sigue por orden alfabético.
+    queryFn: ({ signal }) => getProductos({ pagina: 1, por_pagina: 12, orden: "con_foto" }, { signal, publicAccess: config.publicCatalog && !isAuth }),
     enabled: puedeVer, staleTime: 60_000,
   });
   const categorias = useQuery({
@@ -49,7 +50,8 @@ export default function HomeTienda({ textos = HOME_TIENDA }) {
   const promociones = !ofertas.isError && Array.isArray(ofertas.data?.data) ? ofertas.data.data : [];
   const hayOfertas = puedeVer && promociones.length > 0;
   const familias = (Array.isArray(categorias.data) ? categorias.data : []).filter((c) => c.padre_id == null);
-  const fotos = (hayOfertas ? promociones : lista).slice(0, 3);
+  const destacados = hayOfertas ? promociones : lista;
+  const fotos = [...destacados.filter((p) => p.imagen_url), ...destacados.filter((p) => !p.imagen_url)].slice(0, 3);
   const destino = hayOfertas ? config.catalogPath + "?oferta=1" : config.catalogPath;
   const buscar = (event) => {
     event.preventDefault();

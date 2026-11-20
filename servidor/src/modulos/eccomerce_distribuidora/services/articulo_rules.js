@@ -56,3 +56,13 @@ export function validarVariedad(body = {}) {
 }
 
 export const FILTROS_STOCK = ["sin_stock", "bajo_minimo"];
+
+/** CAT-62: una presentación está a la venta solo con precio mayor a 0 (el de la lista de quien mira, ya aplicado). */
+export const presentacionALaVenta = (variedad) => Number(variedad?.precio) > 0;
+
+/** CAT-62: lo que ve un cliente: sin las presentaciones en $0. Un artículo sin ninguna a la venta no se muestra. */
+export function soloALaVenta(productos) {
+  return productos
+    .map((p) => ({ ...p, variedades: (p.variedades ?? []).filter(presentacionALaVenta) }))
+    .filter((p) => p.variedades.length > 0);
+}

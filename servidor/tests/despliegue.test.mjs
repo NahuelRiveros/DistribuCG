@@ -89,13 +89,13 @@ test("producción permite el frontend de DistribuCG por defecto y muestra la ide
     try {
       const base = 'http://127.0.0.1:' + servidor.address().port;
       const r = await fetch(base + '/api/auth/google', { method: 'OPTIONS', headers: {
-        Origin: 'https://distribu-cg.vercel.app', 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type'
+        Origin: 'https://dc-formosa.vercel.app', 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type'
       }});
       assert.equal(r.status, 204);
-      assert.equal(r.headers.get('access-control-allow-origin'), 'https://distribu-cg.vercel.app');
+      assert.equal(r.headers.get('access-control-allow-origin'), 'https://dc-formosa.vercel.app');
       const portada = await (await fetch(base + '/')).json();
       assert.equal(portada.nombre, 'DistribuCG API');
-      assert.equal(portada.frontend, 'https://distribu-cg.vercel.app');
+      assert.equal(portada.frontend, 'https://dc-formosa.vercel.app');
     } finally { await new Promise(r => servidor.close(r)); }
   `;
   const r = spawnSync(process.execPath, ["--input-type=module", "-e", script], {

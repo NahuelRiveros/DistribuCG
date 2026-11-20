@@ -558,3 +558,16 @@ test("PED-75 y PED-76: mensaje de WhatsApp según el estado, celular para wa.me 
   assert.equal(numeroWhatsapp(null), null);
   assert.equal(linkWhatsapp("549111", "Hola #12"), "https://wa.me/549111?text=Hola%20%2312");
 });
+
+test("CAT-62: la tienda saca las presentaciones en $0 y los artículos sin ninguna a la venta", async () => {
+  const { presentacionALaVenta, soloALaVenta } = await import("../src/modulos/eccomerce_distribuidora/services/articulo_rules.js");
+  assert.equal(presentacionALaVenta({ precio: "3985.82" }), true);
+  for (const precio of ["0.00", 0, null, undefined, "-5", "abc"]) assert.equal(presentacionALaVenta({ precio }), false, `precio ${precio}`);
+  const productos = [
+    { id: 1, nombre: "Aceite Natura", variedades: [{ id: 10, precio: "0.00" }, { id: 11, precio: "3985.82" }, { id: 12, precio: "12677.00" }] },
+    { id: 2, nombre: "Sin precio", variedades: [{ id: 20, precio: "0.00" }] },
+    { id: 3, nombre: "Sin presentaciones" },
+  ];
+  assert.deepEqual(soloALaVenta(productos).map((p) => [p.id, p.variedades.map((v) => v.id)]), [[1, [11, 12]]]);
+  assert.equal(productos[0].variedades.length, 3, "no modifica lo que recibe");
+});

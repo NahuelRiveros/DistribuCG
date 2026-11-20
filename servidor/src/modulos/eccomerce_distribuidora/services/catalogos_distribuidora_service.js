@@ -3,6 +3,7 @@ import { sequelize } from "../../../core/database/sequelize.js";
 import { CategoriaDistribuidora, ProductoDistribuidora, VariedadDistribuidora, CarritoDistribuidoraItem } from "../models/index.js";
 import { crearCrudService } from "../../../core/services/common/crud_service.js";
 import { formatearNombre } from "../../../core/services/common/formato_nombre.js";
+import { condicionALaVenta } from "./producto_distribuidora_service.js";
 
 /**
  * Catálogo de categorías de distribuidora (jerárquicas). Mismo patrón que
@@ -21,12 +22,14 @@ const categoriasCrud = crearCrudService(CategoriaDistribuidora, {
 // productos" SIN tener que traer los productos en sí — clave para que el
 // árbol cargue productos recién al expandir una categoría (carga perezosa,
 // pensado para catálogos de miles de productos).
-export async function listarCategorias() {
+// CAT-63: con `soloALaVenta` (la tienda) cuenta solo lo que un cliente puede comprar con su lista;
+// la gestión ve el total, ocultos incluidos.
+export async function listarCategorias({ soloALaVenta = false, listaId = null } = {}) {
   const [{ items }, conteos] = await Promise.all([
     categoriasCrud.listar(),
     ProductoDistribuidora.findAll({
       attributes: ["categoria_id", [sequelize.fn("COUNT", sequelize.col("id")), "cantidad"]],
-      where: { fecha_baja: null },
+      where: soloALaVenta ? { fecha_baja: null, activo: true, [Op.and]: [condicionALaVenta(listaId)] } : { fecha_baja: null },
       group: ["categoria_id"],
       raw: true,
     }),

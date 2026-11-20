@@ -2,7 +2,7 @@
 export const deploymentConfig = {
   nombre: "DistribuCG",
   backendUrl: "https://distribucg.onrender.com",
-  frontendUrl: "https://distribu-cg.vercel.app",
+  frontendUrl: "https://dc-formosa.vercel.app",
   // Carpeta de este proyecto en Cloudinary (la cuenta se comparte con otros proyectos).
   carpetaCloudinary: "distribucg",
   // Esquema de la base de producción (BD_ESQUEMA en Render). Ahí nunca se cargan precios de demostración

@@ -2,10 +2,15 @@ import {
   listarCategorias, existeCategoriaConSlug, crearCategoria, actualizarCategoria, eliminarCategoria,
   fusionarCategoria, moverCategorias,
 } from "../services/catalogos_distribuidora_service.js";
+import { tienePermiso } from "../../../../../core/permisos_config.js";
+import { listaDeUsuario } from "../services/listas_precio_service.js";
 
 export async function listarCategoriasController(req, res) {
   try {
-    return res.json({ ok: true, data: await listarCategorias() });
+    // Mismo criterio que el listado de productos: la gestión ve todo; un cliente, lo que puede comprar.
+    if (tienePermiso(req.user, "productos.editar", "precios.editar")) return res.json({ ok: true, data: await listarCategorias() });
+    const lista = await listaDeUsuario(req.user?.usuario_id);
+    return res.json({ ok: true, data: await listarCategorias({ soloALaVenta: true, listaId: lista?.id }) });
   } catch (error) {
     console.error("Error al listar categorías:", error);
     return res.status(500).json({ ok: false, mensaje: "Error interno al listar categorías" });
