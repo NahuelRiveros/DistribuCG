@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import { test, expect } from "@playwright/test";
 import { permisosConfig, permisosEfectivos } from "../../../core/permisos_config.js";
+import { clientConfig } from "../../../proyecto/client_config.js";
 // Como /auth/me: los roles con los permisos que reciben por defecto (lo tildado al instalar).
 const porDefecto = (rol) => permisosConfig.permisos.filter((p) => p.porDefecto.includes(rol)).map((p) => p.codigo);
 const conPermisos = (usuario) => ({ ...usuario, permisos: permisosEfectivos(usuario.roles, usuario.roles.flatMap(porDefecto)) });
@@ -1315,6 +1316,8 @@ async function mockMantenimiento(page) {
   return pedidos;
 }
 test("CAT-52 a CAT-58: el super admin limpia con la frase y carga el catálogo del cliente por lotes", async ({ page }) => {
+  // La web lee el interruptor al compilarse: apagado (producción ya cargada), lo prueba el test de CAT-60.
+  test.skip(!clientConfig.tienda.mantenimientoCatalogo, "mantenimientoCatalogo está apagado en proyecto/client_config.js");
   await entrarComo(page, ["super_admin"]);
   const pedidos = await mockMantenimiento(page);
   await page.goto("/panel");
@@ -1339,6 +1342,16 @@ test("CAT-52 a CAT-58: el super admin limpia con la frase y carga el catálogo d
   expect(pedidos.lotes).toEqual([0, 1, 2]);
   await page.getByRole("link", { name: "Siguiente: Actualizar precios" }).click();
   await expect(page).toHaveURL(/precios-cliente/);
+});
+test("CAT-60: con el mantenimiento apagado, ni el super admin ve la página ni su menú", async ({ page }) => {
+  test.skip(clientConfig.tienda.mantenimientoCatalogo, "mantenimientoCatalogo está encendido en proyecto/client_config.js");
+  await entrarComo(page, ["super_admin"]);
+  await page.goto("/panel");
+  const menu = await menuPanel(page);
+  await expect(menu.getByRole("link", { name: "Actualizar precios" })).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Mantenimiento del catálogo" })).toHaveCount(0);
+  await page.goto("/distribuidora/admin/mantenimiento");
+  await expect(page.getByRole("heading", { name: "Mantenimiento del catálogo" })).toHaveCount(0);
 });
 test("CAT-52: un admin no ve el mantenimiento del catálogo", async ({ page }) => {
   await entrarComo(page, ["admin"]);

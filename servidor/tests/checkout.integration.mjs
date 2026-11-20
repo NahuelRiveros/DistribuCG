@@ -1359,6 +1359,10 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       const { writeFile, rm } = await import("node:fs/promises");
       const { tmpdir } = await import("node:os");
       const { join } = await import("node:path");
+      // CAT-60: producción lo apaga en client_config.js; la prueba lo enciende y al final lo deja como estaba.
+      const configTienda = (await import("../../proyecto/client_config.js")).clientConfig.tienda;
+      const mantenimientoAntes = configTienda.mantenimientoCatalogo;
+      configTienda.mantenimientoCatalogo = true;
       const mant = await import("../src/modulos/eccomerce_distribuidora/services/mantenimiento_catalogo_service.js");
       const { seed_distribuidora } = await import("../src/modulos/eccomerce_distribuidora/seed/index.js");
       // Algo en carrito y un precio regional, además de los pedidos que dejaron las pruebas anteriores.
@@ -1446,7 +1450,10 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
           const limpiar = await fetch(url + "/limpiar", { method: "POST", headers: { Authorization: "Bearer " + await token(), "Content-Type": "application/json" }, body: JSON.stringify({ confirmacion: "BORRAR ARTÍCULOS" }) });
           assert.equal(limpiar.status, 404);
         } finally { clientConfig.tienda.mantenimientoCatalogo = true; }
-      } finally { await new Promise((resolve) => server.close(resolve)); }
+      } finally {
+        await new Promise((resolve) => server.close(resolve));
+        configTienda.mantenimientoCatalogo = mantenimientoAntes;
+      }
     });
     await t.test("CAT-61 a CAT-64: la tienda solo muestra lo que está a la venta, el inicio arranca con fotos y el carrito no acepta $0", async () => {
       const express = (await import("express")).default;
