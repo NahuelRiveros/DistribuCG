@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { BadgePercent, SlidersHorizontal } from "lucide-react";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
-import { getProductos } from "../api/producto_distribuidora_api.js";
+import { getProductos, VISTA_TIENDA } from "../api/producto_distribuidora_api.js";
 import { useAuth } from "../../../core/auth/auth_context.jsx";
 import { storefrontConfig as config } from "../storefront_config.js";
 import SearchField from "../../../core/controls/ui/search_field.jsx";
@@ -29,8 +29,8 @@ export default function ProductosDistribuidoraPage() {
     return next;
   }), [setParams]);
   const search = useCallback((text) => update({ q: text, pagina: null }), [update]);
-  const products = useQuery({ queryKey: ["storefront", "products", usuario?.usuario_id ?? "visitante", q, category, page, ofertas], queryFn: ({ signal }) => getProductos({ q: q || undefined, categoria: category || undefined, oferta: ofertas ? "1" : undefined, pagina: page, por_pagina: config.pageSize }, { signal, publicAccess: config.publicCatalog && !isAuth }), staleTime: 30000 });
-  const categories = useQuery({ queryKey: ["storefront", "categories"], queryFn: getCategorias, staleTime: 60000 });
+  const products = useQuery({ queryKey: ["storefront", "products", usuario?.usuario_id ?? "visitante", q, category, page, ofertas], queryFn: ({ signal }) => getProductos({ q: q || undefined, categoria: category || undefined, oferta: ofertas ? "1" : undefined, pagina: page, por_pagina: config.pageSize, ...VISTA_TIENDA }, { signal, publicAccess: config.publicCatalog && !isAuth }), staleTime: 30000 });
+  const categories = useQuery({ queryKey: ["storefront", "categories"], queryFn: () => getCategorias(VISTA_TIENDA), staleTime: 60000 });
   const choose = (id) => { update({ categoria: id, pagina: null }); setFiltersOpen(false); };
   const tree = <CategoriasArbol categorias={categories.data ?? []} categoriaId={category} onSeleccionar={choose} />;
   return <div className="bg-(--kt-bg-soft) px-3 py-6 sm:px-6"><div className="mx-auto max-w-7xl space-y-5">

@@ -8,7 +8,8 @@ import { listaDeUsuario } from "../services/listas_precio_service.js";
 export async function listarCategoriasController(req, res) {
   try {
     // Mismo criterio que el listado de productos: la gestión ve todo; un cliente, lo que puede comprar.
-    if (tienePermiso(req.user, "productos.editar", "precios.editar")) return res.json({ ok: true, data: await listarCategorias() });
+    // CAT-64: con `?vista=tienda` el personal ve los contadores de un cliente.
+    if (req.query.vista !== "tienda" && tienePermiso(req.user, "productos.editar", "precios.editar")) return res.json({ ok: true, data: await listarCategorias() });
     const lista = await listaDeUsuario(req.user?.usuario_id);
     return res.json({ ok: true, data: await listarCategorias({ soloALaVenta: true, listaId: lista?.id }) });
   } catch (error) {

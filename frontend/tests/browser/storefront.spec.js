@@ -25,7 +25,7 @@ async function mockApi(page, initialCart = []) {
     let data = { ok: true, data: [] };
     if (path === "/distribuidora/productos") data = { ok: true, data: [{ ...product, id: url.searchParams.get("pagina") === "2" ? 2 : 1 }], total: 25, total_paginas: 2 };
     else if (path.startsWith("/distribuidora/productos/")) data = { ok: true, data: product };
-    else if (path === "/distribuidora/catalogos/categorias") data = { ok: true, data: [{ id: 1, nombre: "Almacén", padre_id: null }] };
+    else if (path === "/distribuidora/catalogos/categorias") data = { ok: true, data: [{ id: 1, nombre: "Almacén", padre_id: null, cantidad_productos: 1 }] };
     else if (path === "/auth/login") data = { ok: true, token: "mock-session" };
     else if (path === "/auth/me") data = { ok: true, usuario: conPermisos({ usuario_id: 7, nombre: "Ana", apellido: "Cliente", roles: ["cliente"] }) };
     else if (path === "/auth/register") data = { ok: true };
@@ -504,7 +504,7 @@ test("lista de carga: elegir pedidos, ver artículos por familia en bultos y sue
 test("catálogo: presentación con caja, +1 caja y equivalencia en bultos", async ({ page }) => {
   await mockApi(page);
   const conCaja = { ...product, variedades: [{ ...product.variedades[0], cantidad: 200, unidad_medida: "PAQUETE", unidad_bulto: "CAJA", unidades_por_bulto: 20 }] };
-  await page.route("**/api/distribuidora/productos/1", (route) => route.fulfill({ json: { ok: true, data: conCaja } }));
+  await page.route((url) => url.pathname === "/api/distribuidora/productos/1", (route) => route.fulfill({ json: { ok: true, data: conCaja } }));
   await page.goto("/distribuidora/catalogo/1");
   await expect(page.getByText(/Caja x 20 paquetes/)).toBeVisible();
   await page.getByRole("button", { name: "+1 caja" }).click();
@@ -1026,11 +1026,13 @@ test("home comercial: permite reintentar si falla el catálogo", async ({ page }
     : { json: { ok: true, data: [product], total: 1 } }));
   await page.route("**/api/distribuidora/productos/ofertas**", (route) => route.fulfill({ status: 503, json: { ok: false } }));
   await page.goto("/");
-  const seccion = page.getByRole("region", { name: "Productos para tu pedido" });
-  await expect(seccion.getByText("No pudimos cargar los productos.")).toBeVisible({ timeout: 15000 });
+  // CAT-61: cada familia es una fila propia y se reintenta sola.
+  const seccion = page.getByRole("region", { name: "Almacén" });
+  await expect(seccion.getByText("No pudimos cargar Almacén.")).toBeVisible({ timeout: 15000 });
   fallar = false;
   await seccion.getByRole("button", { name: "Reintentar", exact: true }).click();
   await expect(seccion.getByRole("link", { name: "Arroz largo fino", exact: true })).toBeVisible();
+  await expect(seccion.getByRole("link", { name: "Ver todo Almacén" })).toHaveAttribute("href", "/distribuidora/catalogo?categoria=1");
   await expect(page.getByRole("complementary", { name: "Promociones destacadas" })).toHaveCount(0);
   await noOverflow(page);
 });

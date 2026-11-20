@@ -1448,7 +1448,7 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
         } finally { clientConfig.tienda.mantenimientoCatalogo = true; }
       } finally { await new Promise((resolve) => server.close(resolve)); }
     });
-    await t.test("CAT-61 a CAT-63: la tienda solo muestra lo que está a la venta, el inicio arranca con fotos y el carrito no acepta $0", async () => {
+    await t.test("CAT-61 a CAT-64: la tienda solo muestra lo que está a la venta, el inicio arranca con fotos y el carrito no acepta $0", async () => {
       const express = (await import("express")).default;
       const { productoDistribuidoraRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/producto_distribuidora_router.js");
       const { catalogosDistribuidoraRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/catalogos_distribuidora_router.js");
@@ -1492,11 +1492,16 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
         assert.equal(enGestion.total, 4);
         assert.equal(enGestion.data.find((p) => p.id === conFoto.p.id).variedades.length, 2);
         assert.equal((await fetch(`${url}/productos/${enCero.p.id}`, { headers: gestion })).status, 200);
+        // CAT-64: en la tienda (?vista=tienda) el personal ve lo mismo que un cliente.
+        const tiendaDelAdmin = await leer(`/productos?categoria=${cat.id}&vista=tienda`, gestion);
+        assert.deepEqual([tiendaDelAdmin.total, tiendaDelAdmin.data.find((p) => p.id === conFoto.p.id).variedades.length], [2, 1]);
+        assert.equal((await fetch(`${url}/productos/${enCero.p.id}?vista=tienda`, { headers: gestion })).status, 404);
 
         // CAT-63: contadores de la tienda (a la venta) y de la gestión (todo).
         const contar = async (headers) => (await leer("/catalogos/categorias", headers)).data.find((c) => c.id === cat.id).cantidad_productos;
         assert.equal(await contar(), 2);
         assert.equal(await contar(gestion), 4);
+        assert.equal((await leer("/catalogos/categorias?vista=tienda", gestion)).data.find((c) => c.id === cat.id).cantidad_productos, 2);
 
         // Precio especial de una lista: si la zona lo vende, para esa zona está a la venta.
         const lista = await listasSrv.guardarLista(null, { nombre: "Zona Venta QA", localidades: [{ provincia: "Buenos Aires", localidad: "Zona Venta QA" }] });

@@ -12,7 +12,8 @@ const listaPara = (req, gestion) => (gestion ? null : listaDeUsuario(req.user?.u
 
 // Quien gestiona el catálogo necesita seguir viendo los productos desactivados
 // (para poder reactivarlos); cualquier otro usuario ve solo lo activo.
-const puedeVerInactivos = (req) => tienePermiso(req.user, "productos.editar", "precios.editar");
+// CAT-64: con `?vista=tienda` (pantallas de la tienda) el personal ve lo mismo que un cliente.
+const puedeVerInactivos = (req) => req.query.vista !== "tienda" && tienePermiso(req.user, "productos.editar", "precios.editar");
 const sinPermisoPrecios = (req) => !tienePermiso(req.user, "precios.editar");
 const respuestaSinPermiso = (res, error) => res.status(403).json({ ok: false, codigo: error.codigo, mensaje: error.message });
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Package, ShoppingBag, Tag, ArrowLeft } from "lucide-react";
-import { getProducto } from "../api/producto_distribuidora_api.js";
+import { getProducto, VISTA_TIENDA } from "../api/producto_distribuidora_api.js";
 import { useAuth } from "../../../core/auth/auth_context.jsx";
 import { useCarritoDistribuidora } from "../carrito/carrito_context.jsx";
 import { storefrontConfig as config } from "../storefront_config.js";
@@ -148,7 +148,7 @@ export default function ProductoDetalleDistribuidoraPage() {
   const location = useLocation();
   // Logueado: se manda la sesión para que el servidor aplique la lista de precios de su localidad.
   const { isAuth, usuario } = useAuth();
-  const query = useQuery({ queryKey: ["storefront", "product", usuario?.usuario_id ?? "visitante", id], queryFn: ({ signal }) => getProducto(id, { signal, publicAccess: config.publicCatalog && !isAuth }), staleTime: 30000 });
+  const query = useQuery({ queryKey: ["storefront", "product", usuario?.usuario_id ?? "visitante", id], queryFn: ({ signal }) => getProducto(id, { signal, params: VISTA_TIENDA, publicAccess: config.publicCatalog && !isAuth }), staleTime: 30000 });
   // location.key === "default" pasa cuando se entró directo por URL (link
   // compartido, refresh) — ahí no hay historial propio para volver, así que
   // cae al catálogo en vez de dejar al navegador ir a otra página/afuera.

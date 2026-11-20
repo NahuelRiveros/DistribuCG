@@ -6,10 +6,11 @@ import { useAuth } from "../../../core/auth/auth_context.jsx";
 import { brandConfig } from "../../../proyecto/config/brand_config.js";
 import { HOME_TIENDA, HOME_VALOR } from "../../../proyecto/config/home_config.js";
 import { storefrontConfig as config } from "../storefront_config.js";
-import { getProductos, getOfertas } from "../api/producto_distribuidora_api.js";
+import { getProductos, getOfertas, VISTA_TIENDA } from "../api/producto_distribuidora_api.js";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
-import ProductoCard from "../productos/producto_card.jsx";
 import OfertasDestacadas from "./ofertas_destacadas.jsx";
+import FilasPorFamilia from "./filas_por_familia.jsx";
+import { elegirFamiliasDestacadas } from "../utils/categoria_jerarquia.js";
 import TrazoAnimado from "../../../core/modules/home/trazo_animado.jsx";
 import "./home.css";
 
@@ -33,12 +34,12 @@ export default function HomeTienda({ textos = HOME_TIENDA }) {
   const visitante = usuario?.usuario_id ?? "visitante";
   const productos = useQuery({
     queryKey: ["home", "productos", visitante],
-    // CAT-61: la portada muestra primero lo que tiene foto; el catálogo sigue por orden alfabético.
-    queryFn: ({ signal }) => getProductos({ pagina: 1, por_pagina: 12, orden: "con_foto" }, { signal, publicAccess: config.publicCatalog && !isAuth }),
+    // CAT-61: el recuadro de la portada muestra 3 con foto; el catálogo sigue por orden alfabético.
+    queryFn: ({ signal }) => getProductos({ pagina: 1, por_pagina: 3, orden: "con_foto", ...VISTA_TIENDA }, { signal, publicAccess: config.publicCatalog && !isAuth }),
     enabled: puedeVer, staleTime: 60_000,
   });
   const categorias = useQuery({
-    queryKey: ["home", "categorias", visitante], queryFn: () => getCategorias(),
+    queryKey: ["home", "categorias", visitante], queryFn: () => getCategorias(VISTA_TIENDA),
     enabled: puedeVer, staleTime: 5 * 60_000,
   });
   const ofertas = useQuery({
@@ -50,6 +51,7 @@ export default function HomeTienda({ textos = HOME_TIENDA }) {
   const promociones = !ofertas.isError && Array.isArray(ofertas.data?.data) ? ofertas.data.data : [];
   const hayOfertas = puedeVer && promociones.length > 0;
   const familias = (Array.isArray(categorias.data) ? categorias.data : []).filter((c) => c.padre_id == null);
+  const destacadas = elegirFamiliasDestacadas(Array.isArray(categorias.data) ? categorias.data : [], textos.familiasDestacadas, textos.cantidadFamilias);
   const destacados = hayOfertas ? promociones : lista;
   const fotos = [...destacados.filter((p) => p.imagen_url), ...destacados.filter((p) => !p.imagen_url)].slice(0, 3);
   const destino = hayOfertas ? config.catalogPath + "?oferta=1" : config.catalogPath;
@@ -116,14 +118,16 @@ export default function HomeTienda({ textos = HOME_TIENDA }) {
     {puedeVer && <section aria-labelledby="home-productos" className="px-4 py-12 sm:px-6 sm:py-14">
       <div className="mx-auto max-w-7xl">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-7"><div><p className="dc-section-kicker">{textos.productosEtiqueta}</p><h2 id="home-productos" className="kt-display mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">{textos.productosTitulo}</h2></div><Link to={config.catalogPath} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-(--kt-petrol) transition hover:gap-3">Explorar catálogo<ArrowRight size={16} aria-hidden="true" /></Link></div>
-        {productos.isPending ? <Esqueleto cantidad={4} />
-          : productos.isError ? <ErrorConsulta mensaje="No pudimos cargar los productos." query={productos} />
-          : lista.length === 0 ? <div className="rounded-2xl border border-dashed border-(--kt-border) p-6 text-sm text-(--kt-ink-soft)">Estamos preparando el catálogo. Pronto vas a encontrar productos para tu próximo pedido.</div>
-          : <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">{lista.map((p, i) => <div key={p.id} className="dc-product-reveal" style={{ "--dc-delay": `${Math.min(i, 7) * 55}ms` }}><ProductoCard producto={p} /></div>)}</div>}
+        {categorias.isPending ? <Esqueleto cantidad={4} />
+          : categorias.isError ? <ErrorConsulta mensaje="No pudimos cargar los productos." query={categorias} />
+          : destacadas.length === 0 ? catalogoVacio
+          : <FilasPorFamilia familias={destacadas} porFamilia={textos.productosPorFamilia} visitante={visitante} publicAccess={config.publicCatalog && !isAuth} vacio={catalogoVacio} />}
       </div>
     </section>}
   </div>;
 }
+
+const catalogoVacio = <div className="rounded-2xl border border-dashed border-(--kt-border) p-6 text-sm text-(--kt-ink-soft)">Estamos preparando el catálogo. Pronto vas a encontrar productos para tu próximo pedido.</div>;
 
 function Esqueleto({ cantidad }) {
   return <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" role="status" aria-label="Cargando catálogo">{Array.from({ length: cantidad }, (_, i) => <div key={i} className="h-36 animate-pulse rounded-2xl bg-(--kt-bg-soft) motion-reduce:animate-none" />)}</div>;

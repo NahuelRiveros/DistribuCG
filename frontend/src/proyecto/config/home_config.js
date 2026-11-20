@@ -30,6 +30,10 @@ const clientes = {
       { id: "whatsapp", icono: "MessageCircle", label: "WhatsApp", valor: "[Tu número acá]", href: "#" },
       { id: "catalogo", icono: "Package", label: "Catálogo online", valor: "Mirá los productos y armá tu pedido", href: "/distribuidora/catalogo" },
     ],
+    // Familias con fila propia en el inicio, en este orden (nombre tal como está en el catálogo).
+    // Vacío o las que no existan: se completan al azar con familias que tienen artículos a la venta,
+    // y esa elección cambia una vez por día.
+    familiasDestacadas: [],
   },
 
   // Cliente a definir (ver brand_config.js): completar antes de activarlo.
@@ -65,4 +69,7 @@ export const HOME_TIENDA = {
   familiasTitulo: "Comprá por categoría",
   productosEtiqueta: "Seguí explorando",
   productosTitulo: "Productos para tu pedido",
+  familiasDestacadas: contenido.familiasDestacadas ?? [],
+  cantidadFamilias: 3,
+  productosPorFamilia: 8,
 };

@@ -101,13 +101,14 @@ Panel › Mantenimiento del catálogo ([cambio](../cambios/2026-11-recargar-cata
 
 ### Lo que ve la tienda
 
-[Cambio](../cambios/2026-11-tienda-solo-a-la-venta.md). Tests: `ux_rules.test.mjs` › "CAT-62: …" y `checkout.integration.mjs` › "CAT-61 a CAT-63: …".
+[Cambio](../cambios/2026-11-tienda-solo-a-la-venta.md). Tests: `ux_rules.test.mjs` › "CAT-62: …" y `checkout.integration.mjs` › "CAT-61 a CAT-64: …".
 
 | Código | Regla | Estado |
 | --- | --- | --- |
-| CAT-61 | El inicio muestra 12 artículos, primero los que tienen foto; el catálogo sigue por orden alfabético. | ✅ |
+| CAT-61 | El inicio muestra una fila por familia (3: las de `familiasDestacadas` en `home_config.js` y, si faltan, al azar entre las que tienen artículos a la venta, rotando una vez por día en hora de Argentina), con 8 artículos cada una, primero los que tienen foto, y "Ver todo" lleva a esa familia. El catálogo sigue por orden alfabético. | ✅ |
 | CAT-62 | Solo está a la venta la presentación con precio mayor a 0 para la lista de quien mira: la tienda no muestra las de $0 (ni artículos sin ninguna), el carrito no las acepta y el pedido no sale si una quedó en $0. La gestión las ve. | ✅ |
 | CAT-63 | Los números de las categorías en la tienda cuentan solo lo que está a la venta para quien mira; la gestión ve el total. | ✅ |
+| CAT-64 | Las pantallas de la tienda (inicio, Productos, ficha, carrito) muestran la vista del cliente también al personal: lo oculto y lo que está en $0 se gestiona en el panel. | ✅ |
 
 ## Configuración
 
@@ -129,6 +130,8 @@ Panel › Mantenimiento del catálogo ([cambio](../cambios/2026-11-recargar-cata
 | Fecha | Regla | Decisión | Quién |
 | --- | --- | --- | --- |
 | 2026-11-08 | CAT-13 | El artículo solo puede ir en una categoría (Familia › Categoría), nunca directo en la familia. | Dueño del proyecto |
+| 2026-11-20 | CAT-61 | El inicio se arma como góndolas: una fila por familia en lugar de artículos mezclados. | Dueño del proyecto |
+| 2026-11-20 | CAT-64 | La tienda se ve igual para el personal que para un cliente; el personal gestiona lo oculto desde el panel. | Dueño del proyecto |
 | 2026-11-19 | CAT-61 a CAT-63 | La tienda muestra solo lo que se puede comprar (sin presentaciones en $0) y el inicio arranca por los artículos con foto; el catálogo queda alfabético. | Dueño del proyecto |
 | 2026-11-19 | CAT-52 a CAT-59 | El super admin puede limpiar todo el catálogo (también categorías y marcas; los pedidos conservan su copia) y recargarlo oculto desde el catálogo del cliente; los precios los pone la lista. La demo del arranque se apaga. | Dueño del proyecto |
 | 2026-11-19 | CAT-43 | El catálogo replica el Listado de Artículos del cliente: lo que no tiene precio en la lista se carga oculto, con su código y bulto, y aparece solo cuando la lista le pone precio. | Dueño del proyecto |

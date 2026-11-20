@@ -1,5 +1,8 @@
 import { http } from "../../../core/api/http.js";
 
+// CAT-64: las pantallas de la tienda lo mandan para que el personal vea lo mismo que un cliente.
+export const VISTA_TIENDA = { vista: "tienda" };
+
 export async function getProductos(params = {}, options = {}) {
   const { data } = await http.get("/distribuidora/productos", { params, ...options });
   return data; // { ok, data, total, pagina, total_paginas }

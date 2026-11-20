@@ -4,10 +4,10 @@ import { useAuth } from "../../../core/auth/auth_context.jsx";
 import { usePersistentCart } from "../../../core/controls/carrito/use_persistent_cart.js";
 import { detectarAlertas } from "../../../core/controls/carrito/validations/cart_staleness.js";
 import { storefrontConfig } from "../storefront_config.js";
-import { getProducto } from "../api/producto_distribuidora_api.js";
+import { getProducto, VISTA_TIENDA } from "../api/producto_distribuidora_api.js";
 import { getCarrito, addCarritoItem, updateCarritoItem, removeCarritoItem, clearCarrito, mergeCarrito } from "../api/carrito_distribuidora_api.js";
 const Context = createContext(null);
-const adapter = { get: getCarrito, add: addCarritoItem, update: updateCarritoItem, remove: removeCarritoItem, clear: clearCarrito, merge: mergeCarrito, product: (id) => getProducto(id, { publicAccess: storefrontConfig.publicCatalog }) };
+const adapter = { get: getCarrito, add: addCarritoItem, update: updateCarritoItem, remove: removeCarritoItem, clear: clearCarrito, merge: mergeCarrito, product: (id) => getProducto(id, { params: VISTA_TIENDA, publicAccess: storefrontConfig.publicCatalog }) };
 function Engine({ userId, children }) {
   const cart = usePersistentCart({ userId, enabled: storefrontConfig.enabled, config: storefrontConfig, adapter });
   const alertas = useMemo(() => detectarAlertas(cart.items), [cart.items]);

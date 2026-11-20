@@ -92,3 +92,24 @@ export function construirOpcionesArticulo(categorias) {
     };
   }));
 }
+
+const normalizar = (texto) => String(texto ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+
+/** Fecha de hoy en Argentina ("AAAA-MM-DD"): la semilla que hace rotar las familias del inicio una vez por día. */
+export const diaArgentina = (fecha = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).format(fecha);
+
+// Número estable a partir de un texto: mismo día y misma familia, mismo orden.
+const hash = (texto) => [...texto].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261);
+
+/**
+ * CAT-61: familias con fila propia en el inicio. Primero las elegidas en la configuración (por nombre, en
+ * ese orden); el resto, al azar entre las que tienen artículos a la venta, con un orden que cambia cada
+ * día (`semilla`) y no en cada visita. Nunca una familia vacía.
+ */
+export function elegirFamiliasDestacadas(categorias, nombres = [], cantidad = 3, semilla = diaArgentina()) {
+  const { familias, totalDe } = indexarCategorias(categorias);
+  const conArticulos = familias.filter((f) => totalDe.get(f.id) > 0);
+  const elegidas = nombres.map((n) => conArticulos.find((f) => normalizar(f.nombre) === normalizar(n))).filter(Boolean);
+  const resto = conArticulos.filter((f) => !elegidas.includes(f)).sort((a, b) => hash(`${semilla}:${a.id}`) - hash(`${semilla}:${b.id}`) || a.id - b.id);
+  return [...new Set([...elegidas, ...resto])].slice(0, cantidad);
+}

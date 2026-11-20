@@ -1,7 +1,8 @@
 import { http } from "../../../core/api/http.js";
 
-export async function getCategorias() {
-  const { data } = await http.get("/distribuidora/catalogos/categorias");
+// Solo toma `vista`: el panel la pasa directo como queryFn y TanStack le manda su contexto como argumento.
+export async function getCategorias({ vista } = {}) {
+  const { data } = await http.get("/distribuidora/catalogos/categorias", { params: vista ? { vista } : undefined });
   return data.data;
 }
 
