@@ -130,6 +130,7 @@ Panel › Mantenimiento del catálogo ([cambio](../cambios/2026-11-recargar-cata
 | Fecha | Regla | Decisión | Quién |
 | --- | --- | --- | --- |
 | 2026-11-08 | CAT-13 | El artículo solo puede ir en una categoría (Familia › Categoría), nunca directo en la familia. | Dueño del proyecto |
+| 2026-11-20 | CAT-43 | Equival en 0 (o 1) en el Listado del cliente = el artículo se vende suelto, sin bulto: se carga con 1 unidad por bulto. Confirmado por el cliente. | Dueño del proyecto |
 | 2026-11-20 | CAT-61 | El inicio se arma como góndolas: una fila por familia en lugar de artículos mezclados. | Dueño del proyecto |
 | 2026-11-20 | CAT-64 | La tienda se ve igual para el personal que para un cliente; el personal gestiona lo oculto desde el panel. | Dueño del proyecto |
 | 2026-11-19 | CAT-61 a CAT-63 | La tienda muestra solo lo que se puede comprar (sin presentaciones en $0) y el inicio arranca por los artículos con foto; el catálogo queda alfabético. | Dueño del proyecto |

@@ -8,7 +8,7 @@ export const clientConfig = {
   // demostración. Esta instalación usa el catálogo del cliente (CAT-59): apagado, así limpiar no trae la demo de vuelta.
   // mantenimientoCatalogo (CAT-60): página del super admin para LIMPIAR todo el catálogo y recargarlo. Es destructiva:
   // ponerla en false apenas producción quede cargada (oculta la página y el servidor rechaza limpiar y cargar).
-  tienda: { publicCatalog: true, guestCart: true, pageSize: 24, maxQuantity: 9999, maxCartLines: 200, cartTtlDays: 30, catalogoInicialAlArrancar: false, mantenimientoCatalogo: true },
+  tienda: { publicCatalog: true, guestCart: true, pageSize: 24, maxQuantity: 9999, maxCartLines: 200, cartTtlDays: 30, catalogoInicialAlArrancar: false, mantenimientoCatalogo: false },
   // PED-76: WhatsApp de la distribuidora para "Consultar por WhatsApp" en el pedido del cliente: con código
   // de país y sin "+" (ej. "5493704000000"). [COMPLETAR] Mientras sea null no se ofrece el botón.
   whatsapp: null,
