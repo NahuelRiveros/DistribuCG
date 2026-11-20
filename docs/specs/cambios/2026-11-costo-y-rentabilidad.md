@@ -2,7 +2,7 @@
 
 | Estado | Pedido por | Fecha | Spec del módulo |
 | --- | --- | --- | --- |
-| Aprobada (sin programar) | Dueño del proyecto | 2026-11-16 | [eccomerce_distribuidora/precios.md](../eccomerce_distribuidora/precios.md) |
+| Reemplazada por [2026-11-costo-y-margen.md](2026-11-costo-y-margen.md) (2026-11-20) | Dueño del proyecto | 2026-11-16 | [eccomerce_distribuidora/precios.md](../eccomerce_distribuidora/precios.md) |
 
 ## Por qué
 

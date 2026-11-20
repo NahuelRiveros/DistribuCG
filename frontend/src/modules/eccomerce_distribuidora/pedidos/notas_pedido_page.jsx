@@ -18,6 +18,7 @@ const FILTROS_COMPROBANTE = [{ value: "por_revisar", label: "Comprobante para re
 const PESTANAS = [["", "Todos"], ["pendiente", "Recibidos"], ["confirmado", "Confirmados"], ["en_curso", "En preparación"], ["entregado", "Entregados"], ["cancelada", "Cancelados"]]
   .filter(([estado]) => !estado || ESTADOS[estado]);
 import NotaPedidoCard from "./nota_pedido_card.jsx";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 
 export default function NotasPedidoDistribuidoraPage() {
   const { usuario } = useAuth();
@@ -37,7 +38,7 @@ export default function NotasPedidoDistribuidoraPage() {
   return <main className="min-h-screen bg-slate-50 px-3 py-6 sm:p-8">
     <div className="mx-auto max-w-5xl space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div><h1 className="text-2xl font-extrabold">Notas de pedido</h1><p className="mt-1 text-sm text-slate-600">Revisá las solicitudes, coordiná la entrega y registrá los cobros recibidos.</p></div>
+        <div><div className="flex items-center gap-1"><h1 className="text-2xl font-extrabold">Notas de pedido</h1><BotonAyuda tema="pedidos" /></div><p className="mt-1 text-sm text-slate-600">Revisá las solicitudes, coordiná la entrega y registrá los cobros recibidos.</p></div>
         <ActionButton disabled={query.isFetching} onClick={() => query.refetch()}>{query.isFetching ? "Actualizando…" : "Actualizar"}</ActionButton>
       </div>
       <nav aria-label="Estado del pedido" className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 [scrollbar-width:none]">

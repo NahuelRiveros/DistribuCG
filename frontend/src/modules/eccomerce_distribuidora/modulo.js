@@ -1,6 +1,7 @@
 import { Boxes, ClipboardList, Package, Phone, ShoppingCart, UserCircle } from "lucide-react";
 import { storefrontConfig } from "./storefront_config.js";
 import { eccomerceDistribuidoraCatalogoLink, eccomerceDistribuidoraAdminDropdown } from "./menu.js";
+import { temasAyudaDistribuidora } from "./ayuda/temas.js";
 
 // Lo que el core (menús, footer, panel, login) necesita saber de este módulo. Solo
 // datos, sin pantallas: también lo leen los tests de Node (ver modulo_pantallas.jsx).
@@ -19,6 +20,9 @@ export const moduloDistribuidora = {
     ],
     panel: [{ id: "distribuidora", titulo: "Distribuidora", items: eccomerceDistribuidoraAdminDropdown.items }],
   },
+
+  // Temas de la Ayuda del panel (AYU-07): el core los suma a los suyos.
+  ayuda: temasAyudaDistribuidora,
 
   // Un módulo con tienda decide el destino después del login, el llamado del home y del footer.
   tienda: {

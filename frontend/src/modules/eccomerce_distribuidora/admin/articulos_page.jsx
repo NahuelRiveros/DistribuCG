@@ -22,6 +22,7 @@ import { rutaFichaArticulo } from "../utils/rutas_articulo.js";
 import AjustePreciosModal from "./ajuste_precios_modal.jsx";
 import { useAuth } from "../../../core/auth/auth_context.jsx";
 import { tienePermiso } from "../../../../../core/permisos_config.js";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 
 const POR_PAGINA = 50;
 const OPCIONES_ESTADO = [{ value: "activos", label: "Disponibles" }, { value: "inactivos", label: "No disponibles" }];
@@ -140,7 +141,7 @@ export default function ArticulosPage() {
     <div className="mx-auto max-w-7xl space-y-4 p-3 sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Artículos</h1>
+          <div className="flex items-center gap-1"><h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Artículos</h1><BotonAyuda tema="articulos" /></div>
           <p className="text-sm text-(--kt-ink-soft)">Buscá por código, código de barras, descripción o marca.</p>
         </div>
         <div className="flex flex-wrap gap-2">

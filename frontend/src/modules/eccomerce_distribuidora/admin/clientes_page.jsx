@@ -11,6 +11,7 @@ import Pagination from "../../../core/controls/ui/pagination.jsx";
 import { tienePermiso } from "../../../../../core/permisos_config.js";
 import { condicionIva } from "../../../../../core/fiscal_config.js";
 import { getClientes } from "../api/clientes_api.js";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 
 const BOTON = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60";
 
@@ -36,7 +37,7 @@ export default function ClientesPage() {
     <main className="min-h-screen bg-slate-50 px-3 py-6 sm:p-8">
       <div className="mx-auto max-w-5xl space-y-5">
         <div>
-          <h1 className="text-2xl font-extrabold">Clientes</h1>
+          <div className="flex items-center gap-1"><h1 className="text-2xl font-extrabold">Clientes</h1><BotonAyuda tema="clientes" /></div>
           <p className="mt-1 text-sm text-slate-600">Los clientes que ya completaron sus datos para pedir: contacto, facturación y entrega.</p>
         </div>
         <div className="grid items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-2">

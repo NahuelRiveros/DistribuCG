@@ -13,6 +13,7 @@ import { indexarCategorias, construirOpcionesCategoria, slugify } from "../utils
 import { NombreModal, DestinoModal } from "./categorias_modales.jsx";
 import { rutaFichaArticulo } from "../utils/rutas_articulo.js";
 import ArticulosDeCategoria from "./articulos_de_categoria.jsx";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 
 const BOTON = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60";
 const ICONO = "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-40";
@@ -172,7 +173,7 @@ export default function CategoriasDistribuidoraPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-1">
-            <h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Familias y categorías</h1>
+            <div className="flex items-center gap-1"><h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Familias y categorías</h1><BotonAyuda tema="familias" /></div>
             <AyudaTooltip etiqueta="Cómo se ordena el catálogo" texto={AYUDA.pagina} />
           </div>
           <p className="text-sm text-(--kt-ink-soft)">

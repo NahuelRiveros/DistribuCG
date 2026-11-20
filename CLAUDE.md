@@ -86,7 +86,7 @@ frontend/src/
   core/controls/                   controles compartidos, layout, carrito, catálogo, importación
   core/controls/layout/panel/      marco del panel de gestión (/panel): menú lateral por rol
   core/controls/ui/                campos, modal, data_grid, confirm_dialog
-  core/modules/                    pantallas del core (usuarios, panel, home) y molde _scaffold
+  core/modules/                    pantallas del core (usuarios, panel, home, ayuda) y molde _scaffold
   core/hooks/, core/utils/, core/config/   hooks, utilidades, navegación
   proyecto/config/, proyecto/assets/       marca, colores, textos y logos del cliente
   proyecto/modulos_activos.js      registro de rubros: datos (menús, footer, login); lo leen los tests de Node
@@ -117,6 +117,10 @@ Dos marcos en `core/app/router.jsx`: la tienda (`AppLayout`, navbar y footer) y 
 grupos de un rubro salen de `menu.panel` de su `modulo.js`. El core nunca importa archivos de un rubro:
 los recibe de los registros de `frontend/src/proyecto/` y de `servidor/src/proyecto/modulos.js`.
 El resumen del inicio sale de `GET /api/distribuidora/panel/resumen`, filtrado por rol en el servidor.
+La Ayuda del panel (`/panel/ayuda`, spec `core/ayuda.md`) junta los temas del core (`core/modules/ayuda/temas_core.js`)
+y los del rubro (`modules/eccomerce_distribuidora/ayuda/temas.js`, vía `modulo.js` › `ayuda`); cada uno ve los temas de
+las pantallas que puede abrir. Si cambia una regla o una pantalla, actualizar su tema (el test `ayuda.test.mjs` valida
+que los códigos de regla citados existan).
 
 No existen `servidor/src/nucleo/`, `models_v2/`, ni `frontend/src/components/ui/`
 en esta instalación. No copiar imports o fixtures del gimnasio suponiendo que existen.

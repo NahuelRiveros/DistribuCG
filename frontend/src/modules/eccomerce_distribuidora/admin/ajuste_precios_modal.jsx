@@ -4,6 +4,7 @@ import InputField from "../../../core/controls/ui/input_field.jsx";
 import ComboboxField from "../../../core/controls/ui/combobox_field.jsx";
 import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
 import { ajustarPreciosMasivo } from "../api/producto_distribuidora_api.js";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 
 /* ── modal: ajuste de precios (individual por producto, o masivo por
    categoría/todos los productos) — mismo endpoint, distinto alcance ────── */
@@ -48,7 +49,7 @@ export default function AjustePreciosModal({ productoFijo, opcionesCategoria, on
     <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-xl font-bold text-gray-900">{titulo}</h2>
+          <div className="flex items-center gap-1"><h2 className="text-xl font-bold text-gray-900">{titulo}</h2>{!productoFijo && <BotonAyuda tema="ajuste-masivo" />}</div>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"><X size={18} /></button>
         </div>
 

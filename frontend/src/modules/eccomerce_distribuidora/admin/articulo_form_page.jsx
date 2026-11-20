@@ -11,6 +11,7 @@ import { getProducto, crearProducto, actualizarProducto } from "../api/producto_
 import { construirOpcionesArticulo } from "../utils/categoria_jerarquia.js";
 import { RUTA_ARTICULOS as ARTICULOS } from "../utils/rutas_articulo.js";
 import ProductoForm from "./producto_form.jsx";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 
 /**
  * Ficha del artículo en página propia (alta y edición). `?volver=` indica la
@@ -81,7 +82,7 @@ export default function ArticuloFormPage() {
     <div className="mx-auto max-w-3xl space-y-4 p-3 sm:p-6">
       <div>
         <Link to={volver} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-(--kt-teal-700)"><ArrowLeft size={16} /> Volver</Link>
-        <h1 className="kt-display text-2xl font-bold break-words text-(--kt-ink)">{titulo}</h1>
+        <div className="flex items-center gap-1"><h1 className="kt-display text-2xl font-bold break-words text-(--kt-ink)">{titulo}</h1><BotonAyuda tema="articulos" /></div>
       </div>
       {contenido}
       <ConfirmDialog

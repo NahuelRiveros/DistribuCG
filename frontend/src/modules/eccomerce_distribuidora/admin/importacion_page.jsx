@@ -11,6 +11,7 @@ import ImportReview from "../../../core/controls/importacion/import_review.jsx";
 import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
 import ActionButton from "../../../core/controls/ui/action_button.jsx";
 import Modal from "../../../core/controls/ui/modal.jsx";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 export default function ImportacionDistribuidoraPage() {
   const { usuario } = useAuth();
   const queryClient = useQueryClient();
@@ -23,7 +24,7 @@ export default function ImportacionDistribuidoraPage() {
   const disabled = wizard.busy || wizard.running;
   return <main className="min-h-screen bg-slate-50 px-3 py-6 sm:p-8">
     <div className="mx-auto min-w-0 max-w-6xl space-y-5">
-      <div><h1 className="text-2xl font-extrabold">Importar catálogo</h1><p className="mt-1 text-sm text-slate-600">Adaptá el Excel de tu sistema, revisá los cambios y cargá productos por lotes.</p></div>
+      <div><div className="flex items-center gap-1"><h1 className="text-2xl font-extrabold">Importar catálogo</h1><BotonAyuda tema="importar" /></div><p className="mt-1 text-sm text-slate-600">Adaptá el Excel de tu sistema, revisá los cambios y cargá productos por lotes.</p></div>
       <ErrorBanner message={wizard.error} />
       {wizard.notice && <p role="status" className="rounded-xl bg-blue-50 p-3 text-sm text-blue-900">{wizard.notice}</p>}
       {wizard.job ? <ImportReview job={wizard.job} running={wizard.running} busy={wizard.busy} skipErrors={wizard.skipErrors} onSkipErrors={wizard.setSkipErrors} onRun={wizard.run} onPause={wizard.pause} onCancel={() => setCancelOpen(true)} onBack={wizard.back} onReport={wizard.report} /> : <>

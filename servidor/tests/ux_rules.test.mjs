@@ -267,7 +267,9 @@ test("panel de gestión: cada uno ve las secciones de sus permisos y el cliente 
   assert.deepEqual(porDefecto("vendedor"), ["pedidos.ver", "pedidos.gestionar"]);
   assert.deepEqual(porDefecto("supervisor"), ["pedidos.ver", "pedidos.gestionar", "cobros.gestionar", "productos.editar", "precios.editar"]);
   const supervisor = usuario(["supervisor"], porDefecto("supervisor"));
-  assert.deepEqual(Object.keys(menu(supervisor)), ["inicio", "distribuidora"]);
+  // AYU-01: la Ayuda va al final, para todo el que entra al panel.
+  assert.deepEqual(Object.keys(menu(supervisor)), ["inicio", "distribuidora", "ayuda"]);
+  assert.deepEqual(menu(usuario(["vendedor"], porDefecto("vendedor"))).ayuda, ["/panel/ayuda"]);
   assert.deepEqual(menu(usuario(["vendedor"], porDefecto("vendedor"))).distribuidora, ["/distribuidora/admin/notas-pedido", "/distribuidora/admin/lista-carga"]);
   assert.deepEqual(menu(supervisor).distribuidora, ["/distribuidora/admin/productos", "/distribuidora/admin/categorias", "/distribuidora/admin/marcas", "/distribuidora/admin/listas-precio", "/distribuidora/admin/precios-cliente", "/distribuidora/admin/importar", "/distribuidora/admin/notas-pedido", "/distribuidora/admin/lista-carga"]);
   // Un rol creado en el panel con solo artículos: sin listas de precios ni importación (que escribe precios).

@@ -1360,3 +1360,48 @@ test("CAT-52: un admin no ve el mantenimiento del catálogo", async ({ page }) =
   await expect(menu.getByRole("link", { name: "Actualizar precios" })).toBeVisible();
   await expect(menu.getByRole("link", { name: "Mantenimiento del catálogo" })).toHaveCount(0);
 });
+
+test("AYU-01 a AYU-06: el vendedor ve solo su ayuda, busca, abre un tema y no entra a la de otra función", async ({ page }) => {
+  await entrarComo(page, ["vendedor"], { ...RESUMEN_PANEL, pedidos: PEDIDOS_SIN_MONTOS, stock: null });
+  await page.goto("/panel");
+  await (await menuPanel(page)).getByRole("link", { name: "Ayuda" }).click();
+  await expect(page).toHaveURL(/\/panel\/ayuda$/);
+  await expect(page.getByRole("heading", { name: "Ayuda", level: 1 })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Notas de pedido y sus estados/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Ajuste masivo de precios/ })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /Roles y permisos/ })).toHaveCount(0);
+  await noOverflow(page);
+
+  const buscar = page.getByRole("searchbox", { name: "Buscar en la ayuda" });
+  await buscar.fill("ajuste masivo");
+  await expect(page.getByText('No encontramos ayuda sobre "ajuste masivo"')).toBeVisible();
+  await buscar.fill("CARGA");
+  const contenido = page.locator("#panel-contenido");
+  await expect(contenido.getByRole("link", { name: /Lista de carga/ })).toBeVisible();
+  await contenido.getByRole("link", { name: /Lista de carga/ }).click();
+  await expect(page).toHaveURL(/\/panel\/ayuda\/lista-carga$/);
+  await expect(page.getByRole("heading", { name: "Lista de carga", level: 1 })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ir a la pantalla" })).toHaveAttribute("href", "/distribuidora/admin/lista-carga");
+  await page.getByRole("navigation", { name: "Temas relacionados" }).getByRole("link", { name: "Notas de pedido y sus estados" }).click();
+  await expect(page.getByRole("heading", { name: "Notas de pedido y sus estados", level: 1 })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Temas relacionados" }).getByRole("link", { name: "Cobros y comprobantes" })).toHaveCount(0);
+  await noOverflow(page);
+
+  await page.goto("/panel/ayuda/ajuste-masivo");
+  await expect(page.getByText("Esta ayuda es para otra función del panel.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ajuste masivo de precios" })).toHaveCount(0);
+});
+
+test("AYU-05: el ? de Artículos abre su ayuda; un cliente no tiene ayuda", async ({ page }) => {
+  await entrarComo(page, ["supervisor"]);
+  await page.goto("/distribuidora/admin/productos");
+  await page.getByRole("link", { name: "Ayuda: Artículos y presentaciones" }).click();
+  await expect(page).toHaveURL(/\/panel\/ayuda\/articulos$/);
+  await expect(page.getByRole("heading", { name: "Artículos y presentaciones", level: 1 })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Temas relacionados" }).getByRole("link", { name: "Precio final, IVA y neto" })).toBeVisible();
+
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+  await entrarComo(page, ["cliente"]);
+  await page.goto("/panel/ayuda");
+  await expect(page).not.toHaveURL(/\/panel/);
+});

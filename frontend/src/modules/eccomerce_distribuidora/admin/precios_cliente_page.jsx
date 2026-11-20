@@ -8,6 +8,7 @@ import { downloadBlob } from "../../../core/controls/importacion/download.js";
 import { useToast } from "../../../core/controls/toast/use_toast.js";
 import { GRUPOS_PRECIOS_CLIENTE, listaPreciosClienteConfig as config } from "../config/lista_precios_cliente_config.js";
 import PreciosClienteFilas from "./precios_cliente_filas.jsx";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 import {
   mensajeDeError, useActualizacionPrecios, useAplicarLotes, useCancelarActualizacion, useDeshacerActualizacion,
   useHistorialPrecios, useInforme, useValidarLista,
@@ -202,7 +203,7 @@ export default function PreciosClientePage() {
   return (
     <div className="mx-auto max-w-5xl space-y-4 p-3 sm:p-6">
       <div>
-        <h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Actualizar precios</h1>
+        <div className="flex items-center gap-1"><h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Actualizar precios</h1><BotonAyuda tema="actualizar-precios" /></div>
         <p className="text-sm text-(--kt-ink-soft)">Con la lista de precios que exporta el sistema. Solo cambia el precio de cada artículo, por su código.</p>
       </div>
       {!id ? (

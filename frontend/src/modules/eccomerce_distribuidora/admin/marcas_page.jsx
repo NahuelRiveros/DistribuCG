@@ -17,6 +17,7 @@ import { getCategorias } from "../api/categoria_distribuidora_api.js";
 import { getResumenMarcas, unificarMarcas, eliminarMarca } from "../api/marcas_distribuidora_api.js";
 import { construirOpcionesCategoria } from "../utils/categoria_jerarquia.js";
 import { RUTA_MARCAS, rutaFichaMarca } from "../utils/rutas_articulo.js";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 
 const BOTON = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60";
 const ICONO = "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-40";
@@ -131,7 +132,7 @@ export default function MarcasDistribuidoraPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-1">
-            <h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Marcas</h1>
+            <div className="flex items-center gap-1"><h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Marcas</h1><BotonAyuda tema="marcas" /></div>
             <AyudaTooltip etiqueta="Cómo funcionan las marcas" texto={AYUDA.pagina} />
           </div>
           <p className="text-sm text-(--kt-ink-soft)">{totales ? `${plural(totales.marcas, "marca", "marcas")} · ${plural(totales.articulos, "artículo", "artículos")} con marca` : "Marcas y dónde se ofrecen."}</p>

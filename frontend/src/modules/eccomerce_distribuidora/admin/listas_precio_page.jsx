@@ -10,6 +10,7 @@ import ErrorBanner from "../../../core/controls/ui/error_banner.jsx";
 import { useToast } from "../../../core/controls/toast/use_toast.js";
 import { getListasPrecio, eliminarListaPrecio } from "../api/listas_precio_api.js";
 import { RUTA_LISTAS } from "../utils/rutas_articulo.js";
+import BotonAyuda from "../../../core/modules/ayuda/boton_ayuda.jsx";
 
 const BOTON = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60";
 const ICONO = "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100";
@@ -34,7 +35,7 @@ export default function ListasPrecioPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-1">
-            <h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Listas de precios</h1>
+            <div className="flex items-center gap-1"><h1 className="kt-display text-2xl font-bold text-(--kt-ink)">Listas de precios</h1><BotonAyuda tema="listas-regionales" /></div>
             <AyudaTooltip etiqueta="Cómo funcionan las listas" texto={AYUDA} />
           </div>
           <p className="text-sm text-(--kt-ink-soft)">Precios distintos por localidad, solo en los artículos que cambian.</p>
