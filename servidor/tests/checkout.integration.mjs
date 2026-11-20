@@ -1527,6 +1527,29 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
       await assert.rejects(crearNotaPedido(id, { key: randomUUID(), expectedItems: await obtenerCarrito(id) }), /no disponibles/);
       await vaciarCarrito(id);
     });
+    await t.test("CAT-65: el respaldo del catálogo baja la planilla completa solo para quien gestiona", async () => {
+      const express = (await import("express")).default;
+      const { productoDistribuidoraRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/producto_distribuidora_router.js");
+      const retirado = await models.ProductoDistribuidora.create({ categoria_id: (await models.CategoriaDistribuidora.findOne({ where: { slug: "venta-qa-aceites" } })).id, nombre: "Retirado Respaldo QA", fecha_baja: new Date() });
+      await models.VariedadDistribuidora.create({ producto_id: retirado.id, nombre: "1 u", precio: 10 });
+      const app = express();
+      app.use("/productos", productoDistribuidoraRouter);
+      const server = await new Promise((resolve) => { const s = app.listen(0, "127.0.0.1", () => resolve(s)); });
+      try {
+        const url = `http://127.0.0.1:${server.address().port}/productos/respaldo`;
+        const conToken = async (email, password = "Clave1234") => ({ Authorization: "Bearer " + (await login({ identificador: email, password })).token });
+        assert.equal((await fetch(url)).status, 403, "un visitante no baja precios ni ocultos");
+        assert.equal((await fetch(url, { headers: await conToken("ana@example.test", "NuevaClave123") })).status, 403, "un cliente tampoco"); // clave cambiada en la prueba de recuperación
+        const r = await fetch(url, { headers: await conToken("carla@example.test") });
+        assert.equal(r.status, 200);
+        assert.match(r.headers.get("content-type"), /text\/csv/);
+        assert.match(r.headers.get("content-disposition"), /respaldo-catalogo-\d{4}-\d{2}-\d{2}\.csv/);
+        const csv = await r.text();
+        assert.match(csv, /"Zeta Con Foto QA";"2 l";"Venta QA";"Aceites Venta QA";"";"500";/);
+        assert.match(csv, /"Gama Oculto QA"/, "lo oculto también se respalda");
+        assert.doesNotMatch(csv, /Retirado Respaldo QA/, "lo dado de baja no");
+      } finally { await new Promise((resolve) => server.close(resolve)); }
+    });
   } finally {
     if (created) {
       assert.equal(DB_SCHEMA, ownedSchema);

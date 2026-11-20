@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DollarSign, Edit2, FolderTree, Package, Plus, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { DollarSign, Download, Edit2, FolderTree, Package, Plus, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import SearchField from "../../../core/controls/ui/search_field.jsx";
 import SelectField from "../../../core/controls/ui/select_field.jsx";
 import ComboboxField from "../../../core/controls/ui/combobox_field.jsx";
@@ -13,7 +13,8 @@ import ConfirmDialog from "../../../core/controls/ui/confirm_dialog.jsx";
 import { useToast } from "../../../core/controls/toast/use_toast.js";
 import { cantidadConUnidad, describirBulto, textoBultos } from "../../../../../rubros/eccomerce_distribuidora/unidades_config.js";
 import { getCategorias } from "../api/categoria_distribuidora_api.js";
-import { getProductos, cambiarEstadoProducto, eliminarProducto } from "../api/producto_distribuidora_api.js";
+import { getProductos, cambiarEstadoProducto, eliminarProducto, getRespaldoCatalogo } from "../api/producto_distribuidora_api.js";
+import { downloadBlob } from "../../../core/controls/importacion/download.js";
 import { listarMarcas } from "../api/marcas_distribuidora_api.js";
 import { construirOpcionesCategoria } from "../utils/categoria_jerarquia.js";
 import { formatearPrecio } from "../utils/precio_iva.js";
@@ -71,6 +72,12 @@ export default function ArticulosPage() {
   const { usuario } = useAuth();
   const puedeCambiarPrecios = tienePermiso(usuario, "precios.editar");
   const toast = useToast();
+  // CAT-65: la planilla con todo el catálogo (códigos, precios, bultos y foto) para guardar fuera del sistema.
+  const respaldo = useMutation({
+    mutationFn: getRespaldoCatalogo,
+    onSuccess: (blob) => downloadBlob(blob, `respaldo-catalogo-${new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).format(new Date())}.csv`),
+    onError: () => toast.error("No se pudo armar el respaldo. Probá de nuevo en un momento."),
+  });
   const queryClient = useQueryClient();
   const [params, setParams] = useSearchParams();
   const filtros = {
@@ -138,6 +145,7 @@ export default function ArticulosPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link to="/distribuidora/admin/categorias" className={`${BOTON} border border-slate-300 bg-white text-slate-700 hover:bg-slate-50`}><FolderTree size={16} /> Familias</Link>
+          <button type="button" disabled={respaldo.isPending} onClick={() => respaldo.mutate()} title="Planilla con códigos, precios, bultos y foto de cada artículo" className={`${BOTON} border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-60`}><Download size={16} /> {respaldo.isPending ? "Preparando…" : "Descargar respaldo"}</button>
           {puedeCambiarPrecios && <button type="button" onClick={() => setAjuste({ masivo: true })} className={`${BOTON} border border-slate-300 bg-white text-slate-700 hover:bg-slate-50`}><DollarSign size={16} /> Ajuste masivo</button>}
           <button type="button" onClick={() => abrirFicha()} className={`${BOTON} bg-(--kt-petrol) text-white hover:bg-(--kt-night)`}><Plus size={16} /> Nuevo artículo</button>
         </div>

@@ -110,6 +110,16 @@ Panel › Mantenimiento del catálogo ([cambio](../cambios/2026-11-recargar-cata
 | CAT-63 | Los números de las categorías en la tienda cuentan solo lo que está a la venta para quien mira; la gestión ve el total. | ✅ |
 | CAT-64 | Las pantallas de la tienda (inicio, Productos, ficha, carrito) muestran la vista del cliente también al personal: lo oculto y lo que está en $0 se gestiona en el panel. | ✅ |
 
+### Respaldo
+
+[Cambio](../cambios/2026-11-respaldo-catalogo.md). Tests: `respaldo_catalogo.test.mjs` y `checkout.integration.mjs` › "CAT-65: …".
+
+| Código | Regla | Estado |
+| --- | --- | --- |
+| CAT-65 | "Descargar respaldo" (Artículos) baja la planilla de todas las presentaciones vigentes, ocultas incluidas, con código, precios, bulto, categoría, marca y foto; solo para quien gestiona artículos o precios. | ✅ |
+| CAT-66 | `catalogo:respaldo` (PC del usuario) solo lee la base y baja la planilla y cada foto en su tamaño guardado; se retoma si se corta. | ✅ |
+| CAT-67 | Las fotos del respaldo se nombran por código y traen el índice de `imagenes:subir` para restaurarlas. | ✅ |
+
 ## Configuración
 
 | Qué | Dónde | Valor actual |
@@ -130,6 +140,7 @@ Panel › Mantenimiento del catálogo ([cambio](../cambios/2026-11-recargar-cata
 | Fecha | Regla | Decisión | Quién |
 | --- | --- | --- | --- |
 | 2026-11-08 | CAT-13 | El artículo solo puede ir en una categoría (Familia › Categoría), nunca directo en la familia. | Dueño del proyecto |
+| 2026-11-20 | CAT-65 a CAT-67 | El catálogo con sus fotos se respalda con un botón (planilla) y un comando en la PC (planilla y fotos), para no perder el trabajo de relacionar fotos con artículos. | Dueño del proyecto |
 | 2026-11-20 | CAT-43 | Equival en 0 (o 1) en el Listado del cliente = el artículo se vende suelto, sin bulto: se carga con 1 unidad por bulto. Confirmado por el cliente. | Dueño del proyecto |
 | 2026-11-20 | CAT-61 | El inicio se arma como góndolas: una fila por familia en lugar de artículos mezclados. | Dueño del proyecto |
 | 2026-11-20 | CAT-64 | La tienda se ve igual para el personal que para un cliente; el personal gestiona lo oculto desde el panel. | Dueño del proyecto |

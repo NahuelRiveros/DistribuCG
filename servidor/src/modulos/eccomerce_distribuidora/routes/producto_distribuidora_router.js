@@ -5,6 +5,7 @@ import {
   actualizarProductoController, cambiarEstadoProductoController, eliminarProductoController,
   ajustarPreciosMasivoController, listarOfertasController, preciosEnListasController,
 } from "../controllers/producto_distribuidora_controller.js";
+import { respaldoCatalogoController } from "../controllers/respaldo_catalogo_controller.js";
 import { requireAuth, requirePermiso, optionalAuth } from "../../../core/middleware/auth_middleware.js";
 
 export const productoDistribuidoraRouter = Router();
@@ -16,6 +17,8 @@ productoDistribuidoraRouter.use((req, res, next) => req.method === "GET" && clie
 productoDistribuidoraRouter.post("/ajustar-precios", requirePermiso("precios.editar"), ajustarPreciosMasivoController);
 
 productoDistribuidoraRouter.get("/ofertas", listarOfertasController); // antes de "/:id"
+// CAT-65: planilla de respaldo del catálogo, para quien gestiona artículos o precios.
+productoDistribuidoraRouter.get("/respaldo", requirePermiso("productos.editar", "precios.editar"), respaldoCatalogoController);
 productoDistribuidoraRouter.get("/:id/precios-listas", requirePermiso("productos.editar", "precios.editar"), preciosEnListasController);
 productoDistribuidoraRouter.get("/", listarProductosController);
 productoDistribuidoraRouter.get("/:id", obtenerProductoController);

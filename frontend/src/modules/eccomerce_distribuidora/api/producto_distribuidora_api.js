@@ -49,3 +49,9 @@ export async function getPreciosEnListas(productoId) {
   const { data } = await http.get(`/distribuidora/productos/${productoId}/precios-listas`);
   return data.data;
 }
+
+// CAT-65: planilla de respaldo del catálogo (todas las presentaciones vigentes, con precios y foto).
+export async function getRespaldoCatalogo() {
+  const { data } = await http.get("/distribuidora/productos/respaldo", { responseType: "blob", timeout: 60000 });
+  return data;
+}
