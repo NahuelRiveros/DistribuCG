@@ -31,7 +31,7 @@ export async function listarProductosController(req, res) {
       incluirDescendientes: req.query.incluirDescendientes !== "false",
       soloActivos: !gestion,
       // CAT-62: un cliente solo ve artículos con alguna presentación a la venta para su lista.
-      soloALaVenta: !gestion, listaId: lista?.id,
+      soloALaVenta: !gestion, listaId: lista?.id, conCostos: gestion && !sinPermisoPrecios(req),
       orden: ORDENES_LISTADO.includes(req.query.orden) ? req.query.orden : undefined,
       // Filtros de la gestión de artículos: un cliente no puede pedir inactivos ni stock.
       estado: gestion && ["activos", "inactivos"].includes(estado) ? estado : undefined,
@@ -49,7 +49,7 @@ export async function listarProductosController(req, res) {
 export async function obtenerProductoController(req, res) {
   try {
     const gestion = puedeVerInactivos(req);
-    const producto = await obtenerProductoPorId(req.params.id, { soloActivos: !gestion });
+    const producto = await obtenerProductoPorId(req.params.id, { soloActivos: !gestion, conCostos: gestion && !sinPermisoPrecios(req) });
     if (!producto) return res.status(404).json({ ok: false, mensaje: "Producto no encontrado" });
     const [conPrecios] = await aplicarListaAProductos([producto], await listaPara(req, gestion));
     const data = gestion ? conPrecios : soloALaVenta([conPrecios])[0];

@@ -10,6 +10,7 @@ import { UNIDADES, cantidadConUnidad, describirBulto, textoBultos } from "../../
 import { formatearPrecio, precioSinIva } from "../utils/precio_iva.js";
 import { useAuth } from "../../../core/auth/auth_context.jsx";
 import { tienePermiso } from "../../../../../core/permisos_config.js";
+import { desglosePrecio, rentabilidadResultante, debajoDelCosto, validarCostoYRentabilidad } from "../../../../../rubros/eccomerce_distribuidora/precio_desde_costo.js";
 
 const PESTANAS = [
   { id: "general", label: "Datos generales" },
@@ -19,6 +20,7 @@ const PESTANAS = [
 const OPCIONES_UNIDAD = UNIDADES.map((u) => ({ value: u, label: u }));
 const OPCIONES_IVA = [0, 10.5, 21, 27].map((v) => ({ value: String(v), label: `${String(v).replace(".", ",")} %` }));
 const fecha = (valor) => (valor ? new Date(valor).toLocaleDateString("es-AR") : null);
+const porcentaje = (n) => `${String(Math.round(Number(n) * 100) / 100).replace(".", ",")} %`;
 
 /**
  * Ficha del artículo, ordenada como la del sistema de gestión del cliente:
@@ -44,6 +46,7 @@ export default function ProductoForm({ onCancelar, onGuardar, onCambio, producto
     precio: v?.precio ?? (puedeCambiarPrecios ? "" : "0"), precio_anterior: v?.precio_anterior ?? "", iva_porcentaje: String(Number(v?.iva_porcentaje ?? 21)),
     controla_stock: v?.controla_stock ?? false, cantidad: v?.cantidad ?? 0, stock_minimo: v?.stock_minimo ?? 0,
     unidad_medida: v?.unidad_medida ?? "UNIDAD", unidad_bulto: v?.unidad_bulto ?? "CAJA", unidades_por_bulto: v?.unidades_por_bulto ?? 1,
+    costo_neto: v?.costo_neto ?? "", rentabilidad: v?.rentabilidad ?? "",
   }));
   const [d, setD] = useState(inicial);
   const sucio = useMemo(() => JSON.stringify(d) !== JSON.stringify(inicial), [d, inicial]);
@@ -51,7 +54,19 @@ export default function ProductoForm({ onCancelar, onGuardar, onCambio, producto
   const set = (campo) => (e) => setD((prev) => ({ ...prev, [campo]: e?.target ? (e.target.type === "checkbox" ? e.target.checked : e.target.value) : e }));
 
   const faltaGeneral = !d.categoria_id || !d.nombre.trim();
-  const faltaPrecio = d.precio === "" || Number(d.precio) < 0;
+  // PRE-62: con precio neto, el precio final se calcula (neto + rentabilidad + IVA); sin neto, se escribe a mano.
+  const conNeto = puedeCambiarPrecios && String(d.costo_neto).trim() !== "";
+  // Un artículo con costo cuyo precio puso la lista (PRE-65): si no se tocan neto, rentabilidad ni IVA, el precio queda como está.
+  const tocoCosto = d.costo_neto !== inicial.costo_neto || d.rentabilidad !== inicial.rentabilidad || d.iva_porcentaje !== inicial.iva_porcentaje;
+  const calcula = conNeto && (tocoCosto || !productoEditar);
+  const costos = validarCostoYRentabilidad({ costo: d.costo_neto, rentabilidad: d.rentabilidad }, { obligatorios: calcula });
+  const desglose = calcula && !costos.error ? desglosePrecio({ costo: costos.costo, rentabilidad: costos.rentabilidad, iva: d.iva_porcentaje }) : null;
+  const precioVigente = desglose ? desglose.precio : d.precio;
+  const faltaPrecio = calcula ? Boolean(costos.error) : d.precio === "" || Number(d.precio) < 0;
+  // PRE-63 y PRE-67: el precio guardado (sin recalcular) con su costo: cuánto deja y si no cubre el costo con IVA.
+  const guardadoConCosto = conNeto && !calcula;
+  const rentabilidadReal = guardadoConCosto ? rentabilidadResultante({ costo: d.costo_neto, precio: d.precio, iva: d.iva_porcentaje }) : null;
+  const pierde = guardadoConCosto && debajoDelCosto({ costo: d.costo_neto, precio: d.precio, iva: d.iva_porcentaje });
   const bulto = describirBulto(d);
 
   function submit(e) {
@@ -62,7 +77,11 @@ export default function ProductoForm({ onCancelar, onGuardar, onCambio, producto
       categoria_id: Number(d.categoria_id), nombre: d.nombre.trim(), marca_id: d.marca_id,
       descripcion: d.descripcion.trim() || null, imagen_url: d.imagen_url.trim() || null, activo: d.activo,
       cod_ref: d.cod_ref.trim() || null, codigo_barras: d.codigo_barras.trim() || null,
-      precio: Number(d.precio), precio_anterior: d.precio_anterior === "" ? null : Number(d.precio_anterior),
+      precio: Number(precioVigente), precio_anterior: d.precio_anterior === "" ? null : Number(d.precio_anterior),
+      // Costo y rentabilidad solo los manda quien cambia precios (PRE-70); al calcular, el servidor rehace la cuenta.
+      ...(puedeCambiarPrecios ? (calcula
+        ? { modo_precio: "costo", costo_neto: costos.costo, rentabilidad: costos.rentabilidad }
+        : { modo_precio: "final", ...(guardadoConCosto ? {} : { costo_neto: null }) }) : {}),
       iva_porcentaje: Number(d.iva_porcentaje), controla_stock: d.controla_stock,
       cantidad: d.controla_stock ? Number(d.cantidad) || 0 : 0, stock_minimo: Number(d.stock_minimo) || 0,
       unidad_medida: d.unidad_medida, unidad_bulto: d.unidad_bulto, unidades_por_bulto: Number(d.unidades_por_bulto) || 1,
@@ -112,16 +131,40 @@ export default function ProductoForm({ onCancelar, onGuardar, onCambio, producto
 
         <div role="tabpanel" hidden={pestana !== "precios"} className="space-y-4">
           {!puedeCambiarPrecios && <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">Tu rol no puede cambiar precios: los ves pero no se modifican al guardar. {productoEditar ? "" : "El artículo se crea en $0 y lo completa quien tenga permiso."}</p>}
-          <div className="grid gap-3 sm:grid-cols-2">
-            <InputField label="Precio de venta" required type="number" step="0.01" min="0" hideMessage value={d.precio} onChange={set("precio")} disabled={!puedeCambiarPrecios} placeholder="Ej: 1500" tooltip="Es el precio que paga el cliente y se muestra en el catálogo." />
+          <div className="grid gap-3 sm:grid-cols-3">
+            {puedeCambiarPrecios && <InputField label="Precio neto (costo)" type="number" step="0.01" min="0" inputMode="decimal" hideMessage value={d.costo_neto} onChange={set("costo_neto")} placeholder="Ej: 1000" tooltip="Lo que te cuesta, sin IVA. Con este dato el precio final se calcula solo." />}
+            {puedeCambiarPrecios && <InputField label="Rentabilidad %" type="number" step="0.01" min="0" max="1000" inputMode="decimal" hideMessage value={d.rentabilidad} onChange={set("rentabilidad")} disabled={!conNeto} placeholder="Ej: 30" tooltip="Lo que ganás sobre el precio neto: 30 = 30 %." />}
             <SelectField label="IVA" options={OPCIONES_IVA} value={d.iva_porcentaje} onChange={set("iva_porcentaje")} />
           </div>
-          {d.precio !== "" && Number(d.precio) > 0 && (
-            <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
-              Neto sin IVA: <b>{formatearPrecio(precioSinIva(d.precio, d.iva_porcentaje))}</b>
-              {bulto && <> · Precio por bulto ({bulto.toLowerCase()}): <b>{formatearPrecio(Number(d.precio) * Number(d.unidades_por_bulto))}</b></>}
-            </p>
+          {conNeto ? (
+            <>
+              {desglose ? (
+                <div role="status" className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+                  <p>Precio final (lo que ve el cliente): <b className="text-lg text-(--kt-ink)">{formatearPrecio(desglose.precio)}</b></p>
+                  <p className="mt-1">{formatearPrecio(costos.costo)} + {porcentaje(costos.rentabilidad)} = {formatearPrecio(desglose.neto)} + IVA {porcentaje(d.iva_porcentaje)} ({formatearPrecio(desglose.iva)}) = {formatearPrecio(desglose.precio)} · <b>ganás {formatearPrecio(desglose.ganancia)}</b> por unidad</p>
+                  {bulto && <p className="mt-1">Precio por bulto ({bulto.toLowerCase()}): <b>{formatearPrecio(desglose.precio * Number(d.unidades_por_bulto))}</b></p>}
+                </div>
+              ) : guardadoConCosto ? (
+                <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+                  Precio final (lo que ve el cliente): <b className="text-lg text-(--kt-ink)">{formatearPrecio(d.precio)}</b>
+                  {rentabilidadReal != null && !pierde && <> · Rentabilidad real: <b>{porcentaje(rentabilidadReal)}</b></>}
+                  <span className="mt-1 block text-slate-500">Cambiá el precio neto, la rentabilidad o el IVA para recalcularlo.</span>
+                </p>
+              ) : <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{costos.error}</p>}
+            </>
+          ) : (
+            <>
+              <InputField label="Precio final" required type="number" step="0.01" min="0" hideMessage value={d.precio} onChange={set("precio")} disabled={!puedeCambiarPrecios} placeholder="Ej: 1500"
+                tooltip="Lo que paga el cliente, con IVA. Si cargás el precio neto arriba, se calcula solo." />
+              {d.precio !== "" && Number(d.precio) > 0 && (
+                <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
+                  Neto sin IVA: <b>{formatearPrecio(precioSinIva(d.precio, d.iva_porcentaje))}</b>
+                  {bulto && <> · Precio por bulto ({bulto.toLowerCase()}): <b>{formatearPrecio(Number(d.precio) * Number(d.unidades_por_bulto))}</b></>}
+                </p>
+              )}
+            </>
           )}
+          {pierde && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-800">Estás vendiendo por debajo del costo: el precio no cubre el precio neto con IVA ({formatearPrecio(Number(d.costo_neto) * (1 + Number(d.iva_porcentaje) / 100))}). Rentabilidad real: {porcentaje(rentabilidadReal)}.</p>}
           <InputField label="Precio anterior — oferta (opcional)" type="number" step="0.01" min="0" value={d.precio_anterior} onChange={set("precio_anterior")} disabled={!puedeCambiarPrecios}
             placeholder="Ej: 2000" helperText="Se muestra tachado como oferta solo si es mayor al precio de venta." />
           {v?.fecha_cambio_precio && <p className="text-xs text-slate-500">Último cambio de precio: {fecha(v.fecha_cambio_precio)}</p>}

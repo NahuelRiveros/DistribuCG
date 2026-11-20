@@ -1,4 +1,5 @@
 import { UNIDADES, MAX_UNIDADES_POR_BULTO } from "../../../../../rubros/eccomerce_distribuidora/unidades_config.js";
+import { precioDesdeCosto, validarCostoYRentabilidad } from "../../../../../rubros/eccomerce_distribuidora/precio_desde_costo.js";
 
 export const MENSAJE_SOLO_CATEGORIA = "Elegí una categoría: el artículo no puede ir directo en la familia.";
 
@@ -15,8 +16,13 @@ const entero = (v, def) => (v === undefined || v === null || v === "" ? def : Nu
  * con un mensaje para mostrarle a quien carga el artículo. Solo pasan los campos conocidos.
  */
 export function validarVariedad(body = {}) {
-  const precio = Number(body.precio);
-  if (body.precio === undefined || body.precio === null || body.precio === "" || !Number.isFinite(precio) || precio < 0) {
+  // PRE-62: "Desde el costo" calcula el precio (el servidor no usa el que manda la pantalla); "Precio final" es el de hoy.
+  const desdeCosto = body.modo_precio === "costo";
+  const costos = validarCostoYRentabilidad({ costo: body.costo_neto, rentabilidad: body.rentabilidad }, { obligatorios: desdeCosto });
+  if (costos.error) return { error: costos.error };
+  const ivaParaCosto = entero(body.iva_porcentaje, 21);
+  const precio = desdeCosto ? precioDesdeCosto({ costo: costos.costo, rentabilidad: costos.rentabilidad, iva: ivaParaCosto }) : Number(body.precio);
+  if (!desdeCosto && (body.precio === undefined || body.precio === null || body.precio === "" || !Number.isFinite(precio) || precio < 0)) {
     return { error: "Ingresá un precio válido (0 o más)." };
   }
   const precioAnterior = body.precio_anterior === undefined || body.precio_anterior === null || body.precio_anterior === "" ? null : Number(body.precio_anterior);
@@ -51,6 +57,9 @@ export function validarVariedad(body = {}) {
       controla_stock: controlaStock, cantidad, stock_minimo: stockMinimo,
       unidad_medida: unidadMedida, unidad_bulto: unidadBulto, unidades_por_bulto: porBulto,
       cod_ref: codRef, codigo_barras: codigoBarras,
+      // Solo si vinieron: sin el campo, se conserva lo guardado (quien no cambia precios no los manda).
+      ...(body.costo_neto !== undefined || desdeCosto ? { costo_neto: costos.costo } : {}),
+      ...(desdeCosto ? { rentabilidad: costos.rentabilidad } : {}),
     },
   };
 }

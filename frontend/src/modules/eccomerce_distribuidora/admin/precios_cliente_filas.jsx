@@ -72,8 +72,9 @@ function Fila({ fila, grupo, decidir, puedeDecidir }) {
           <Variacion valor={fila.variacion} />
         </div>
       </div>
-      {(fila.motivos?.length > 0 || fila.origen === "Datos Exportados") && (
+      {(fila.motivos?.length > 0 || fila.origen === "Datos Exportados" || fila.debajoCosto) && (
         <p className="mt-1 flex flex-wrap gap-1">
+          {fila.debajoCosto && <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-800">Por debajo del costo</span>}
           {fila.motivos?.map((m) => <span key={m} className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-900">{MOTIVOS[m]}</span>)}
           {fila.origen === "Datos Exportados" && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">Precio de Datos Exportados</span>}
         </p>

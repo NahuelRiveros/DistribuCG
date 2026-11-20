@@ -31,6 +31,7 @@ async function trabajoPropio(id, usuarioId, transaction, bloquear = false) {
 async function cargarTienda(transaction) {
   const filas = await sequelize.query(`
     SELECT v.id, v.producto_id, v.cod_ref, v.precio, v.nombre, to_char(v.sin_precio_lista_desde, 'YYYY-MM-DD') AS sin_precio_lista_desde,
+           v.costo_neto, v.iva_porcentaje,
            p.nombre AS producto_nombre, p.marca, p.activo AS producto_activo, p.inactivo_por_lista,
            (v.fecha_baja IS NOT NULL OR p.fecha_baja IS NOT NULL) AS de_baja
     FROM ${tabla("variedad_distribuidora")} v JOIN ${tabla("producto_distribuidora")} p ON p.id = v.producto_id
@@ -170,7 +171,12 @@ async function actualizarVariantes(filas, transaction) {
   await sequelize.query(`
     UPDATE ${tabla("variedad_distribuidora")} AS v
     SET precio = x.precio, sin_precio_lista_desde = x.desde,
-        fecha_cambio_precio = CASE WHEN x.cambia THEN NOW() ELSE v.fecha_cambio_precio END
+        fecha_cambio_precio = CASE WHEN x.cambia THEN NOW() ELSE v.fecha_cambio_precio END,
+        -- PRE-65: la lista trae el precio final; el costo queda y la rentabilidad se recalcula (misma cuenta que
+        -- rentabilidadResultante en precio_desde_costo.js). Con precio 0 no se toca.
+        rentabilidad = CASE WHEN v.costo_neto > 0 AND x.precio > 0
+          THEN LEAST(9999.99, GREATEST(-9999.99, ROUND((x.precio / (1 + v.iva_porcentaje / 100) / v.costo_neto - 1) * 100, 2)))
+          ELSE v.rentabilidad END
     FROM (VALUES ${sql}) AS x(id, precio, cambia, desde) WHERE v.id = x.id`, { replacements, transaction });
 }
 

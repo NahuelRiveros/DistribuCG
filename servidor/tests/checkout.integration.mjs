@@ -1550,6 +1550,92 @@ test("PostgreSQL: registro, fusión idempotente, cambios de precio, concurrencia
         assert.doesNotMatch(csv, /Retirado Respaldo QA/, "lo dado de baja no");
       } finally { await new Promise((resolve) => server.close(resolve)); }
     });
+    await t.test("PRE-60 a PRE-70: precio desde el costo en la ficha, ajuste masivo, lista del cliente e importación; la tienda no ve el costo", async () => {
+      const express = (await import("express")).default;
+      const ExcelJS = (await import("exceljs")).default;
+      const { productoDistribuidoraRouter } = await import("../src/modulos/eccomerce_distribuidora/routes/producto_distribuidora_router.js");
+      const precios = await import("../src/modulos/eccomerce_distribuidora/services/precios_cliente_service.js");
+      const { buildPlan, summarize } = await import("../src/modulos/eccomerce_distribuidora/services/importacion/plan.js");
+      const { loadCatalog, applyPlan } = await import("../src/modulos/eccomerce_distribuidora/services/importacion/catalog_repository.js");
+      const { armarCsvRespaldo, filasRespaldo } = await import("../src/modulos/eccomerce_distribuidora/services/respaldo_catalogo_service.js");
+      const familia = await models.CategoriaDistribuidora.create({ nombre: "Costo QA", slug: "costo-qa" });
+      const cat = await models.CategoriaDistribuidora.create({ nombre: "Margen QA", slug: "costo-qa-margen", padre_id: familia.id });
+      const app = express();
+      app.use(express.json());
+      app.use("/productos", productoDistribuidoraRouter);
+      const server = await new Promise((resolve) => { const s = app.listen(0, "127.0.0.1", () => resolve(s)); });
+      let conCosto;
+      try {
+        const url = `http://127.0.0.1:${server.address().port}/productos`;
+        const token = async (email) => ({ Authorization: "Bearer " + (await login({ identificador: email, password: "Clave1234" })).token, "Content-Type": "application/json" });
+        const gestion = await token("carla@example.test");
+        const ficha = (extra) => JSON.stringify({ categoria_id: cat.id, nombre: "Aceite Costo QA", iva_porcentaje: 21, ...extra });
+
+        // PRE-61/62: "Desde el costo" calcula el precio en el servidor (el que manda la pantalla no cuenta).
+        const creado = await fetch(url, { method: "POST", headers: gestion, body: ficha({ modo_precio: "costo", costo_neto: 1000, rentabilidad: 30, precio: 1 }) });
+        assert.equal(creado.status, 201);
+        const idArticulo = (await creado.json()).data.id;
+        const leer = async (headers = {}, query = "") => (await (await fetch(`${url}/${idArticulo}${query}`, { headers })).json()).data.variedades[0];
+        assert.deepEqual(await leer(gestion).then((v) => [Number(v.precio), Number(v.costo_neto), Number(v.rentabilidad)]), [1573, 1000, 30]);
+        // PRE-69: en "Desde el costo" van los dos.
+        assert.equal((await fetch(url, { method: "POST", headers: gestion, body: ficha({ nombre: "Sin Rentabilidad QA", modo_precio: "costo", costo_neto: 1000 }) })).status, 400);
+
+        // PRE-70: ni la tienda ni quien no cambia precios ven el costo; sin permiso no lo puede cambiar.
+        for (const v of [await leer(), await leer(gestion, "?vista=tienda")]) assert.ok(!("costo_neto" in v) && !("rentabilidad" in v));
+        const repositor = await token("rafa@example.test");
+        assert.ok(!("costo_neto" in await leer(repositor)));
+        const sinPermiso = await fetch(`${url}/${idArticulo}`, { method: "PUT", headers: repositor, body: ficha({ precio: 1573, costo_neto: 500 }) });
+        assert.equal(sinPermiso.status, 403);
+
+        // PRE-63: precio final a mano → el costo queda y la rentabilidad se recalcula: 1700 / 1,21 / 1000 − 1 = 40,5 %.
+        assert.equal((await fetch(`${url}/${idArticulo}`, { method: "PUT", headers: gestion, body: ficha({ modo_precio: "final", precio: 1700 }) })).status, 200);
+        assert.deepEqual(await leer(gestion).then((v) => [Number(v.precio), Number(v.costo_neto), Number(v.rentabilidad)]), [1700, 1000, 40.5]);
+        conCosto = await models.VariedadDistribuidora.findOne({ where: { producto_id: idArticulo } });
+      } finally { await new Promise((resolve) => server.close(resolve)); }
+
+      // PRE-64: el ajuste masivo va al costo y mantiene la rentabilidad; sin costo, al precio final.
+      const sinCostoProd = await models.ProductoDistribuidora.create({ categoria_id: cat.id, nombre: "Sin Costo QA" });
+      const sinCosto = await models.VariedadDistribuidora.create({ producto_id: sinCostoProd.id, precio: 500 });
+      assert.equal(await productos.ajustarPreciosMasivo({ porcentaje: 10, categoria_id: cat.id }), 2);
+      await conCosto.reload(); await sinCosto.reload();
+      assert.deepEqual([Number(conCosto.costo_neto), Number(conCosto.rentabilidad), Number(conCosto.precio)], [1100, 40.5, 1870]); // 1100 × 1,405 × 1,21
+      assert.deepEqual([sinCosto.costo_neto, Number(sinCosto.precio)], [null, 550]);
+
+      // PRE-65 y PRE-67: la lista del cliente trae precio final: no toca el costo, recalcula la rentabilidad y avisa lo que no cubre el costo.
+      await conCosto.update({ cod_ref: "970001" });
+      const otroProd = await models.ProductoDistribuidora.create({ categoria_id: cat.id, nombre: "Otro Costo QA" });
+      const otro = await models.VariedadDistribuidora.create({ producto_id: otroProd.id, precio: 182, costo_neto: 100, rentabilidad: 50, cod_ref: "970002" });
+      const libro = new ExcelJS.Workbook();
+      libro.addWorksheet("LISTA").addRow(["970001  ", "Aceite Costo QA", 1200, "970002  ", "Otro Costo QA", 200]);
+      const vista = await precios.validarListaCliente(Buffer.from(await libro.xlsx.writeBuffer()), "lista.xlsx", randomUUID(), id);
+      assert.equal(vista.resumen.debajo_costo, 1, "1200 no cubre 1100 + IVA (1331)");
+      assert.equal((await precios.listarFilas(vista.id, id, { estado: "revisar" })).filas.find((f) => f.cod === "970001").debajoCosto, true);
+      await precios.guardarDecisiones(vista.id, id, { aprobarTodos: true });
+      let actual = vista;
+      while (actual.estado !== "completado") actual = await precios.ejecutarLote(vista.id, id, { index: actual.siguiente_lote, confirm: true, ajustarListas: false });
+      await conCosto.reload(); await otro.reload();
+      assert.deepEqual([Number(conCosto.precio), Number(conCosto.costo_neto), Number(conCosto.rentabilidad)], [1200, 1100, -9.84]);
+      assert.deepEqual([Number(otro.precio), Number(otro.costo_neto), Number(otro.rentabilidad)], [200, 100, 65.29]);
+
+      // PRE-66: importación con costo y rentabilidad calcula el precio; sin rentabilidad, el precio del archivo es el final.
+      const fila = (row, cod, extra) => ({ row, value: { cod_ref: cod, producto_nombre: "Importado QA " + cod, variedad_nombre: null, categoria: "Costo QA > Margen QA", marca: null, descripcion: null, importe: null, iva_porcentaje: null, cantidad: null, codigo_barras: null, unidades_por_bulto: null, costo_neto: null, rentabilidad: null, ...extra } });
+      const filas = [fila(2, "970010", { costo_neto: 1000, rentabilidad: 30 }), fila(3, "970011", { importe: 800, costo_neto: 1000 }), fila(4, "970012", { importe: 650 })];
+      const plan = buildPlan(filas, { identity: "sku", mode: "upsert", updateFields: ["precio"], priceType: "net", defaultVat: 21 }, await loadCatalog(filas));
+      assert.deepEqual(plan.map((r) => r.finalPrice), [1573, 800, 650]);
+      assert.match(plan[1].message, /Por debajo del costo/);
+      assert.equal(summarize(plan).avisos, 1);
+      await sequelize.transaction(async (tx) => applyPlan(plan, await loadCatalog(filas, tx), tx));
+      const importada = async (cod) => models.VariedadDistribuidora.findOne({ where: { cod_ref: cod } });
+      assert.deepEqual(await importada("970010").then((v) => [Number(v.precio), Number(v.costo_neto), Number(v.rentabilidad)]), [1573, 1000, 30]);
+      assert.deepEqual(await importada("970011").then((v) => [Number(v.precio), Number(v.costo_neto), Number(v.rentabilidad)]), [800, 1000, -33.88]);
+      assert.deepEqual(await importada("970012").then((v) => [Number(v.precio), v.costo_neto, v.rentabilidad]), [650, null, null]);
+
+      // PRE-70: el respaldo trae costo y rentabilidad solo para quien cambia precios.
+      const filasR = await filasRespaldo();
+      assert.match(armarCsvRespaldo(filasR, { conCostos: true }), /"Costo neto";"Rentabilidad %"/);
+      assert.match(armarCsvRespaldo(filasR, { conCostos: true }), /"970010";[^\r\n]*"1573";"";"1000";"30"/);
+      assert.doesNotMatch(armarCsvRespaldo(filasR), /Costo neto/);
+    });
   } finally {
     if (created) {
       assert.equal(DB_SCHEMA, ownedSchema);

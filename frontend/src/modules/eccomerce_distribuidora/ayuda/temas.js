@@ -148,13 +148,14 @@ export const temasAyudaDistribuidora = [
     titulo: "Importar artículos desde Excel",
     resumen: "Cargar o actualizar muchos artículos de una vez con una planilla.",
     palabras: ["excel", "csv", "planilla", "importacion", "mapeo", "columnas"],
-    reglas: ["CAT-17", "CAT-43"],
+    reglas: ["CAT-17", "CAT-43", "PRE-66"],
     pantalla: "/distribuidora/admin/importar",
     secciones: [
       { titulo: "Paso a paso", pasos: [
         "Entrá a Importar productos y elegí el archivo (Excel o CSV).",
         "Indicá la hoja y la fila de encabezados, y relacioná cada columna (Precio, IVA, Unidades por bulto…).",
         "Elegí si el precio del archivo ya incluye IVA.",
+        "Opcional: si el archivo trae \"Costo neto\" y \"Rentabilidad %\", el precio se calcula con el IVA y se guardan los dos. Sin rentabilidad, la columna Precio es el precio final.",
         "Revisá la muestra del resultado y confirmá. En \"Mis importaciones\" queda cada carga.",
       ] },
       { titulo: "Errores comunes", problemas: [
@@ -175,14 +176,44 @@ export const temasAyudaDistribuidora = [
     reglas: ["PRE-01", "PRE-03", "PRE-21"],
     pantalla: ARTICULOS,
     secciones: [
-      { titulo: "Qué es", texto: "El \"Precio de venta\" es el precio final: lo que paga el cliente, con IVA incluido. Debajo, la ficha te muestra el neto sin IVA." },
-      { titulo: "Ejemplo", ejemplo: "Precio de venta $1.210 con IVA 21 % → neto $1.000 + IVA $210." },
+      { titulo: "Qué es", texto: "El \"Precio final\" es lo que paga el cliente, con IVA incluido. Si cargás el precio neto, se calcula solo; si no, se escribe a mano y la ficha te muestra el neto sin IVA." },
+      { titulo: "Ejemplo", ejemplo: "Precio final $1.210 con IVA 21 % → neto $1.000 + IVA $210." },
       { titulo: "Bueno saber", pasos: [
         "Se guarda la fecha del último cambio de precio de cada artículo.",
         "Sin el permiso \"Cambiar precios\" ves el precio pero no lo podés cambiar.",
       ] },
     ],
-    relacionados: ["ofertas", "ajuste-masivo", "listas-regionales"],
+    relacionados: ["precio-desde-costo", "ofertas", "ajuste-masivo", "listas-regionales"],
+  },
+  {
+    id: "precio-desde-costo",
+    grupo: "Precios",
+    titulo: "Precio desde el costo y rentabilidad",
+    resumen: "Cargar el costo neto y la ganancia que querés, y que el sistema arme el precio con el IVA.",
+    palabras: ["costo", "rentabilidad", "margen", "ganancia", "neto", "proveedor", "perdida", "debajo del costo"],
+    reglas: ["PRE-60", "PRE-61", "PRE-62", "PRE-63", "PRE-67", "PRE-70"],
+    pantalla: ARTICULOS,
+    acceso: ARTICULOS_Y_PRECIOS,
+    secciones: [
+      { titulo: "Qué es", texto: "En la ficha del artículo, pestaña Precios, cargás el precio neto (lo que te cuesta, sin IVA), la rentabilidad que querés ganar y el IVA: el precio final, el que ve el cliente, se calcula solo. Si no cargás el precio neto, el precio final se escribe a mano como siempre." },
+      { titulo: "Cómo se calcula", texto: "Precio = costo neto × (1 + rentabilidad %) × (1 + IVA %), redondeado a pesos enteros. La rentabilidad es lo que ganás sobre el costo." },
+      { titulo: "Ejemplo", ejemplo: "Costo $1.000 + 30 % = $1.300 neto + IVA 21 % ($273) = $1.573. Ganás $300 por unidad." },
+      { titulo: "Paso a paso", pasos: [
+        "Abrí la ficha del artículo y andá a la pestaña Precios.",
+        "Cargá el precio neto, la rentabilidad % y elegí el IVA.",
+        "Revisá el precio final y el desglose (cuánto ganás por unidad) y guardá.",
+      ] },
+      { titulo: "Bueno saber", pasos: [
+        "Si después cambiás el precio a mano o lo cambia la lista del cliente, el costo queda y la rentabilidad se recalcula: así ves la ganancia real.",
+        "El ajuste masivo, en los artículos con costo, sube el costo y mantiene la rentabilidad.",
+        "El costo y la rentabilidad no los ve ningún cliente ni nadie sin el permiso \"Cambiar precios\".",
+      ] },
+      { titulo: "Errores comunes", problemas: [
+        { problema: "Aparece en rojo \"Estás vendiendo por debajo del costo\".", solucion: "El precio no cubre el costo con IVA: perdés plata en cada venta. Subí el precio o revisá el costo. No impide guardar." },
+        { problema: "No veo los campos de costo.", solucion: "Hace falta el permiso \"Cambiar precios\"." },
+      ] },
+    ],
+    relacionados: ["precio-iva", "ajuste-masivo", "actualizar-precios"],
   },
   {
     id: "ofertas",
@@ -228,7 +259,7 @@ export const temasAyudaDistribuidora = [
     titulo: "Actualizar precios con la lista del cliente",
     resumen: "Subir el Excel de precios del sistema del cliente, revisar los cambios y aplicarlos.",
     palabras: ["lista de precios", "excel", "hoja lista", "datos exportados", "precio 0", "deshacer", "revisar"],
-    reglas: ["PRE-30", "PRE-33", "PRE-34", "PRE-35", "PRE-36", "PRE-37", "PRE-38", "PRE-39"],
+    reglas: ["PRE-30", "PRE-33", "PRE-34", "PRE-35", "PRE-36", "PRE-37", "PRE-38", "PRE-39", "PRE-65", "PRE-67"],
     pantalla: "/distribuidora/admin/precios-cliente",
     secciones: [
       { titulo: "Paso a paso", pasos: [
@@ -243,9 +274,11 @@ export const temasAyudaDistribuidora = [
         { problema: "Un artículo viene en $0.", solucion: "Un 0 significa que dejó de venderse: no se toca su precio, solo se avisa. Si pasa 6 meses sin precio, el artículo se oculta." },
         { problema: "Un código aparece repetido con dos precios.", solucion: "No se aplica hasta que elijas cuál vale." },
         { problema: "Me equivoqué al aplicar.", solucion: "En \"Mis actualizaciones\" podés deshacerla: lo que alguien cambió después no se pisa." },
+        { problema: "Una fila dice \"Por debajo del costo\".", solucion: "El precio de la lista no cubre el costo con IVA de ese artículo. Se puede aplicar igual; revisá el costo o el precio." },
       ] },
+      { titulo: "Costo y rentabilidad", texto: "La lista trae precios finales: no cambia el costo de los artículos, y su rentabilidad se recalcula con el precio nuevo." },
     ],
-    relacionados: ["no-aparece", "listas-regionales", "ajuste-masivo"],
+    relacionados: ["no-aparece", "listas-regionales", "ajuste-masivo", "precio-desde-costo"],
   },
   {
     id: "ajuste-masivo",
@@ -253,7 +286,7 @@ export const temasAyudaDistribuidora = [
     titulo: "Ajuste masivo de precios",
     resumen: "Subir o bajar un porcentaje los precios de un artículo, una categoría o todo el catálogo.",
     palabras: ["aumento", "porcentaje", "inflacion", "subir precios", "bajar precios", "masivo"],
-    reglas: ["PRE-20"],
+    reglas: ["PRE-20", "PRE-64"],
     pantalla: ARTICULOS,
     acceso: ARTICULOS_Y_PRECIOS,
     secciones: [
@@ -263,9 +296,10 @@ export const temasAyudaDistribuidora = [
         "Escribí el porcentaje: positivo sube, negativo baja.",
         "Confirmá. Se guarda la fecha del cambio en cada artículo.",
       ] },
-      { titulo: "Ejemplo", ejemplo: "+10 % sobre un precio de $1.500 → $1.650. −5 % → $1.425." },
+      { titulo: "Ejemplo", ejemplo: "Sin costo: +10 % sobre $1.500 → $1.650. Con costo: costo $1.000 +10 % = $1.100, con 30 % de rentabilidad e IVA 21 % → $1.730." },
+      { titulo: "Bueno saber", texto: "En los artículos con costo cargado, el porcentaje se aplica al costo neto y se mantiene la rentabilidad (sirve cuando aumenta el proveedor). En los que no tienen costo, se ajusta el precio final." },
     ],
-    relacionados: ["precio-iva", "actualizar-precios"],
+    relacionados: ["precio-desde-costo", "precio-iva", "actualizar-precios"],
   },
 
   // ── Pedidos y cobros ──

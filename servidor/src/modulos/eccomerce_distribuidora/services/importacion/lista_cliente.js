@@ -1,6 +1,7 @@
 // Lista de precios del sistema del cliente (PRE-31 a PRE-37): de las filas crudas del Excel a un
 // plan por código. Sin base de datos: recibe lo cargado en la tienda y devuelve qué hacer con cada fila.
 import { listaPreciosClienteConfig as config } from "../../../../../../rubros/eccomerce_distribuidora/lista_precios_cliente_config.js";
+import { debajoDelCosto } from "../../../../../../rubros/eccomerce_distribuidora/precio_desde_costo.js";
 
 const redondear = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
@@ -121,6 +122,7 @@ const datosVariante = (v) => ({
   variedadId: v.id, productoId: v.producto_id, articulo: [v.producto_nombre, v.nombre].filter(Boolean).join(" · "),
   marca: v.marca ?? null, precioAntes: Number(v.precio),
   sinPrecioAntes: v.sin_precio_lista_desde ?? null, activoAntes: Boolean(v.producto_activo), inactivoPorListaAntes: Boolean(v.inactivo_por_lista),
+  costo: v.costo_neto == null ? null : Number(v.costo_neto), iva: v.iva_porcentaje == null ? null : Number(v.iva_porcentaje),
 });
 
 /** Estado y cambios de una presentación con un precio ya resuelto (también se usa al elegir entre repetidos). */
@@ -140,7 +142,9 @@ export function planDeVariante(fila, variante, precio, { hoy, limiteSinPrecio = 
     return { ...fila, estado: desactivar ? "desactivar" : "sin_precio", precioLista: 0, precioNuevo: antes, sinPrecioDespues: desde, accionProducto: desactivar ? "desactivar" : null };
   }
   const reactivar = !variante.producto_activo && variante.inactivo_por_lista;
-  const cambios = { precioLista: precio, precioNuevo: precio, sinPrecioDespues: null, accionProducto: reactivar ? "reactivar" : null };
+  // PRE-67: se avisa (no se frena) si el precio nuevo no cubre el costo con IVA.
+  const debajoCosto = debajoDelCosto({ costo: fila.costo, precio, iva: fila.iva }) || undefined;
+  const cambios = { precioLista: precio, precioNuevo: precio, sinPrecioDespues: null, accionProducto: reactivar ? "reactivar" : null, debajoCosto };
   if (antes === precio) return { ...fila, ...cambios, estado: reactivar ? "reactivar" : "sin_cambio", variacion: 0 };
   if (antes === 0) return { ...fila, ...cambios, estado: reactivar ? "reactivar" : "primer_precio", variacion: null };
   const variacion = Math.round((precio / antes - 1) * 1000) / 10;
@@ -190,5 +194,7 @@ export function cambioAAplicar(fila, decision, { hoy }) {
 export function resumirPlan(filas) {
   const resumen = { total: filas.length };
   for (const f of filas) resumen[f.estado] = (resumen[f.estado] ?? 0) + 1;
+  const debajo = filas.filter((f) => f.debajoCosto).length;
+  if (debajo) resumen.debajo_costo = debajo;
   return resumen;
 }

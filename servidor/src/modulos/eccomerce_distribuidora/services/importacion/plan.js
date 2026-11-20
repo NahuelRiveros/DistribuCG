@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { keyText } from "./normalize.js";
+import { precioDesdeCosto, rentabilidadResultante, debajoDelCosto } from "../../../../../../rubros/eccomerce_distribuidora/precio_desde_costo.js";
 export const MENSAJE_IMPORTACION_SOLO_CATEGORIA = "Indicá familia y categoría (ej: Almacén > Galletitas): un artículo nuevo no puede ir directo en la familia.";
 export const hash = (v) => createHash("sha256").update(JSON.stringify(v)).digest("hex");
 export const groupKey = (...parts) => JSON.stringify(parts.map(keyText));
@@ -62,9 +63,19 @@ export function buildPlan(rows, settings, catalog) {
     const vat = variant
       ? settings.updateFields.includes("iva_porcentaje") && value.iva_porcentaje != null ? value.iva_porcentaje : Number(variant.iva_porcentaje)
       : value.iva_porcentaje ?? settings.defaultVat;
-    const price = Math.round((settings.priceType === "gross" ? value.importe / (1 + vat / 100) : value.importe) * 100) / 100;
+    // PRE-66: con costo y rentabilidad, el precio sale de la fórmula (pisa la columna Precio); sin rentabilidad, la
+    // columna Precio es el precio final (bruto), como siempre.
+    const desdeCosto = value.costo_neto != null && value.rentabilidad != null;
+    const price = desdeCosto ? precioDesdeCosto({ costo: value.costo_neto, rentabilidad: value.rentabilidad, iva: vat })
+      : Math.round((settings.priceType === "gross" ? value.importe / (1 + vat / 100) : value.importe) * 100) / 100;
     const patch = {};
-    if (!variant || settings.updateFields.includes("precio")) patch.precio = price;
+    if (!variant || settings.updateFields.includes("precio")) {
+      patch.precio = price;
+      const costo = value.costo_neto ?? (variant?.costo_neto == null ? null : Number(variant.costo_neto));
+      if (value.costo_neto != null) patch.costo_neto = value.costo_neto;
+      // PRE-63: sin rentabilidad en el archivo, se recalcula con el precio nuevo (si hay costo).
+      if (costo != null) patch.rentabilidad = desdeCosto ? value.rentabilidad : rentabilidadResultante({ costo, precio: price, iva: vat });
+    }
     if (!variant || settings.updateFields.includes("iva_porcentaje") && value.iva_porcentaje != null) patch.iva_porcentaje = vat;
     if (!variant || settings.updateFields.includes("cantidad") && value.cantidad != null) {
       patch.cantidad = value.cantidad ?? 0;
@@ -74,20 +85,28 @@ export function buildPlan(rows, settings, catalog) {
     // Datos de la ficha que se cargan a mano: en existentes solo se completan si faltaban.
     if (value.codigo_barras && (!variant || !variant.codigo_barras)) patch.codigo_barras = value.codigo_barras;
     if (value.unidades_por_bulto != null && (!variant || Number(variant.unidades_por_bulto ?? 1) <= 1)) patch.unidades_por_bulto = value.unidades_por_bulto;
-    const changed = variant && Object.entries(patch).some(([k,v]) => ["precio", "iva_porcentaje", "cantidad", "unidades_por_bulto"].includes(k) ? Number(variant[k]) !== v : variant[k] !== v);
+    const mismoNumero = (a, b) => (a == null ? b == null : b != null && Number(a) === Number(b));
+    const changed = variant && Object.entries(patch).some(([k,v]) => ["precio", "iva_porcentaje", "cantidad", "unidades_por_bulto"].includes(k) ? Number(variant[k]) !== v
+      : ["costo_neto", "rentabilidad"].includes(k) ? !mismoNumero(variant[k], v) : variant[k] !== v);
+    // PRE-67: se avisa (no se frena) si el precio no cubre el costo con IVA.
+    const aviso = "precio" in patch && debajoDelCosto({ costo: patch.costo_neto ?? variant?.costo_neto, precio: price, iva: vat })
+      ? "Por debajo del costo: el precio no cubre el costo con IVA." : undefined;
     return {
       row: row.row, value, action: variant ? changed ? "update" : "unchanged" : "create", patch,
       target: variant?.id ?? null, productId: product?.id ?? null,
       before: variant ? variantSnapshot(variant) : null,
       productBefore: product ? hash([product.nombre, product.categoria_id, product.activo, product.fecha_baja]) : null,
-      previousPrice: variant ? Number(variant.precio) : null, finalPrice: price,
-      message: variant ? "Se conservan nombre, marca, descripción, categoría, imágenes y campos no seleccionados."
-        : price === 0 ? "Nueva, sin precio: queda oculta hasta que la lista de precios le ponga uno." : "Nueva presentación.",
+      previousPrice: variant ? Number(variant.precio) : null, finalPrice: price, aviso,
+      message: [aviso, variant ? "Se conservan nombre, marca, descripción, categoría, imágenes y campos no seleccionados."
+        : price === 0 ? "Nueva, sin precio: queda oculta hasta que la lista de precios le ponga uno." : "Nueva presentación."].filter(Boolean).join(" "),
     };
   });
 }
 export function summarize(rows) {
   const result = { total: rows.length, create: 0, update: 0, unchanged: 0, skip: 0, error: 0 };
   for (const row of rows) result[row.action]++;
+  // Filas que se importan con un aviso (PRE-67): la revisión las cuenta.
+  const avisos = rows.filter((r) => r.aviso && r.action !== "error" && r.action !== "skip").length;
+  if (avisos) result.avisos = avisos;
   return result;
 }

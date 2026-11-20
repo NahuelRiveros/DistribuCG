@@ -63,6 +63,9 @@ sumar su versión genérica a la plantilla.
   guardan excepciones por presentación y aplican por la localidad del perfil del cliente (una localidad, una
   lista). Todo precio que ve o paga un cliente pasa por `listas_precio_service.js` (catálogo, detalle,
   ofertas, carrito y pedido); la gestión ve la General. Oferta = `precio_anterior > precio` de su lista.
+- Precio desde el costo (PRE-60 a PRE-70): `variedad.costo_neto` y `variedad.rentabilidad` (sobre el costo) con la
+  regla única `rubros/eccomerce_distribuidora/precio_desde_costo.js` (pesos enteros). Son internos: solo se seleccionan
+  con `conCostos` para quien tiene `precios.editar`; nunca en la tienda, el carrito ni los pedidos.
 - `frontend/src/proyecto/config/`: marca, logos, colores (`theme_config.js`), inicio y footer del cliente.
   `frontend/src/core/config/`: navegación e ingreso.
 - Ante diferencias entre comentarios y código, comprobar rutas, servicios y tests antes de concluir.

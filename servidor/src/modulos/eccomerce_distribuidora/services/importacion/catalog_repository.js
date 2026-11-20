@@ -68,6 +68,6 @@ export async function applyPlan(plan, catalog, transaction) {
     const cambioPrecio = r.patch.precio != null && Number(antes.precio) !== Number(r.patch.precio);
     return { ...antes, ...r.patch, ...(cambioPrecio ? { fecha_cambio_precio: new Date() } : {}) };
   };
-  if (updates.length) await Variant.bulkCreate(updates.map(conFechaPrecio), { transaction, updateOnDuplicate: ["precio", "iva_porcentaje", "cantidad", "controla_stock", "cod_ref", "codigo_barras", "unidades_por_bulto", "fecha_cambio_precio"] });
+  if (updates.length) await Variant.bulkCreate(updates.map(conFechaPrecio), { transaction, updateOnDuplicate: ["precio", "iva_porcentaje", "cantidad", "controla_stock", "cod_ref", "codigo_barras", "unidades_por_bulto", "fecha_cambio_precio", "costo_neto", "rentabilidad"] });
   return { products: newProducts.size, categories: newCategories };
 }

@@ -70,6 +70,25 @@ Los tests de integración y de navegador cubren las reglas juntas: `checkout.int
 | PRE-38 | Al aplicar, la casilla "Ajustar también las listas regionales" (marcada por defecto) multiplica cada excepción regional por la misma proporción, redondeada al centavo. | ✅ integración; `storefront.spec.js` |
 | PRE-39 | Se aplica por lotes, sin repetir uno ya aplicado. Lo que alguien cambió después de la vista previa no se pisa. Queda el informe (antes, después y decisión de cada código) y la última actualización se puede deshacer: vuelve solo lo que sigue como ella lo dejó. | ✅ integración; `storefront.spec.js` |
 
+### Precio desde el costo y rentabilidad
+
+[Cambio](../cambios/2026-11-costo-y-margen.md). Tests: `precio_desde_costo.test.mjs`, `checkout.integration.mjs` ›
+"PRE-60 a PRE-70: …" y `storefront.spec.js` › "artículos: tabla con código…" y "marca en la ficha…".
+
+| Código | Regla | Estado |
+| --- | --- | --- |
+| PRE-60 | Cada presentación puede guardar su costo neto (sin IVA ni ganancia) y su rentabilidad %, opcionales. | ✅ |
+| PRE-61 | Precio = costo × (1 + rentabilidad) × (1 + IVA), en pesos enteros ($1.000 + 30 % + IVA 21 % = $1.573). Una sola regla (`rubros/eccomerce_distribuidora/precio_desde_costo.js`); el servidor recalcula. | ✅ |
+| PRE-62 | La ficha pide precio neto (costo), rentabilidad % e IVA y calcula el precio final (lo que ve el cliente) con el desglose y la ganancia por unidad. Sin precio neto, el precio final se escribe a mano. Un artículo con costo cuyo precio puso la lista queda como está hasta que se cambie el neto, la rentabilidad o el IVA. | ✅ |
+| PRE-63 | Con precio final a mano, el costo queda y la rentabilidad se recalcula con el precio. | ✅ |
+| PRE-64 | El ajuste masivo aplica el porcentaje al costo neto y mantiene la rentabilidad; sin costo, al precio final. Por eso nunca deja un precio por debajo del costo. | ✅ |
+| PRE-65 | Actualizar precios con la lista del cliente no toca el costo y recalcula la rentabilidad (también al deshacer). | ✅ |
+| PRE-66 | La importación acepta "Costo neto" y "Rentabilidad %": con las dos, el precio se calcula; sin rentabilidad, la columna Precio es el precio final. | ✅ |
+| PRE-67 | Un precio que no cubre el costo con IVA se avisa en rojo sin frenar: en la ficha, en la revisión de Actualizar precios (fila marcada y total) y en la importación (filas con aviso). | ✅ |
+| PRE-68 | Al agregar otra presentación a un artículo se propone la rentabilidad de la que ya tiene. | ⏸ La ficha maneja una presentación por artículo: se hace cuando haya varias en la ficha. |
+| PRE-69 | Costo mayor a 0 y hasta $99.999.999; rentabilidad de 0 % a 1.000 % (2 decimales); en "Desde el costo" van los dos. | ✅ |
+| PRE-70 | Costo y rentabilidad solo los ve y cambia quien tiene "Cambiar precios"; la tienda, el carrito y los pedidos nunca los devuelven. El respaldo los incluye solo para ese permiso. | ✅ |
+
 ## Configuración
 
 | Qué | Dónde | Valor actual |
@@ -96,6 +115,7 @@ Los tests de integración y de navegador cubren las reglas juntas: `checkout.int
 | 2026-11-08 | PRE-10 | Los precios distintos por localidad se resuelven con las listas regionales que ya existen: el cliente de esa localidad ve el precio de su lista en el catálogo, el carrito y el pedido. | Cliente |
 | 2026-11-08 | — | No hay listas de precios por cliente. Lo que se necesita es un listado de clientes con datos completos: ver [clientes.md](clientes.md) (CLI-11). | Cliente |
 | 2026-11-19 | PRE-30 a PRE-39 | Los precios se actualizan subiendo el Excel del cliente (hoja `LISTA`, comparada con `Datos Exportados`: gana el mayor). Un precio 0 no se toca, y si sigue en 0 más de 6 meses el artículo se desactiva hasta que vuelva con precio. Cuando un precio baja no se marca oferta. Las listas regionales se ajustan en el mismo porcentaje. Ver [cambio](../cambios/2026-11-actualizar-precios-lista-cliente.md). | Dueño del proyecto |
+| 2026-11-20 | PRE-60 a PRE-70 | Precio desde el costo neto, la rentabilidad (sobre el costo) y el IVA, en pesos enteros; el ajuste masivo va al costo; la lista del cliente y el precio a mano recalculan la rentabilidad; avisos de precio por debajo del costo ([cambio](../cambios/2026-11-costo-y-margen.md)). | Dueño del proyecto |
 | 2026-11-19 | PRE-40 a PRE-50 (en borrador) | Cada artículo tiene su propio descuento por bulto (escalas en su ficha, con copia a varios artículos para las promos de una marca), en tablas propias. "Bulto" es la palabra única para caja, paquete o display. Se cuentan por presentación, las sueltas pagan precio de lista, se suman a la oferta y la escala negociable se aplica con "consultá". Ver [cambio](../cambios/2026-11-descuentos-por-bulto.md). | Dueño del proyecto |
 
 ## Preguntas abiertas

@@ -19,7 +19,7 @@ try {
   console.log(`Leyendo el catálogo (esquema ${DB_SCHEMA})...`);
   const filas = await filasRespaldo();
   await mkdir(carpetaFotos, { recursive: true });
-  await writeFile(path.join(carpeta, "catalogo.csv"), armarCsvRespaldo(filas));
+  await writeFile(path.join(carpeta, "catalogo.csv"), armarCsvRespaldo(filas, { conCostos: true }));
   const indice = indiceFotosRespaldo(filas);
   await writeFile(path.join(carpetaFotos, "_indice.json"), JSON.stringify(indice, null, 2) + "\n");
   console.log(`✅ catalogo.csv: ${filas.length} presentaciones. Bajando ${indice.length} fotos...`);

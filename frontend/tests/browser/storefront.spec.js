@@ -343,8 +343,8 @@ test("rol sin permiso de precios: carga artículos en $0 y no ve ajustes, listas
   await page.getByRole("combobox", { name: /^Categoría/ }).fill("galle");
   await page.getByRole("option", { name: /Galletitas en gral/ }).click();
   await page.getByRole("tab", { name: /Precios/ }).click();
-  await expect(page.getByLabel(/^Precio de venta/)).toBeDisabled();
-  await expect(page.getByLabel(/^Precio de venta/)).toHaveValue("0");
+  await expect(page.getByLabel(/^Precio final/)).toBeDisabled();
+  await expect(page.getByLabel(/^Precio final/)).toHaveValue("0");
   await expect(page.getByText("Tu rol no puede cambiar precios")).toBeVisible();
   await page.getByRole("tab", { name: /Datos generales/ }).click();
   await page.getByLabel(/^Descripción del artículo/).fill("Lavandina X5 1 lt");
@@ -457,7 +457,12 @@ test("artículos: tabla con código, bultos y stock bajo; filtros en la direcci�
   await ficha.getByRole("option", { name: /Galletitas en gral/ }).click();
   await ficha.getByRole("button", { name: "Guardar artículo" }).click();
   await expect(ficha.getByRole("tab", { name: /Precios/ })).toHaveAttribute("aria-selected", "true");
-  await ficha.getByLabel(/^Precio de venta/).fill("1500");
+  // PRE-62: precio neto $1.000 + 30 % + IVA 21 % = precio final $1.573 (pesos enteros).
+  await ficha.getByLabel(/^Precio neto/).fill("1000");
+  await ficha.getByLabel(/^Rentabilidad %/).fill("30");
+  await expect(ficha.getByText("Precio final (lo que ve el cliente): $ 1.573")).toBeVisible();
+  await expect(ficha.getByText("ganás $ 300")).toBeVisible();
+  await noOverflow(page);
   await ficha.getByRole("tab", { name: "Stock y unidades" }).click();
   await ficha.getByLabel(/^Se vende por/).selectOption("BOTELLA");
   await ficha.getByLabel(/^Unidades por bulto/).fill("12");
@@ -466,7 +471,7 @@ test("artículos: tabla con código, bultos y stock bajo; filtros en la direcci�
   await ficha.getByRole("button", { name: "Guardar artículo" }).click();
   await expect(page).toHaveURL(/\/distribuidora\/admin\/productos\?stock=bajo_minimo$/);
   expect(guardados).toHaveLength(1);
-  expect(guardados[0]).toMatchObject({ categoria_id: 3, nombre: "Lavandina X5 al 25% 1 lt", cod_ref: "002982", precio: 1500, unidad_medida: "BOTELLA", unidad_bulto: "CAJA", unidades_por_bulto: 12 });
+  expect(guardados[0]).toMatchObject({ categoria_id: 3, nombre: "Lavandina X5 al 25% 1 lt", cod_ref: "002982", precio: 1573, modo_precio: "costo", costo_neto: 1000, rentabilidad: 30, unidad_medida: "BOTELLA", unidad_bulto: "CAJA", unidades_por_bulto: 12 });
 });
 test("lista de carga: elegir pedidos, ver artículos por familia en bultos y sueltos e imprimir", async ({ page }) => {
   await entrarComo(page, ["vendedor"]);
@@ -948,10 +953,13 @@ test("marca en la ficha: lista de su categoría, sin duplicar y alta en el momen
 
   await page.getByLabel(/^Descripción del artículo/).fill("Harina 000 1 kg");
   await page.getByRole("tab", { name: /Precios/ }).click();
-  await page.getByLabel(/^Precio de venta/).fill("900");
+  // Sin precio neto, el precio final se escribe a mano (como los que vienen de la lista del cliente).
+  await expect(page.getByLabel(/^Rentabilidad %/)).toBeDisabled();
+  await page.getByLabel(/^Precio final/).fill("900");
   await page.getByRole("button", { name: "Guardar artículo" }).click();
   await expect(page).toHaveURL(/\/distribuidora\/admin\/productos$/);
-  expect(guardados[0]).toMatchObject({ categoria_id: 3, marca_id: 9, nombre: "Harina 000 1 kg" });
+  expect(guardados[0]).toMatchObject({ categoria_id: 3, marca_id: 9, nombre: "Harina 000 1 kg", modo_precio: "final", precio: 900, costo_neto: null });
+  expect(guardados[0]).not.toHaveProperty("rentabilidad");
 });
 
 test("ofertas: carrusel en el home con precios de la zona y filtro en el catálogo", async ({ page }) => {

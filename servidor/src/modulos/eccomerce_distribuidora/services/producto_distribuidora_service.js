@@ -5,18 +5,21 @@ import { normalizarPaginacion, armarPaginacion } from "../../../core/services/co
 import { formatearNombre } from "../../../core/services/common/formato_nombre.js";
 import { resolverMarcaDeArticulo } from "./marcas_distribuidora_service.js";
 import { categoriaAdmiteArticulos, MENSAJE_SOLO_CATEGORIA } from "./articulo_rules.js";
+import { rentabilidadResultante } from "../../../../../rubros/eccomerce_distribuidora/precio_desde_costo.js";
 
 // fecha_alta viaja acá para que el admin pueda auditar cuándo se cargó cada
 // producto (columna DATEONLY ya existente en el modelo, antes no se
 // seleccionaba nunca — invisible aunque siempre estuvo en la base).
 const ATTR_LISTADO = ["id", "categoria_id", "nombre", "descripcion", "marca_id", "marca", "imagen_url", "activo", "fecha_alta"];
 
-const INCLUDE_LISTADO = [
+const ATTR_VARIEDAD = ["id", "nombre", "precio", "precio_anterior", "iva_porcentaje", "controla_stock", "cantidad", "cod_ref",
+  "codigo_barras", "unidad_medida", "unidad_bulto", "unidades_por_bulto", "stock_minimo", "fecha_cambio_precio"];
+// PRE-70: costo y rentabilidad solo los pide quien cambia precios; la tienda nunca los selecciona.
+const includeListado = (conCostos = false) => [
   { model: CategoriaDistribuidora, as: "categoria", attributes: ["id", "nombre", "slug"] },
   {
     model: VariedadDistribuidora, as: "variedades", where: { fecha_baja: null }, required: false,
-    attributes: ["id", "nombre", "precio", "precio_anterior", "iva_porcentaje", "controla_stock", "cantidad", "cod_ref",
-      "codigo_barras", "unidad_medida", "unidad_bulto", "unidades_por_bulto", "stock_minimo", "fecha_cambio_precio"],
+    attributes: conCostos ? [...ATTR_VARIEDAD, "costo_neto", "rentabilidad"] : ATTR_VARIEDAD,
   },
 ];
 
@@ -130,7 +133,7 @@ async function construirWhere({ categoria, incluirDescendientes = true, q, soloA
 // exacta (sin bajar a subcategorías) — lo usa el árbol del admin al expandir
 // un nivel puntual, para no traerse de golpe todo el subárbol y mezclarlo
 // bajo el nodo equivocado.
-export async function listarProductos({ categoria, incluirDescendientes = true, q, pagina, por_pagina, soloActivos = true, marca, estado, stock, ids, soloALaVenta = false, listaId = null, orden = "nombre" } = {}) {
+export async function listarProductos({ categoria, incluirDescendientes = true, q, pagina, por_pagina, soloActivos = true, marca, estado, stock, ids, soloALaVenta = false, listaId = null, orden = "nombre", conCostos = false } = {}) {
   const where = await construirWhere({ categoria, incluirDescendientes, q, soloActivos, marca, estado, stock, ids, soloALaVenta, listaId });
   const maxLimit = soloActivos ? 100 : 1000;
   const { page, limit, offset } = normalizarPaginacion({ page: pagina, limit: por_pagina, defaultLimit: 24, maxLimit });
@@ -138,7 +141,7 @@ export async function listarProductos({ categoria, incluirDescendientes = true, 
   const { rows, count } = await ProductoDistribuidora.findAndCountAll({
     where,
     attributes: ATTR_LISTADO,
-    include: INCLUDE_LISTADO,
+    include: includeListado(conCostos),
     order: ORDENES[orden] ?? ORDENES.nombre,
     limit,
     offset,
@@ -148,13 +151,13 @@ export async function listarProductos({ categoria, incluirDescendientes = true, 
   return { productos: rows, pagination: armarPaginacion({ page, limit, total: count }) };
 }
 
-export async function obtenerProductoPorId(id, { soloActivos = true } = {}) {
+export async function obtenerProductoPorId(id, { soloActivos = true, conCostos = false } = {}) {
   const where = { id, fecha_baja: null };
   if (soloActivos) where.activo = true;
   return ProductoDistribuidora.findOne({
     where,
     attributes: ATTR_LISTADO,
-    include: INCLUDE_LISTADO,
+    include: includeListado(conCostos),
   });
 }
 
@@ -193,10 +196,10 @@ export async function crearProducto(payload, { transaction } = {}) {
 export async function crearProductoConVariedad(payload, variedad) {
   const producto = await sequelize.transaction(async (transaction) => {
     const nuevoProducto = await crearProducto(payload, { transaction });
-    await crearVariedad(nuevoProducto.id, variedad, { transaction });
+    await crearVariedad(nuevoProducto.id, conRentabilidad(null, variedad), { transaction });
     return nuevoProducto;
   });
-  return obtenerProductoPorId(producto.id);
+  return obtenerProductoPorId(producto.id, { conCostos: true });
 }
 
 export async function actualizarProducto(id, payload, { transaction } = {}) {
@@ -225,10 +228,29 @@ export async function actualizarProducto(id, payload, { transaction } = {}) {
  * en vez de fallar.
  */
 const anteriorONulo = (valor) => (valor === null || valor === undefined ? null : Number(valor));
-/** true si los datos cambian el precio vigente o el anterior de la presentación (o de una nueva, si no es 0). */
+/**
+ * true si los datos cambian el precio vigente, el anterior, el costo o la rentabilidad de la presentación (o de una
+ * nueva, si no es 0 o trae costo). Costo y rentabilidad solo cuentan si vinieron (PRE-70).
+ */
 export function cambiaPrecios(variedad, datos) {
-  if (!variedad) return Number(datos.precio) !== 0 || datos.precio_anterior !== null;
-  return Number(variedad.precio) !== Number(datos.precio) || anteriorONulo(variedad.precio_anterior) !== anteriorONulo(datos.precio_anterior);
+  const vinoCosto = datos.costo_neto !== undefined, vinoRentabilidad = datos.rentabilidad !== undefined;
+  if (!variedad) {
+    return Number(datos.precio) !== 0 || datos.precio_anterior !== null
+      || (vinoCosto && datos.costo_neto !== null) || (vinoRentabilidad && datos.rentabilidad !== null);
+  }
+  return Number(variedad.precio) !== Number(datos.precio) || anteriorONulo(variedad.precio_anterior) !== anteriorONulo(datos.precio_anterior)
+    || (vinoCosto && anteriorONulo(variedad.costo_neto) !== anteriorONulo(datos.costo_neto))
+    || (vinoRentabilidad && anteriorONulo(variedad.rentabilidad) !== anteriorONulo(datos.rentabilidad));
+}
+
+/**
+ * PRE-63: con "Precio final" (sin rentabilidad en los datos) el costo se conserva y la rentabilidad se recalcula con
+ * el precio nuevo; sin costo, queda vacía. "Desde el costo" ya trae las dos.
+ */
+export function conRentabilidad(variedad, datos) {
+  if (datos.rentabilidad !== undefined) return datos;
+  const costo = datos.costo_neto !== undefined ? datos.costo_neto : variedad?.costo_neto;
+  return { ...datos, rentabilidad: rentabilidadResultante({ costo, precio: datos.precio, iva: datos.iva_porcentaje }) };
 }
 export const errorSinPermisoPrecios = () => Object.assign(
   new Error("No tenés permiso para cambiar precios. Guardá el artículo con el precio como estaba y pedile el cambio a un supervisor."),
@@ -245,12 +267,14 @@ export async function actualizarProductoConVariedad(id, payload, datosVariedad, 
     if (sinPermisoPrecios && cambiaPrecios(variedad, datosVariedad)) throw errorSinPermisoPrecios();
     if (variedad) {
       const cambioPrecio = Number(variedad.precio) !== Number(datosVariedad.precio);
-      await variedad.update({ ...datosVariedad, ...(cambioPrecio ? { fecha_cambio_precio: new Date() } : {}) }, { transaction });
-    } else await crearVariedad(id, datosVariedad, { transaction });
+      // Sin permiso de precios no se toca la rentabilidad: el precio no pudo cambiar.
+      const datos = sinPermisoPrecios ? datosVariedad : conRentabilidad(variedad, datosVariedad);
+      await variedad.update({ ...datos, ...(cambioPrecio ? { fecha_cambio_precio: new Date() } : {}) }, { transaction });
+    } else await crearVariedad(id, conRentabilidad(null, datosVariedad), { transaction });
     return actualizado;
   });
   if (!producto) return null;
-  return obtenerProductoPorId(id);
+  return obtenerProductoPorId(id, { conCostos: !sinPermisoPrecios });
 }
 
 export async function cambiarEstadoProducto(id, activo) {
@@ -311,10 +335,20 @@ export async function ajustarPreciosMasivo({ porcentaje, producto_id = null, cat
   }
   // ni producto_id ni categoria_id → sin filtro extra, afecta todo el catálogo
 
-  const [cantidadActualizada] = await VariedadDistribuidora.update(
+  // PRE-64: con costo, el porcentaje va al costo neto y el precio se recalcula con su rentabilidad (pesos enteros,
+  // PRE-61); con costo sin rentabilidad, costo y precio suben igual. Sin costo, se ajusta el precio final como siempre.
+  // `factor` es un número validado arriba: no entra texto del usuario en el SQL.
+  const nuevoCosto = `ROUND(costo_neto * ${factor}, 2)`;
+  const [conCosto] = await VariedadDistribuidora.update({
+    costo_neto: sequelize.literal(nuevoCosto),
+    precio: sequelize.literal(`CASE WHEN rentabilidad IS NULL THEN ROUND(precio * ${factor}, 2)
+      ELSE ROUND(${nuevoCosto} * (1 + rentabilidad / 100) * (1 + iva_porcentaje / 100)) END`),
+    fecha_cambio_precio: new Date(),
+  }, { where: { ...where, costo_neto: { [Op.ne]: null } } });
+  const [sinCosto] = await VariedadDistribuidora.update(
     { precio: sequelize.literal(`ROUND(precio * ${factor}, 2)`), fecha_cambio_precio: new Date() },
-    { where }
+    { where: { ...where, costo_neto: null } }
   );
 
-  return cantidadActualizada;
+  return conCosto + sinCosto;
 }

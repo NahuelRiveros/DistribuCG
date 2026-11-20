@@ -1,5 +1,6 @@
 import { catalogImportConfig as config } from "../../../../../../rubros/eccomerce_distribuidora/catalog_import_config.js";
 import { formatearNombre } from "../../../../core/services/common/formato_nombre.js";
+import { validarCostoYRentabilidad } from "../../../../../../rubros/eccomerce_distribuidora/precio_desde_costo.js";
 export const importError = (message, status = 400) => Object.assign(new Error(message), { status });
 export const keyText = (v) => String(v ?? "").trim().toLocaleLowerCase("es-AR");
 export function numberValue(raw, decimal, label) {
@@ -25,7 +26,8 @@ export function validateSettings(mapping, options, columns) {
     if (value && used.has(value)) throw importError("Cada columna puede asignarse a un solo campo.");
     if (value) used.add(value);
   }
-  if (!mapping.precio) throw importError("Mapeá el precio.");
+  // PRE-66: el precio puede salir del costo; para eso hacen falta las dos columnas.
+  if (!mapping.precio && !(mapping.costo_neto && mapping.rentabilidad)) throw importError("Mapeá el precio, o el costo neto y la rentabilidad.");
   if (s.identity === "sku" && !mapping.cod_ref) throw importError("Mapeá el código / SKU o elegí coincidencia por nombre.");
   if ((s.mode !== "update" || s.identity === "name") && !mapping.producto_nombre) throw importError("Mapeá el nombre del producto.");
   for (const key of s.updateFields) if (key !== "precio" && !mapping[key]) throw importError("Para actualizar " + key + " tenés que mapear su columna.");
@@ -44,8 +46,15 @@ export function normalizeRows(parsed, mapping, settings) {
   };
   return parsed.rows.map((row) => {
     try {
-      const v = { cod_ref: text(row, "cod_ref", 60), producto_nombre: text(row, "producto_nombre", 150), variedad_nombre: text(row, "variedad_nombre", 100), categoria: text(row, "categoria", 800) || settings.category || null, marca: text(row, "marca", 80), descripcion: text(row, "descripcion", 5000), importe: numberValue(field(row, "precio"), settings.decimal, "Precio") };
-      if (v.importe < 0 || v.importe > 99999999.99) throw importError("Precio fuera del rango permitido.");
+      const v = { cod_ref: text(row, "cod_ref", 60), producto_nombre: text(row, "producto_nombre", 150), variedad_nombre: text(row, "variedad_nombre", 100), categoria: text(row, "categoria", 800) || settings.category || null, marca: text(row, "marca", 80), descripcion: text(row, "descripcion", 5000) };
+      const opcional = (name, label) => { const raw = field(row, name); return raw == null || String(raw).trim() === "" ? null : numberValue(raw, settings.decimal, label); };
+      // PRE-66: costo y rentabilidad opcionales; con los dos el precio se calcula y la columna Precio no hace falta.
+      const costos = validarCostoYRentabilidad({ costo: opcional("costo_neto", "Costo neto"), rentabilidad: opcional("rentabilidad", "Rentabilidad") });
+      if (costos.error) throw importError(costos.error);
+      v.costo_neto = costos.costo; v.rentabilidad = costos.rentabilidad;
+      const desdeCosto = v.costo_neto != null && v.rentabilidad != null;
+      v.importe = desdeCosto && String(field(row, "precio") ?? "").trim() === "" ? null : numberValue(field(row, "precio"), settings.decimal, "Precio");
+      if (v.importe != null && (v.importe < 0 || v.importe > 99999999.99)) throw importError("Precio fuera del rango permitido.");
       if (settings.identity === "sku" && !v.cod_ref) throw importError("Falta código / SKU.");
       if ((settings.mode !== "update" || settings.identity === "name") && !v.producto_nombre) throw importError("Falta nombre del producto.");
       // Mismo formato que la carga manual; la coincidencia con lo existente es en minúscula, no cambia.

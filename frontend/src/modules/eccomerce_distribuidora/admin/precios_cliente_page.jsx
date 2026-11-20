@@ -107,6 +107,9 @@ function VistaPrevia({ trabajo, lotes, onSalir }) {
         <h2 className="font-bold text-(--kt-ink)">2. Revisá los cambios</h2>
         <p className="text-sm text-slate-600 break-all">{trabajo.archivo} · leída el {fecha(trabajo.creado_en)}</p>
         {sinPrecio > 0 && <p role="status" className="rounded-xl bg-slate-100 p-3 text-sm text-slate-800"><b>{sinPrecio}</b> artículos de la tienda están en 0 en la lista (dejaron de venderse). Su precio no se toca.</p>}
+        {r.debajo_costo > 0 && <p role="status" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
+          <b>{r.debajo_costo} {r.debajo_costo === 1 ? "presentación quedaría" : "presentaciones quedarían"} por debajo del costo</b> (el precio de la lista no cubre el costo con IVA). Están marcadas en rojo; se pueden aplicar igual.
+        </p>}
         <Tarjetas resumen={r} elegido={grupo} onElegir={setGrupo} />
       </section>
 

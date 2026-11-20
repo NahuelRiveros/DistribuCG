@@ -14,13 +14,16 @@ export const COLUMNAS_RESPALDO = [
   ["codigo_barras", "Código de barras"], ["a_la_venta", "A la venta"], ["descripcion", "Descripción"],
   ["foto", "Foto"], ["articulo_id", "ID artículo"],
 ];
+// PRE-70: datos internos; solo van en el respaldo de quien tiene "Cambiar precios" (y en el comando de la PC).
+const COLUMNAS_COSTO = [["costo_neto", "Costo neto"], ["rentabilidad", "Rentabilidad %"]];
+export const columnasRespaldo = (conCostos) => (conCostos ? [...COLUMNAS_RESPALDO.slice(0, 8), ...COLUMNAS_COSTO, ...COLUMNAS_RESPALDO.slice(8)] : COLUMNAS_RESPALDO);
 
 export async function filasRespaldo() {
   return sequelize.query(`
     SELECT v.cod_ref AS codigo, p.nombre AS articulo, v.nombre AS presentacion, f.nombre AS familia, c.nombre AS categoria,
            p.marca, v.precio, v.precio_anterior, v.iva_porcentaje AS iva, v.unidad_medida AS unidad,
            v.unidades_por_bulto AS bulto, v.unidad_bulto, v.codigo_barras, p.activo, p.descripcion,
-           p.imagen_url AS foto, p.id AS articulo_id
+           p.imagen_url AS foto, p.id AS articulo_id, v.costo_neto, v.rentabilidad
     FROM ${tabla("variedad_distribuidora")} v
     JOIN ${tabla("producto_distribuidora")} p ON p.id = v.producto_id AND p.fecha_baja IS NULL
     LEFT JOIN ${tabla("categoria_distribuidora")} c ON c.id = p.categoria_id
@@ -36,17 +39,18 @@ const celda = (v) => {
   if (/^\s*[=+@-]/.test(s)) s = "'" + s;
   return '"' + s.replaceAll('"', '""') + '"';
 };
-const NUMERICAS = new Set(["precio", "precio_anterior", "iva"]);
+const NUMERICAS = new Set(["precio", "precio_anterior", "iva", "costo_neto", "rentabilidad"]);
 
 /** CAT-65: CSV para Excel (UTF-8 con BOM, separado por punto y coma). */
-export function armarCsvRespaldo(filas) {
+export function armarCsvRespaldo(filas, { conCostos = false } = {}) {
+  const columnas = columnasRespaldo(conCostos);
   const valor = (f, clave) => {
     if (clave === "a_la_venta") return f.activo && Number(f.precio) > 0 ? "sí" : "no";
     return NUMERICAS.has(clave) ? numero(f[clave]) : f[clave];
   };
   return "﻿" + [
-    COLUMNAS_RESPALDO.map(([, titulo]) => celda(titulo)).join(";"),
-    ...filas.map((f) => COLUMNAS_RESPALDO.map(([clave]) => celda(valor(f, clave))).join(";")),
+    columnas.map(([, titulo]) => celda(titulo)).join(";"),
+    ...filas.map((f) => columnas.map(([clave]) => celda(valor(f, clave))).join(";")),
   ].join("\r\n");
 }
 

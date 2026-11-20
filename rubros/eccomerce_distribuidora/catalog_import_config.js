@@ -7,7 +7,10 @@ export const catalogImportConfig = {
     { key: "cod_ref", label: "Código / SKU", aliases: ["codigo", "código", "sku", "cod_ref", "codigo articulo", "cod articulo", "articulo codigo"], help: "Identificador estable de cada presentación. Conservar ceros iniciales." },
     { key: "codigo_barras", label: "Código de barras", aliases: ["codigo de barras", "cod barras", "barras", "ean", "ean13", "upc"], help: "Entre 6 y 14 números. En existentes solo se completa si estaba vacío." },
     { key: "producto_nombre", label: "Nombre del producto", aliases: ["producto", "articulo", "artículo", "nombre", "descripcion articulo", "detalle"] },
-    { key: "precio", label: "Precio", aliases: ["precio", "precio venta", "pvp", "precio lista"], help: "Elegí una sola lista de precios y aclarar si incluye IVA." },
+    { key: "precio", label: "Precio", aliases: ["precio", "precio venta", "pvp", "precio lista"], help: "Precio final de venta. Si la fila trae costo neto y rentabilidad, el precio se calcula y esta columna se ignora." },
+    // PRE-66: con los dos, precio = costo × (1 + rentabilidad) × (1 + IVA), en pesos enteros.
+    { key: "costo_neto", label: "Costo neto", aliases: ["costo", "costo neto", "costo sin iva", "precio costo", "precio de costo"], help: "Lo que cobra el proveedor, sin IVA. Opcional." },
+    { key: "rentabilidad", label: "Rentabilidad %", aliases: ["rentabilidad", "% rentabilidad", "margen", "margen %", "% margen", "ganancia %"], help: "Ganancia sobre el costo (30 = 30 %). Opcional; sin ella, el precio es el de la columna Precio." },
     { key: "categoria", label: "Categoría", aliases: ["categoria", "categoría", "rubro", "familia"], help: "Admite Almacén > Galletitas." },
     { key: "variedad_nombre", label: "Presentación", aliases: ["variedad", "presentacion", "presentación", "unidad", "envase"] },
     { key: "marca", label: "Marca", aliases: ["marca", "fabricante"] },
