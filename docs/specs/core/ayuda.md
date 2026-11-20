@@ -27,7 +27,7 @@ Tests: `servidor/tests/ayuda.test.mjs` (AYU-01, AYU-02, AYU-04, AYU-07, AYU-08),
 | --- | --- | --- |
 | AYU-01 | El ítem "Ayuda" va al final del menú del panel y lo ve solo quien entra al panel (`accesoPanel`); un cliente no la ve ni entra a `/panel/ayuda`. | ✅ |
 | AYU-02 | Temas agrupados y buscador que filtra por título y contenido mientras se escribe, sin acentos ni mayúsculas; sin resultados lo avisa y deja la lista completa. | ✅ |
-| AYU-03 | Cada tema es una guía corta: qué es, pasos, ejemplo con números, errores comunes con su solución y "Relacionado". | ✅ |
+| AYU-03 | Cada tema es una guía para alguien que nunca usó el sistema: para qué sirve, qué ve en la pantalla, paso a paso con los nombres reales de los botones, ejemplo con números, consejos, errores comunes con su solución y "Relacionado". Hay guías de inicio para todos ("Empezá acá", "Tu día a día" por puesto y un glosario), y la portada invita a empezar por "Empezá acá". | ✅ |
 | AYU-04 | Cada uno ve solo la ayuda de lo que puede usar, con la regla del menú (`itemVisible`): lista, buscador, secciones dentro del tema, "Relacionado", dirección directa ("Esta ayuda es para otra función del panel") y botón "?". Un tema de una pantalla que la instalación no tiene no se muestra. | ✅ |
 | AYU-05 | Las pantallas principales tienen un "?" junto al título que abre su tema. | ✅ |
 | AYU-06 | Cada tema tiene su dirección `/panel/ayuda/<tema>` para compartirlo. | ✅ |

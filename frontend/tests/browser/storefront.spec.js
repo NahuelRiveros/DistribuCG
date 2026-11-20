@@ -1375,7 +1375,9 @@ test("AYU-01 a AYU-06: el vendedor ve solo su ayuda, busca, abre un tema y no en
   await (await menuPanel(page)).getByRole("link", { name: "Ayuda" }).click();
   await expect(page).toHaveURL(/\/panel\/ayuda$/);
   await expect(page.getByRole("heading", { name: "Ayuda", level: 1 })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Notas de pedido y sus estados/ })).toBeVisible();
+  // Quien entra por primera vez tiene un acceso directo a la guía de inicio.
+  await expect(page.getByRole("link", { name: /¿Es tu primera vez?/ })).toHaveAttribute("href", "/panel/ayuda/bienvenida");
+  await expect(page.getByRole("link", { name: /Notas de pedido: atender un pedido/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Ajuste masivo de precios/ })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Roles y permisos/ })).toHaveCount(0);
   await noOverflow(page);
@@ -1390,8 +1392,8 @@ test("AYU-01 a AYU-06: el vendedor ve solo su ayuda, busca, abre un tema y no en
   await expect(page).toHaveURL(/\/panel\/ayuda\/lista-carga$/);
   await expect(page.getByRole("heading", { name: "Lista de carga", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: "Ir a la pantalla" })).toHaveAttribute("href", "/distribuidora/admin/lista-carga");
-  await page.getByRole("navigation", { name: "Temas relacionados" }).getByRole("link", { name: "Notas de pedido y sus estados" }).click();
-  await expect(page.getByRole("heading", { name: "Notas de pedido y sus estados", level: 1 })).toBeVisible();
+  await page.getByRole("navigation", { name: "Temas relacionados" }).getByRole("link", { name: "Notas de pedido: atender un pedido" }).click();
+  await expect(page.getByRole("heading", { name: "Notas de pedido: atender un pedido", level: 1 })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Temas relacionados" }).getByRole("link", { name: "Cobros y comprobantes" })).toHaveCount(0);
   await noOverflow(page);
 
@@ -1403,10 +1405,10 @@ test("AYU-01 a AYU-06: el vendedor ve solo su ayuda, busca, abre un tema y no en
 test("AYU-05: el ? de Artículos abre su ayuda; un cliente no tiene ayuda", async ({ page }) => {
   await entrarComo(page, ["supervisor"]);
   await page.goto("/distribuidora/admin/productos");
-  await page.getByRole("link", { name: "Ayuda: Artículos y presentaciones" }).click();
+  await page.getByRole("link", { name: "Ayuda: Artículos: buscar, cargar y editar" }).click();
   await expect(page).toHaveURL(/\/panel\/ayuda\/articulos$/);
-  await expect(page.getByRole("heading", { name: "Artículos y presentaciones", level: 1 })).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "Temas relacionados" }).getByRole("link", { name: "Precio final, IVA y neto" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Artículos: buscar, cargar y editar", level: 1 })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Temas relacionados" }).getByRole("link", { name: "Precio desde el costo y rentabilidad" })).toBeVisible();
 
   await page.unrouteAll({ behavior: "ignoreErrors" });
   await entrarComo(page, ["cliente"]);

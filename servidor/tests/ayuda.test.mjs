@@ -39,7 +39,7 @@ test("AYU-07 y AYU-08: cada tema está completo, cita reglas que existen y panta
     assert.ok(GRUPOS_AYUDA.includes(t.grupo), `${t.id}: grupo desconocido "${t.grupo}"`);
     assert.ok(t.titulo && t.resumen, `${t.id}: falta título o resumen`);
     assert.ok(t.secciones?.length, `${t.id}: sin contenido`);
-    for (const s of t.secciones) assert.ok(s.titulo && (s.texto || s.pasos?.length || s.ejemplo || s.problemas?.length), `${t.id} › ${s.titulo}: sección vacía`);
+    for (const s of t.secciones) assert.ok(s.titulo && ([s.texto ?? []].flat().length || s.pasos?.length || s.ejemplo || s.consejo || s.problemas?.length), `${t.id} › ${s.titulo}: sección vacía`);
     for (const r of t.reglas ?? []) assert.ok(codigos.has(r), `${t.id} cita ${r}, que no está en docs/specs`);
     if (t.pantalla) assert.ok(contextoAyuda.items.has(t.pantalla), `${t.id}: la pantalla ${t.pantalla} no está en el menú del panel`);
   }

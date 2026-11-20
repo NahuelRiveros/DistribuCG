@@ -4,7 +4,8 @@ import { itemVisible } from "../../controls/layout/navbar/navbar_permissions.js"
  * Ayuda del panel (AYU-01 a AYU-09): solo datos y reglas, sin pantallas (lo prueban los tests de Node).
  *
  * Un tema: { id, grupo, titulo, resumen, palabras?, reglas?, pantalla?, acceso?, relacionados?, secciones }.
- * Una sección: { titulo, texto?, pasos?, ejemplo?, problemas?: [{ problema, solucion }], pantalla?, acceso? }.
+ * Una sección: { titulo, texto? (uno o varios párrafos), pasos?, ejemplo?, consejo?, problemas?: [{ problema, solucion }],
+ * pantalla?, acceso? }.
  * Quién lo ve (AYU-04): `pantalla` = la misma regla que el ítem del menú con ese `to` (si el ítem no existe en
  * esta instalación, el tema no se muestra); `acceso` = { roles, permisos, todosLosPermisos } propio; sin ninguno,
  * todo el que entra al panel. Siempre hace falta, además, poder entrar al panel.
@@ -46,7 +47,7 @@ export const normalizar = (texto) => String(texto ?? "").normalize("NFD").replac
 
 /** Todo el texto de un tema (lo que ya se filtró por acceso), para el buscador. */
 export function textoDelTema(tema) {
-  const deSeccion = (s) => [s.titulo, s.texto, s.ejemplo, ...(s.pasos ?? []), ...(s.problemas ?? []).flatMap((p) => [p.problema, p.solucion])];
+  const deSeccion = (s) => [s.titulo, ...[s.texto ?? []].flat(), s.ejemplo, s.consejo, ...(s.pasos ?? []), ...(s.problemas ?? []).flatMap((p) => [p.problema, p.solucion])];
   return normalizar([tema.titulo, tema.resumen, tema.grupo, ...(tema.palabras ?? []), ...(tema.secciones ?? []).flatMap(deSeccion)].filter(Boolean).join(" "));
 }
 

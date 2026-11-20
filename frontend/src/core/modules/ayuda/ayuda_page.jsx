@@ -1,5 +1,5 @@
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CircleHelp, Lightbulb, Search, TriangleAlert } from "lucide-react";
+import { ArrowLeft, ArrowRight, CircleHelp, Lightbulb, Search, Sparkles, TriangleAlert } from "lucide-react";
 import { useTemasAyuda } from "./use_temas_ayuda.js";
 import { todosLosTemas } from "./registro_ayuda.js";
 import { agruparTemas, buscarTemas } from "./ayuda_temas.js";
@@ -28,8 +28,15 @@ function Lista({ temas }) {
   return <>
     <div>
       <h1 className="kt-display flex items-center gap-2 text-2xl font-bold text-(--kt-ink)"><CircleHelp aria-hidden="true" className="h-6 w-6 text-(--kt-teal-700)" />Ayuda</h1>
-      <p className="mt-1 text-sm text-(--kt-ink-soft)">Guías cortas de lo que podés hacer en el panel. Solo ves las de las funciones de tu rol.</p>
+      <p className="mt-1 text-sm text-(--kt-ink-soft)">Guías paso a paso de lo que podés hacer en el panel. Solo ves las de las funciones de tu rol.</p>
     </div>
+    {temas.some((t) => t.id === "bienvenida") && !consulta.trim() && (
+      <Link to="/panel/ayuda/bienvenida" className={`flex items-center gap-3 rounded-2xl border border-(--kt-turquoise) bg-(--kt-turquoise-soft) p-4 text-sm text-(--kt-ink) ${LINK}`}>
+        <Sparkles aria-hidden="true" className="h-6 w-6 shrink-0 text-(--kt-teal-700)" />
+        <span><b className="block">¿Es tu primera vez?</b>Empezá por "Empezá acá": te explica en 5 minutos cómo funciona todo.</span>
+        <ArrowRight aria-hidden="true" className="ml-auto h-4 w-4 shrink-0" />
+      </Link>
+    )}
     <div className="relative">
       <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-(--kt-ink-soft)" />
       <label htmlFor="ayuda-buscar" className="sr-only">Buscar en la ayuda</label>
@@ -99,9 +106,10 @@ function Tema({ id, temas }) {
 function Seccion({ seccion: s }) {
   return <section className={TARJETA}>
     <h2 className="font-bold text-(--kt-ink)">{s.titulo}</h2>
-    {s.texto && <p className="mt-2 text-sm leading-relaxed text-(--kt-ink)">{s.texto}</p>}
+    {[s.texto ?? []].flat().map((parrafo) => <p key={parrafo} className="mt-2 text-sm leading-relaxed text-(--kt-ink)">{parrafo}</p>)}
     {s.pasos && <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-(--kt-ink)">{s.pasos.map((p) => <li key={p}>{p}</li>)}</ol>}
     {s.ejemplo && <p className="mt-2 flex gap-2 rounded-xl bg-(--kt-turquoise-soft) p-3 text-sm text-(--kt-ink)"><Lightbulb aria-hidden="true" className="h-5 w-5 shrink-0 text-(--kt-teal-700)" /><span>{s.ejemplo}</span></p>}
+    {s.consejo && <p className="mt-2 flex gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-(--kt-ink)"><Sparkles aria-hidden="true" className="h-5 w-5 shrink-0 text-(--kt-teal-700)" /><span>{s.consejo}</span></p>}
     {s.problemas && <dl className="mt-2 space-y-3 text-sm">{s.problemas.map((p) => (
       <div key={p.problema} className="rounded-xl border border-slate-200 p-3">
         <dt className="flex gap-2 font-semibold text-(--kt-ink)"><TriangleAlert aria-hidden="true" className="h-4 w-4 shrink-0 translate-y-0.5 text-amber-600" />{p.problema}</dt>
