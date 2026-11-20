@@ -1413,3 +1413,28 @@ test("AYU-05: el ? de Artículos abre su ayuda; un cliente no tiene ayuda", asyn
   await page.goto("/panel/ayuda");
   await expect(page).not.toHaveURL(/\/panel/);
 });
+
+test("navbar con sesión: iniciales y nombre de pila; al abrir, nombre completo y el rol solo para el personal", async ({ page }, info) => {
+  const escritorio = info.project.name === "desktop";
+  const abrirCuenta = async (nombre) => {
+    await page.getByRole("button", { name: `Mi cuenta: ${nombre}` }).click();
+    return escritorio ? page.locator("#account-menu") : page.getByRole("dialog");
+  };
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("token", "mock-session"));
+  await page.goto("/");
+  const boton = page.getByRole("button", { name: "Mi cuenta: Ana Cliente" });
+  await expect(boton).toBeVisible();
+  await expect(boton).toContainText("AC");
+  if (escritorio) await expect(boton).toContainText("Ana");
+  const cuenta = await abrirCuenta("Ana Cliente");
+  await expect(cuenta.getByText("Ana Cliente", { exact: true })).toBeVisible();
+  await expect(cuenta.getByText("Cliente", { exact: true })).toHaveCount(0);
+  await noOverflow(page);
+
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+  await entrarComo(page, ["supervisor"]);
+  await page.goto("/");
+  const delEquipo = await abrirCuenta("Eva");
+  await expect(delEquipo.getByText("Encargado", { exact: true })).toBeVisible();
+});
