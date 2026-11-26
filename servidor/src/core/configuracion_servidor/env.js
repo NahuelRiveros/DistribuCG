@@ -47,6 +47,8 @@ const urlBaseDatos = leer("BD_URL_SUPABASE", "BD_URL");
 export const env = {
   PORT:     process.env.PORT || 3001,
   NODE_ENV: process.env.NODE_ENV || "development",
+  // Render la define sola en sus servidores.
+  EN_RENDER: process.env.RENDER === "true",
 
   // ── Base de datos (Supabase en producción, Postgres local en dev) ──
   // BD_URL_SUPABASE: connection string completo; si queda vacío se usan las DB_* sueltas (tu PC).

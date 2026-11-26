@@ -2,7 +2,7 @@ import { lazy } from "react";
 import { accesoPanel } from "../../config/navbar_config/panel_gestion.js";
 import { adminRoutes } from "./admin.routes.jsx";
 import { superAdminRoutes } from "./super_admin.routes.jsx";
-import { pantallasActivas } from "../../../proyecto/pantallas_modulos.jsx";
+import { rutasActivas } from "../pantallas_activas.js";
 import { protegida } from "./route_helpers.jsx";
 const PanelInicioPage = lazy(() => import("../../modules/panel/panel_inicio_page.jsx"));
 const AyudaPage = lazy(() => import("../../modules/ayuda/ayuda_page.jsx"));
@@ -14,7 +14,7 @@ export const panelRoutes = [
   // AYU-01 y AYU-06: quien entra al panel; adentro cada tema se filtra por sus permisos (AYU-04).
   { path: "/panel/ayuda", element: protegida(<AyudaPage />, accesoPanel) },
   { path: "/panel/ayuda/:tema", element: protegida(<AyudaPage />, accesoPanel) },
-  ...pantallasActivas.flatMap((pantallas) => pantallas.rutasPanel ?? []),
+  ...rutasActivas("rutasPanel"),
   ...adminRoutes,
   ...superAdminRoutes,
 ];

@@ -1,5 +1,5 @@
 import { CircleHelp, LayoutDashboard } from "lucide-react";
-import { modulosActivos } from "../../../proyecto/modulos_activos.js";
+import { modulosActivos } from "../modulos_activos.js";
 import { adminDropdown } from "./admin_dropdown.js";
 import { superAdminDropdown } from "./super_admin_dropdown.js";
 

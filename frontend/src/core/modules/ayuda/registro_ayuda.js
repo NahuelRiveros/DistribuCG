@@ -1,4 +1,4 @@
-import { modulosActivos } from "../../../proyecto/modulos_activos.js";
+import { modulosActivos } from "../../config/modulos_activos.js";
 import { accesoPanel, panelGrupos } from "../../config/navbar_config/panel_gestion.js";
 import { temasAyudaCore } from "./temas_core.js";
 import { itemsPorPantalla } from "./ayuda_temas.js";
